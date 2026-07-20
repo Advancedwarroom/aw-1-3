@@ -1,0 +1,41 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://be7oxni4kgnjv"]
+
+[ext_resource type="Texture2D" uid="uid://diy53boe0v87y" path="res://asscets/Weapons/Crystal/BlackCrystal.png" id="1_bfqeg"]
+[ext_resource type="Texture2D" uid="uid://dnsxkfemav417" path="res://asscets/Weapons/Crystal/BlueCrystal.png" id="2_0t00i"]
+[ext_resource type="Texture2D" uid="uid://e4c1ams0opcl" path="res://asscets/Weapons/Crystal/Crystal.png" id="3_sa4nl"]
+[ext_resource type="Texture2D" uid="uid://btjipafibqmyf" path="res://asscets/Weapons/Crystal/OrangeCrystal.png" id="4_tbelf"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_bfqeg")
+}],
+"loop": true,
+"name": &"BlackCrystal",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_0t00i")
+}],
+"loop": true,
+"name": &"BlueCrystal",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_sa4nl")
+}],
+"loop": true,
+"name": &"Crystal",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_tbelf")
+}],
+"loop": true,
+"name": &"OrangeCrystal",
+"speed": 5.0
+}]

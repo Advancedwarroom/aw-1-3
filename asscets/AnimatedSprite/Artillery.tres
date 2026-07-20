@@ -1,0 +1,47 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://ru411dyua1i1"]
+
+[ext_resource type="Texture2D" uid="uid://dexxni8sff0b6" path="res://asscets/units/Artillery/OsArtillery1.png" id="1_htl5q"]
+[ext_resource type="Texture2D" uid="uid://xkbvrvr7toki" path="res://asscets/units/Artillery/OsArtillery2.png" id="2_g3s7x"]
+[ext_resource type="Texture2D" uid="uid://c8204b18onv4g" path="res://asscets/units/Artillery/OsArtillery3.png" id="3_xsoy2"]
+[ext_resource type="Texture2D" uid="uid://be8lps62u2y4" path="res://asscets/units/Artillery/OsArtillery4.png" id="4_wmspi"]
+[ext_resource type="Texture2D" uid="uid://cdp2m2kox2c67" path="res://asscets/units/Artillery/BmArtillery1.png" id="5_1y310"]
+[ext_resource type="Texture2D" uid="uid://dx787ymiuoo4p" path="res://asscets/units/Artillery/BmArtillery2.png" id="6_ygn78"]
+[ext_resource type="Texture2D" uid="uid://b11h2uterc7cm" path="res://asscets/units/Artillery/BmArtillery4.png" id="7_7qi87"]
+[ext_resource type="Texture2D" uid="uid://bcg61ctgitdgx" path="res://asscets/units/Artillery/BmArtillery.png" id="8_v8jrx"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 0.8,
+"texture": ExtResource("1_htl5q")
+}, {
+"duration": 0.8,
+"texture": ExtResource("2_g3s7x")
+}, {
+"duration": 1.6,
+"texture": ExtResource("3_xsoy2")
+}, {
+"duration": 0.8,
+"texture": ExtResource("4_wmspi")
+}],
+"loop": true,
+"name": &"artillery1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 0.8,
+"texture": ExtResource("6_ygn78")
+}, {
+"duration": 0.8,
+"texture": ExtResource("5_1y310")
+}, {
+"duration": 1.6,
+"texture": ExtResource("7_7qi87")
+}, {
+"duration": 0.8,
+"texture": ExtResource("8_v8jrx")
+}],
+"loop": true,
+"name": &"artillery2",
+"speed": 5.0
+}]

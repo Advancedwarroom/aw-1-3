@@ -1,0 +1,47 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://crqukv1bt8ank"]
+
+[ext_resource type="Texture2D" uid="uid://daaf7pej3upwk" path="res://asscets/units/FlyBomb/flybomb1.png" id="1_2h0vv"]
+[ext_resource type="Texture2D" uid="uid://dqlhder0bta30" path="res://asscets/units/FlyBomb/flybomb2.png" id="2_jy4ev"]
+[ext_resource type="Texture2D" uid="uid://dq03s3i3rv1jo" path="res://asscets/units/FlyBomb/flybomb3.png" id="3_f5x3k"]
+[ext_resource type="Texture2D" uid="uid://dwchmf22yw2k0" path="res://asscets/units/FlyBomb/flybomb4.png" id="4_l30dp"]
+[ext_resource type="Texture2D" uid="uid://v5yi4pwvu72m" path="res://asscets/units/FlyBomb/flybomb5.png" id="5_qtwvy"]
+[ext_resource type="Texture2D" uid="uid://cr70kw2g0o32t" path="res://asscets/units/FlyBomb/flybomb6.png" id="6_1qv5t"]
+[ext_resource type="Texture2D" uid="uid://cyray360rbmiq" path="res://asscets/units/FlyBomb/flybomb7.png" id="7_0xqnr"]
+[ext_resource type="Texture2D" uid="uid://dwgablgqovh3x" path="res://asscets/units/FlyBomb/flybomb8.png" id="8_tbnl8"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_2h0vv")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_jy4ev")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_f5x3k")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_l30dp")
+}],
+"loop": true,
+"name": &"FlyBomb1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_qtwvy")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_1qv5t")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_0xqnr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_tbnl8")
+}],
+"loop": true,
+"name": &"FlyBomb2",
+"speed": 5.0
+}]

@@ -1,0 +1,71 @@
+[gd_scene format=3 uid="uid://dnt60r2p18wp"]
+
+[ext_resource type="SpriteFrames" uid="uid://bkmjpiqqtw4s5" path="res://asscets/AnimatedSprite/NoFuelIcno.tres" id="1_4o4y6"]
+[ext_resource type="Script" uid="uid://5x4kjr01aqco" path="res://spricts/MdTank.cs" id="1_uexuy"]
+[ext_resource type="SpriteFrames" uid="uid://ci4pry7uh77cq" path="res://asscets/AnimatedSprite/NoAmmoIcon.tres" id="2_uexuy"]
+[ext_resource type="SpriteFrames" uid="uid://bta18psd6oght" path="res://asscets/AnimatedSprite/loaded.tres" id="3_166eq"]
+[ext_resource type="SpriteFrames" uid="uid://d7jlbrdaqapw" path="res://asscets/AnimatedSprite/MdTank.tres" id="4_d2xp7"]
+[ext_resource type="Texture2D" uid="uid://cjm6u5oxp80sh" path="res://asscets/units/MdTank/osmd1tank.png" id="6_166eq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yv6tl"]
+size = Vector2(32, 32)
+
+[node name="MdTank" type="Node2D" unique_id=1148536001 node_paths=PackedStringArray("MdSprite")]
+script = ExtResource("1_uexuy")
+MdSprite = NodePath("Md2D")
+useDefaultConfig = false
+movePoints = 5
+baseAttack = 450
+
+[node name="Area2D" type="Area2D" parent="." unique_id=580524551]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1207101772]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_yv6tl")
+
+[node name="NoFuelIcno" type="AnimatedSprite2D" parent="." unique_id=2071913430]
+visible = false
+modulate = Color(1, 0.83137256, 0, 1)
+z_index = 10
+position = Vector2(24, 48)
+sprite_frames = ExtResource("1_4o4y6")
+animation = &"No"
+
+[node name="NoAmmoIcon" type="AnimatedSprite2D" parent="." unique_id=620519490]
+visible = false
+modulate = Color(1, 1, 1, 0.654902)
+z_index = 10
+position = Vector2(24, 48)
+sprite_frames = ExtResource("2_uexuy")
+animation = &"NoAmmoIcon"
+
+[node name="loaded" type="AnimatedSprite2D" parent="." unique_id=1647042061]
+visible = false
+position = Vector2(24, 48)
+sprite_frames = ExtResource("3_166eq")
+animation = &"loaded"
+
+[node name="HpLabel" type="Label" parent="." unique_id=22786035]
+z_index = 10
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "10"
+
+[node name="Md2D" type="AnimatedSprite2D" parent="." unique_id=161931243]
+position = Vector2(16, 16)
+scale = Vector2(2, 2)
+sprite_frames = ExtResource("4_d2xp7")
+animation = &"Md1"
+
+[node name="MdSprite" type="Sprite2D" parent="." unique_id=867258053]
+visible = false
+position = Vector2(16, 16)
+scale = Vector2(2, 2)
+texture = ExtResource("6_166eq")

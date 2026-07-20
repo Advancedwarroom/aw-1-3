@@ -1,0 +1,72 @@
+[gd_scene format=3 uid="uid://dpabwwj6tnqnu"]
+
+[ext_resource type="Script" uid="uid://qyr058ogen35" path="res://spricts/Grids.cs" id="1_1d0qn"]
+[ext_resource type="Texture2D" uid="uid://us0drs83bg8h" path="res://art/移动范围高亮显示.png" id="1_386kj"]
+[ext_resource type="Texture2D" uid="uid://bcplyapab6lin" path="res://art/grass.png" id="2_t285k"]
+[ext_resource type="Texture2D" uid="uid://chyt357y7sn0g" path="res://art/AttackRange.png" id="3_hp5g7"]
+[ext_resource type="Texture2D" uid="uid://dmn6tp5cfwerh" path="res://art/hills.png" id="4_1ln5d"]
+[ext_resource type="Texture2D" uid="uid://dsx0a2smfdurg" path="res://art/Grids/GridsArrow.png" id="4_vm3qa"]
+[ext_resource type="Texture2D" uid="uid://ct6cdb8js74to" path="res://art/Grids/地形/Forest.png" id="5_nquop"]
+[ext_resource type="Texture2D" uid="uid://c50a21st8jrlp" path="res://art/Grids/地形/River.png" id="6_ax3ny"]
+[ext_resource type="Texture2D" uid="uid://bt73e28peqs0o" path="res://art/Grids/地形/Sea.png" id="7_xkamf"]
+[ext_resource type="Texture2D" uid="uid://bkgfso0gstxjr" path="res://art/Grids/地形/Lava.png" id="10_tdne3"]
+[ext_resource type="Texture2D" uid="uid://banhkl64ukpcn" path="res://art/Grids/地形/Beach.png" id="11_bd5un"]
+[ext_resource type="Texture2D" uid="uid://6t1w7tjxivn6" path="res://art/Grids/地形/TP.png" id="12_fhrta"]
+[ext_resource type="Texture2D" uid="uid://ctr2dwifwlwrt" path="res://art/Grids/地形/Reef.png" id="13_fqpsr"]
+[ext_resource type="Texture2D" uid="uid://5cwwbc0qnlwk" path="res://art/Grids/地形/PipeSeam.png" id="14_00fs3"]
+[ext_resource type="Texture2D" uid="uid://dloef8jixlpda" path="res://art/Grids/地形/Road.png" id="14_b73tk"]
+[ext_resource type="Texture2D" uid="uid://bb734ha8bqmgr" path="res://art/Grids/地形/Pipe.png" id="14_tvkgv"]
+[ext_resource type="Texture2D" uid="uid://bf1qqlsrtj86o" path="res://art/Grids/地形/LAVASide.png" id="15_x3au7"]
+[ext_resource type="Texture2D" uid="uid://bbykd0k0j8tge" path="res://art/Grids/地形/BRIDGE.png" id="16_nquop"]
+[ext_resource type="Texture2D" uid="uid://0hq17p5572l4" path="res://art/Grids/地形/BrokenPipeSeam.png" id="16_p0itk"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0ha60"]
+size = Vector2(32, 32)
+
+[node name="Grid" type="Node2D" unique_id=1373098011]
+script = ExtResource("1_1d0qn")
+terrainIconTextures = Dictionary[int, Texture2D]({
+0: ExtResource("2_t285k"),
+1: ExtResource("5_nquop"),
+2: ExtResource("14_b73tk"),
+3: ExtResource("7_xkamf"),
+4: ExtResource("6_ax3ny"),
+5: ExtResource("4_1ln5d"),
+7: ExtResource("14_tvkgv"),
+8: ExtResource("10_tdne3"),
+9: ExtResource("11_bd5un"),
+10: ExtResource("12_fhrta"),
+11: ExtResource("13_fqpsr"),
+13: ExtResource("15_x3au7"),
+21: ExtResource("14_00fs3"),
+24: ExtResource("16_nquop"),
+29: ExtResource("16_p0itk")
+})
+
+[node name="GridArea" type="Area2D" parent="." unique_id=1570731547]
+
+[node name="GridShape2D" type="CollisionShape2D" parent="GridArea" unique_id=380432133]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_0ha60")
+
+[node name="mrhl" type="Sprite2D" parent="." unique_id=1579113294]
+visible = false
+z_index = 2
+position = Vector2(16, 16)
+texture = ExtResource("1_386kj")
+
+[node name="AttackRange" type="Sprite2D" parent="." unique_id=2003338164]
+visible = false
+z_index = 2
+position = Vector2(16, 16)
+texture = ExtResource("3_hp5g7")
+
+[node name="TowerDirectionArrow" type="Sprite2D" parent="." unique_id=288865701]
+visible = false
+z_index = 10
+position = Vector2(16, 16)
+texture = ExtResource("4_vm3qa")
+
+[connection signal="input_event" from="GridArea" to="." method="ClickGrid"]
+[connection signal="mouse_entered" from="GridArea" to="." method="OnArea2DMouseEntered"]
+[connection signal="mouse_exited" from="GridArea" to="." method="OnArea2DMouseExited"]

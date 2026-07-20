@@ -1,0 +1,47 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://ct353sr7647mp"]
+
+[ext_resource type="Texture2D" uid="uid://oqf1jb2fv1mb" path="res://asscets/units/AntiAir/osantiair1.png" id="1_rem38"]
+[ext_resource type="Texture2D" uid="uid://bkn6gk2w0g2k3" path="res://asscets/units/AntiAir/osantiair2.png" id="2_pfrex"]
+[ext_resource type="Texture2D" uid="uid://3dakp71mfd5f" path="res://asscets/units/AntiAir/osantiair3.png" id="3_ge176"]
+[ext_resource type="Texture2D" uid="uid://bbqcbw7tdujl3" path="res://asscets/units/AntiAir/osantiair4.png" id="4_ko4hp"]
+[ext_resource type="Texture2D" uid="uid://mif0j05uxni6" path="res://asscets/units/AntiAir/bmantiair1.png" id="5_gunww"]
+[ext_resource type="Texture2D" uid="uid://c3um3yofl4v28" path="res://asscets/units/AntiAir/bmantiair2.png" id="6_ex728"]
+[ext_resource type="Texture2D" uid="uid://cbe6dfebhrake" path="res://asscets/units/AntiAir/bmantiair3.png" id="7_x4fys"]
+[ext_resource type="Texture2D" uid="uid://dhawtohc62ttu" path="res://asscets/units/AntiAir/bmantiair4.png" id="8_k1ivx"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_rem38")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_pfrex")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_ge176")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_ko4hp")
+}],
+"loop": true,
+"name": &"antiair1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_gunww")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_ex728")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_x4fys")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_k1ivx")
+}],
+"loop": true,
+"name": &"antiair2",
+"speed": 5.0
+}]

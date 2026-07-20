@@ -1,0 +1,18 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://ootwvvylt444"]
+
+[ext_resource type="Texture2D" uid="uid://dvx320gf4wuix" path="res://asscets/units/OsMech2.png" id="1_l466v"]
+[ext_resource type="Texture2D" uid="uid://dfiyysbylh2b8" path="res://asscets/units/osMech1.png" id="2_h4mvl"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_l466v")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_h4mvl")
+}],
+"loop": true,
+"name": &"unit",
+"speed": 5.0
+}]

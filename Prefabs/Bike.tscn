@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://bav1wcjvwgxh8"]
+
+[ext_resource type="Script" uid="uid://hgs51mm8710x" path="res://spricts/Bike.cs" id="1_g7w8n"]
+[ext_resource type="SpriteFrames" uid="uid://bkmjpiqqtw4s5" path="res://asscets/AnimatedSprite/NoFuelIcno.tres" id="1_m37e8"]
+[ext_resource type="SpriteFrames" uid="uid://ci4pry7uh77cq" path="res://asscets/AnimatedSprite/NoAmmoIcon.tres" id="2_envd5"]
+[ext_resource type="SpriteFrames" uid="uid://bta18psd6oght" path="res://asscets/AnimatedSprite/loaded.tres" id="3_t2nye"]
+[ext_resource type="SpriteFrames" uid="uid://lcmus530x12i" path="res://asscets/AnimatedSprite/Bike.tres" id="5_vtgrn"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yv6tl"]
+size = Vector2(32, 32)
+
+[node name="Bike" type="Node2D" unique_id=1148536001 node_paths=PackedStringArray("animSprite", "loadedIcon", "noFuelIcon", "noAmmoIcon")]
+script = ExtResource("1_g7w8n")
+animSprite = NodePath("Base2D")
+loadedIcon = NodePath("HpLabel/loaded")
+noFuelIcon = NodePath("HpLabel/NoFuelIcno")
+defaultMovePoints = 5
+movePoints = 5
+noAmmoIcon = NodePath("HpLabel/NoAmmoIcon")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=580524551]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1207101772]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_yv6tl")
+
+[node name="HpLabel" type="Label" parent="." unique_id=22786035]
+z_index = 10
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "10"
+
+[node name="NoFuelIcno" type="AnimatedSprite2D" parent="HpLabel" unique_id=2071913430]
+visible = false
+modulate = Color(1, 0.83137256, 0, 1)
+z_index = 10
+position = Vector2(8, 32)
+sprite_frames = ExtResource("1_m37e8")
+animation = &"No"
+
+[node name="NoAmmoIcon" type="AnimatedSprite2D" parent="HpLabel" unique_id=620519490]
+visible = false
+modulate = Color(1, 1, 1, 0.654902)
+z_index = 10
+position = Vector2(8, 32)
+sprite_frames = ExtResource("2_envd5")
+animation = &"NoAmmoIcon"
+
+[node name="loaded" type="AnimatedSprite2D" parent="HpLabel" unique_id=1647042061]
+visible = false
+z_index = 10
+position = Vector2(8, 32)
+sprite_frames = ExtResource("3_t2nye")
+animation = &"loaded"
+
+[node name="Base2D" type="AnimatedSprite2D" parent="." unique_id=161931243]
+position = Vector2(16, 16)
+sprite_frames = ExtResource("5_vtgrn")
+animation = &"Bike2"
+
+[node name="BaseSprite" type="Sprite2D" parent="." unique_id=1093580140]

@@ -1,0 +1,39 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://lcmus530x12i"]
+
+[ext_resource type="Texture2D" uid="uid://cc06crfmguyi1" path="res://asscets/units/Bike/Bike1.png" id="1_fydnh"]
+[ext_resource type="Texture2D" uid="uid://bg37idprrbcty" path="res://asscets/units/Bike/Bike2.png" id="2_qif34"]
+[ext_resource type="Texture2D" uid="uid://dir2r3v6fxv4t" path="res://asscets/units/Bike/Bike3.png" id="3_as6dd"]
+[ext_resource type="Texture2D" uid="uid://imnefurmiwm" path="res://asscets/units/Bike/Bike4.png" id="4_owvkb"]
+[ext_resource type="Texture2D" uid="uid://dbwa1habvsceq" path="res://asscets/units/Bike/Bike5.png" id="5_2plds"]
+[ext_resource type="Texture2D" uid="uid://bf5g0oxgec1nw" path="res://asscets/units/Bike/Bike6.png" id="6_5ex5c"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_fydnh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_qif34")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_as6dd")
+}],
+"loop": true,
+"name": &"Bike1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_owvkb")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_2plds")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_5ex5c")
+}],
+"loop": true,
+"name": &"Bike2",
+"speed": 5.0
+}]

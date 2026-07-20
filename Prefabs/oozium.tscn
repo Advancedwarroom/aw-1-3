@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://cd08wmohe3f04"]
+
+[ext_resource type="Script" uid="uid://b3vp2mrof5lbd" path="res://spricts/Oozium.cs" id="1_bf6en"]
+[ext_resource type="SpriteFrames" uid="uid://dfk8fp45fxuvw" path="res://asscets/AnimatedSprite/main.tres" id="2_ejik0"]
+[ext_resource type="SpriteFrames" uid="uid://bkmjpiqqtw4s5" path="res://asscets/AnimatedSprite/NoFuelIcno.tres" id="3_ejik0"]
+[ext_resource type="SpriteFrames" uid="uid://ci4pry7uh77cq" path="res://asscets/AnimatedSprite/NoAmmoIcon.tres" id="4_n88l3"]
+[ext_resource type="SpriteFrames" uid="uid://bta18psd6oght" path="res://asscets/AnimatedSprite/loaded.tres" id="5_gmvpv"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_n88l3"]
+size = Vector2(32, 34)
+
+[node name="Oozium" type="Node2D" unique_id=761735606 node_paths=PackedStringArray("animSprite", "loadedIcon", "noFuelIcon", "noAmmoIcon")]
+z_index = 10
+script = ExtResource("1_bf6en")
+animSprite = NodePath("AnimatedSprite2D")
+useDefaultConfig = false
+unitCategory = 4
+loadedIcon = NodePath("loaded")
+noFuelIcon = NodePath("NoFuelIcno")
+moveType = 2
+defaultMovePoints = 1
+movePoints = 1
+maxHealth = 200
+health = 200
+baseAttack = 0
+noAmmoIcon = NodePath("NoAmmoIcon")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1442364498]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=161358511]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_n88l3")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=655078691]
+position = Vector2(16, 16)
+sprite_frames = ExtResource("2_ejik0")
+animation = &"breath"
+frame_progress = 0.975943
+
+[node name="HpLabel" type="Label" parent="." unique_id=1676126936]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+theme_override_colors/font_color = Color(1, 0.09411765, 0.972549, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "10"
+
+[node name="NoFuelIcno" type="AnimatedSprite2D" parent="." unique_id=1770397541]
+visible = false
+modulate = Color(1, 0.83137256, 0, 1)
+position = Vector2(8, 32)
+sprite_frames = ExtResource("3_ejik0")
+animation = &"No"
+
+[node name="NoAmmoIcon" type="AnimatedSprite2D" parent="." unique_id=1759496453]
+visible = false
+modulate = Color(1, 1, 1, 0.654902)
+position = Vector2(8, 32)
+sprite_frames = ExtResource("4_n88l3")
+animation = &"NoAmmoIcon"
+
+[node name="loaded" type="AnimatedSprite2D" parent="." unique_id=691519449]
+visible = false
+position = Vector2(8, 32)
+sprite_frames = ExtResource("5_gmvpv")
+animation = &"loaded"

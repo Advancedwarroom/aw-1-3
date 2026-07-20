@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://kbpull7ec1pg"]
+
+[ext_resource type="Script" uid="uid://c43gl1xf4l84p" path="res://spricts/LargeCannon.cs" id="1_4jlpy"]
+[ext_resource type="SpriteFrames" uid="uid://dw1aoeyullbhn" path="res://asscets/AnimatedSprite/LargeCannon.tres" id="2_q5k8x"]
+[ext_resource type="Texture2D" uid="uid://dbdvtegdaq8pg" path="res://asscets/Weapons/love.png" id="3_2ak31"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b6v0d"]
+size = Vector2(33, 33)
+
+[node name="LargeCannon" type="Node2D" unique_id=769636627]
+script = ExtResource("1_4jlpy")
+canRotate = false
+fixedDamagePercent = 0.5
+canRotate = false
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1542309704]
+position = Vector2(16, 15.999996)
+scale = Vector2(0.99999994, 0.9206349)
+sprite_frames = ExtResource("2_q5k8x")
+animation = &"BrokenLeft"
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1328919764]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1593614833]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_b6v0d")
+
+[node name="HpLabel" type="Label" parent="." unique_id=222567236]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "99"
+
+[node name="LoveIcon" type="Sprite2D" parent="." unique_id=1289959463]
+position = Vector2(8, 31.999998)
+scale = Vector2(0.5353261, 0.6580883)
+texture = ExtResource("3_2ak31")

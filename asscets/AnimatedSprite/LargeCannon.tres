@@ -1,0 +1,93 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://dw1aoeyullbhn"]
+
+[ext_resource type="Texture2D" uid="uid://b3bi0xnp7ca20" path="res://asscets/Weapons/LargeCannon/LargeCannon9.png" id="1_6cyh6"]
+[ext_resource type="Texture2D" uid="uid://ddc7oi8exxrn6" path="res://asscets/Weapons/LargeCannon/LargeCannon1.png" id="1_ttnue"]
+[ext_resource type="Texture2D" uid="uid://dhkyvquv63pbo" path="res://asscets/Weapons/LargeCannon/LargeCannon11.png" id="2_3mc3h"]
+[ext_resource type="Texture2D" uid="uid://bborolp6308yf" path="res://asscets/Weapons/LargeCannon/LargeCannon5.png" id="2_v4dp5"]
+[ext_resource type="Texture2D" uid="uid://dq6af1xdcrgh8" path="res://asscets/Weapons/LargeCannon/LargeCannon12.png" id="3_j22k5"]
+[ext_resource type="Texture2D" uid="uid://dyd2lfw2ahnqd" path="res://asscets/Weapons/LargeCannon/LargeCannon3.png" id="3_n0n4n"]
+[ext_resource type="Texture2D" uid="uid://b7oyb3puc5nht" path="res://asscets/Weapons/LargeCannon/LargeCannon7.png" id="4_jxucf"]
+[ext_resource type="Texture2D" uid="uid://ccltte8roj5jo" path="res://asscets/Weapons/LargeCannon/LargeCannon10.png" id="4_mtkr8"]
+[ext_resource type="Texture2D" uid="uid://7ktcu64iyhgg" path="res://asscets/Weapons/LargeCannon/LargeCannon4.png" id="5_6cyh6"]
+[ext_resource type="Texture2D" uid="uid://cnghpicl5lfnf" path="res://asscets/Weapons/LargeCannon/LargeCannon8.png" id="6_3mc3h"]
+[ext_resource type="Texture2D" uid="uid://oopkvn1wmdwm" path="res://asscets/Weapons/LargeCannon/LargeCannon2.png" id="7_j22k5"]
+[ext_resource type="Texture2D" uid="uid://bgrxeok5cqk7f" path="res://asscets/Weapons/LargeCannon/LargeCannon6.png" id="8_mtkr8"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_6cyh6")
+}],
+"loop": true,
+"name": &"BrokenDown",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_3mc3h")
+}],
+"loop": true,
+"name": &"BrokenLeft",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_j22k5")
+}],
+"loop": true,
+"name": &"BrokenRight",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_mtkr8")
+}],
+"loop": true,
+"name": &"BrokenUp",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_ttnue")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_v4dp5")
+}],
+"loop": true,
+"name": &"LargeCannonDown",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_n0n4n")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_jxucf")
+}],
+"loop": true,
+"name": &"LargeCannonLeft",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_6cyh6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_3mc3h")
+}],
+"loop": true,
+"name": &"LargeCannonRight",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_j22k5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_mtkr8")
+}],
+"loop": true,
+"name": &"LargeCannonUp",
+"speed": 5.0
+}]

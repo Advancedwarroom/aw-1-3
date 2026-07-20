@@ -1,0 +1,47 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://cnfj0y8vx7nbw"]
+
+[ext_resource type="Texture2D" uid="uid://dl48h8xpb7hos" path="res://asscets/units/AntiTank/AntiTank1.png" id="1_hktag"]
+[ext_resource type="Texture2D" uid="uid://dsrvjp1lellq6" path="res://asscets/units/AntiTank/AntiTank2.png" id="2_4efg1"]
+[ext_resource type="Texture2D" uid="uid://cggsgocaudip6" path="res://asscets/units/AntiTank/AntiTank3.png" id="3_iucpt"]
+[ext_resource type="Texture2D" uid="uid://cdut2n7k4g22r" path="res://asscets/units/AntiTank/AntiTank4.png" id="4_hd4yx"]
+[ext_resource type="Texture2D" uid="uid://4dd8gx3qf2t0" path="res://asscets/units/AntiTank/AntiTank5.png" id="5_whjw4"]
+[ext_resource type="Texture2D" uid="uid://b6n8sycw3yexc" path="res://asscets/units/AntiTank/AntiTank6.png" id="6_0ofkr"]
+[ext_resource type="Texture2D" uid="uid://dwrmae83sk07h" path="res://asscets/units/AntiTank/AntiTank7.png" id="7_lngi2"]
+[ext_resource type="Texture2D" uid="uid://dpvf5h3vv1qpy" path="res://asscets/units/AntiTank/AntiTank8.png" id="8_82cpo"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_hktag")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_4efg1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_iucpt")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_hd4yx")
+}],
+"loop": true,
+"name": &"AntiTank1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_whjw4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_0ofkr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_lngi2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_82cpo")
+}],
+"loop": true,
+"name": &"AntiTank2",
+"speed": 5.0
+}]

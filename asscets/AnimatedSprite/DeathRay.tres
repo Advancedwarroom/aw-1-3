@@ -1,0 +1,93 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://c88nt7v0iq5a0"]
+
+[ext_resource type="Texture2D" uid="uid://d2kj7wotj7lb0" path="res://asscets/Weapons/DeathRay/DeathRay9.png" id="1_supl8"]
+[ext_resource type="Texture2D" uid="uid://hgccgy0w5vvf" path="res://asscets/Weapons/DeathRay/DeathRay12.png" id="2_hftrh"]
+[ext_resource type="Texture2D" uid="uid://brscichxnqchd" path="res://asscets/Weapons/DeathRay/DeathRay11.png" id="3_qjjpu"]
+[ext_resource type="Texture2D" uid="uid://ckt7glp6ncsp3" path="res://asscets/Weapons/DeathRay/DeathRay10.png" id="4_0uwqo"]
+[ext_resource type="Texture2D" uid="uid://g7q0roj6xxmi" path="res://asscets/Weapons/DeathRay/DeathRay1.png" id="5_2iacr"]
+[ext_resource type="Texture2D" uid="uid://csoxkusp26au7" path="res://asscets/Weapons/DeathRay/DeathRay2.png" id="6_bdxud"]
+[ext_resource type="Texture2D" uid="uid://r25vmcmhp85u" path="res://asscets/Weapons/DeathRay/DeathRay5.png" id="7_56fgn"]
+[ext_resource type="Texture2D" uid="uid://bouuwfy3b2t3v" path="res://asscets/Weapons/DeathRay/DeathRay6.png" id="8_k3cnk"]
+[ext_resource type="Texture2D" uid="uid://ceek10k2fphr0" path="res://asscets/Weapons/DeathRay/DeathRay7.png" id="9_vem0c"]
+[ext_resource type="Texture2D" uid="uid://dfy0sjf36jpvn" path="res://asscets/Weapons/DeathRay/DeathRay8.png" id="10_wm0w3"]
+[ext_resource type="Texture2D" uid="uid://dvg2aatlc6hs5" path="res://asscets/Weapons/DeathRay/DeathRay3.png" id="11_xvjsy"]
+[ext_resource type="Texture2D" uid="uid://gokubcjwlovs" path="res://asscets/Weapons/DeathRay/DeathRay4.png" id="12_bf4px"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_supl8")
+}],
+"loop": true,
+"name": &"BrokenDownRay",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_hftrh")
+}],
+"loop": true,
+"name": &"BrokenLeftRay",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_qjjpu")
+}],
+"loop": true,
+"name": &"BrokenRightRay",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_0uwqo")
+}],
+"loop": true,
+"name": &"BrokenUpRay",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_2iacr")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_bdxud")
+}],
+"loop": true,
+"name": &"DeathRayDown",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_56fgn")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_k3cnk")
+}],
+"loop": true,
+"name": &"DeathRayLeft",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("9_vem0c")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_wm0w3")
+}],
+"loop": true,
+"name": &"DeathRayRight",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("11_xvjsy")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_bf4px")
+}],
+"loop": true,
+"name": &"DeathRayUp",
+"speed": 5.0
+}]

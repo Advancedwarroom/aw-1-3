@@ -1,0 +1,31 @@
+[gd_resource type="SpriteFrames" load_steps=5 format=3 uid="uid://dtrsbd5xlolco"]
+
+[ext_resource type="Texture2D" uid="uid://dvx320gf4wuix" path="res://asscets/units/OsMech2.png" id="1_c8n6x"]
+[ext_resource type="Texture2D" uid="uid://dfiyysbylh2b8" path="res://asscets/units/osMech1.png" id="2_lx4xq"]
+[ext_resource type="Texture2D" uid="uid://clx1y2htar6mm" path="res://asscets/units/BMMech1.png" id="3_mg3lm"]
+[ext_resource type="Texture2D" uid="uid://qeddbt5n0o3y" path="res://asscets/units/BmMech2.png" id="4_yprkx"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_c8n6x")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_lx4xq")
+}],
+"loop": true,
+"name": &"mech1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_mg3lm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_yprkx")
+}],
+"loop": true,
+"name": &"mech2",
+"speed": 5.0
+}]

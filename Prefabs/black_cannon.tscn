@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://da6s11ixdv1oc"]
+
+[ext_resource type="Script" uid="uid://vuuj3180f3yq" path="res://spricts/BlackCannon.cs" id="1_oy4ns"]
+[ext_resource type="SpriteFrames" uid="uid://bk2tpwrcdh84l" path="res://asscets/AnimatedSprite/black_cannon.tres" id="2_dhde5"]
+[ext_resource type="Texture2D" uid="uid://dbdvtegdaq8pg" path="res://asscets/Weapons/love.png" id="3_dhde5"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6t4s0"]
+size = Vector2(33, 33)
+
+[node name="BlackCannon" type="Node2D" unique_id=507068074]
+z_index = 10
+script = ExtResource("1_oy4ns")
+fixedDamagePercent = 0.5
+direction = 2
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=524686475]
+position = Vector2(16, 16)
+sprite_frames = ExtResource("2_dhde5")
+animation = &"cannon2_right"
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1657214266]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=2119178706]
+position = Vector2(16.5, 16.5)
+shape = SubResource("RectangleShape2D_6t4s0")
+
+[node name="HpLabel" type="Label" parent="." unique_id=1472872463]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "99"
+
+[node name="LoveIcon" type="Sprite2D" parent="." unique_id=605784088]
+position = Vector2(8, 31.999998)
+scale = Vector2(0.5353261, 0.6580883)
+texture = ExtResource("3_dhde5")

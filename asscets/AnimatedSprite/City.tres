@@ -1,0 +1,44 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://8tnuhc1uw0tn"]
+
+[ext_resource type="Texture2D" uid="uid://dx2h8kf8cjdcq" path="res://art/City1.png" id="1_5ppw2"]
+[ext_resource type="Texture2D" uid="uid://ysi5efg8kjj3" path="res://art/CITY.png" id="1_8jqk8"]
+[ext_resource type="Texture2D" uid="uid://dr3ylgv8x05i0" path="res://art/City1dark.png" id="2_5f3hq"]
+[ext_resource type="Texture2D" uid="uid://hf0jfqsg7878" path="res://art/CITYdark.png" id="2_wgf70"]
+[ext_resource type="Texture2D" uid="uid://b456s1mc42roh" path="res://art/CITY2.png" id="3_5ppw2"]
+[ext_resource type="Texture2D" uid="uid://cewa7u8jrxl6o" path="res://art/CITY2dark.png" id="4_5f3hq"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_5ppw2")
+}, {
+"duration": 3.0,
+"texture": ExtResource("2_5f3hq")
+}],
+"loop": true,
+"name": &"P0City",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_8jqk8")
+}, {
+"duration": 3.0,
+"texture": ExtResource("2_wgf70")
+}],
+"loop": true,
+"name": &"cityteam1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_5ppw2")
+}, {
+"duration": 3.0,
+"texture": ExtResource("4_5f3hq")
+}],
+"loop": true,
+"name": &"cityteam2",
+"speed": 5.0
+}]

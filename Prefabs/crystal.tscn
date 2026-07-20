@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://crls6njimup6i"]
+
+[ext_resource type="Script" uid="uid://b43ydlgse7kjv" path="res://spricts/Crystal.cs" id="1_gegjs"]
+[ext_resource type="SpriteFrames" uid="uid://be7oxni4kgnjv" path="res://asscets/AnimatedSprite/Crystal.tres" id="1_x1sak"]
+[ext_resource type="Texture2D" uid="uid://dbdvtegdaq8pg" path="res://asscets/Weapons/love.png" id="5_ntfnu"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_r4l36"]
+size = Vector2(33, 33)
+
+[node name="Crystal" type="Node2D" unique_id=1012151537]
+script = ExtResource("1_gegjs")
+crystalHealAffectsWeapons = false
+crystalSupplyAffectsWeapons = false
+crystalSupplyConsumesAmmo = false
+crystalSupplyFlareAmmo = 999
+crystalSupplyExplodeAmmo = 999
+crystalSupplyPrimaryAmmo = 999
+crystalSupplyFuel = 999
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=996334453]
+position = Vector2(15.999999, 9.777777)
+scale = Vector2(0.99999994, 0.9206349)
+sprite_frames = ExtResource("1_x1sak")
+animation = &"OrangeCrystal"
+
+[node name="Area2D" type="Area2D" parent="." unique_id=311364891]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=754058147]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_r4l36")
+
+[node name="HpLabel" type="Label" parent="." unique_id=604452070]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "99"
+
+[node name="LoveIcon" type="Sprite2D" parent="." unique_id=1002410351]
+position = Vector2(8, 31.999998)
+scale = Vector2(0.5353261, 0.6580883)
+texture = ExtResource("5_ntfnu")

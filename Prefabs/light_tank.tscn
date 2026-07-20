@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://dfh33eosbmvkb"]
+
+[ext_resource type="Script" uid="uid://d16omq4ux3t8j" path="res://spricts/LightTank.cs" id="1_script"]
+[ext_resource type="SpriteFrames" uid="uid://cb0n87m77t285" path="res://asscets/AnimatedSprite/lighttank.tres" id="2_frames"]
+[ext_resource type="Texture2D" uid="uid://bf75lljd6qnq8" path="res://asscets/units/Tank/ostank1.png" id="3_l7g7b"]
+[ext_resource type="SpriteFrames" uid="uid://bkmjpiqqtw4s5" path="res://asscets/AnimatedSprite/NoFuelIcno.tres" id="4_nnocp"]
+[ext_resource type="SpriteFrames" uid="uid://ci4pry7uh77cq" path="res://asscets/AnimatedSprite/NoAmmoIcon.tres" id="5_jgva2"]
+[ext_resource type="SpriteFrames" uid="uid://bta18psd6oght" path="res://asscets/AnimatedSprite/loaded.tres" id="6_8lkuh"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tank"]
+size = Vector2(34, 34)
+
+[node name="LightTank" type="Node2D" unique_id=1449329539 node_paths=PackedStringArray("animSprite", "idleSprite", "loadedIcon", "noFuelIcon", "noAmmoIcon")]
+z_index = 10
+script = ExtResource("1_script")
+animSprite = NodePath("AnimatedSprite2D")
+idleSprite = NodePath("Sprite2D")
+useDefaultConfig = false
+unitCategory = 1
+isArmoredUnit = true
+loadedIcon = NodePath("loaded")
+noFuelIcon = NodePath("NoFuelIcno")
+moveType = 3
+defaultMovePoints = 6
+movePoints = 6
+baseAttack = 150
+noAmmoIcon = NodePath("NoAmmoIcon")
+maxFuel = 70
+fuel = 70
+consumeFuel = true
+hasPrimaryWeapon = true
+maxPrimaryAmmo = 9
+currentPrimaryAmmo = 9
+primaryAntiArmor = true
+primaryAntiInfantry = false
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1496334006]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1548780876]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_tank")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1828372812]
+position = Vector2(16, 16)
+sprite_frames = ExtResource("2_frames")
+animation = &"lighttank1"
+frame_progress = 0.9627719
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1080152555]
+visible = false
+position = Vector2(16, 16)
+texture = ExtResource("3_l7g7b")
+
+[node name="HpLabel" type="Label" parent="." unique_id=610387109]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "10"
+
+[node name="NoFuelIcno" type="AnimatedSprite2D" parent="." unique_id=526062287]
+visible = false
+modulate = Color(1, 0.83137256, 0, 1)
+position = Vector2(8, 32)
+sprite_frames = ExtResource("4_nnocp")
+animation = &"No"
+
+[node name="NoAmmoIcon" type="AnimatedSprite2D" parent="." unique_id=1245001215]
+visible = false
+modulate = Color(1, 1, 1, 0.654902)
+position = Vector2(8, 32)
+sprite_frames = ExtResource("5_jgva2")
+animation = &"NoAmmoIcon"
+
+[node name="loaded" type="AnimatedSprite2D" parent="." unique_id=893339734]
+visible = false
+position = Vector2(8, 32)
+sprite_frames = ExtResource("6_8lkuh")
+animation = &"loaded"
+
+[connection signal="input_event" from="Area2D" to="." method="InputClick"]

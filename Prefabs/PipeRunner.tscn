@@ -1,0 +1,104 @@
+[gd_scene format=3 uid="uid://dnd0cill5lcir"]
+
+[ext_resource type="Script" uid="uid://bf32uufh3h4ht" path="res://spricts/PipeRunner.cs" id="1_mw67g"]
+[ext_resource type="SpriteFrames" uid="uid://bkmjpiqqtw4s5" path="res://asscets/AnimatedSprite/NoFuelIcno.tres" id="2_sk7nw"]
+[ext_resource type="SpriteFrames" uid="uid://ci4pry7uh77cq" path="res://asscets/AnimatedSprite/NoAmmoIcon.tres" id="3_7af4f"]
+[ext_resource type="SpriteFrames" uid="uid://bta18psd6oght" path="res://asscets/AnimatedSprite/loaded.tres" id="4_jnq2k"]
+[ext_resource type="SpriteFrames" uid="uid://cbqy3u0jx2ofo" path="res://asscets/AnimatedSprite/PipeRunner.tres" id="5_mw67g"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yv6tl"]
+size = Vector2(32, 32)
+
+[node name="PipeRunner" type="Node2D" unique_id=1148536001 node_paths=PackedStringArray("animSprite", "loadedIcon", "noFuelIcon", "noAmmoIcon")]
+script = ExtResource("1_mw67g")
+animSprite = NodePath("Base2D")
+cannotCounterWhenAttacked = true
+canCounterWhenDefending = false
+useDefaultConfig = false
+unitCategory = 13
+cost = 20000
+visionRange = 4
+attackMatrix = Dictionary[String, int]({
+"APC": 80,
+"AntiAir": 85,
+"AntiTank": 60,
+"Artillery": 80,
+"Bike": 90,
+"Flare": 75,
+"FlyBomb": 120,
+"Infantry": 95,
+"LightTank": 80,
+"MdTank": 55,
+"Mech": 90,
+"PipeRunner": 80,
+"Recon": 90,
+"Rocket": 85
+})
+canSupplyAfterMove = false
+loadedIcon = NodePath("HpLabel/loaded")
+noFuelIcon = NodePath("HpLabel/NoFuelIcno")
+moveType = 12
+attackRange = 5
+defaultMovePoints = 9
+movePoints = 9
+baseAttack = 50
+minAttackRange = 2
+maxAttackRange = 5
+useMinMaxAttackRange = true
+noAmmoIcon = NodePath("HpLabel/NoAmmoIcon")
+useDefaultAmmoConfig = false
+hasPrimaryWeapon = true
+maxPrimaryAmmo = 9
+currentPrimaryAmmo = 9
+hasSecondaryWeapon = false
+primaryAntiArmor = true
+secondaryAntiInfantry = false
+
+[node name="Area2D" type="Area2D" parent="." unique_id=580524551]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1207101772]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_yv6tl")
+
+[node name="HpLabel" type="Label" parent="." unique_id=22786035]
+z_index = 10
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "10"
+
+[node name="NoFuelIcno" type="AnimatedSprite2D" parent="HpLabel" unique_id=2071913430]
+visible = false
+modulate = Color(1, 0.83137256, 0, 1)
+z_index = 10
+position = Vector2(8, 32)
+sprite_frames = ExtResource("2_sk7nw")
+animation = &"No"
+
+[node name="NoAmmoIcon" type="AnimatedSprite2D" parent="HpLabel" unique_id=620519490]
+visible = false
+modulate = Color(1, 1, 1, 0.654902)
+z_index = 10
+position = Vector2(8, 32)
+sprite_frames = ExtResource("3_7af4f")
+animation = &"NoAmmoIcon"
+
+[node name="loaded" type="AnimatedSprite2D" parent="HpLabel" unique_id=1647042061]
+visible = false
+z_index = 10
+position = Vector2(8, 32)
+sprite_frames = ExtResource("4_jnq2k")
+animation = &"loaded"
+
+[node name="Base2D" type="AnimatedSprite2D" parent="." unique_id=161931243]
+position = Vector2(16, 16)
+sprite_frames = ExtResource("5_mw67g")
+animation = &"PipeRunner2"
+
+[node name="BaseSprite" type="Sprite2D" parent="." unique_id=1093580140]

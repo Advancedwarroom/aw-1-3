@@ -1,0 +1,14 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://ci4pry7uh77cq"]
+
+[ext_resource type="Texture2D" uid="uid://bqaiwd5p8dthb" path="res://art/NoAmmoIcon.png" id="1_2syfj"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_2syfj")
+}],
+"loop": true,
+"name": &"NoAmmoIcon",
+"speed": 5.0
+}]

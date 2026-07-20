@@ -1,0 +1,14 @@
+[gd_resource type="SpriteFrames" load_steps=2 format=3 uid="uid://bkmjpiqqtw4s5"]
+
+[ext_resource type="Texture2D" uid="uid://c2q3igeeebqd" path="res://art/FUEL.png" id="1_vvyqm"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_vvyqm")
+}],
+"loop": true,
+"name": &"No",
+"speed": 5.0
+}]

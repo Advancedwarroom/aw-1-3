@@ -1,0 +1,31 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://dn8n6ps6agvwx"]
+
+[ext_resource type="Texture2D" uid="uid://ci0a7nv7sqgew" path="res://asscets/units/Rocket/osrocket1.png" id="1_miin0"]
+[ext_resource type="Texture2D" uid="uid://dmcwbld45lhm" path="res://asscets/units/Rocket/osrocket2.png" id="2_desq4"]
+[ext_resource type="Texture2D" uid="uid://ik16ctg2imlr" path="res://asscets/units/Rocket/bmrocket1.png" id="3_xnapt"]
+[ext_resource type="Texture2D" uid="uid://ct2onefqp78yj" path="res://asscets/units/Rocket/bmrocket2.png" id="4_d6apu"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 0.9,
+"texture": ExtResource("1_miin0")
+}, {
+"duration": 1.2,
+"texture": ExtResource("2_desq4")
+}],
+"loop": true,
+"name": &"rocket1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 0.9,
+"texture": ExtResource("3_xnapt")
+}, {
+"duration": 1.2,
+"texture": ExtResource("4_d6apu")
+}],
+"loop": true,
+"name": &"rocket2",
+"speed": 5.0
+}]

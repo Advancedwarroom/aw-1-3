@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://dygrnn2edr4ft"]
+
+[ext_resource type="Script" uid="uid://3gnaxkwuipxk" path="res://spricts/UnloadUnitButton.cs" id="1_yuu67"]
+[ext_resource type="SpriteFrames" uid="uid://ootwvvylt444" path="res://asscets/AnimatedSprite/UnloadUnitButton.tres" id="2_yuu67"]
+[ext_resource type="Texture2D" uid="uid://c2q3igeeebqd" path="res://art/FUEL.png" id="3_66tfu"]
+[ext_resource type="Texture2D" uid="uid://bqaiwd5p8dthb" path="res://art/NoAmmoIcon.png" id="4_8o8n1"]
+[ext_resource type="Texture2D" uid="uid://cf2mnwe5we825" path="res://asscets/Buttons/unloadButton.png" id="5_pkt3l"]
+
+[node name="UnloadUnitButton" type="Control" unique_id=600375869 node_paths=PackedStringArray("unitAnim", "hpLabel", "fuelIcon", "ammoIcon", "unloadbutton")]
+layout_mode = 3
+anchors_preset = 0
+offset_top = 192.0
+offset_right = 48.0
+offset_bottom = 220.0
+script = ExtResource("1_yuu67")
+unitAnim = NodePath("MarginContainer/HBoxContainer/UnitDisplay/AnimatedSprite2D")
+hpLabel = NodePath("MarginContainer/HBoxContainer/StatusOverlay/HpLabel")
+fuelIcon = NodePath("MarginContainer/HBoxContainer/StatusOverlay/FuelIcon")
+ammoIcon = NodePath("MarginContainer/HBoxContainer/StatusOverlay/AmmoIcon")
+unloadbutton = NodePath("UnloadButton")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=485980200]
+layout_mode = 0
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 32.0
+offset_bottom = 32.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=583025729]
+layout_mode = 2
+
+[node name="UnitDisplay" type="Control" parent="MarginContainer/HBoxContainer" unique_id=1994174266]
+layout_mode = 2
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="MarginContainer/HBoxContainer/UnitDisplay" unique_id=1667632134]
+position = Vector2(6.000002, 5.999998)
+scale = Vector2(0.75000006, 0.7500002)
+sprite_frames = ExtResource("2_yuu67")
+animation = &"unit"
+frame_progress = 0.21259838
+
+[node name="StatusOverlay" type="Control" parent="MarginContainer/HBoxContainer" unique_id=1316239704]
+layout_mode = 2
+
+[node name="HpLabel" type="Label" parent="MarginContainer/HBoxContainer/StatusOverlay" unique_id=162294885]
+z_index = 1
+layout_mode = 0
+offset_left = 10.0
+offset_top = 14.0
+offset_right = 34.0
+offset_bottom = 40.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "10"
+
+[node name="FuelIcon" type="TextureRect" parent="MarginContainer/HBoxContainer/StatusOverlay" unique_id=464223696]
+layout_mode = 0
+offset_left = -6.0
+offset_top = 14.0
+offset_right = 15.0
+offset_bottom = 39.0
+texture = ExtResource("3_66tfu")
+
+[node name="AmmoIcon" type="TextureRect" parent="MarginContainer/HBoxContainer/StatusOverlay" unique_id=123532619]
+layout_mode = 0
+offset_left = -6.0
+offset_top = 22.0
+offset_right = 15.0
+offset_bottom = 43.0
+texture = ExtResource("4_8o8n1")
+
+[node name="UnloadButton" type="Button" parent="." unique_id=1258835820]
+z_index = -1
+layout_mode = 0
+offset_right = 48.0
+offset_bottom = 28.0
+icon = ExtResource("5_pkt3l")

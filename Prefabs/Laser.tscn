@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://cehhs3q3wtiud"]
+
+[ext_resource type="Script" uid="uid://clm1k0wypcrdq" path="res://spricts/Laser.cs" id="1_yb1fj"]
+[ext_resource type="SpriteFrames" uid="uid://bfx6oyqu3trtk" path="res://asscets/AnimatedSprite/Laser.tres" id="2_dhde5"]
+[ext_resource type="Texture2D" uid="uid://dbdvtegdaq8pg" path="res://asscets/Weapons/love.png" id="3_dhde5"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6t4s0"]
+size = Vector2(33, 33)
+
+[node name="Laser" type="Node2D" unique_id=507068074]
+z_index = 10
+script = ExtResource("1_yb1fj")
+angleConfig = Dictionary[float, bool]({
+0.0: true,
+45.0: true,
+90.0: true,
+135.0: true,
+180.0: true,
+225.0: true,
+270.0: true,
+315.0: true,
+320.0: true
+})
+initialFireAngles = Dictionary[float, bool]({
+0.0: true,
+45.0: true,
+90.0: true,
+135.0: true,
+180.0: true,
+225.0: true,
+270.0: true,
+315.0: true
+})
+canAttackWeapons = true
+aiAutoRotate = false
+aiUseAllAttacks = false
+aiShowEffects = false
+CanAttackWeapon = true
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=524686475]
+position = Vector2(16, 15.999999)
+scale = Vector2(1.882353, 1.7777777)
+sprite_frames = ExtResource("2_dhde5")
+animation = &"Laser1"
+frame_progress = 0.20988366
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1657214266]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=2119178706]
+position = Vector2(16.5, 16.5)
+shape = SubResource("RectangleShape2D_6t4s0")
+
+[node name="HpLabel" type="Label" parent="." unique_id=1472872463]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "99"
+
+[node name="LoveIcon" type="Sprite2D" parent="." unique_id=605784088]
+position = Vector2(8, 31.999998)
+scale = Vector2(0.5353261, 0.6580883)
+texture = ExtResource("3_dhde5")

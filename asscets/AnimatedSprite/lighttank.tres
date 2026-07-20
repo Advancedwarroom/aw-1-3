@@ -1,0 +1,47 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://cb0n87m77t285"]
+
+[ext_resource type="Texture2D" uid="uid://b0daiwiwmmjr0" path="res://asscets/units/Tank/BmTank1.png" id="1_87ld1"]
+[ext_resource type="Texture2D" uid="uid://durhhj2cy4rn4" path="res://asscets/units/Tank/BMTank2.png" id="2_prahk"]
+[ext_resource type="Texture2D" uid="uid://5psbf4pt2c5m" path="res://asscets/units/Tank/BmTank3.png" id="3_7ydod"]
+[ext_resource type="Texture2D" uid="uid://07kltev1hoij" path="res://asscets/units/Tank/BmTank4.png" id="4_b0icd"]
+[ext_resource type="Texture2D" uid="uid://bf75lljd6qnq8" path="res://asscets/units/Tank/ostank1.png" id="5_li87v"]
+[ext_resource type="Texture2D" uid="uid://dq84t72wqi7ad" path="res://asscets/units/Tank/OsTank2.png" id="6_0gul5"]
+[ext_resource type="Texture2D" uid="uid://b2yntccu0akx5" path="res://asscets/units/Tank/OsTank3.png" id="7_ixw61"]
+[ext_resource type="Texture2D" uid="uid://h6xyafwejbtj" path="res://asscets/units/Tank/OsTank4.png" id="8_jl2e7"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 0.8,
+"texture": ExtResource("5_li87v")
+}, {
+"duration": 1.4,
+"texture": ExtResource("6_0gul5")
+}, {
+"duration": 1.6,
+"texture": ExtResource("7_ixw61")
+}, {
+"duration": 2.0,
+"texture": ExtResource("8_jl2e7")
+}],
+"loop": true,
+"name": &"lighttank1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 0.8,
+"texture": ExtResource("1_87ld1")
+}, {
+"duration": 1.4,
+"texture": ExtResource("2_prahk")
+}, {
+"duration": 1.6,
+"texture": ExtResource("3_7ydod")
+}, {
+"duration": 2.0,
+"texture": ExtResource("4_b0icd")
+}],
+"loop": true,
+"name": &"lighttank2",
+"speed": 5.0
+}]

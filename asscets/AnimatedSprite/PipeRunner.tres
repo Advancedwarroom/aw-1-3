@@ -1,0 +1,31 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://cbqy3u0jx2ofo"]
+
+[ext_resource type="Texture2D" uid="uid://cl4w4btypftgt" path="res://asscets/units/PipeRunner/RedPipeRunner1.png" id="1_6llwl"]
+[ext_resource type="Texture2D" uid="uid://eowjvgr51aor" path="res://asscets/units/PipeRunner/RedPipeRunner2.png" id="2_h2ys4"]
+[ext_resource type="Texture2D" uid="uid://dkb7clbjbwtdr" path="res://asscets/units/PipeRunner/BluePipeRunner1.png" id="3_ia71j"]
+[ext_resource type="Texture2D" uid="uid://gg5a35g1gu2o" path="res://asscets/units/PipeRunner/BluePipeRunner2.png" id="4_637bq"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_6llwl")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_h2ys4")
+}],
+"loop": 1,
+"name": &"PipeRunner1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_ia71j")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_637bq")
+}],
+"loop": 1,
+"name": &"PipeRunner2",
+"speed": 5.0
+}]

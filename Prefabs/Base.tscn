@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://c2hkpjjh5k6uh"]
+
+[ext_resource type="Script" uid="uid://bxfqlc8iqrl0j" path="res://spricts/Base.cs" id="1_lv8qx"]
+[ext_resource type="SpriteFrames" uid="uid://bmv4ldmmpavya" path="res://asscets/AnimatedSprite/Base.tres" id="2_lv8qx"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bx6pw"]
+size = Vector2(33, 33)
+
+[node name="Base" type="Node2D" unique_id=77327295]
+z_index = 1
+script = ExtResource("1_lv8qx")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=611144558]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=737342641]
+position = Vector2(16.5, 16.5)
+shape = SubResource("RectangleShape2D_bx6pw")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=250179078]
+position = Vector2(16, 3.9999986)
+scale = Vector2(0.99999994, 1.12)
+sprite_frames = ExtResource("2_lv8qx")
+animation = &"P0Base"

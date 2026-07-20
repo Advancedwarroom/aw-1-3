@@ -1,0 +1,56 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://nck2ejarqrer"]
+
+[ext_resource type="Texture2D" uid="uid://giymjf73nuls" path="res://art/Airport/Airport1.png" id="1_e8ex5"]
+[ext_resource type="Texture2D" uid="uid://by4vymw7crba6" path="res://art/Airport/Airport2.png" id="2_0he15"]
+[ext_resource type="Texture2D" uid="uid://d1ergrevho8o6" path="res://art/Airport/Airport3.png" id="3_1cjiv"]
+[ext_resource type="Texture2D" uid="uid://de4or8jgyls0w" path="res://art/Airport/Airport4.png" id="4_rt4v1"]
+[ext_resource type="Texture2D" uid="uid://i1w5oqdj07ew" path="res://art/Airport/Airport5.png" id="5_qo5rh"]
+[ext_resource type="Texture2D" uid="uid://cxentpfqmd7dh" path="res://art/Airport/Airport6.png" id="6_uqaay"]
+[ext_resource type="Texture2D" uid="uid://dpelqy03q27wd" path="res://art/Airport/Airport7.png" id="7_7jphc"]
+[ext_resource type="Texture2D" uid="uid://d084rm87mykal" path="res://art/Airport/Airport8.png" id="8_hsdss"]
+[ext_resource type="Texture2D" uid="uid://bfj85hab40duv" path="res://art/Airport/Airport9.png" id="9_prnis"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("7_7jphc")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_hsdss")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_prnis")
+}],
+"loop": true,
+"name": &"P0AirPort",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_e8ex5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_0he15")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_1cjiv")
+}],
+"loop": true,
+"name": &"airportteam1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("4_rt4v1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_qo5rh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_uqaay")
+}],
+"loop": true,
+"name": &"airportteam2",
+"speed": 5.0
+}]

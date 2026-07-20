@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://sfbmwapwn124"]
+
+[ext_resource type="SpriteFrames" uid="uid://bkmjpiqqtw4s5" path="res://asscets/AnimatedSprite/NoFuelIcno.tres" id="1_jmp6l"]
+[ext_resource type="Script" uid="uid://boysbhq685exr" path="res://spricts/AntiAir.cs" id="1_w8i1l"]
+[ext_resource type="SpriteFrames" uid="uid://ci4pry7uh77cq" path="res://asscets/AnimatedSprite/NoAmmoIcon.tres" id="2_w8i1l"]
+[ext_resource type="SpriteFrames" uid="uid://bta18psd6oght" path="res://asscets/AnimatedSprite/loaded.tres" id="3_owtux"]
+[ext_resource type="SpriteFrames" uid="uid://ct353sr7647mp" path="res://asscets/AnimatedSprite/AntiAir.tres" id="4_jmp6l"]
+[ext_resource type="Texture2D" uid="uid://oqf1jb2fv1mb" path="res://asscets/units/AntiAir/osantiair1.png" id="6_owtux"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yv6tl"]
+size = Vector2(32, 32)
+
+[node name="AntiAir" type="Node2D" unique_id=1148536001 node_paths=PackedStringArray("animSprite", "idleSprite", "loadedIcon", "noFuelIcon", "noAmmoIcon")]
+script = ExtResource("1_w8i1l")
+animSprite = NodePath("Anti2D")
+idleSprite = NodePath("AntiSprite")
+useDefaultConfig = false
+visionRange = 5
+loadedIcon = NodePath("HpLabel/loaded")
+noFuelIcon = NodePath("HpLabel/NoFuelIcno")
+defaultMovePoints = 6
+movePoints = 6
+baseAttack = 50
+baseDefense = 50
+noAmmoIcon = NodePath("HpLabel/NoAmmoIcon")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=580524551]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1207101772]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_yv6tl")
+
+[node name="HpLabel" type="Label" parent="." unique_id=22786035]
+z_index = 10
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "10"
+
+[node name="NoFuelIcno" type="AnimatedSprite2D" parent="HpLabel" unique_id=2071913430]
+visible = false
+modulate = Color(1, 0.83137256, 0, 1)
+position = Vector2(8, 32)
+sprite_frames = ExtResource("1_jmp6l")
+animation = &"No"
+
+[node name="NoAmmoIcon" type="AnimatedSprite2D" parent="HpLabel" unique_id=620519490]
+visible = false
+modulate = Color(1, 1, 1, 0.654902)
+position = Vector2(8, 32)
+sprite_frames = ExtResource("2_w8i1l")
+animation = &"NoAmmoIcon"
+
+[node name="loaded" type="AnimatedSprite2D" parent="HpLabel" unique_id=1647042061]
+visible = false
+position = Vector2(8, 32)
+sprite_frames = ExtResource("3_owtux")
+animation = &"loaded"
+
+[node name="Anti2D" type="AnimatedSprite2D" parent="." unique_id=161931243]
+position = Vector2(16, 16)
+sprite_frames = ExtResource("4_jmp6l")
+animation = &"antiair2"
+
+[node name="AntiSprite" type="Sprite2D" parent="." unique_id=1093580140]
+visible = false
+position = Vector2(16, 16)
+texture = ExtResource("6_owtux")

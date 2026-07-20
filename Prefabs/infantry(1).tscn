@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://l5vcjpofibjj"]
+
+[ext_resource type="Script" uid="uid://cyyu1dtxhew5r" path="res://spricts/Infantry.cs" id="1_23ba5"]
+[ext_resource type="Texture2D" uid="uid://brn4upvvwyiau" path="res://asscets/osinfantry.png" id="2_vc8yl"]
+[ext_resource type="SpriteFrames" uid="uid://bkmjpiqqtw4s5" path="res://asscets/AnimatedSprite/NoFuelIcno.tres" id="3_vc8yl"]
+[ext_resource type="SpriteFrames" uid="uid://ci4pry7uh77cq" path="res://asscets/AnimatedSprite/NoAmmoIcon.tres" id="4_b7nfn"]
+[ext_resource type="SpriteFrames" uid="uid://bta18psd6oght" path="res://asscets/AnimatedSprite/loaded.tres" id="5_qip8k"]
+[ext_resource type="Texture2D" uid="uid://rk4wu2r67ot8" path="res://asscets/bminf.png" id="6_c1h8w"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_4j5ol"]
+size = Vector2(34, 34)
+
+[node name="Infantry(1)" type="Node2D" unique_id=1303428173 node_paths=PackedStringArray("loadedIcon", "noFuelIcon", "noAmmoIcon", "spriteRed", "spriteBlue")]
+z_index = 10
+script = ExtResource("1_23ba5")
+useDefaultConfig = false
+unitCategory = 0
+loadedIcon = NodePath("loaded")
+noFuelIcon = NodePath("NoFuelIcno")
+baseAttack = 10
+noAmmoIcon = NodePath("NoAmmoIcon")
+captureAbility = 0
+spriteRed = NodePath("Osinfantry")
+spriteBlue = NodePath("Bminfantry")
+
+[node name="Osinfantry" type="Sprite2D" parent="." unique_id=1156195392]
+position = Vector2(16, 16)
+texture = ExtResource("2_vc8yl")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=170695348]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1615542181]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_4j5ol")
+
+[node name="HpLabel" type="Label" parent="." unique_id=1380967663]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "10"
+
+[node name="NoFuelIcno" type="AnimatedSprite2D" parent="." unique_id=1090893123]
+visible = false
+modulate = Color(1, 0.83137256, 0, 1)
+position = Vector2(8, 32)
+sprite_frames = ExtResource("3_vc8yl")
+animation = &"No"
+
+[node name="NoAmmoIcon" type="AnimatedSprite2D" parent="." unique_id=1871218536]
+visible = false
+modulate = Color(1, 1, 1, 0.654902)
+position = Vector2(8, 32)
+sprite_frames = ExtResource("4_b7nfn")
+animation = &"NoAmmoIcon"
+
+[node name="loaded" type="AnimatedSprite2D" parent="." unique_id=1233370437]
+visible = false
+position = Vector2(8, 32)
+sprite_frames = ExtResource("5_qip8k")
+animation = &"loaded"
+
+[node name="Bminfantry" type="Sprite2D" parent="." unique_id=1924620235]
+visible = false
+position = Vector2(16, 16)
+texture = ExtResource("6_c1h8w")
+
+[connection signal="input_event" from="Area2D" to="." method="InputClick"]
+[connection signal="mouse_entered" from="Area2D" to="." method="MouseEnterPeice"]

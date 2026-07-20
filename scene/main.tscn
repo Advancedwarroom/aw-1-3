@@ -1,0 +1,2808 @@
+[gd_scene format=3 uid="uid://mv87fmevdg5m"]
+
+[ext_resource type="Script" uid="uid://m30otufboshw" path="res://Main.gd" id="1_itxqv"]
+[ext_resource type="TileSet" uid="uid://b8ebvnn5xutm4" path="res://asscets/ground.tres" id="2_v0l8b"]
+[ext_resource type="TileSet" uid="uid://c0eafeymufwj5" path="res://asscets/item.tres" id="3_0ha60"]
+[ext_resource type="PackedScene" uid="uid://l5vcjpofibjj" path="res://Prefabs/infantry(1).tscn" id="4_p1hux"]
+[ext_resource type="PackedScene" uid="uid://dpabwwj6tnqnu" path="res://Prefabs/grid.tscn" id="6_4j5ol"]
+[ext_resource type="PackedScene" uid="uid://bvje1xmtbv1xq" path="res://Prefabs/AirPort.tscn" id="6_bmc2w"]
+[ext_resource type="PackedScene" uid="uid://c2hkpjjh5k6uh" path="res://Prefabs/Base.tscn" id="6_gj7ui"]
+[ext_resource type="Texture2D" uid="uid://ndlxc2gl71jc" path="res://art/Buttons/RotateButton.png" id="7_4jm02"]
+[ext_resource type="Script" uid="uid://boq0f4qqwym0k" path="res://spricts/GameManager.cs" id="7_of57s"]
+[ext_resource type="Script" uid="uid://dkq6iykxmb5bp" path="res://spricts/GridManager.cs" id="7_p1hux"]
+[ext_resource type="Texture2D" uid="uid://c7neenls76fxv" path="res://asscets/Buttons/CloseInfoButton.png" id="8_v2gmf"]
+[ext_resource type="PackedScene" uid="uid://cr66i6mwa2dc0" path="res://Prefabs/action_menu.tscn" id="9_tqoya"]
+[ext_resource type="Script" uid="uid://clt14iki82vvh" path="res://spricts/UnitManager.cs" id="11_hybxs"]
+[ext_resource type="PackedScene" uid="uid://dfh33eosbmvkb" path="res://Prefabs/light_tank.tscn" id="14_v2gmf"]
+[ext_resource type="Texture2D" uid="uid://b0daiwiwmmjr0" path="res://asscets/units/Tank/BmTank1.png" id="15_jcbur"]
+[ext_resource type="PackedScene" uid="uid://cd08wmohe3f04" path="res://Prefabs/oozium.tscn" id="15_v2gmf"]
+[ext_resource type="PackedScene" uid="uid://cdo6e1vkxosnx" path="res://Prefabs/mech.tscn" id="16_jcbur"]
+[ext_resource type="PackedScene" uid="uid://capg7o6wbci0p" path="res://Prefabs/Artillery.tscn" id="16_smf0o"]
+[ext_resource type="Texture2D" uid="uid://clx1y2htar6mm" path="res://asscets/units/BMMech1.png" id="17_smf0o"]
+[ext_resource type="Texture2D" uid="uid://cdp2m2kox2c67" path="res://asscets/units/Artillery/BmArtillery1.png" id="17_tv8i1"]
+[ext_resource type="PackedScene" uid="uid://bgvbrjn8potek" path="res://Prefabs/apc.tscn" id="18_fdqew"]
+[ext_resource type="PackedScene" uid="uid://cux8q3tfgyunj" path="res://Prefabs/Rocket.tscn" id="19_0d4pv"]
+[ext_resource type="Script" uid="uid://dpogvqikuptil" path="res://spricts/WeaponManager.cs" id="19_0vlqb"]
+[ext_resource type="PackedScene" uid="uid://da6s11ixdv1oc" path="res://Prefabs/black_cannon.tscn" id="20_gjnwh"]
+[ext_resource type="Script" uid="uid://74y35y84urko" path="res://spricts/TerrainEditor.cs" id="21_gtqqq"]
+[ext_resource type="PackedScene" uid="uid://crx806yfxmm2q" path="res://Prefabs/Recon.tscn" id="22_io27d"]
+[ext_resource type="PackedScene" uid="uid://cehhs3q3wtiud" path="res://Prefabs/Laser.tscn" id="23_gtqqq"]
+[ext_resource type="PackedScene" uid="uid://bnxa6cihdpkhx" path="res://Prefabs/City.tscn" id="25_mjuaj"]
+[ext_resource type="PackedScene" uid="uid://sfbmwapwn124" path="res://Prefabs/AntiAir.tscn" id="25_p8adh"]
+[ext_resource type="Script" uid="uid://b45e5l1rdl2f6" path="res://spricts/FogOfWarManager.cs" id="26_oldxj"]
+[ext_resource type="Script" uid="uid://cu0kmm7m1n6tk" path="res://spricts/CameraTouchController.cs" id="27_camtouch"]
+[ext_resource type="PackedScene" path="res://Prefabs/Flare.tscn" id="28_flareq"]
+[ext_resource type="PackedScene" uid="uid://dt34620naxdc3" path="res://Prefabs/FlyBomb.tscn" id="28_vneqc"]
+[ext_resource type="PackedScene" uid="uid://b2721lm0rscie" path="res://Prefabs/Anti_Tank.tscn" id="29_antitan"]
+[ext_resource type="PackedScene" uid="uid://kbpull7ec1pg" path="res://Prefabs/large_cannon.tscn" id="34_7xrs8"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mswub"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_smf0o"]
+bg_color = Color(0.7545575, 0.4679699, 0.05228907, 1)
+
+[node name="Main" type="Node2D" unique_id=913760407]
+script = ExtResource("1_itxqv")
+
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1462766648]
+tile_set = ExtResource("2_v0l8b")
+
+[node name="TileMapLayer2" type="TileMapLayer" parent="." unique_id=928204701]
+tile_set = ExtResource("2_v0l8b")
+
+[node name="itemTileMap" type="TileMapLayer" parent="." unique_id=1408348659]
+tile_set = ExtResource("3_0ha60")
+
+[node name="GridContainer" type="Node2D" parent="." unique_id=581113479]
+
+[node name="Grids" type="Node" parent="." unique_id=261828434]
+
+[node name="Grid0" parent="Grids" unique_id=846157277 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 32)
+
+[node name="Grid" parent="Grids" unique_id=209202306 instance=ExtResource("6_4j5ol")]
+
+[node name="Grid1" parent="Grids" unique_id=773276867 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 64)
+
+[node name="Grid2" parent="Grids" unique_id=980517348 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 96)
+
+[node name="Grid3" parent="Grids" unique_id=366722170 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 128)
+
+[node name="Grid4" parent="Grids" unique_id=1362228536 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 160)
+
+[node name="Grid5" parent="Grids" unique_id=1687450800 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 192)
+
+[node name="Grid6" parent="Grids" unique_id=277830288 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 224)
+
+[node name="Grid7" parent="Grids" unique_id=1851138624 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 256)
+
+[node name="Grid8" parent="Grids" unique_id=278674359 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 288)
+
+[node name="Grid9" parent="Grids" unique_id=2102840858 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 320)
+
+[node name="Grid10" parent="Grids" unique_id=1259614763 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 352)
+
+[node name="Grid11" parent="Grids" unique_id=317792571 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 384)
+
+[node name="Grid12" parent="Grids" unique_id=969087209 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 416)
+
+[node name="Grid13" parent="Grids" unique_id=1653788373 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 448)
+
+[node name="Grid14" parent="Grids" unique_id=899161575 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 480)
+
+[node name="Grid15" parent="Grids" unique_id=1210323062 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 512)
+
+[node name="Grid16" parent="Grids" unique_id=272192186 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 544)
+
+[node name="Grid17" parent="Grids" unique_id=1530895188 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 576)
+
+[node name="Grid18" parent="Grids" unique_id=1692532108 instance=ExtResource("6_4j5ol")]
+position = Vector2(0, 608)
+
+[node name="Grid19" parent="Grids" unique_id=491770381 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 32)
+
+[node name="Grid20" parent="Grids" unique_id=629818024 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 0)
+
+[node name="Grid21" parent="Grids" unique_id=1637183652 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 64)
+
+[node name="Grid22" parent="Grids" unique_id=1491059959 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 96)
+
+[node name="Grid23" parent="Grids" unique_id=322418521 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 128)
+
+[node name="Grid24" parent="Grids" unique_id=1120990914 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 160)
+
+[node name="Grid25" parent="Grids" unique_id=2000192874 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 192)
+
+[node name="Grid26" parent="Grids" unique_id=1489931806 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 224)
+
+[node name="Grid27" parent="Grids" unique_id=699274144 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 256)
+
+[node name="Grid28" parent="Grids" unique_id=1985600507 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 288)
+
+[node name="Grid29" parent="Grids" unique_id=564650762 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 320)
+
+[node name="Grid30" parent="Grids" unique_id=1125695485 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 352)
+
+[node name="Grid31" parent="Grids" unique_id=1793103643 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 384)
+
+[node name="Grid32" parent="Grids" unique_id=1894015826 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 416)
+
+[node name="Grid33" parent="Grids" unique_id=1612515899 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 448)
+
+[node name="Grid34" parent="Grids" unique_id=986564179 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 480)
+
+[node name="Grid35" parent="Grids" unique_id=1649005617 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 512)
+
+[node name="Grid36" parent="Grids" unique_id=1608125404 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 544)
+
+[node name="Grid37" parent="Grids" unique_id=1226115820 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 576)
+
+[node name="Grid38" parent="Grids" unique_id=77703207 instance=ExtResource("6_4j5ol")]
+position = Vector2(32, 608)
+
+[node name="Grid39" parent="Grids" unique_id=907857272 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 32)
+
+[node name="Grid40" parent="Grids" unique_id=191673928 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 0)
+
+[node name="Grid41" parent="Grids" unique_id=1650534282 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 64)
+
+[node name="Grid42" parent="Grids" unique_id=1457025447 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 96)
+
+[node name="Grid43" parent="Grids" unique_id=1378147407 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 128)
+
+[node name="Grid44" parent="Grids" unique_id=69781706 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 160)
+
+[node name="Grid45" parent="Grids" unique_id=877333987 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 192)
+
+[node name="Grid46" parent="Grids" unique_id=1458520745 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 224)
+
+[node name="Grid47" parent="Grids" unique_id=444343887 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 256)
+
+[node name="Grid48" parent="Grids" unique_id=756324874 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 288)
+
+[node name="Grid49" parent="Grids" unique_id=229427743 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 320)
+
+[node name="Grid50" parent="Grids" unique_id=1187951995 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 352)
+
+[node name="Grid51" parent="Grids" unique_id=683372455 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 384)
+
+[node name="Grid52" parent="Grids" unique_id=1199691202 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 416)
+
+[node name="Grid53" parent="Grids" unique_id=499076274 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 448)
+
+[node name="Grid54" parent="Grids" unique_id=1981152512 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 480)
+
+[node name="Grid55" parent="Grids" unique_id=569832816 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 512)
+
+[node name="Grid56" parent="Grids" unique_id=38571065 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 544)
+
+[node name="Grid57" parent="Grids" unique_id=1317701961 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 576)
+
+[node name="Grid58" parent="Grids" unique_id=1118996472 instance=ExtResource("6_4j5ol")]
+position = Vector2(64, 608)
+
+[node name="Grid59" parent="Grids" unique_id=1935921066 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 32)
+
+[node name="Grid60" parent="Grids" unique_id=2082101194 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 0)
+
+[node name="Grid61" parent="Grids" unique_id=267929487 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 64)
+
+[node name="Grid62" parent="Grids" unique_id=2126947743 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 96)
+
+[node name="Grid63" parent="Grids" unique_id=1157084497 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 128)
+
+[node name="Grid64" parent="Grids" unique_id=442979089 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 160)
+
+[node name="Grid65" parent="Grids" unique_id=1406051940 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 192)
+
+[node name="Grid66" parent="Grids" unique_id=73742158 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 224)
+
+[node name="Grid67" parent="Grids" unique_id=883970169 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 256)
+
+[node name="Grid68" parent="Grids" unique_id=1531846916 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 288)
+
+[node name="Grid69" parent="Grids" unique_id=1373878559 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 320)
+
+[node name="Grid70" parent="Grids" unique_id=1595362471 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 352)
+
+[node name="Grid71" parent="Grids" unique_id=816733506 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 384)
+
+[node name="Grid72" parent="Grids" unique_id=692216209 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 416)
+
+[node name="Grid73" parent="Grids" unique_id=1841691412 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 448)
+
+[node name="Grid74" parent="Grids" unique_id=721415810 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 480)
+
+[node name="Grid75" parent="Grids" unique_id=1742408098 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 512)
+
+[node name="Grid76" parent="Grids" unique_id=399092584 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 544)
+
+[node name="Grid77" parent="Grids" unique_id=198738968 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 576)
+
+[node name="Grid78" parent="Grids" unique_id=1807779013 instance=ExtResource("6_4j5ol")]
+position = Vector2(96, 608)
+
+[node name="Grid79" parent="Grids" unique_id=361998712 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 32)
+
+[node name="Grid80" parent="Grids" unique_id=1630056775 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 0)
+
+[node name="Grid81" parent="Grids" unique_id=1624750838 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 64)
+
+[node name="Grid82" parent="Grids" unique_id=241689739 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 96)
+
+[node name="Grid83" parent="Grids" unique_id=923982095 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 128)
+
+[node name="Grid84" parent="Grids" unique_id=1303785196 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 160)
+
+[node name="Grid85" parent="Grids" unique_id=101370260 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 192)
+
+[node name="Grid86" parent="Grids" unique_id=1574789998 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 224)
+
+[node name="Grid87" parent="Grids" unique_id=638326266 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 256)
+
+[node name="Grid88" parent="Grids" unique_id=94930994 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 288)
+
+[node name="Grid89" parent="Grids" unique_id=781088785 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 320)
+
+[node name="Grid90" parent="Grids" unique_id=2061762786 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 352)
+
+[node name="Grid91" parent="Grids" unique_id=753285861 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 384)
+
+[node name="Grid92" parent="Grids" unique_id=1991915051 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 416)
+
+[node name="Grid93" parent="Grids" unique_id=85057710 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 448)
+
+[node name="Grid94" parent="Grids" unique_id=396633315 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 480)
+
+[node name="Grid95" parent="Grids" unique_id=202912306 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 512)
+
+[node name="Grid96" parent="Grids" unique_id=664440090 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 544)
+
+[node name="Grid97" parent="Grids" unique_id=402731281 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 576)
+
+[node name="Grid98" parent="Grids" unique_id=1271367042 instance=ExtResource("6_4j5ol")]
+position = Vector2(128, 608)
+
+[node name="Grid99" parent="Grids" unique_id=504972150 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 32)
+
+[node name="Grid100" parent="Grids" unique_id=580401584 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 0)
+
+[node name="Grid101" parent="Grids" unique_id=631961303 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 64)
+
+[node name="Grid102" parent="Grids" unique_id=93697686 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 96)
+
+[node name="City" parent="Grids/Grid102" unique_id=591124904 instance=ExtResource("25_mjuaj")]
+facilityTeam = "Player1"
+
+[node name="Grid103" parent="Grids" unique_id=1588626372 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 128)
+
+[node name="Grid104" parent="Grids" unique_id=990024324 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 160)
+
+[node name="Grid105" parent="Grids" unique_id=1922498381 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 192)
+
+[node name="Grid106" parent="Grids" unique_id=1534176649 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 224)
+
+[node name="Grid107" parent="Grids" unique_id=1840096344 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 256)
+
+[node name="Grid108" parent="Grids" unique_id=975813820 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 288)
+
+[node name="Grid109" parent="Grids" unique_id=1739251654 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 320)
+
+[node name="Grid110" parent="Grids" unique_id=1533372075 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 352)
+
+[node name="Grid111" parent="Grids" unique_id=914694405 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 384)
+
+[node name="Grid112" parent="Grids" unique_id=1721785758 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 416)
+
+[node name="Grid113" parent="Grids" unique_id=2008564595 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 448)
+
+[node name="Grid114" parent="Grids" unique_id=1571912413 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 480)
+
+[node name="Grid115" parent="Grids" unique_id=2039007030 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 512)
+
+[node name="Grid116" parent="Grids" unique_id=2041122304 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 544)
+
+[node name="Grid117" parent="Grids" unique_id=150796137 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 576)
+
+[node name="Grid118" parent="Grids" unique_id=1869075224 instance=ExtResource("6_4j5ol")]
+position = Vector2(160, 608)
+
+[node name="Grid119" parent="Grids" unique_id=1743174206 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 32)
+
+[node name="Grid120" parent="Grids" unique_id=659386267 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 0)
+
+[node name="Grid121" parent="Grids" unique_id=958070985 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 64)
+
+[node name="Grid122" parent="Grids" unique_id=187511948 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 96)
+
+[node name="City" parent="Grids/Grid122" unique_id=1883498726 instance=ExtResource("25_mjuaj")]
+facilityTeam = "Player"
+
+[node name="Grid123" parent="Grids" unique_id=1261549577 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 128)
+
+[node name="Grid124" parent="Grids" unique_id=272948432 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 160)
+
+[node name="Grid125" parent="Grids" unique_id=1766295402 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 192)
+
+[node name="Grid126" parent="Grids" unique_id=1435394158 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 224)
+
+[node name="Grid127" parent="Grids" unique_id=388931551 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 256)
+
+[node name="Grid128" parent="Grids" unique_id=1945953617 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 288)
+
+[node name="Grid129" parent="Grids" unique_id=763789768 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 320)
+
+[node name="Grid130" parent="Grids" unique_id=903416622 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 352)
+
+[node name="Grid131" parent="Grids" unique_id=2049989995 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 384)
+
+[node name="Grid132" parent="Grids" unique_id=1310134946 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 416)
+
+[node name="Grid133" parent="Grids" unique_id=1052865154 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 448)
+
+[node name="Grid134" parent="Grids" unique_id=1157064757 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 480)
+
+[node name="City" parent="Grids/Grid134" unique_id=1476376139 instance=ExtResource("25_mjuaj")]
+facilityTeam = "Player2"
+
+[node name="Grid135" parent="Grids" unique_id=910108023 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 512)
+
+[node name="City" parent="Grids/Grid135" unique_id=77327295 instance=ExtResource("25_mjuaj")]
+facilityTeam = "Player"
+
+[node name="Grid136" parent="Grids" unique_id=790141631 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 544)
+
+[node name="Grid137" parent="Grids" unique_id=1530630096 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 576)
+
+[node name="Grid138" parent="Grids" unique_id=1003876239 instance=ExtResource("6_4j5ol")]
+position = Vector2(192, 608)
+
+[node name="Grid139" parent="Grids" unique_id=798011607 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 32)
+
+[node name="Grid140" parent="Grids" unique_id=1782844802 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 0)
+
+[node name="Grid141" parent="Grids" unique_id=1931497540 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 64)
+
+[node name="Grid142" parent="Grids" unique_id=1173193880 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 96)
+
+[node name="Grid143" parent="Grids" unique_id=1774477382 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 128)
+
+[node name="Grid144" parent="Grids" unique_id=667692526 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 160)
+
+[node name="Grid145" parent="Grids" unique_id=1227513110 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 192)
+
+[node name="Grid146" parent="Grids" unique_id=476224757 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 224)
+
+[node name="Grid147" parent="Grids" unique_id=1638652149 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 256)
+
+[node name="Grid148" parent="Grids" unique_id=2006044319 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 288)
+
+[node name="Grid149" parent="Grids" unique_id=1561619281 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 320)
+
+[node name="Grid150" parent="Grids" unique_id=907768623 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 352)
+
+[node name="Grid151" parent="Grids" unique_id=17281103 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 384)
+
+[node name="Grid152" parent="Grids" unique_id=1920404790 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 416)
+
+[node name="Grid153" parent="Grids" unique_id=409167136 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 448)
+
+[node name="Grid154" parent="Grids" unique_id=255709906 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 480)
+
+[node name="City" parent="Grids/Grid154" unique_id=1430599037 instance=ExtResource("25_mjuaj")]
+facilityTeam = "Player0"
+
+[node name="Grid155" parent="Grids" unique_id=231274474 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 512)
+
+[node name="City" parent="Grids/Grid155" unique_id=129135341 instance=ExtResource("25_mjuaj")]
+facilityTeam = "Player"
+
+[node name="Grid156" parent="Grids" unique_id=1676619578 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 544)
+
+[node name="Grid157" parent="Grids" unique_id=618941792 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 576)
+
+[node name="Grid158" parent="Grids" unique_id=559003304 instance=ExtResource("6_4j5ol")]
+position = Vector2(224, 608)
+
+[node name="Grid159" parent="Grids" unique_id=1829682492 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 32)
+
+[node name="Grid160" parent="Grids" unique_id=1277113364 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 0)
+
+[node name="Grid161" parent="Grids" unique_id=148495884 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 64)
+
+[node name="Grid162" parent="Grids" unique_id=836420676 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 96)
+
+[node name="Grid163" parent="Grids" unique_id=468609286 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 128)
+
+[node name="Grid164" parent="Grids" unique_id=1483842731 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 160)
+
+[node name="Grid165" parent="Grids" unique_id=108207402 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 192)
+
+[node name="Grid166" parent="Grids" unique_id=2065517828 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 224)
+
+[node name="Grid167" parent="Grids" unique_id=318578496 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 256)
+
+[node name="Grid168" parent="Grids" unique_id=1641052517 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 288)
+
+[node name="Grid169" parent="Grids" unique_id=1635404475 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 320)
+
+[node name="Grid170" parent="Grids" unique_id=418043184 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 352)
+fixedDamagePerTurn = -100
+canOverMaxHealth = true
+
+[node name="Grid171" parent="Grids" unique_id=477207059 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 384)
+
+[node name="Grid172" parent="Grids" unique_id=751579578 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 416)
+
+[node name="Grid173" parent="Grids" unique_id=346247882 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 448)
+
+[node name="Grid174" parent="Grids" unique_id=1987432701 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 480)
+
+[node name="Grid175" parent="Grids" unique_id=363998663 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 512)
+
+[node name="Grid176" parent="Grids" unique_id=529332201 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 544)
+
+[node name="Grid177" parent="Grids" unique_id=1908362612 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 576)
+
+[node name="Grid178" parent="Grids" unique_id=395616790 instance=ExtResource("6_4j5ol")]
+position = Vector2(256, 608)
+
+[node name="Grid179" parent="Grids" unique_id=866151096 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 32)
+
+[node name="Grid180" parent="Grids" unique_id=341687879 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 0)
+gridType = 7
+
+[node name="Grid181" parent="Grids" unique_id=363380249 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 64)
+
+[node name="Grid182" parent="Grids" unique_id=384059134 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 96)
+
+[node name="Grid183" parent="Grids" unique_id=1385367853 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 128)
+
+[node name="Grid184" parent="Grids" unique_id=1248837696 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 160)
+
+[node name="Grid185" parent="Grids" unique_id=1895793944 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 192)
+
+[node name="Grid186" parent="Grids" unique_id=1589338192 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 224)
+
+[node name="Grid187" parent="Grids" unique_id=919430515 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 256)
+
+[node name="Grid188" parent="Grids" unique_id=157140281 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 288)
+
+[node name="Grid189" parent="Grids" unique_id=1586053949 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 320)
+
+[node name="Grid190" parent="Grids" unique_id=73312036 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 352)
+
+[node name="Grid191" parent="Grids" unique_id=1791847475 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 384)
+
+[node name="Grid192" parent="Grids" unique_id=1509277117 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 416)
+
+[node name="Grid193" parent="Grids" unique_id=1701443369 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 448)
+
+[node name="Grid194" parent="Grids" unique_id=109934530 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 480)
+
+[node name="Grid195" parent="Grids" unique_id=420852708 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 512)
+
+[node name="Grid196" parent="Grids" unique_id=1882584065 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 544)
+
+[node name="Grid197" parent="Grids" unique_id=1806885130 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 576)
+
+[node name="Grid198" parent="Grids" unique_id=1705210687 instance=ExtResource("6_4j5ol")]
+position = Vector2(288, 608)
+
+[node name="Grid199" parent="Grids" unique_id=2039089203 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 32)
+
+[node name="Grid200" parent="Grids" unique_id=971524670 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 0)
+gridType = 7
+
+[node name="Grid201" parent="Grids" unique_id=1080649694 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 64)
+
+[node name="Grid202" parent="Grids" unique_id=545818495 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 96)
+
+[node name="Grid203" parent="Grids" unique_id=2009154733 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 128)
+
+[node name="Grid204" parent="Grids" unique_id=347807163 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 160)
+
+[node name="Grid205" parent="Grids" unique_id=1283831673 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 192)
+
+[node name="Grid206" parent="Grids" unique_id=329749421 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 224)
+
+[node name="Grid207" parent="Grids" unique_id=1473756273 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 256)
+
+[node name="Grid208" parent="Grids" unique_id=1263552999 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 288)
+
+[node name="Grid209" parent="Grids" unique_id=1490817992 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 320)
+
+[node name="Grid210" parent="Grids" unique_id=1882520561 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 352)
+
+[node name="Grid211" parent="Grids" unique_id=1495754233 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 384)
+
+[node name="Grid212" parent="Grids" unique_id=1487713858 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 416)
+
+[node name="Grid213" parent="Grids" unique_id=247572757 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 448)
+
+[node name="Grid214" parent="Grids" unique_id=481155254 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 480)
+
+[node name="Grid215" parent="Grids" unique_id=1474861304 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 512)
+
+[node name="Grid216" parent="Grids" unique_id=1294878353 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 544)
+
+[node name="Grid217" parent="Grids" unique_id=920464220 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 576)
+
+[node name="Grid218" parent="Grids" unique_id=624243114 instance=ExtResource("6_4j5ol")]
+position = Vector2(320, 608)
+
+[node name="Grid219" parent="Grids" unique_id=1477937665 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 32)
+
+[node name="Grid220" parent="Grids" unique_id=410203982 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 0)
+gridType = 7
+
+[node name="Grid221" parent="Grids" unique_id=1110371588 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 64)
+
+[node name="Grid222" parent="Grids" unique_id=1273336234 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 96)
+
+[node name="Grid223" parent="Grids" unique_id=1943111267 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 128)
+
+[node name="Grid224" parent="Grids" unique_id=1752514421 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 160)
+
+[node name="Grid225" parent="Grids" unique_id=2044672216 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 192)
+
+[node name="Grid226" parent="Grids" unique_id=2030743520 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 224)
+
+[node name="Grid227" parent="Grids" unique_id=529723467 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 256)
+
+[node name="Grid228" parent="Grids" unique_id=577619254 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 288)
+
+[node name="Grid229" parent="Grids" unique_id=1359112884 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 320)
+
+[node name="Grid230" parent="Grids" unique_id=1432848372 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 352)
+
+[node name="Grid231" parent="Grids" unique_id=1902056266 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 384)
+
+[node name="Grid232" parent="Grids" unique_id=1475848429 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 416)
+
+[node name="Grid233" parent="Grids" unique_id=1928927122 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 448)
+
+[node name="Grid234" parent="Grids" unique_id=1987762667 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 480)
+
+[node name="Grid235" parent="Grids" unique_id=1240949875 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 512)
+
+[node name="Grid236" parent="Grids" unique_id=161327399 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 544)
+
+[node name="Grid237" parent="Grids" unique_id=2005982543 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 576)
+
+[node name="Grid238" parent="Grids" unique_id=1372693748 instance=ExtResource("6_4j5ol")]
+position = Vector2(352, 608)
+
+[node name="Grid239" parent="Grids" unique_id=989361823 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 32)
+
+[node name="Grid240" parent="Grids" unique_id=1865037431 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 0)
+gridType = 7
+
+[node name="Grid241" parent="Grids" unique_id=1365278279 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 64)
+
+[node name="Grid242" parent="Grids" unique_id=1114802877 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 96)
+
+[node name="Grid243" parent="Grids" unique_id=1353326660 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 128)
+
+[node name="Grid244" parent="Grids" unique_id=2097771781 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 160)
+
+[node name="Grid245" parent="Grids" unique_id=399229840 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 192)
+
+[node name="Grid246" parent="Grids" unique_id=631947708 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 224)
+
+[node name="Grid247" parent="Grids" unique_id=1396562570 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 256)
+
+[node name="Grid248" parent="Grids" unique_id=1397860910 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 288)
+
+[node name="Grid249" parent="Grids" unique_id=1556820652 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 320)
+
+[node name="Grid250" parent="Grids" unique_id=1480280165 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 352)
+
+[node name="Grid251" parent="Grids" unique_id=1702580627 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 384)
+gridType = 1
+
+[node name="Grid252" parent="Grids" unique_id=1065539990 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 416)
+
+[node name="Grid253" parent="Grids" unique_id=979972948 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 448)
+
+[node name="Grid254" parent="Grids" unique_id=825795973 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 480)
+
+[node name="Grid255" parent="Grids" unique_id=1843987607 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 512)
+
+[node name="Grid256" parent="Grids" unique_id=133497471 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 544)
+
+[node name="Grid257" parent="Grids" unique_id=1906893289 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 576)
+
+[node name="Grid258" parent="Grids" unique_id=1257617420 instance=ExtResource("6_4j5ol")]
+position = Vector2(384, 608)
+
+[node name="Grid259" parent="Grids" unique_id=2061288345 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 32)
+
+[node name="Grid260" parent="Grids" unique_id=963825707 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 0)
+gridType = 7
+
+[node name="Grid261" parent="Grids" unique_id=833789260 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 64)
+
+[node name="Grid262" parent="Grids" unique_id=159302835 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 96)
+gridType = 10
+
+[node name="Grid263" parent="Grids" unique_id=1181977081 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 128)
+
+[node name="Grid264" parent="Grids" unique_id=1984559590 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 160)
+
+[node name="Grid265" parent="Grids" unique_id=1779444587 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 192)
+
+[node name="Grid266" parent="Grids" unique_id=409471774 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 224)
+
+[node name="Grid267" parent="Grids" unique_id=894844685 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 256)
+
+[node name="Grid268" parent="Grids" unique_id=356061443 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 288)
+
+[node name="Grid269" parent="Grids" unique_id=1759737728 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 320)
+gridType = 1
+
+[node name="Grid270" parent="Grids" unique_id=1956263999 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 352)
+gridType = 1
+
+[node name="Grid271" parent="Grids" unique_id=973544335 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 384)
+gridType = 1
+
+[node name="Grid272" parent="Grids" unique_id=714413423 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 416)
+
+[node name="Grid273" parent="Grids" unique_id=1450258863 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 448)
+
+[node name="Grid274" parent="Grids" unique_id=394750927 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 480)
+
+[node name="Grid275" parent="Grids" unique_id=1496544269 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 512)
+
+[node name="Grid276" parent="Grids" unique_id=343174438 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 544)
+
+[node name="Grid277" parent="Grids" unique_id=2079875420 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 576)
+
+[node name="Grid278" parent="Grids" unique_id=14377303 instance=ExtResource("6_4j5ol")]
+position = Vector2(416, 608)
+
+[node name="Grid279" parent="Grids" unique_id=625416956 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 32)
+
+[node name="Grid280" parent="Grids" unique_id=513426612 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 0)
+gridType = 7
+
+[node name="Grid281" parent="Grids" unique_id=284852400 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 64)
+gridType = 7
+
+[node name="Grid282" parent="Grids" unique_id=299070460 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 96)
+gridType = 8
+
+[node name="Grid283" parent="Grids" unique_id=830297964 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 128)
+gridType = 7
+
+[node name="Grid284" parent="Grids" unique_id=1058682566 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 160)
+
+[node name="Grid285" parent="Grids" unique_id=296641890 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 192)
+
+[node name="Grid286" parent="Grids" unique_id=1621496473 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 224)
+
+[node name="Grid287" parent="Grids" unique_id=1302185734 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 256)
+
+[node name="Grid288" parent="Grids" unique_id=1710308392 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 288)
+
+[node name="Grid289" parent="Grids" unique_id=1195183038 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 320)
+
+[node name="Grid290" parent="Grids" unique_id=1084644807 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 352)
+
+[node name="Grid291" parent="Grids" unique_id=1438259911 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 384)
+
+[node name="Grid292" parent="Grids" unique_id=1220079152 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 416)
+
+[node name="Grid293" parent="Grids" unique_id=1090015008 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 448)
+
+[node name="Grid294" parent="Grids" unique_id=330749771 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 480)
+
+[node name="Grid295" parent="Grids" unique_id=553114834 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 512)
+
+[node name="Grid296" parent="Grids" unique_id=104962604 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 544)
+
+[node name="Grid297" parent="Grids" unique_id=1504880051 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 576)
+
+[node name="Grid298" parent="Grids" unique_id=485705472 instance=ExtResource("6_4j5ol")]
+position = Vector2(448, 608)
+
+[node name="Grid299" parent="Grids" unique_id=1915684148 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 32)
+
+[node name="Grid300" parent="Grids" unique_id=53318658 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 0)
+gridType = 7
+
+[node name="Grid301" parent="Grids" unique_id=1681564544 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 64)
+gridType = 7
+
+[node name="Grid302" parent="Grids" unique_id=2017920134 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 96)
+
+[node name="Grid303" parent="Grids" unique_id=1006357703 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 128)
+gridType = 7
+
+[node name="Grid304" parent="Grids" unique_id=829172129 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 160)
+
+[node name="Grid305" parent="Grids" unique_id=457528385 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 192)
+
+[node name="Grid306" parent="Grids" unique_id=1133585136 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 224)
+
+[node name="Grid307" parent="Grids" unique_id=1252672195 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 256)
+
+[node name="Grid308" parent="Grids" unique_id=722526415 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 288)
+
+[node name="Grid309" parent="Grids" unique_id=371770401 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 320)
+
+[node name="Grid310" parent="Grids" unique_id=911885883 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 352)
+
+[node name="Grid311" parent="Grids" unique_id=1684893044 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 384)
+
+[node name="Grid312" parent="Grids" unique_id=1786931270 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 416)
+
+[node name="Grid313" parent="Grids" unique_id=1899567001 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 448)
+
+[node name="Grid314" parent="Grids" unique_id=1235247356 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 480)
+
+[node name="Grid315" parent="Grids" unique_id=788805229 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 512)
+
+[node name="Grid316" parent="Grids" unique_id=787035298 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 544)
+
+[node name="Grid317" parent="Grids" unique_id=209184715 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 576)
+
+[node name="Grid318" parent="Grids" unique_id=717698451 instance=ExtResource("6_4j5ol")]
+position = Vector2(480, 608)
+
+[node name="Grid319" parent="Grids" unique_id=568756910 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 32)
+
+[node name="Grid320" parent="Grids" unique_id=186885024 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 0)
+gridType = 7
+
+[node name="Grid321" parent="Grids" unique_id=1526266412 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 64)
+gridType = 7
+
+[node name="Grid322" parent="Grids" unique_id=494672717 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 96)
+gridType = 7
+
+[node name="Grid323" parent="Grids" unique_id=1614380521 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 128)
+gridType = 7
+
+[node name="Grid324" parent="Grids" unique_id=1780093613 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 160)
+
+[node name="Grid325" parent="Grids" unique_id=1505935781 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 192)
+
+[node name="Grid326" parent="Grids" unique_id=1949781354 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 224)
+
+[node name="Grid327" parent="Grids" unique_id=1750221398 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 256)
+
+[node name="Grid328" parent="Grids" unique_id=839504347 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 288)
+
+[node name="Grid329" parent="Grids" unique_id=1899108532 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 320)
+
+[node name="Grid330" parent="Grids" unique_id=1497798285 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 352)
+
+[node name="Grid331" parent="Grids" unique_id=445254586 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 384)
+
+[node name="Grid332" parent="Grids" unique_id=1181958892 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 416)
+
+[node name="Grid333" parent="Grids" unique_id=1400828493 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 448)
+
+[node name="Grid334" parent="Grids" unique_id=1236917719 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 480)
+
+[node name="Grid335" parent="Grids" unique_id=1221359910 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 512)
+
+[node name="Grid336" parent="Grids" unique_id=782630678 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 544)
+
+[node name="Grid337" parent="Grids" unique_id=771537516 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 576)
+
+[node name="Grid338" parent="Grids" unique_id=1905725275 instance=ExtResource("6_4j5ol")]
+position = Vector2(512, 608)
+
+[node name="Grid339" parent="Grids" unique_id=731351518 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 32)
+
+[node name="Grid340" parent="Grids" unique_id=1303335803 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 0)
+gridType = 7
+
+[node name="Grid341" parent="Grids" unique_id=1917547606 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 64)
+
+[node name="Grid342" parent="Grids" unique_id=889619698 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 96)
+gridType = 7
+
+[node name="Grid343" parent="Grids" unique_id=1993040261 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 128)
+
+[node name="Grid344" parent="Grids" unique_id=1226712763 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 160)
+
+[node name="Grid345" parent="Grids" unique_id=685431746 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 192)
+
+[node name="Grid346" parent="Grids" unique_id=1739740915 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 224)
+
+[node name="Grid347" parent="Grids" unique_id=641514114 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 256)
+
+[node name="Grid348" parent="Grids" unique_id=1130728395 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 288)
+
+[node name="Grid349" parent="Grids" unique_id=1752304578 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 320)
+
+[node name="Grid350" parent="Grids" unique_id=1483899944 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 352)
+
+[node name="Grid351" parent="Grids" unique_id=1116551186 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 384)
+
+[node name="Airport" parent="Grids/Grid351" unique_id=1037633379 instance=ExtResource("6_bmc2w")]
+facilityTeam = "Player1"
+
+[node name="Grid352" parent="Grids" unique_id=481467749 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 416)
+
+[node name="Grid353" parent="Grids" unique_id=1113711993 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 448)
+
+[node name="Grid354" parent="Grids" unique_id=2046454796 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 480)
+
+[node name="Grid355" parent="Grids" unique_id=1248799253 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 512)
+
+[node name="Grid356" parent="Grids" unique_id=168074245 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 544)
+
+[node name="Grid357" parent="Grids" unique_id=182744663 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 576)
+
+[node name="Grid358" parent="Grids" unique_id=127208117 instance=ExtResource("6_4j5ol")]
+position = Vector2(544, 608)
+
+[node name="Grid359" parent="Grids" unique_id=41980555 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 32)
+
+[node name="Grid360" parent="Grids" unique_id=128010752 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 0)
+gridType = 7
+
+[node name="Grid361" parent="Grids" unique_id=1270892510 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 64)
+
+[node name="Grid362" parent="Grids" unique_id=1358517788 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 96)
+gridType = 7
+
+[node name="Grid363" parent="Grids" unique_id=1451241602 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 128)
+
+[node name="Grid364" parent="Grids" unique_id=1645065936 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 160)
+
+[node name="Grid365" parent="Grids" unique_id=1581313452 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 192)
+
+[node name="Grid366" parent="Grids" unique_id=236849943 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 224)
+
+[node name="Grid367" parent="Grids" unique_id=2045437452 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 256)
+
+[node name="Grid368" parent="Grids" unique_id=690462747 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 288)
+
+[node name="Grid369" parent="Grids" unique_id=1161448099 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 320)
+gridVisionMode = 1
+gridVisionRange = 4
+towerCanRotate = true
+
+[node name="Grid370" parent="Grids" unique_id=414086775 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 352)
+
+[node name="Base" parent="Grids/Grid370" unique_id=368237231 instance=ExtResource("6_gj7ui")]
+facilityTeam = "Player2"
+
+[node name="Grid371" parent="Grids" unique_id=175994872 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 384)
+
+[node name="Base" parent="Grids/Grid371" unique_id=2007180038 instance=ExtResource("6_gj7ui")]
+
+[node name="Grid372" parent="Grids" unique_id=495203772 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 416)
+
+[node name="Grid373" parent="Grids" unique_id=899634156 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 448)
+
+[node name="Grid374" parent="Grids" unique_id=1194814165 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 480)
+
+[node name="Grid375" parent="Grids" unique_id=2011021815 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 512)
+
+[node name="Grid376" parent="Grids" unique_id=1768571385 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 544)
+
+[node name="Grid377" parent="Grids" unique_id=1480621583 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 576)
+
+[node name="Grid378" parent="Grids" unique_id=356174463 instance=ExtResource("6_4j5ol")]
+position = Vector2(576, 608)
+
+[node name="Grid379" parent="Grids" unique_id=1561422593 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 32)
+
+[node name="Grid380" parent="Grids" unique_id=1989517358 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 0)
+gridType = 7
+
+[node name="Grid381" parent="Grids" unique_id=2114327008 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 64)
+
+[node name="Grid382" parent="Grids" unique_id=1274357428 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 96)
+gridType = 7
+
+[node name="Grid383" parent="Grids" unique_id=1082284048 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 128)
+
+[node name="Grid384" parent="Grids" unique_id=1047672473 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 160)
+
+[node name="Grid385" parent="Grids" unique_id=837547049 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 192)
+
+[node name="Grid386" parent="Grids" unique_id=987681248 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 224)
+
+[node name="Grid387" parent="Grids" unique_id=1628412914 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 256)
+
+[node name="Grid388" parent="Grids" unique_id=137705375 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 288)
+
+[node name="Grid389" parent="Grids" unique_id=818991763 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 320)
+
+[node name="Grid390" parent="Grids" unique_id=1977266795 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 352)
+
+[node name="Grid391" parent="Grids" unique_id=355674017 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 384)
+
+[node name="Grid392" parent="Grids" unique_id=1651903951 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 416)
+
+[node name="Grid393" parent="Grids" unique_id=499397813 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 448)
+
+[node name="Grid394" parent="Grids" unique_id=1102057791 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 480)
+
+[node name="Grid395" parent="Grids" unique_id=1668881032 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 512)
+
+[node name="Grid396" parent="Grids" unique_id=2103574963 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 544)
+
+[node name="Grid397" parent="Grids" unique_id=496957435 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 576)
+
+[node name="Grid398" parent="Grids" unique_id=1279637426 instance=ExtResource("6_4j5ol")]
+position = Vector2(608, 608)
+
+[node name="Grid399" parent="Grids" unique_id=74344561 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 32)
+
+[node name="Grid400" parent="Grids" unique_id=830685639 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 0)
+gridType = 7
+
+[node name="Grid401" parent="Grids" unique_id=1566283542 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 64)
+
+[node name="Grid402" parent="Grids" unique_id=1034321312 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 96)
+gridType = 7
+
+[node name="Grid403" parent="Grids" unique_id=1774581990 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 128)
+
+[node name="Grid404" parent="Grids" unique_id=1983591586 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 160)
+
+[node name="Grid405" parent="Grids" unique_id=586786658 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 192)
+
+[node name="Grid406" parent="Grids" unique_id=727163083 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 224)
+
+[node name="Grid407" parent="Grids" unique_id=1779194553 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 256)
+
+[node name="Grid408" parent="Grids" unique_id=415829074 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 288)
+
+[node name="Grid409" parent="Grids" unique_id=1472586860 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 320)
+
+[node name="Grid410" parent="Grids" unique_id=1137798259 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 352)
+
+[node name="Grid411" parent="Grids" unique_id=797412870 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 384)
+
+[node name="Grid412" parent="Grids" unique_id=407443686 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 416)
+
+[node name="Grid413" parent="Grids" unique_id=1468641006 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 448)
+
+[node name="Grid414" parent="Grids" unique_id=1367034807 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 480)
+
+[node name="Grid415" parent="Grids" unique_id=235719909 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 512)
+
+[node name="Grid416" parent="Grids" unique_id=1077702155 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 544)
+
+[node name="Grid417" parent="Grids" unique_id=1305498185 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 576)
+
+[node name="Grid418" parent="Grids" unique_id=265616776 instance=ExtResource("6_4j5ol")]
+position = Vector2(640, 608)
+
+[node name="Grid419" parent="Grids" unique_id=1968315356 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 32)
+
+[node name="Grid420" parent="Grids" unique_id=1107879914 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 0)
+gridType = 7
+
+[node name="Grid421" parent="Grids" unique_id=810041719 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 64)
+
+[node name="Grid422" parent="Grids" unique_id=737805079 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 96)
+gridType = 7
+
+[node name="Grid423" parent="Grids" unique_id=1282631037 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 128)
+
+[node name="Grid424" parent="Grids" unique_id=1832935623 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 160)
+
+[node name="Grid425" parent="Grids" unique_id=423235635 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 192)
+
+[node name="Grid426" parent="Grids" unique_id=525025113 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 224)
+
+[node name="Grid427" parent="Grids" unique_id=493835593 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 256)
+
+[node name="Grid428" parent="Grids" unique_id=203183154 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 288)
+
+[node name="Grid429" parent="Grids" unique_id=1842424940 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 320)
+
+[node name="Grid430" parent="Grids" unique_id=212882053 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 352)
+
+[node name="Grid431" parent="Grids" unique_id=1378963680 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 384)
+
+[node name="Grid432" parent="Grids" unique_id=296353578 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 416)
+gridType = 1
+
+[node name="Grid433" parent="Grids" unique_id=1605900560 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 448)
+
+[node name="Grid434" parent="Grids" unique_id=1875052549 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 480)
+
+[node name="Grid435" parent="Grids" unique_id=1484908411 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 512)
+
+[node name="Grid436" parent="Grids" unique_id=2014879622 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 544)
+
+[node name="Grid437" parent="Grids" unique_id=2112576535 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 576)
+
+[node name="Grid438" parent="Grids" unique_id=1963727578 instance=ExtResource("6_4j5ol")]
+position = Vector2(672, 608)
+
+[node name="Grid439" parent="Grids" unique_id=1616786720 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 32)
+
+[node name="Grid440" parent="Grids" unique_id=2108703983 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 0)
+gridType = 7
+
+[node name="Grid441" parent="Grids" unique_id=157809366 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 64)
+
+[node name="Grid442" parent="Grids" unique_id=531127505 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 96)
+gridType = 7
+
+[node name="Grid443" parent="Grids" unique_id=1750239341 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 128)
+
+[node name="Grid444" parent="Grids" unique_id=1734920204 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 160)
+
+[node name="Grid445" parent="Grids" unique_id=1196965385 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 192)
+
+[node name="Grid446" parent="Grids" unique_id=491473071 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 224)
+
+[node name="Grid447" parent="Grids" unique_id=250983222 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 256)
+
+[node name="Grid448" parent="Grids" unique_id=576785879 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 288)
+gridType = 1
+
+[node name="Grid449" parent="Grids" unique_id=346541058 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 320)
+gridType = 5
+
+[node name="Grid450" parent="Grids" unique_id=1626866723 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 352)
+gridType = 5
+
+[node name="Grid451" parent="Grids" unique_id=1103187503 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 384)
+
+[node name="Grid452" parent="Grids" unique_id=140455276 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 416)
+
+[node name="Grid453" parent="Grids" unique_id=1511921770 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 448)
+
+[node name="Grid454" parent="Grids" unique_id=76383402 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 480)
+
+[node name="Grid455" parent="Grids" unique_id=1197753747 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 512)
+
+[node name="Grid456" parent="Grids" unique_id=1817242008 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 544)
+
+[node name="Grid457" parent="Grids" unique_id=1917903712 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 576)
+
+[node name="Grid458" parent="Grids" unique_id=818016425 instance=ExtResource("6_4j5ol")]
+position = Vector2(704, 608)
+
+[node name="Grid459" parent="Grids" unique_id=577867126 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 32)
+
+[node name="Grid460" parent="Grids" unique_id=636059065 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 0)
+
+[node name="Grid461" parent="Grids" unique_id=1389249130 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 64)
+
+[node name="Grid462" parent="Grids" unique_id=1764912743 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 96)
+
+[node name="Grid463" parent="Grids" unique_id=1375266891 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 128)
+
+[node name="Grid464" parent="Grids" unique_id=931890771 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 160)
+
+[node name="Grid465" parent="Grids" unique_id=613300288 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 192)
+
+[node name="Grid466" parent="Grids" unique_id=821373536 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 224)
+
+[node name="Grid467" parent="Grids" unique_id=839917537 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 256)
+
+[node name="Grid468" parent="Grids" unique_id=631521433 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 288)
+
+[node name="Grid469" parent="Grids" unique_id=1126102403 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 320)
+gridType = 5
+gridVisionMode = 2
+gridVisionRange = 4
+towerDirection = 1
+
+[node name="Grid470" parent="Grids" unique_id=909039180 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 352)
+gridType = 5
+
+[node name="Grid471" parent="Grids" unique_id=1382916421 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 384)
+
+[node name="Grid472" parent="Grids" unique_id=181144883 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 416)
+
+[node name="Grid473" parent="Grids" unique_id=578660427 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 448)
+
+[node name="Grid474" parent="Grids" unique_id=1221107431 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 480)
+
+[node name="Grid475" parent="Grids" unique_id=632175954 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 512)
+
+[node name="Grid476" parent="Grids" unique_id=66020291 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 544)
+
+[node name="Grid477" parent="Grids" unique_id=1332892794 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 576)
+
+[node name="Grid478" parent="Grids" unique_id=627481778 instance=ExtResource("6_4j5ol")]
+position = Vector2(736, 608)
+
+[node name="Grid479" parent="Grids" unique_id=1574235201 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 32)
+
+[node name="Grid480" parent="Grids" unique_id=309563934 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 0)
+
+[node name="Grid481" parent="Grids" unique_id=1667355226 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 64)
+
+[node name="Grid482" parent="Grids" unique_id=1043612725 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 96)
+
+[node name="Grid483" parent="Grids" unique_id=904188856 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 128)
+
+[node name="Grid484" parent="Grids" unique_id=1498065101 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 160)
+
+[node name="Grid485" parent="Grids" unique_id=622861535 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 192)
+
+[node name="Grid486" parent="Grids" unique_id=61025247 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 224)
+
+[node name="Grid487" parent="Grids" unique_id=2006393403 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 256)
+
+[node name="Grid488" parent="Grids" unique_id=2004998220 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 288)
+
+[node name="Grid489" parent="Grids" unique_id=660022594 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 320)
+
+[node name="Grid490" parent="Grids" unique_id=1981944739 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 352)
+
+[node name="Grid491" parent="Grids" unique_id=1910250799 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 384)
+
+[node name="Grid492" parent="Grids" unique_id=546724067 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 416)
+
+[node name="Grid493" parent="Grids" unique_id=260002141 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 448)
+
+[node name="Grid494" parent="Grids" unique_id=267521288 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 480)
+
+[node name="Grid495" parent="Grids" unique_id=769195949 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 512)
+
+[node name="Grid496" parent="Grids" unique_id=1021659117 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 544)
+
+[node name="Grid497" parent="Grids" unique_id=416360716 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 576)
+
+[node name="Grid498" parent="Grids" unique_id=870961991 instance=ExtResource("6_4j5ol")]
+position = Vector2(768, 608)
+
+[node name="Grid499" parent="Grids" unique_id=953400667 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 32)
+
+[node name="Grid500" parent="Grids" unique_id=567584842 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 0)
+
+[node name="Grid501" parent="Grids" unique_id=330073304 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 64)
+
+[node name="Grid502" parent="Grids" unique_id=1177908541 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 96)
+
+[node name="Grid503" parent="Grids" unique_id=330026092 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 128)
+
+[node name="Grid504" parent="Grids" unique_id=1228067176 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 160)
+
+[node name="Grid505" parent="Grids" unique_id=675125975 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 192)
+
+[node name="Grid506" parent="Grids" unique_id=1707276761 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 224)
+
+[node name="Grid507" parent="Grids" unique_id=1905546691 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 256)
+
+[node name="Grid508" parent="Grids" unique_id=93716067 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 288)
+
+[node name="Grid509" parent="Grids" unique_id=934294571 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 320)
+
+[node name="Grid510" parent="Grids" unique_id=1513680767 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 352)
+
+[node name="Grid511" parent="Grids" unique_id=2130961783 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 384)
+
+[node name="Grid512" parent="Grids" unique_id=1093483603 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 416)
+
+[node name="Grid513" parent="Grids" unique_id=352414224 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 448)
+
+[node name="Grid514" parent="Grids" unique_id=500111084 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 480)
+
+[node name="Grid515" parent="Grids" unique_id=2017004335 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 512)
+
+[node name="Grid516" parent="Grids" unique_id=1570331225 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 544)
+
+[node name="Grid517" parent="Grids" unique_id=1506541667 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 576)
+
+[node name="Grid518" parent="Grids" unique_id=819246193 instance=ExtResource("6_4j5ol")]
+position = Vector2(800, 608)
+gridType = 5
+
+[node name="Grid519" parent="Grids" unique_id=125340517 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 32)
+
+[node name="Grid520" parent="Grids" unique_id=650248708 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 0)
+
+[node name="Grid521" parent="Grids" unique_id=1884305684 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 64)
+
+[node name="Grid522" parent="Grids" unique_id=165730779 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 96)
+
+[node name="Grid523" parent="Grids" unique_id=1311831324 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 128)
+
+[node name="Grid524" parent="Grids" unique_id=1271828614 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 160)
+
+[node name="Grid525" parent="Grids" unique_id=702664311 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 192)
+
+[node name="Grid526" parent="Grids" unique_id=1119403886 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 224)
+
+[node name="Grid527" parent="Grids" unique_id=833604815 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 256)
+
+[node name="Grid528" parent="Grids" unique_id=1220289483 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 288)
+
+[node name="Grid529" parent="Grids" unique_id=1013705071 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 320)
+
+[node name="Grid530" parent="Grids" unique_id=1915401665 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 352)
+
+[node name="Grid531" parent="Grids" unique_id=2010631395 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 384)
+
+[node name="Grid532" parent="Grids" unique_id=1369803676 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 416)
+
+[node name="Grid533" parent="Grids" unique_id=966774266 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 448)
+
+[node name="Grid534" parent="Grids" unique_id=1196191987 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 480)
+
+[node name="Grid535" parent="Grids" unique_id=374204501 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 512)
+
+[node name="Grid536" parent="Grids" unique_id=346659041 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 544)
+
+[node name="Grid537" parent="Grids" unique_id=835852375 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 576)
+gridType = 5
+
+[node name="Grid538" parent="Grids" unique_id=1359374818 instance=ExtResource("6_4j5ol")]
+position = Vector2(832, 608)
+gridType = 5
+
+[node name="Grid539" parent="Grids" unique_id=1831352117 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 32)
+
+[node name="Grid540" parent="Grids" unique_id=437004636 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 0)
+
+[node name="Grid541" parent="Grids" unique_id=486508996 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 64)
+
+[node name="Grid542" parent="Grids" unique_id=284307443 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 96)
+
+[node name="Grid543" parent="Grids" unique_id=815571817 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 128)
+
+[node name="Grid544" parent="Grids" unique_id=321493336 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 160)
+
+[node name="Grid545" parent="Grids" unique_id=1248080245 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 192)
+
+[node name="Grid546" parent="Grids" unique_id=393794645 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 224)
+
+[node name="Grid547" parent="Grids" unique_id=357717530 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 256)
+
+[node name="Grid548" parent="Grids" unique_id=345477700 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 288)
+
+[node name="Grid549" parent="Grids" unique_id=1126256631 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 320)
+
+[node name="Grid550" parent="Grids" unique_id=62477650 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 352)
+
+[node name="Grid551" parent="Grids" unique_id=1187707743 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 384)
+
+[node name="Grid552" parent="Grids" unique_id=1709192544 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 416)
+
+[node name="Grid553" parent="Grids" unique_id=1822307791 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 448)
+
+[node name="Grid554" parent="Grids" unique_id=926756565 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 480)
+
+[node name="Grid555" parent="Grids" unique_id=830699696 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 512)
+
+[node name="Grid556" parent="Grids" unique_id=866642710 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 544)
+gridType = 5
+
+[node name="Grid557" parent="Grids" unique_id=268745819 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 576)
+gridType = 5
+
+[node name="Grid558" parent="Grids" unique_id=183641359 instance=ExtResource("6_4j5ol")]
+position = Vector2(864, 608)
+gridType = 5
+
+[node name="Grid559" parent="Grids" unique_id=242321481 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 32)
+
+[node name="Grid560" parent="Grids" unique_id=638888665 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 0)
+
+[node name="Grid561" parent="Grids" unique_id=797906212 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 64)
+
+[node name="Grid562" parent="Grids" unique_id=671130306 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 96)
+
+[node name="Grid563" parent="Grids" unique_id=1833010551 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 128)
+
+[node name="Grid564" parent="Grids" unique_id=1302778814 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 160)
+
+[node name="Grid565" parent="Grids" unique_id=91209756 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 192)
+
+[node name="Grid566" parent="Grids" unique_id=229458713 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 224)
+
+[node name="Grid567" parent="Grids" unique_id=1423117577 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 256)
+
+[node name="Grid568" parent="Grids" unique_id=1945023024 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 288)
+
+[node name="Grid569" parent="Grids" unique_id=1893408200 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 320)
+
+[node name="Grid570" parent="Grids" unique_id=1700205124 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 352)
+
+[node name="Grid571" parent="Grids" unique_id=502982460 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 384)
+
+[node name="Grid572" parent="Grids" unique_id=2026043481 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 416)
+
+[node name="Grid573" parent="Grids" unique_id=224233616 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 448)
+
+[node name="Grid574" parent="Grids" unique_id=650564149 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 480)
+
+[node name="Grid575" parent="Grids" unique_id=882810897 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 512)
+gridType = 5
+
+[node name="Grid576" parent="Grids" unique_id=1839002912 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 544)
+gridType = 5
+
+[node name="Grid577" parent="Grids" unique_id=1088956391 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 576)
+gridType = 5
+
+[node name="Grid578" parent="Grids" unique_id=1344099473 instance=ExtResource("6_4j5ol")]
+position = Vector2(896, 608)
+gridType = 5
+
+[node name="Grid579" parent="Grids" unique_id=31316943 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 32)
+
+[node name="Grid580" parent="Grids" unique_id=110881918 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 0)
+
+[node name="Grid581" parent="Grids" unique_id=767567537 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 64)
+
+[node name="Grid582" parent="Grids" unique_id=2041418380 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 96)
+
+[node name="Grid583" parent="Grids" unique_id=487623465 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 128)
+
+[node name="Grid584" parent="Grids" unique_id=1693458159 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 160)
+
+[node name="Grid585" parent="Grids" unique_id=909049334 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 192)
+
+[node name="Grid586" parent="Grids" unique_id=430808206 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 224)
+
+[node name="Grid587" parent="Grids" unique_id=2095278262 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 256)
+
+[node name="Grid588" parent="Grids" unique_id=1264741234 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 288)
+
+[node name="Grid589" parent="Grids" unique_id=1534270778 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 320)
+
+[node name="Grid590" parent="Grids" unique_id=729699671 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 352)
+
+[node name="Grid591" parent="Grids" unique_id=866476163 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 384)
+
+[node name="Grid592" parent="Grids" unique_id=697064212 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 416)
+
+[node name="Grid593" parent="Grids" unique_id=1831123698 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 448)
+
+[node name="Grid594" parent="Grids" unique_id=1483090897 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 480)
+gridType = 5
+
+[node name="Grid595" parent="Grids" unique_id=944330346 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 512)
+gridType = 5
+
+[node name="Grid596" parent="Grids" unique_id=1133615030 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 544)
+gridType = 5
+
+[node name="Grid597" parent="Grids" unique_id=1934494007 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 576)
+gridType = 5
+
+[node name="Grid598" parent="Grids" unique_id=2662061 instance=ExtResource("6_4j5ol")]
+position = Vector2(928, 608)
+gridType = 5
+
+[node name="Grid599" parent="Grids" unique_id=1078615925 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 32)
+
+[node name="Grid600" parent="Grids" unique_id=60176515 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 0)
+
+[node name="Grid601" parent="Grids" unique_id=399829765 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 64)
+
+[node name="Grid602" parent="Grids" unique_id=1110652158 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 96)
+
+[node name="Grid603" parent="Grids" unique_id=1008881425 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 128)
+
+[node name="Grid604" parent="Grids" unique_id=1249916271 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 160)
+
+[node name="Grid605" parent="Grids" unique_id=2060670704 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 192)
+
+[node name="Grid606" parent="Grids" unique_id=1206277783 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 224)
+
+[node name="Grid607" parent="Grids" unique_id=2101828449 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 256)
+
+[node name="Grid608" parent="Grids" unique_id=1388752567 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 288)
+
+[node name="Grid609" parent="Grids" unique_id=447383235 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 320)
+
+[node name="Grid610" parent="Grids" unique_id=837918874 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 352)
+
+[node name="Grid611" parent="Grids" unique_id=1120039911 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 384)
+
+[node name="Grid612" parent="Grids" unique_id=1680794309 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 416)
+
+[node name="Grid613" parent="Grids" unique_id=449410804 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 448)
+gridType = 5
+
+[node name="Grid614" parent="Grids" unique_id=1547075207 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 480)
+gridType = 5
+
+[node name="Grid615" parent="Grids" unique_id=1243875966 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 512)
+gridType = 5
+
+[node name="Grid616" parent="Grids" unique_id=20068013 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 544)
+gridType = 5
+
+[node name="Grid617" parent="Grids" unique_id=833985520 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 576)
+gridType = 5
+
+[node name="Grid618" parent="Grids" unique_id=1963978468 instance=ExtResource("6_4j5ol")]
+position = Vector2(960, 608)
+gridType = 5
+
+[node name="Grid619" parent="Grids" unique_id=75268426 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 32)
+
+[node name="Grid620" parent="Grids" unique_id=300314734 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 0)
+
+[node name="Grid621" parent="Grids" unique_id=1490166918 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 64)
+
+[node name="Grid622" parent="Grids" unique_id=1397817965 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 96)
+
+[node name="Grid623" parent="Grids" unique_id=1837652499 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 128)
+
+[node name="Grid624" parent="Grids" unique_id=1343517749 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 160)
+
+[node name="Grid625" parent="Grids" unique_id=1033406733 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 192)
+
+[node name="Grid626" parent="Grids" unique_id=1086928982 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 224)
+
+[node name="Grid627" parent="Grids" unique_id=1375257358 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 256)
+
+[node name="Grid628" parent="Grids" unique_id=1676504450 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 288)
+
+[node name="Grid629" parent="Grids" unique_id=257534649 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 320)
+
+[node name="Grid630" parent="Grids" unique_id=748242367 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 352)
+
+[node name="Grid631" parent="Grids" unique_id=705335131 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 384)
+
+[node name="Grid632" parent="Grids" unique_id=2058455757 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 416)
+gridType = 5
+
+[node name="Grid633" parent="Grids" unique_id=535245716 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 448)
+gridType = 5
+
+[node name="Grid634" parent="Grids" unique_id=1037630546 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 480)
+gridType = 5
+
+[node name="Grid635" parent="Grids" unique_id=698253139 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 512)
+gridType = 5
+
+[node name="Grid636" parent="Grids" unique_id=936992570 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 544)
+gridType = 5
+
+[node name="Grid637" parent="Grids" unique_id=1823028426 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 576)
+gridType = 5
+
+[node name="Grid638" parent="Grids" unique_id=1819141661 instance=ExtResource("6_4j5ol")]
+position = Vector2(992, 608)
+gridType = 5
+
+[node name="Grid639" parent="Grids" unique_id=150867549 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 32)
+
+[node name="Grid640" parent="Grids" unique_id=1274499314 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 0)
+
+[node name="Grid641" parent="Grids" unique_id=1966534899 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 64)
+
+[node name="Grid642" parent="Grids" unique_id=617852185 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 96)
+
+[node name="Grid643" parent="Grids" unique_id=976149040 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 128)
+
+[node name="Grid644" parent="Grids" unique_id=972564963 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 160)
+
+[node name="Grid645" parent="Grids" unique_id=986999910 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 192)
+
+[node name="Grid646" parent="Grids" unique_id=1878080894 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 224)
+
+[node name="Grid647" parent="Grids" unique_id=691298072 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 256)
+
+[node name="Grid648" parent="Grids" unique_id=716618866 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 288)
+
+[node name="Grid649" parent="Grids" unique_id=106805581 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 320)
+
+[node name="Grid650" parent="Grids" unique_id=434008991 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 352)
+
+[node name="Grid651" parent="Grids" unique_id=2085945934 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 384)
+gridType = 5
+
+[node name="Grid652" parent="Grids" unique_id=584655490 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 416)
+gridType = 5
+
+[node name="Grid653" parent="Grids" unique_id=562023336 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 448)
+gridType = 5
+
+[node name="Grid654" parent="Grids" unique_id=1407631275 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 480)
+gridType = 5
+
+[node name="Grid655" parent="Grids" unique_id=343300360 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 512)
+gridType = 5
+
+[node name="Grid656" parent="Grids" unique_id=1709073758 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 544)
+gridType = 5
+
+[node name="Grid657" parent="Grids" unique_id=359641640 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 576)
+gridType = 5
+
+[node name="Grid658" parent="Grids" unique_id=1306391546 instance=ExtResource("6_4j5ol")]
+position = Vector2(1024, 608)
+gridType = 5
+
+[node name="Grid659" parent="Grids" unique_id=1700928519 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 32)
+
+[node name="Grid660" parent="Grids" unique_id=473439790 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 0)
+
+[node name="Grid661" parent="Grids" unique_id=1662031297 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 64)
+
+[node name="Grid662" parent="Grids" unique_id=1656436247 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 96)
+
+[node name="Grid663" parent="Grids" unique_id=1997459414 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 128)
+
+[node name="Grid664" parent="Grids" unique_id=459710910 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 160)
+
+[node name="Grid665" parent="Grids" unique_id=409249941 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 192)
+
+[node name="Grid666" parent="Grids" unique_id=1177051693 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 224)
+
+[node name="Grid667" parent="Grids" unique_id=45115842 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 256)
+
+[node name="Grid668" parent="Grids" unique_id=1529865624 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 288)
+
+[node name="Grid669" parent="Grids" unique_id=1212275015 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 320)
+
+[node name="Grid670" parent="Grids" unique_id=2001485931 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 352)
+gridType = 5
+
+[node name="Grid671" parent="Grids" unique_id=1111078290 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 384)
+gridType = 5
+
+[node name="Grid672" parent="Grids" unique_id=442314267 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 416)
+gridType = 5
+
+[node name="Grid673" parent="Grids" unique_id=642765273 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 448)
+gridType = 5
+
+[node name="Grid674" parent="Grids" unique_id=261973268 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 480)
+gridType = 5
+
+[node name="Grid675" parent="Grids" unique_id=378630741 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 512)
+gridType = 5
+
+[node name="Grid676" parent="Grids" unique_id=1199449552 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 544)
+gridType = 5
+
+[node name="Grid677" parent="Grids" unique_id=990403812 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 576)
+gridType = 5
+
+[node name="Grid678" parent="Grids" unique_id=599033723 instance=ExtResource("6_4j5ol")]
+position = Vector2(1056, 608)
+gridType = 5
+
+[node name="Grid679" parent="Grids" unique_id=1747125626 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 32)
+
+[node name="Grid680" parent="Grids" unique_id=1544582815 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 32)
+
+[node name="Grid681" parent="Grids" unique_id=1206329595 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 0)
+
+[node name="Grid682" parent="Grids" unique_id=402975037 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 64)
+
+[node name="Grid683" parent="Grids" unique_id=735953642 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 96)
+
+[node name="Grid684" parent="Grids" unique_id=1491209729 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 128)
+
+[node name="Grid685" parent="Grids" unique_id=2055277784 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 160)
+
+[node name="Grid686" parent="Grids" unique_id=1942476481 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 192)
+
+[node name="Grid687" parent="Grids" unique_id=2082849210 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 224)
+
+[node name="Grid688" parent="Grids" unique_id=523780561 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 256)
+
+[node name="Grid689" parent="Grids" unique_id=32823590 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 288)
+
+[node name="Grid690" parent="Grids" unique_id=334457382 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 320)
+
+[node name="Grid691" parent="Grids" unique_id=1602457297 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 352)
+gridType = 5
+
+[node name="Grid692" parent="Grids" unique_id=742773130 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 384)
+gridType = 5
+
+[node name="Grid693" parent="Grids" unique_id=1967597274 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 416)
+gridType = 5
+
+[node name="Grid694" parent="Grids" unique_id=1150376147 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 448)
+gridType = 5
+
+[node name="Grid695" parent="Grids" unique_id=1774100596 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 480)
+gridType = 5
+
+[node name="Grid696" parent="Grids" unique_id=2052537548 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 512)
+gridType = 5
+
+[node name="Grid697" parent="Grids" unique_id=118971307 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 544)
+gridType = 5
+
+[node name="Grid698" parent="Grids" unique_id=749958020 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 576)
+gridType = 5
+
+[node name="Grid699" parent="Grids" unique_id=1888315876 instance=ExtResource("6_4j5ol")]
+position = Vector2(1120, 608)
+gridType = 5
+
+[node name="Grid700" parent="Grids" unique_id=1526847526 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 608)
+gridType = 5
+
+[node name="Grid701" parent="Grids" unique_id=2139173915 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 576)
+gridType = 5
+
+[node name="Grid702" parent="Grids" unique_id=2035677240 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 544)
+gridType = 5
+
+[node name="Grid703" parent="Grids" unique_id=969987950 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 512)
+gridType = 5
+
+[node name="Grid704" parent="Grids" unique_id=1702682820 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 480)
+gridType = 5
+
+[node name="Grid705" parent="Grids" unique_id=459515837 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 448)
+gridType = 5
+
+[node name="Grid706" parent="Grids" unique_id=82575860 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 416)
+gridType = 5
+
+[node name="Grid707" parent="Grids" unique_id=1663560750 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 384)
+gridType = 5
+
+[node name="Grid708" parent="Grids" unique_id=1534566940 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 352)
+gridType = 5
+
+[node name="Grid709" parent="Grids" unique_id=255741476 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 320)
+
+[node name="Grid710" parent="Grids" unique_id=2145083480 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 288)
+
+[node name="Grid711" parent="Grids" unique_id=431139931 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 256)
+
+[node name="Grid712" parent="Grids" unique_id=1371325545 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 224)
+
+[node name="Grid713" parent="Grids" unique_id=182534918 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 192)
+
+[node name="Grid714" parent="Grids" unique_id=1449238738 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 160)
+
+[node name="Grid715" parent="Grids" unique_id=982934285 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 128)
+
+[node name="Grid716" parent="Grids" unique_id=188732641 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 96)
+
+[node name="Grid717" parent="Grids" unique_id=1572838177 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 64)
+
+[node name="Grid718" parent="Grids" unique_id=813176734 instance=ExtResource("6_4j5ol")]
+position = Vector2(1088, 0)
+
+[node name="GameManager" type="Node" parent="." unique_id=1869855490 node_paths=PackedStringArray("gridManager", "unitManager", "weaponManager", "fogOfWarManager", "terrainEditor", "victoryPanel", "victoryTitleLabel", "victorySubtitleLabel", "restartButton") groups=["game_manager"]]
+script = ExtResource("7_of57s")
+gridManager = NodePath("../UnitManager/GridManager")
+unitManager = NodePath("../UnitManager")
+weaponManager = NodePath("../WeaponManager")
+fogOfWarManager = NodePath("../FogOfWarManager")
+terrainEditor = NodePath("../CanvasLayer/TerrainEditor")
+victoryPanel = NodePath("../CanvasLayer/VictoryPanel")
+victoryTitleLabel = NodePath("../CanvasLayer/VictoryPanel/VBoxContainer/VictoryTitleLabel")
+victorySubtitleLabel = NodePath("../CanvasLayer/VictoryPanel/VBoxContainer/VictorySubtitleLabel")
+restartButton = NodePath("../CanvasLayer/VictoryPanel/VBoxContainer/RestartButton")
+
+[node name="TurnLabel" type="Label" parent="." unique_id=1494557110]
+offset_right = 240.0
+offset_bottom = 34.0
+theme_override_colors/font_color = Color(0.22794175, 1, 0.944938, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_mswub")
+text = "当前回合： - 阶段："
+
+[node name="ActionMenu" parent="." unique_id=507695071 node_paths=PackedStringArray("closeInfoButton", "unitInfoLabel", "rotateButton") groups=["action_menu"] instance=ExtResource("9_tqoya")]
+visible = false
+z_index = 50
+offset_right = 48.0
+offset_bottom = 72.0
+closeInfoButton = NodePath("../CloseInfoButton")
+unitInfoLabel = NodePath("../UnitInfoLabel")
+rotateButton = NodePath("RotateButton")
+
+[node name="RotateButton" type="Button" parent="ActionMenu" unique_id=1275430591]
+z_index = 100
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "旋转"
+icon = ExtResource("7_4jm02")
+language = "zh"
+
+[node name="TurnEndLabel" type="Label" parent="." unique_id=58967810]
+visible = false
+offset_left = 224.0
+offset_top = 112.0
+offset_right = 720.0
+offset_bottom = 480.0
+theme_override_colors/font_color = Color(1, 0.84313726, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 120
+text = "回合结束"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ColorRect" type="ColorRect" parent="TurnEndLabel" unique_id=916972762]
+show_behind_parent = true
+layout_mode = 0
+offset_right = 496.0
+offset_bottom = 368.0
+color = Color(1, 0.6392157, 0, 1)
+
+[node name="UnitManager" type="Node" parent="." unique_id=2145568718 node_paths=PackedStringArray("gridManager", "units") groups=["unit_manager"]]
+script = ExtResource("11_hybxs")
+gridManager = NodePath("GridManager")
+units = NodePath("Units")
+
+[node name="GridManager" type="Node" parent="UnitManager" unique_id=1082731550 node_paths=PackedStringArray("GridsNode", "unitManager")]
+script = ExtResource("7_p1hux")
+GridsNode = NodePath("../../Grids")
+searchRange = Vector2i(40, 30)
+gridSize = Vector2i(32, 32)
+unitManager = NodePath("..")
+
+[node name="Units" type="Node" parent="UnitManager" unique_id=364518799]
+
+[node name="Infantry(1)" parent="UnitManager/Units" unique_id=1321163963 node_paths=PackedStringArray("gridManager") instance=ExtResource("4_p1hux")]
+position = Vector2(32, 512)
+canTransportUnits = true
+maxTransportCapacity = 1
+canTransportUnitTypes = Array[String](["Infantry"])
+maxLoadCapacity = 1
+gridManager = NodePath("../../GridManager")
+CanFarMounting = true
+team = "Player1"
+
+[node name="Infantry(2)" parent="UnitManager/Units" unique_id=1913994520 node_paths=PackedStringArray("gridManager") instance=ExtResource("4_p1hux")]
+position = Vector2(192, 480)
+gridManager = NodePath("../../GridManager")
+team = "Player1"
+
+[node name="Infantry(3)" parent="UnitManager/Units" unique_id=1103229605 node_paths=PackedStringArray("gridManager") instance=ExtResource("4_p1hux")]
+position = Vector2(736, 480)
+gridManager = NodePath("../../GridManager")
+team = "Player1"
+
+[node name="Infantry4" parent="UnitManager/Units" unique_id=1864385983 node_paths=PackedStringArray("gridManager") instance=ExtResource("4_p1hux")]
+position = Vector2(288, 384)
+gridManager = NodePath("../../GridManager")
+team = "Player2"
+
+[node name="Infantry5" parent="UnitManager/Units" unique_id=1582064255 node_paths=PackedStringArray("gridManager") instance=ExtResource("4_p1hux")]
+position = Vector2(800, 480)
+gridManager = NodePath("../../GridManager")
+team = "Player2"
+
+[node name="Infantry6" parent="UnitManager/Units" unique_id=979155889 node_paths=PackedStringArray("gridManager") instance=ExtResource("4_p1hux")]
+position = Vector2(128, 480)
+gridManager = NodePath("../../GridManager")
+team = "Player2"
+
+[node name="Infantry7" parent="UnitManager/Units" unique_id=1432692388 node_paths=PackedStringArray("gridManager") instance=ExtResource("4_p1hux")]
+position = Vector2(128, 416)
+gridManager = NodePath("../../GridManager")
+team = "Player2"
+
+[node name="HpLabel" parent="UnitManager/Units/Infantry7" index="2" unique_id=1380967663]
+metadata/_edit_use_anchors_ = true
+
+[node name="Oozium" parent="UnitManager/Units" unique_id=1807137787 node_paths=PackedStringArray("gridManager") instance=ExtResource("15_v2gmf")]
+position = Vector2(224, 352)
+overlapType = 2
+gridManager = NodePath("../../GridManager")
+useDefaultAmmoConfig = false
+team = "Player1"
+
+[node name="Oozium2" parent="UnitManager/Units" unique_id=928967852 node_paths=PackedStringArray("gridManager") instance=ExtResource("15_v2gmf")]
+position = Vector2(224, 512)
+overlapType = 2
+gridManager = NodePath("../../GridManager")
+attackType = 1
+health = 1
+captureAbility = 0
+team = "Player1"
+
+[node name="Mech" parent="UnitManager/Units" unique_id=1167390325 node_paths=PackedStringArray("gridManager") instance=ExtResource("16_jcbur")]
+position = Vector2(768, 448)
+moveType = 5
+gridManager = NodePath("../../GridManager")
+captureAbility = 0
+team = "Player1"
+
+[node name="Sprite2D" parent="UnitManager/Units/Mech" index="2" unique_id=525152588]
+visible = false
+
+[node name="Mech2" parent="UnitManager/Units" unique_id=8995270 node_paths=PackedStringArray("gridManager") instance=ExtResource("16_jcbur")]
+position = Vector2(96, 448)
+overlapType = 1
+gridManager = NodePath("../../GridManager")
+captureAbility = 0
+team = "Player2"
+
+[node name="Sprite2D" parent="UnitManager/Units/Mech2" index="2" unique_id=525152588]
+visible = false
+texture = ExtResource("17_smf0o")
+
+[node name="LightTank" parent="UnitManager/Units" unique_id=548670000 node_paths=PackedStringArray("gridManager") instance=ExtResource("14_v2gmf")]
+position = Vector2(288, 352)
+gridManager = NodePath("../../GridManager")
+health = 60
+currentPrimaryAmmo = 0
+team = "Player1"
+
+[node name="LightTank2" parent="UnitManager/Units" unique_id=118940428 node_paths=PackedStringArray("gridManager") instance=ExtResource("14_v2gmf")]
+position = Vector2(288, 320)
+gridManager = NodePath("../../GridManager")
+health = 70
+team = "Player2"
+
+[node name="AnimatedSprite2D" parent="UnitManager/Units/LightTank2" index="1" unique_id=1828372812]
+frame_progress = 0.0
+
+[node name="Sprite2D" parent="UnitManager/Units/LightTank2" index="2" unique_id=1080152555]
+texture = ExtResource("15_jcbur")
+
+[node name="LightTank4" parent="UnitManager/Units" unique_id=98936044 node_paths=PackedStringArray("gridManager") instance=ExtResource("14_v2gmf")]
+position = Vector2(704, 320)
+gridManager = NodePath("../../GridManager")
+team = "Player2"
+
+[node name="AnimatedSprite2D" parent="UnitManager/Units/LightTank4" index="1" unique_id=1828372812]
+frame_progress = 0.0
+
+[node name="Sprite2D" parent="UnitManager/Units/LightTank4" index="2" unique_id=1080152555]
+texture = ExtResource("15_jcbur")
+
+[node name="LightTank3" parent="UnitManager/Units" unique_id=488045069 node_paths=PackedStringArray("gridManager") instance=ExtResource("14_v2gmf")]
+position = Vector2(608, 480)
+gridManager = NodePath("../../GridManager")
+attackRange = 3
+minAttackRange = 2
+maxAttackRange = 3
+team = "Player1"
+
+[node name="APC1" parent="UnitManager/Units" unique_id=1999259536 node_paths=PackedStringArray("gridManager", "spriteBlue") instance=ExtResource("18_fdqew")]
+position = Vector2(160, 448)
+maxTransportCapacity = 2
+canTransportUnitTypes = Array[String](["Infantry", "Mech", "LightTank"])
+maxLoadCapacity = 2
+gridManager = NodePath("../../GridManager")
+consumeFuel = true
+team = "Player1"
+spriteBlue = NodePath("Sprite2D")
+
+[node name="Artillery" parent="UnitManager/Units" unique_id=167020777 node_paths=PackedStringArray("gridManager") instance=ExtResource("16_smf0o")]
+position = Vector2(192, 416)
+moveType = 3
+gridManager = NodePath("../../GridManager")
+currentPrimaryAmmo = 1
+team = "Player2"
+
+[node name="Sprite2D" parent="UnitManager/Units/Artillery" index="2" unique_id=1603783663]
+texture = ExtResource("17_tv8i1")
+
+[node name="Rocket1" parent="UnitManager/Units" unique_id=1282062844 node_paths=PackedStringArray("gridManager") instance=ExtResource("19_0d4pv")]
+position = Vector2(320, 416)
+cannotCounterWhenAttacked = true
+moveType = 3
+gridManager = NodePath("../../GridManager")
+minAttackRange = 4
+team = "Player2"
+
+[node name="FlyBomb" parent="UnitManager/Units" unique_id=1986724623 node_paths=PackedStringArray("gridManager") instance=ExtResource("28_vneqc")]
+position = Vector2(448, 416)
+gridManager = NodePath("../../GridManager")
+team = "Player1"
+
+[node name="Recon" parent="UnitManager/Units" unique_id=150983514 node_paths=PackedStringArray("gridManager") instance=ExtResource("22_io27d")]
+position = Vector2(608, 288)
+gridManager = NodePath("../../GridManager")
+team = "Player2"
+
+[node name="FlyBomb2" parent="UnitManager/Units" unique_id=195680775 instance=ExtResource("28_vneqc")]
+position = Vector2(416, 352)
+explosionMinRange = 4
+explosionMaxRange = 9
+explosionDamageMode = 0
+explosionFixedValue = 9999
+explosionDestroysSelf = false
+explosionCanKill = true
+explosionAffectsWeapons = true
+maxExplodeAmmo = 1
+currentExplodeAmmo = 1
+team = "Player2"
+
+[node name="FlyBomb4" parent="UnitManager/Units" unique_id=1415390045 instance=ExtResource("28_vneqc")]
+position = Vector2(448, 352)
+explosionMaxRange = 6
+explosionPercentValue = -0.5
+explosionCanKill = true
+explosionAffectsWeapons = true
+explosionCanExceedMaxHealth = true
+team = "Player2"
+
+[node name="FlyBomb5" parent="UnitManager/Units" unique_id=1769097147 instance=ExtResource("28_vneqc")]
+position = Vector2(576, 288)
+fuel = 10
+explosionMaxRange = 6
+explosionPercentValue = -0.5
+explosionCanKill = true
+explosionAffectsWeapons = true
+explosionCanExceedMaxHealth = true
+team = "Player2"
+
+[node name="FlyBomb3" parent="UnitManager/Units" unique_id=559531958 instance=ExtResource("28_vneqc")]
+position = Vector2(448, 512)
+team = "Player1"
+
+[node name="AntiTank" parent="UnitManager/Units" unique_id=435382715 node_paths=PackedStringArray("gridManager") instance=ExtResource("29_antitan")]
+position = Vector2(320, 480)
+gridManager = NodePath("../../GridManager")
+canIlluminate = true
+maxFlareAmmo = 1
+currentFlareAmmo = 1
+flareDurationTurns = 3
+canIlluminateAfterMove = true
+team = "Player1"
+
+[node name="Flare" parent="UnitManager/Units" unique_id=771793553 node_paths=PackedStringArray("gridManager") instance=ExtResource("28_flareq")]
+position = Vector2(352, 512)
+gridManager = NodePath("../../GridManager")
+team = "Player1"
+
+[node name="AntiAir" parent="UnitManager/Units" unique_id=365018763 instance=ExtResource("25_p8adh")]
+position = Vector2(480, 512)
+unitCategory = 12
+team = "Player2"
+
+[node name="UnitLists" type="RichTextLabel" parent="." unique_id=860954284]
+offset_left = 920.0
+offset_right = 1280.0
+offset_bottom = 140.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/normal_font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_smf0o")
+bbcode_enabled = true
+text = "===单位统计==="
+fit_content = true
+scroll_active = false
+
+[node name="UnitInfoLabel" type="Label" parent="." unique_id=1422306603]
+visible = false
+z_index = 200
+offset_left = 672.0
+offset_right = 920.0
+offset_bottom = 144.0
+theme_override_colors/font_color = Color(0, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "单位信息："
+
+[node name="CloseInfoButton" type="Button" parent="." unique_id=1283087325]
+z_index = 200
+offset_left = 872.0
+offset_right = 920.0
+offset_bottom = 28.0
+icon = ExtResource("8_v2gmf")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=997004957]
+layer = 10
+
+[node name="TerrainEditor" type="Control" parent="CanvasLayer" unique_id=1311251061 node_paths=PackedStringArray("gameManager", "gridManager")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("21_gtqqq")
+gameManager = NodePath("../../GameManager")
+gridManager = NodePath("../../UnitManager/GridManager")
+
+[node name="VictoryPanel" type="Control" parent="CanvasLayer" unique_id=473306802]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="CanvasLayer/VictoryPanel" unique_id=1526732595]
+layout_mode = 0
+color = Color(0.050980393, 0.105882354, 0.16470589, 0.8)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/VictoryPanel" unique_id=1091256372]
+custom_minimum_size = Vector2(400, 200)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -100.0
+offset_right = 200.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="VictoryTitleLabel" type="RichTextLabel" parent="CanvasLayer/VictoryPanel/VBoxContainer" unique_id=171444715]
+layout_mode = 2
+bbcode_enabled = true
+
+[node name="VictorySubtitleLabel" type="RichTextLabel" parent="CanvasLayer/VictoryPanel/VBoxContainer" unique_id=1900491742]
+layout_mode = 2
+bbcode_enabled = true
+
+[node name="RestartButton" type="Button" parent="CanvasLayer/VictoryPanel/VBoxContainer" unique_id=1080707237]
+layout_mode = 2
+text = "\"重来\""
+
+[node name="Blocker" type="ColorRect" parent="CanvasLayer/VictoryPanel" unique_id=651841199]
+layout_mode = 0
+
+[node name="WeaponManager" type="Node" parent="." unique_id=1453903959 node_paths=PackedStringArray("gridManager", "weaponsNode")]
+script = ExtResource("19_0vlqb")
+gridManager = NodePath("../UnitManager/GridManager")
+weaponsNode = NodePath("Weapons")
+
+[node name="Weapons" type="Node" parent="WeaponManager" unique_id=1120507966]
+
+[node name="BlackCannon1" parent="WeaponManager/Weapons" unique_id=507068074 instance=ExtResource("20_gjnwh")]
+position = Vector2(128, 288)
+CanDestroy = true
+targetSelectionMode = 0
+
+[node name="AnimatedSprite2D" parent="WeaponManager/Weapons/BlackCannon1" index="0" unique_id=524686475]
+animation = &"cannon1_down"
+
+[node name="BlackCannon2" parent="WeaponManager/Weapons" unique_id=116915752 instance=ExtResource("20_gjnwh")]
+position = Vector2(96, 288)
+direction = 0
+team = "Player2"
+
+[node name="AnimatedSprite2D" parent="WeaponManager/Weapons/BlackCannon2" index="0" unique_id=524686475]
+animation = &"cannon1_down"
+
+[node name="Laser" parent="WeaponManager/Weapons" unique_id=163144726 instance=ExtResource("23_gtqqq")]
+position = Vector2(256, 288)
+initialFireAngles = Dictionary[float, bool]({
+0.0: true,
+45.0: true,
+90.0: false,
+135.0: false,
+180.0: false,
+225.0: false,
+270.0: true,
+315.0: true
+})
+CanDestroy = true
+targetSelectionMode = 2
+maxAttacksPerTurn = 2
+
+[node name="LargeCannon" parent="WeaponManager/Weapons" unique_id=769636627 instance=ExtResource("34_7xrs8")]
+position = Vector2(480, 224)
+direction = 2
+contributesToVictory = true
+health = 1
+
+[node name="CameraController" type="Camera2D" parent="." unique_id=37389023]
+position = Vector2(576, 328)
+script = ExtResource("27_camtouch")
+
+[node name="FogOfWarManager" type="Node2D" parent="." unique_id=345027698]
+position = Vector2(-464, -176)
+script = ExtResource("26_oldxj")
+isFogOfWarEnabled = false
+
+[connection signal="input_event" from="UnitManager/Units/Oozium/Area2D" to="UnitManager/Units/Oozium" method="InputClick"]
+[connection signal="input_event" from="UnitManager/Units/Oozium2/Area2D" to="UnitManager/Units/Oozium2" method="InputClick"]
+[connection signal="input_event" from="UnitManager/Units/Mech/Area2D" to="UnitManager/Units/Mech" method="InputClick"]
+[connection signal="input_event" from="UnitManager/Units/Mech2/Area2D" to="UnitManager/Units/Mech2" method="InputClick"]
+[connection signal="pressed" from="CloseInfoButton" to="ActionMenu" method="OnCloseInfoPressed"]
+
+[editable path="UnitManager/Units/Infantry(1)"]
+[editable path="UnitManager/Units/Infantry(2)"]
+[editable path="UnitManager/Units/Infantry(3)"]
+[editable path="UnitManager/Units/Infantry4"]
+[editable path="UnitManager/Units/Infantry5"]
+[editable path="UnitManager/Units/Infantry6"]
+[editable path="UnitManager/Units/Infantry7"]
+[editable path="UnitManager/Units/Oozium"]
+[editable path="UnitManager/Units/Oozium2"]
+[editable path="UnitManager/Units/Mech"]
+[editable path="UnitManager/Units/Mech2"]
+[editable path="UnitManager/Units/LightTank"]
+[editable path="UnitManager/Units/LightTank2"]
+[editable path="UnitManager/Units/LightTank4"]
+[editable path="UnitManager/Units/LightTank3"]
+[editable path="UnitManager/Units/APC1"]
+[editable path="UnitManager/Units/Artillery"]
+[editable path="UnitManager/Units/Recon"]
+[editable path="WeaponManager/Weapons/BlackCannon1"]
+[editable path="WeaponManager/Weapons/BlackCannon2"]

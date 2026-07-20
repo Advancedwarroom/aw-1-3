@@ -1,0 +1,128 @@
+[gd_scene format=3 uid="uid://cr66i6mwa2dc0"]
+
+[ext_resource type="Texture2D" uid="uid://bk3dv5kdf8a6t" path="res://asscets/Buttons/MoveButton.png" id="1_5jcrk"]
+[ext_resource type="Script" uid="uid://hjpvexmymhyb" path="res://spricts/ActionMenu.cs" id="1_e734a"]
+[ext_resource type="Texture2D" uid="uid://xsvwp81c3w27" path="res://asscets/Buttons/AttackButton.png" id="2_kamps"]
+[ext_resource type="Texture2D" uid="uid://cv84wton5s8e0" path="res://asscets/Buttons/WaitButton.png" id="3_e734a"]
+[ext_resource type="Texture2D" uid="uid://clg376jg610d7" path="res://asscets/Buttons/InfoButton.png" id="4_dh5mk"]
+[ext_resource type="Texture2D" uid="uid://cds2kwhv3ks3e" path="res://asscets/Buttons/CaptureButton.png" id="6_e734a"]
+[ext_resource type="Texture2D" uid="uid://ccdrsiyw3io46" path="res://asscets/Buttons/loadButton.png" id="7_q561x"]
+[ext_resource type="PackedScene" uid="uid://dygrnn2edr4ft" path="res://Prefabs/unload_unit_button.tscn" id="8_xkp38"]
+[ext_resource type="Texture2D" uid="uid://cwvrgpjeb0xet" path="res://asscets/Buttons/SupplyButton.png" id="9_xkp38"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ovprl"]
+bg_color = Color(0.6901961, 0.5921569, 0.3019608, 0.54509807)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85490197, 0.8117647, 0.47058824, 0.7019608)
+
+[node name="ActionMenu" type="Control" unique_id=1260179397 node_paths=PackedStringArray("moveButton", "attackButton", "waitButton", "infoButton", "captureButton", "loadButton", "unloadContainer", "supplyButton", "explodeButton", "illuminateButton")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_e734a")
+moveButton = NodePath("ButtonContainer/MoveButton")
+attackButton = NodePath("ButtonContainer/AttackButton")
+waitButton = NodePath("ButtonContainer/WaitButton")
+infoButton = NodePath("ButtonContainer/InfoButton")
+captureButton = NodePath("ButtonContainer/CaptureButton")
+loadButton = NodePath("ButtonContainer/loadButton")
+unloadButtonPreset = ExtResource("8_xkp38")
+unloadContainer = NodePath("unloadContainer")
+supplyButton = NodePath("ButtonContainer/supplyButton")
+unloadUnitButtonPreset = ExtResource("8_xkp38")
+explodeButton = NodePath("ButtonContainer/ExplodeButton")
+illuminateButton = NodePath("ButtonContainer/IlluminateButton")
+
+[node name="Panel" type="Panel" parent="." unique_id=804605196]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_right = 48.0
+offset_bottom = 280.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_ovprl")
+
+[node name="ButtonContainer" type="VBoxContainer" parent="." unique_id=240141518]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 44.0
+offset_bottom = 276.0
+theme_override_constants/separation = 2
+
+[node name="MoveButton" type="Button" parent="ButtonContainer" unique_id=240141517]
+layout_mode = 2
+size_flags_vertical = 3
+icon = ExtResource("1_5jcrk")
+
+[node name="AttackButton" type="Button" parent="ButtonContainer" unique_id=292839167]
+layout_mode = 2
+size_flags_vertical = 3
+icon = ExtResource("2_kamps")
+
+[node name="ExplodeButton" type="Button" parent="ButtonContainer" unique_id=240141519]
+layout_mode = 2
+size_flags_vertical = 3
+text = "爆炸"
+
+[node name="IlluminateButton" type="Button" parent="ButtonContainer" unique_id=240141520]
+layout_mode = 2
+size_flags_vertical = 3
+text = "照明"
+
+[node name="WaitButton" type="Button" parent="ButtonContainer" unique_id=157768671]
+layout_mode = 2
+size_flags_vertical = 3
+icon = ExtResource("3_e734a")
+
+[node name="InfoButton" type="Button" parent="ButtonContainer" unique_id=193988374]
+layout_mode = 2
+size_flags_vertical = 3
+icon = ExtResource("4_dh5mk")
+
+[node name="CaptureButton" type="Button" parent="ButtonContainer" unique_id=1727539879]
+layout_mode = 2
+size_flags_vertical = 3
+icon = ExtResource("6_e734a")
+
+[node name="loadButton" type="Button" parent="ButtonContainer" unique_id=1221751012]
+layout_mode = 2
+size_flags_vertical = 3
+icon = ExtResource("7_q561x")
+
+[node name="supplyButton" type="Button" parent="ButtonContainer" unique_id=434518877]
+layout_mode = 2
+size_flags_vertical = 3
+icon = ExtResource("9_xkp38")
+
+[node name="unloadContainer" type="VBoxContainer" parent="." unique_id=577535758]
+layout_mode = 0
+offset_top = 280.0
+offset_right = 48.0
+offset_bottom = 304.0
+
+[node name="UnloadUnitButton" parent="unloadContainer" unique_id=1659302360 instance=ExtResource("8_xkp38")]
+layout_mode = 2
+
+[connection signal="pressed" from="ButtonContainer/MoveButton" to="." method="OnMovePressed"]
+[connection signal="pressed" from="ButtonContainer/AttackButton" to="." method="OnAttackPressed"]
+[connection signal="pressed" from="ButtonContainer/ExplodeButton" to="." method="OnExplodePressed"]
+[connection signal="pressed" from="ButtonContainer/IlluminateButton" to="." method="OnIlluminatePressed"]
+[connection signal="pressed" from="ButtonContainer/WaitButton" to="." method="OnWaitPressed"]
+[connection signal="pressed" from="ButtonContainer/InfoButton" to="." method="OnInfoPressed"]
+[connection signal="pressed" from="ButtonContainer/CaptureButton" to="." method="OnCapturePressed"]
+[connection signal="pressed" from="ButtonContainer/loadButton" to="." method="OnLoadPressed"]
+[connection signal="pressed" from="ButtonContainer/supplyButton" to="." method="OnSupplyPressed"]
