@@ -1,191 +1,187 @@
-# 项目介绍：AW同人重制版（回合制网格战棋）
 
-## 概述
 
-本项目是一款基于 **Godot 4 引擎**（C# 脚本）开发的《高级战争》(Advance Wars) 同人重制版回合制网格战棋游戏。支持 PC 和 Android 双端运行，核心战棋循环已完整实现，包含 15+ 可玩单位、5 种固定兵器、完整的战争迷雾系统、AI 对手、地图编辑器及自定义配置系统。
+Project Overview: AW Fan Remake (Turn-Based Grid Tactics)
 
----
+Overview
 
-## 技术栈
-
-| 项目 | 说明 |
-|------|------|
-| 引擎 | Godot 4 |
-| 语言 | C# (47 个 .cs 脚本) |
-| 平台 | PC (Windows/macOS/Linux) + Android |
-| 架构 | Manager 模式，职责分离 |
+This project is a Godot 4 engine (C# scripts) based fan remake of Advance Wars (AW), a turn-based grid tactics game. It supports both PC and Android platforms, with a fully implemented core tactical loop, including 15+ playable units, 5 fixed weapons, a complete fog-of-war system, AI opponents, a map editor, and a custom configuration system.
 
 ---
 
-## 核心系统模块
+Tech Stack
 
-### 1. 游戏主控 (GameManager.cs)
-- 回合管理（Player1 / Player2 / Player0 三阶段）
-- 资金系统（每回合城市/基地/机场产出）
-- 胜利判定（全灭 / 占领 HQ / 摧毁指定兵器）
-- 统计面板（击杀/损失/资金/回合数）
-- 单位生产（从基地/机场购买新单位）
-- 行动回退（移动后取消）
-- 回合结束按钮
-
-### 2. 网格系统 (GridManager.cs)
-- 地图网格管理（32x32 像素/格）
-- A* 寻路算法
-- 移动范围预览（紫色轨迹高亮）
-- 攻击范围预览（红色高亮）
-- 移动端触摸轨迹预览
-- 双指缩放 + 拖拽平移（CameraTouchController.cs）
-
-### 3. 单位管理 (UnitManager.cs)
-- 单位生成 / 销毁 / 绑定到格子
-- 队伍管理（Player1 / Player2 / Player0 / Player）
-- 世界坐标与网格坐标互转
-
-### 4. 单位基类 (Infantry.cs)
-所有战斗单位的父类，包含：
-- 血量系统（1-10 格显示，支持超出血量如 Oozium 的 200HP）
-- 双武器系统（主武器 + 副武器，含完整攻防表矩阵）
-- 燃料系统（空军/海军每日消耗，耗尽可自毁）
-- 弹药系统（有限弹药 + 补给）
-- 移动类型（步兵/履带/轮胎/气垫/管道/空军/海军/岩浆/史莱姆等）
-- 搭载系统（APC 等运输单位可装载/卸载步兵）
-- 占领系统（城市/基地/机场进度制占领）
-- 自爆系统（通用模块，固定值/百分比/公式三种伤害模式）
-- 反击机制（默认 50% 系数，支持远程反击开关）
-- 伤害公式：基础伤害 x 攻击方血量% x (1 - 地形防御) - 动态防御力
-
-### 5. 行动菜单 (ActionMenu.cs)
-动态生成按钮：移动、攻击、等待、占领、自爆、照明弹、装载、卸载、生产、信息
-
-### 6. AI 系统 (AI_Manager.cs)
-- 生产决策（资金充足时自动购买单位）
-- 攻击决策（优先攻击高价值目标）
-- 占领决策（向最近城市移动）
-- 补给决策（低弹药/燃料时返回基地）
-- 躲避决策（避开敌方攻击范围）
-- 自爆决策（濒死时选择自爆）
-
-### 7. 战争迷雾 (FogOfWarManager.cs)
-- 全局视野池（己方单位 + 建筑 + 瞭望塔视野合并）
-- 照明弹系统（Flare 单位发射，持续多回合临时视野）
-- 瞭望塔系统（扇形/射线视野模式）
-- 特殊视野：激光四方向射线、黑炮三角锥形
-- 地形视野加成（不同单位在不同地形视野不同）
-- 独立视野模式（兵器不依赖单位提供视野）
-
-### 8. 地图编辑器 (TerrainEditor.cs)
-- 实时生成单位/兵器/设施
-- 属性编辑（通过反射动态编辑任意 Export 属性）
-- 批量地形放置
-- 多格兵器预览放置（2x2 / 3x3）
-- 自定义移动方式/地形/贴图上传
-- 保存/加载系统（ExtraSave.cs，10 个单位槽位 + 5 个地图槽位）
-
-### 9. 自定义配置系统 (CustomConfigUI.cs + ExtraSave.cs)
-- 自定义移动方式（定义新移动类型及其地形消耗）
-- 自定义地形（防御加成、颜色、移动消耗）
-- 贴图上传（32x32 PNG/JPG/GIF，应用到单位/兵器/设施/地形）
-- 收藏系统
+Item	Description	
+Engine	Godot 4	
+Language	C# (47 .cs scripts)	
+Platforms	PC (Windows/macOS/Linux) + Android	
+Architecture	Manager pattern, separated responsibilities	
 
 ---
 
-## 已实现的单位（15 种）
+Core System Modules
 
-| 单位 | 造价 | 移动 | 射程 | 特点 |
-|------|------|------|------|------|
-| Infantry（步兵） | 1000 | 3 格 | 1 | 可占领，廉价 |
-| Mech（机甲） | 3000 | 2 格 | 1 | 山地移动好，反装甲 |
-| Bike（摩托兵） | 2500 | 5 格 | 1 | 高机动，可占领 |
-| Oozium（史莱姆） | 20000 | 1 格 | 1 | 200HP，吞噬替代攻击，高防御 |
-| LightTank（轻坦） | 7000 | 6 格 | 1 | 均衡坦克 |
-| MdTank（重坦） | 16000 | 5 格 | 1 | 高攻防 |
-| Artillery（自行火炮） | 6000 | 5 格 | 2-3 | 间接火力，不能反击 |
-| Rocket（火箭炮） | 15000 | 4 格 | 3-5 | 远程间接火力 |
-| APC（运输车） | 5000 | 6 格 | 1 | 可运输步兵/机甲，补给 |
-| AntiAir（防空高炮） | 8000 | 6 格 | 1 | 对空特化 |
-| Recon（侦察车） | 4000 | 8 格 | 1 | 高视野，高机动 |
-| AntiTank（反坦克炮） | 11000 | 4 格 | 1 | 对装甲高伤害 |
-| Flare（照明车） | 5000 | 5 格 | 1 | 可发射照明弹驱散迷雾 |
-| PipeRunner（管道炮） | 20000 | 9 格 | 2-5 | 仅限管道移动，可移动后攻击 |
-| FlyBomb（飞弹） | 25000 | 8 格 | 1 | 空军单位，机场补给 |
+1. Game Master (GameManager.cs)
+- Turn management (Player1 / Player2 / Player0 three-phase cycle)
+- Funds system (cities/bases/airports generate income per turn)
+- Victory conditions (annihilation / HQ capture / destroy designated weapon)
+- Statistics panel (kills/losses/funds/turn count)
+- Unit production (purchase new units from bases/airports)
+- Action undo (cancel after moving)
+- End Turn button
 
-### 单位特性
-- 所有单位支持 Inspector 自定义模式（useDefaultConfig = false 时完全自定义属性）
-- 双阵营区分（Player1 红色 / Player2 蓝色）
-- 动画状态机（idle / move / attack / breath）
-- 等待状态视觉变暗 + 呼吸动画停止
-- 燃料/弹药低量闪烁警告
+2. Grid System (GridManager.cs)
+- Map grid management (32x32 pixels per cell)
+- A pathfinding algorithm
+- Movement range preview (purple trail highlight)
+- Attack range preview (red highlight)
+- Mobile touch trail preview
+- Two-finger pinch zoom + drag pan (CameraTouchController.cs)
 
----
+3. Unit Management (UnitManager.cs)
+- Unit spawn / destroy / bind to grid cell
+- Team management (Player1 / Player2 / Player0 / Player)
+- World coordinate ↔ grid coordinate conversion
 
-## 已实现的兵器（5 种）
+4. Unit Base Class (Infantry.cs)
+Parent class for all combat units, containing:
+- HP system (1–10 bar display, supports overflow HP such as Oozium's 200HP)
+- Dual-weapon system (primary + secondary, with full attack/defense matrix)
+- Fuel system (air/naval daily consumption, self-destruct when depleted)
+- Ammo system (limited ammo + resupply)
+- Movement types (infantry/tread/tire/hover/pipe/air/naval/lava/slime, etc.)
+- Embark system (APC and other transport units can load/unload infantry)
+- Capture system (city/base/airport progress-based capture)
+- Self-destruct system (universal module, fixed value / percentage / formula damage modes)
+- Counter-attack mechanic (default 50% coefficient, supports ranged counter-attack toggle)
+- Damage formula: Base Damage × Attacker HP% × (1 − Terrain Defense) − Dynamic Defense
 
-兵器为固定设施，不可移动，由 AI 或玩家操作。
+5. Action Menu (ActionMenu.cs)
+Dynamically generates buttons: Move, Attack, Wait, Capture, Self-Destruct, Flare, Load, Unload, Produce, Info
 
-| 兵器 | 造价 | 攻击方式 | 特点 |
-|------|------|----------|------|
-| BlackCannon（黑炮） | 12000 | 三角锥形范围 | 四方向旋转，固定伤害，可配置冷却 |
-| LargeCannon（大型黑炮） | 19000 | 3x3 占据 + 三角范围 | 多格占据，仅弱点可攻击，摧毁后仍不可通行 |
-| DeathRay（死光炮） | 25000 | 3x3 占据 + 3格宽激光 | 四方向发射，7回合冷却，摧毁后不可通行 |
-| Laser（激光炮） | 19000 | 任意角度射线 | 可配置任意发射角度，穿透多目标，接触面积衰减 |
-| Crystal（黑水晶） | 15000 | 无攻击 | 治疗 + 弹药/燃料补给，范围可配置 |
+6. AI System (AI_Manager.cs)
+- Production decisions (auto-purchase units when funds are sufficient)
+- Attack decisions (prioritize high-value targets)
+- Capture decisions (move toward nearest city)
+- Resupply decisions (return to base when low on ammo/fuel)
+- Evasion decisions (avoid enemy attack ranges)
+- Self-destruct decisions (choose self-destruct when near death)
 
-### 兵器特性
-- 多格兵器支持（2x2 / 3x3）
-- 炮口与弱点分离设计
-- 冷却系统（可配置冷却回合数和每周期攻击次数）
-- 弹药系统（可选）
-- AI 自动操作（P0 兵器自动攻击）
-- 旋转系统（四方向 / 任意角度）
-- 摧毁后 Broken 形态（仍占据格子不可通行）
+7. Fog of War (FogOfWarManager.cs)
+- Global vision pool (merged vision from own units + buildings + watchtowers)
+- Flare system (Flare unit launches, multi-turn temporary vision)
+- Watchtower system (fan/ray vision modes)
+- Special vision: laser four-direction ray, Black Cannon triangular cone
+- Terrain vision bonus (different units have different vision on different terrain)
+- Independent vision mode (weapons do not rely on units for vision)
 
----
+8. Map Editor (TerrainEditor.cs)
+- Real-time spawn units/weapons/facilities
+- Property editing (dynamically edit any Export property via reflection)
+- Batch terrain placement
+- Multi-cell weapon preview placement (2×2 / 3×3)
+- Custom movement types / terrain / texture upload
+- Save/Load system (ExtraSave.cs, 10 unit slots + 5 map slots)
 
-## 已实现的设施（3 种）
-
-| 设施 | 功能 |
-|------|------|
-| City（城市） | 每回合 +1000 资金，补给所有陆军单位 |
-| Base（基地） | 城市功能 + 可生产全部 15 种陆军单位 |
-| AirPort（机场） | 城市功能 + 可生产 FlyBomb，仅补给空军 |
-
-### 设施特性
-- 四势力支持（P-1 浅紫 / P0 灰白 / P1 红 / P2 蓝）
-- P-1 设施给所有势力补给
-- P0 设施无加成、无视野、不可操作
-- 占领进度制（可被争夺、中断）
-- 占领/争夺/中断特效
-
----
-
-## 已实现的特效
-
-| 特效 | 说明 |
-|------|------|
-| HitEffect | 受击红圈扩散 |
-| CannonFlash | 黑炮发射闪光 |
-| SupplyEffect | 补给十字光芒 + 飘字 |
-| GridSupplyEffect | 设施补给六边形脉冲 + 能量柱 |
-| CaptureEffect | 占领进度环 + 飘动旗帜 |
-| CaptureContestEffect | 争夺闪电对抗 + 冲击波 |
-| CaptureInterruptedEffect | 中断碎裂环 + 碎片飞散 |
+9. Custom Configuration System (CustomConfigUI.cs + ExtraSave.cs)
+- Custom movement types (define new movement types and their terrain costs)
+- Custom terrain (defense bonus, color, movement cost)
+- Texture upload (32×32 PNG/JPG/GIF, applied to units/weapons/facilities/terrain)
+- Favorites system
 
 ---
 
-## 势力系统 (TeamHelper.cs)
+Implemented Units (15 Types)
 
-| 势力 | 标识 | 特性 |
-|------|------|------|
-| Player (P-1) | "Player" | 双方都可操作，设施给所有势力补给 |
-| Player0 (P0) | "Player0" | 中立，无反应，谁都打，设施无加成 |
-| Player1 (P1) | "Player1" | 正常势力，红色 |
-| Player2 (P2) | "Player2" | 正常势力，蓝色 |
+Unit	Cost	Move	Range	Traits	
+Infantry	1000	3	1	Can capture, cheap	
+Mech	3000	2	1	Good mountain mobility, anti-armor	
+Bike	2500	5	1	High mobility, can capture	
+Oozium	20000	1	1	200HP, devour replaces attack, high defense	
+Light Tank	7000	6	1	Balanced tank	
+Medium Tank	16000	5	1	High attack/defense	
+Artillery	6000	5	2–3	Indirect fire, cannot counter-attack	
+Rocket	15000	4	3–5	Long-range indirect fire	
+APC	5000	6	1	Can transport infantry/mech, resupply	
+Anti-Air	8000	6	1	Anti-air specialization	
+Recon	4000	8	1	High vision, high mobility	
+Anti-Tank	11000	4	1	High damage vs armor	
+Flare	5000	5	1	Can launch flares to dispel fog	
+Pipe Runner	20000	9	2–5	Pipe-only movement, can attack after moving	
+Fly Bomb	25000	8	1	Air unit, resupply at airports	
+
+Unit Traits
+- All units support Inspector custom mode (when `useDefaultConfig = false`, fully customize properties)
+- Dual-faction distinction (Player1 Red / Player2 Blue)
+- Animation state machine (idle / move / attack / breath)
+- Wait-state visual dimming + breath animation stop
+- Low fuel/ammo flashing warning
 
 ---
 
-## 地形系统 (Grids.cs)
+Implemented Weapons (5 Types)
 
-支持 30+ 种地形类型：
+Weapons are fixed facilities, immobile, operated by AI or player.
+
+Weapon	Cost	Attack Mode	Traits	
+Black Cannon	12000	Triangular cone range	Four-direction rotation, fixed damage, configurable cooldown	
+Large Cannon	19000	3×3 occupy + triangular range	Multi-cell occupy, only weak point is attackable, still impassable after destruction	
+Death Ray	25000	3×3 occupy + 3-cell wide laser	Four-direction fire, 7-turn cooldown, impassable after destruction	
+Laser	19000	Any-angle ray	Configurable arbitrary firing angle, penetrates multiple targets, contact area decay	
+Crystal	15000	No attack	Heal + ammo/fuel resupply, configurable range	
+
+Weapon Traits
+- Multi-cell weapon support (2×2 / 3×3)
+- Muzzle and weak point separated design
+- Cooldown system (configurable cooldown turns and attacks per cycle)
+- Ammo system (optional)
+- AI auto-operation (P0 weapons auto-attack)
+- Rotation system (four-direction / arbitrary angle)
+- Destroyed Broken form (still occupies cells, impassable)
+
+---
+
+Implemented Facilities (3 Types)
+
+Facility	Function	
+City	+1000 funds per turn, resupply all ground units	
+Base	City functions + can produce all 15 ground unit types	
+Airport	City functions + can produce Fly Bomb, resupply air units only	
+
+Facility Traits
+- Four-faction support (P-1 light purple / P0 gray-white / P1 red / P2 blue)
+- P-1 facilities resupply all factions
+- P0 facilities have no bonus, no vision, non-operable
+- Capture progress system (can be contested, interrupted)
+- Capture/contest/interrupt effects
+
+---
+
+Implemented Effects
+
+Effect	Description	
+HitEffect	Hit red circle expansion	
+CannonFlash	Black Cannon muzzle flash	
+SupplyEffect	Resupply cross glow + floating text	
+GridSupplyEffect	Facility resupply hex pulse + energy pillar	
+CaptureEffect	Capture progress ring + waving flag	
+CaptureContestEffect	Contest lightning clash + shockwave	
+CaptureInterruptedEffect	Interrupt shatter ring + debris scatter	
+
+---
+
+Faction System (TeamHelper.cs)
+
+Faction	ID	Traits	
+Player (P-1)	"Player"	Both sides can operate, facilities resupply all factions	
+Player0 (P0)	"Player0"	Neutral, no reaction, attacks everyone, facilities have no bonus	
+Player1 (P1)	"Player1"	Normal faction, red	
+Player2 (P2)	"Player2"	Normal faction, blue	
+
+---
+
+Terrain System (Grids.cs)
+
+Supports 30+ terrain types:
 - GROUND, ROAD, FOREST, HILL, SEA, RIVER, BEACH, REEF, WHIRLPOOL
 - LAVA, LAVASIDE, LAVABRIDGE, LAVAFOG
 - PIPE, PIPESEAM, PASSABLEPIPE, BROKENPIPE
@@ -193,123 +189,122 @@
 - OVERPASS, CLIFF, SLOPE, CAVE, HOLE, RUINS
 - SEAFOG, LANDFOG, WATERFALL, SHIPGATE
 
-每种地形有独立的：防御加成、移动消耗（按移动类型）、视野加成、伤害/弹药/燃料变化效果。
+Each terrain has independent: defense bonus, movement cost (by movement type), vision bonus, damage/ammo/fuel change effects.
 
 ---
 
-## 视野系统 (VisionConfig.cs)
+Vision System (VisionConfig.cs)
 
-- 单位类型基础视野配置
-- 单位类型 x 地形 视野加成矩阵
-- 兵器类型基础视野 + 独立视野模式
-- 全局默认地形视野加成
-- 瞭望塔扇形/射线视野
-- 照明弹临时视野
-
----
-
-## 保存系统 (ExtraSave.cs)
-
-- 10 个单位自定义槽位（保存任意 Export 属性）
-- 10 个兵器自定义槽位
-- 10 个设施自定义槽位
-- 10 个地形自定义槽位
-- 5 个地图保存槽位（完整地形 + 单位 + 兵器 + 设施 + 资金）
-- 自定义移动方式持久化
-- 自定义地形持久化
-- 自定义贴图持久化
-- 收藏系统
-- JSON 格式存储
+- Unit type base vision config
+- Unit type × terrain vision bonus matrix
+- Weapon type base vision + independent vision mode
+- Global default terrain vision bonus
+- Watchtower fan/ray vision
+- Flare temporary vision
 
 ---
 
-## 输入系统
+Save System (ExtraSave.cs)
 
-| 输入 | 功能 |
-|------|------|
-| 左键点击单位 | 选中 / 执行行动 |
-| 左键点击格子 | 移动 / 攻击目标 |
-| 右键 / 点击已选单位 | 取消选择 |
-| Ctrl + 左键 | 查看单位/敌方信息 |
-| 中键拖拽 | 平移地图 |
-| 滚轮 | 缩放地图 |
-| 双指触摸 | 缩放地图 |
-| 单指触摸 | 拖拽地图 / 选择单位 |
-
----
-
-## 文件清单（47 个 C# 脚本）
-
-### 核心管理
-- GameManager.cs - 游戏主控
-- GridManager.cs - 网格与寻路
-- UnitManager.cs - 单位管理
-- WeaponManager.cs - 兵器管理
-- AI_Manager.cs - AI 决策
-- FogOfWarManager.cs - 战争迷雾
-- ActionMenu.cs - 行动菜单
-- TerrainEditor.cs - 地图编辑器
-- CameraTouchController.cs - 相机控制
-
-### 数据与配置
-- TeamHelper.cs - 势力系统
-- VisionConfig.cs - 视野配置
-- UnitProductionDatabase.cs - 单位生产数据库
-- ExtraSave.cs - 保存系统
-- CustomConfigUI.cs - 自定义配置界面
-
-### 单位（15 种）
-- Infantry.cs - 单位基类
-- Mech.cs, Bike.cs, Oozium.cs - 步兵类
-- LightTank.cs, MdTank.cs - 坦克类
-- Artillery.cs, Rocket.cs, PipeRunner.cs - 火炮类
-- APC.cs - 运输类
-- AntiAir.cs, Recon.cs, AntiTank.cs - 特种车辆
-- Flare.cs - 照明类
-- FlyBomb.cs - 空军类
-
-### 兵器（5 种）
-- Weapon.cs - 兵器基类
-- BlackCannon.cs - 黑炮基类
-- LargeCannon.cs - 大型黑炮（3x3）
-- DeathRay.cs - 死光炮（3x3 + 激光）
-- Laser.cs - 激光炮（任意角度）
-- Crystal.cs - 黑水晶（治疗补给）
-
-### 设施（3 种）
-- City.cs - 城市基类
-- Base.cs - 基地（生产）
-- AirPort.cs - 机场（空军生产）
-
-### 特效（7 种）
-- HitEffect.cs - 受击特效
-- CannonFlash.cs - 炮口闪光
-- SupplyEffect.cs - 补给飘字
-- GridSupplyEffect.cs - 设施补给特效
-- CaptureEffect.cs - 占领特效
-- CaptureContestEffect.cs - 争夺特效
-- CaptureInterruptedEffect.cs - 中断特效
-
-### 其他
-- Grids.cs - 格子类
-- UnloadUnitButton.cs - 卸载单位按钮
+- 10 unit custom slots (save any Export property)
+- 10 weapon custom slots
+- 10 facility custom slots
+- 10 terrain custom slots
+- 5 map save slots (full terrain + units + weapons + facilities + funds)
+- Custom movement types persistence
+- Custom terrain persistence
+- Custom texture persistence
+- Favorites system
+- JSON format storage
 
 ---
 
-## 项目状态
+Input System
 
-- **核心战棋循环**：完整可玩
-- **AI 对手**：完整（生产/攻击/占领/补给/躲避/自爆）
-- **战争迷雾**：完整（视野池 + 照明弹 + 瞭望塔）
-- **地图编辑器**：完整（生成/编辑/保存/加载）
-- **自定义系统**：完整（移动方式/地形/贴图）
-- **移动端适配**：完整（触摸 + 双指缩放）
-- **海军单位**：移动类型已定义，单位未实装
-- **CO 系统**：未实现
-- **天气系统**：未实现
-- **战役模式**：未实现
-- **撤销重做**：未实现
+Input	Function	
+Left-click unit	Select / execute action	
+Left-click cell	Move / attack target	
+Right-click / click selected unit	Cancel selection	
+Ctrl + Left-click	View unit/enemy info	
+Middle-click drag	Pan map	
+Scroll wheel	Zoom map	
+Two-finger touch	Zoom map	
+Single-finger touch	Drag map / select unit	
 
 ---
 
-*本介绍基于项目实际代码生成，仅包含已实现的功能，不包含设计文档中的未实现内容。*
+File List (47 C# Scripts)
+
+Core Managers
+- GameManager.cs - Game master
+- GridManager.cs - Grid and pathfinding
+- UnitManager.cs - Unit management
+- WeaponManager.cs - Weapon management
+- AI_Manager.cs - AI decisions
+- FogOfWarManager.cs - Fog of war
+- ActionMenu.cs - Action menu
+- TerrainEditor.cs - Map editor
+- CameraTouchController.cs - Camera control
+
+Data & Config
+- TeamHelper.cs - Faction system
+- VisionConfig.cs - Vision config
+- UnitProductionDatabase.cs - Unit production database
+- ExtraSave.cs - Save system
+- CustomConfigUI.cs - Custom config UI
+
+Units (15 Types)
+- Infantry.cs - Unit base class
+- Mech.cs, Bike.cs, Oozium.cs - Infantry types
+- LightTank.cs, MdTank.cs - Tank types
+- Artillery.cs, Rocket.cs, PipeRunner.cs - Artillery types
+- APC.cs - Transport type
+- AntiAir.cs, Recon.cs, AntiTank.cs - Special vehicles
+- Flare.cs - Flare type
+- FlyBomb.cs - Air type
+
+Weapons (5 Types)
+- Weapon.cs - Weapon base class
+- BlackCannon.cs - Black Cannon base
+- LargeCannon.cs - Large Black Cannon (3×3)
+- DeathRay.cs - Death Ray (3×3 + laser)
+- Laser.cs - Laser (arbitrary angle)
+- Crystal.cs - Black Crystal (heal/resupply)
+
+Facilities (3 Types)
+- City.cs - City base
+- Base.cs - Base (production)
+- AirPort.cs - Airport (air production)
+
+Effects (7 Types)
+- HitEffect.cs - Hit effect
+- CannonFlash.cs - Muzzle flash
+- SupplyEffect.cs - Resupply floating text
+- GridSupplyEffect.cs - Facility resupply effect
+- CaptureEffect.cs - Capture effect
+- CaptureContestEffect.cs - Contest effect
+- CaptureInterruptedEffect.cs - Interrupt effect
+
+Other
+- Grids.cs - Grid class
+- UnloadUnitButton.cs - Unload unit button
+
+---
+
+Project Status
+
+- Core tactical loop: Fully playable
+- AI opponent: Complete (production/attack/capture/resupply/evasion/self-destruct)
+- Fog of war: Complete (vision pool + flares + watchtowers)
+- Map editor: Complete (spawn/edit/save/load)
+- Custom system: Complete (movement types / terrain / textures)
+- Mobile adaptation: Complete (touch + two-finger pinch zoom)
+- Naval units: Movement types defined, units not yet implemented
+- CO system: Not implemented
+- Weather system: Not implemented
+- Campaign mode: Not implemented
+- Undo/Redo: Not implemented
+
+---
+
+This introduction is generated based on actual project code, containing only implemented features, not including unimplemented content from design documents.
