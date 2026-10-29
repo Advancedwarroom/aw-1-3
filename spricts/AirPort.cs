@@ -3,7 +3,6 @@ using System;
 
 public partial class AirPort : City
 {
-    private AnimatedSprite2D animSprite;
 
     public override void _Ready()
     {
