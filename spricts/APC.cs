@@ -72,14 +72,6 @@ public partial class APC : Infantry
         base.OnDestroyed();
     }
 
-    public void OnMoveSelected()
-    {
-        if (consumeFuel && fuel <= 0) return;
-        ShowAnimState("move");
-        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-        gm?.gridManager.ShowMoveRange(this);
-    }
-
     public override void OnWaitSelected()
     {
         isMoved = true; isAttacked = true; hasActed = true; state = UnitState.Acted; originalGrid = null;
