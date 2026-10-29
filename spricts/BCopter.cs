@@ -13,14 +13,6 @@ public partial class BCopter : Infantry
         // FlyBomb 的特殊初始化已通过 UnitRegistry 完成
     }
 
-    public void OnMoveSelected()
-    {
-        if (consumeFuel && fuel <= 0) return;
-        ShowAnimState("move");
-        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-        gm?.gridManager.ShowMoveRange(this);
-    }
-
     public override void OnWaitSelected()
     {
         isMoved = true;
