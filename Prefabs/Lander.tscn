@@ -20,6 +20,7 @@ defenseBonusType = 0
 loadedIcon = NodePath("HpLabel/loaded")
 noFuelIcon = NodePath("HpLabel/NoFuelIcno")
 moveType = 4
+terrainMoveCostOverrides = Array[String](["BEACH=1"])
 attackType = 1
 defaultMovePoints = 6
 movePoints = 6

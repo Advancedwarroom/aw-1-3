@@ -234,8 +234,15 @@ public partial class UnloadUnitButton : Control
             else
             {
                 ammoIcon.Visible = true;
-                ammoIcon.Modulate = !targetUnit.CanUsePrimaryWeapon() ? Colors.Red : 
-                                   (targetUnit.currentPrimaryAmmo <= 3 ? Colors.Yellow : Colors.Green);
+                // ✅ 无限弹药的单位（弹药上限99或无弹药限制）永远显示绿色，不显示低弹药黄灯
+                if (targetUnit.HasInfinitePrimaryAmmo)
+                    ammoIcon.Modulate = Colors.Green;
+                else if (!targetUnit.CanUsePrimaryWeapon())
+                    ammoIcon.Modulate = Colors.Red;
+                else if (targetUnit.currentPrimaryAmmo <= 3)
+                    ammoIcon.Modulate = Colors.Yellow;
+                else
+                    ammoIcon.Modulate = Colors.Green;
             }
         }
     }

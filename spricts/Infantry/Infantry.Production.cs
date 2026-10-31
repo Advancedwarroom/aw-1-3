@@ -149,13 +149,22 @@ public partial class Infantry
         {
             // 内部：产出单位直接进舱（不检查搭载白名单——白名单可为空；
             // 出舱后能否再装回由搭载白名单决定）
+            // ✅ 修复：产出单位必须挂到单位容器（与正常运输中的单位一致），
+            //    不能挂在生产舰名下——卸载/BindUnitToGrid 都按「局部坐标=世界坐标」处理，
+            //    挂在舰船名下会叠加舰船坐标，出厂单位飞到错误位置甚至图外（表现为没有贴图/凭空消失）
+            var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+            if (gm == null || gm.unitManager == null || gm.unitManager.units == null)
+            {
+                unit.QueueFree();
+                return;
+            }
             EnsureTransportForInternalProduction();
             transportedUnits.Add(unit);
             unit.isTransported = true;
             MarkCargoBoardedThisTurn(unit);   // 刚造好的舰载机本回合不能起飞
             unit.Hide();
             unit.ProcessMode = ProcessModeEnum.Disabled;
-            AddChild(unit);
+            gm.unitManager.units.AddChild(unit);
             unit.Position = Vector2.Zero;
         }
         else

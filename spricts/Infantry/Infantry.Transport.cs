@@ -305,6 +305,17 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
     // ✅ 恢复被装载单位的所有视觉组件
     RestoreAllVisuals(unit);
     
+    // ✅ 修复：若单位不在单位容器名下（如内部生产曾被挂在舰船名下），
+    //    先移回单位容器，否则 unit.Position 是相对舰船的局部坐标，
+    //    卸载后单位会飞到错误位置甚至图外（表现为没有贴图/凭空消失）
+    if (gm?.unitManager?.units != null && unit.GetParent() != gm.unitManager.units)
+    {
+        Vector2 worldPos = unit.GlobalPosition;
+        unit.GetParent()?.RemoveChild(unit);
+        gm.unitManager.units.AddChild(unit);
+        unit.GlobalPosition = worldPos;
+    }
+    
     unit.Position = targetGrid.Position;
     unit.grid = targetGrid;
     

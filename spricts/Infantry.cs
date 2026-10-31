@@ -363,7 +363,8 @@ public override void _Process(double delta)
     // noAmmoIcon 闪烁
     if (noAmmoIcon != null)
     {
-        if (!hasPrimaryWeapon)
+        // ✅ 修复：无限弹药的单位（弹药上限99或无弹药限制）永远不显示缺弹药图标
+        if (!hasPrimaryWeapon || HasInfinitePrimaryAmmo)
             noAmmoIcon.Visible = false;
         else if (!CanUsePrimaryWeapon())
             noAmmoIcon.Visible = true;
