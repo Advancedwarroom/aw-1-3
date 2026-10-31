@@ -51,3 +51,12 @@ DoR 里 WarTank 是最强坦克，造价 16000；但和 DS 的巨型坦克（280
 |---|---|---|---|
 | 临时机场 | 工程车搭建，只能建在平原；无收入、不能生产；只能维修补给停在里面的单位；防御 1 星 | 平原限定、收入 0、不生产；贴图为 DoR 原作临时机场（从 `docs/DS _ DSi - Advance Wars_ Days of Ruin - Map - Tileset (Normal).png` 截取，灯亮/灯灭两帧） | [Wars Wiki: Temporary Airport](https://warswiki.org/wiki/Temporary_Airport) |
 | 临时港口 | 工程车搭建；无收入、不能生产；防御 1 星 | 海滩限定、收入 0、不生产；贴图为 DoR 原作临时港口（红/蓝用 `docs/TemporaryPort*.png`，中立从同一张 Tileset 截取） | [Wars Wiki: Temporary Port](https://warswiki.org/wiki/Temporary_Port) |
+
+
+---
+
+### 补遗：飞弹来援登记（2026-11-01）
+
+| 游戏内名称 | 原作对应 | 出处 | 登记说明 |
+|---|---|---|---|
+| 飞弹 FlyBomb | Black Bomb 黑炸弹/黑弹 | AWDS | 开创人亲口登记：空军自爆系与黑炸弹机制同位（25000G 区域自爆），此前因中性化改名未登记亲缘，现正式入册 |
