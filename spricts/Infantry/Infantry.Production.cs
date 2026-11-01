@@ -106,7 +106,7 @@ public partial class Infantry
     }
 
     /// <summary>每回合推进（由 GameManager.Turn 调用）</summary>
-    public void ProcessTurnProduction()
+    public virtual void ProcessTurnProduction()
     {
         if (productionCooldownRemaining > 0) productionCooldownRemaining--;
         if (!isProducing) return;

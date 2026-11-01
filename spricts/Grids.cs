@@ -704,6 +704,7 @@ public partial class Grids : Node2D
             GridType.PIPE => "Pipe",
             GridType.ROAD => "Road",
             GridType.BRIDGE => "Bridge",
+            GridType.RIVER => "River",
             _ => null
         };
         if (prefix == null) return null;

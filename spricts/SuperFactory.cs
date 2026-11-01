@@ -28,6 +28,10 @@ public partial class SuperFactory : Weapon
     [Export] public bool dualProductionMode = false;           // 是否新玩法：开启后即时/待机两种生产
     [Export] public float instantCostMultiplier = 1.2f;       // 即时单位资金倍率（生产出来就能动）
     [Export] public float standbyCostMultiplier = 0.8f;       // 待机单位资金倍率（正常生产，下回合才能动）
+    /// <summary>待机单位上限（规格：0.8倍资金生产待机单位，最大三个）</summary>
+    [Export] public int maxStandbyUnits = 3;
+    /// <summary>当前待机单位列表（运行时，双生产菜单模式）</summary>
+    public System.Collections.Generic.List<Infantry> standbyUnits = new();
 
     [ExportGroup("超级兵工厂 - 管道联动")]
     [Export] public Godot.Collections.Array<Vector2I> linkedSeamOffsets = new();  // 联动的管道接缝相对坐标（相对锚点格）
@@ -334,6 +338,12 @@ public partial class SuperFactory : Weapon
     }
 
     // ========== 生产成本计算（双生产菜单模式） ==========
+    /// <summary>清理已死亡的待机单位（用于上限判定）</summary>
+    private void PruneStandbyUnits()
+    {
+        standbyUnits.RemoveAll(u => u == null || !IsInstanceValid(u) || u.IsQueuedForDeletion());
+    }
+
     /// <summary>计算生产成本：红利期免费；原作模式免费；双菜单模式按倍率</summary>
     public int GetProductionCost(int baseCost, bool instantMode)
     {
@@ -368,6 +378,14 @@ public partial class SuperFactory : Weapon
 
         if (!UnitProductionDatabase.HasUnit(unitName)) return TranslateGroup.T("未知单位");
         var info = UnitProductionDatabase.GetInfo(unitName);
+
+        // ✅ 待机上限：规格"0.8倍资金生产待机单位（最大三个）"
+        if (!instantMode && dualProductionMode)
+        {
+            PruneStandbyUnits();
+            if (standbyUnits.Count >= maxStandbyUnits)
+                return TranslateGroup.T($"待机单位已达上限（{maxStandbyUnits}个）");
+        }
 
         // 费用
         int cost = GetProductionCost(info.Cost, instantMode);
@@ -411,6 +429,8 @@ public partial class SuperFactory : Weapon
             unit.hasActed = true;
             unit.state = UnitState.Acted;
             unit.SetWaitVisual(true);
+            // ✅ 计入待机单位列表（用于上限判定）
+            if (dualProductionMode) standbyUnits.Add(unit);
         }
 
         productionsThisTurn++;
