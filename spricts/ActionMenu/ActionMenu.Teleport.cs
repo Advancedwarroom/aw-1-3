@@ -1,7 +1,8 @@
 // ActionMenu.Teleport.cs - ✅ N屏地图：传送（TP）按钮
 // 单位站在有出链的格子上时菜单显示"传送"：
 //   第一次按 → 进入传送选择模式，高亮全部目标格（N:M：一个源格可有多条出链）
-//   点击目标格 → 立即传送（消耗本回合移动，可继续攻击等后续操作）
+//   点击目标格 → 立即传送（✅ 消耗本回合行动：传送完成后该单位当场待机，不可再攻击/移动）
+//   ✅ 每回合限一次：hasTeleportedThisTurn=true，本回合内不可再传送（也不能直接传回），回合结束重置
 //   再按一次按钮或点空处 → 取消
 using Godot;
 using System.Collections.Generic;
@@ -36,10 +37,12 @@ public partial class ActionMenu
 
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         var links = gm?.gridManager?.GetOutgoingTeleportLinks(unit?.grid) ?? new List<TeleportLink>();
-        // 站在有出链的格子上、本回合未行动、未被眩晕时可用
+        // 站在有出链的格子上、本回合未行动、未被眩晕、且本回合未传送过时可用
+        // ✅ hasTeleportedThisTurn：每回合限传送一次——传送后（即使未待机）也不能直接传回或再次传送
         bool canTP = links.Count > 0 && unit != null
             && !unit.hasActed && unit.state != UnitState.Acted
-            && !unit.isAttacked && !unit.IsStunned && unit.CanMove();
+            && !unit.isAttacked && !unit.IsStunned && unit.CanMove()
+            && !unit.hasTeleportedThisTurn;
         teleportButton.Visible = canTP;
         if (canTP)
             TranslateGroup.SetText(teleportButton, isTeleportSelecting ? "取消传送" : "传送");
@@ -153,9 +156,9 @@ public partial class ActionMenu
         unit.grid = to;
         unit.Position = to.Position;
 
-        // 3. 传送视为已移动：消耗移动机会，但可继续攻击/占领等
-        unit.isMoved = true;
-        unit.state = UnitState.Moved;
+        // 3. ✅ 传送消耗本回合行动：单位当场待机（灰显），本回合不可再移动/攻击/占领
+        unit.hasTeleportedThisTurn = true; // 双保险：即使后续改为"传送后可继续行动"，本回合也绝不能第二次传送（不能直接传回）
+        unit.OnWaitSelected();             // 内部：isMoved/isAttacked/state=Acted + FreezeToIdleDark 待机灰显 + 清除选中
         gm.gridManager.pathLine?.Hide();
 
         // 4. 镜头跟随 + 雾/视野刷新
@@ -167,11 +170,5 @@ public partial class ActionMenu
         }
         gm.fogOfWarManager?.OnUnitMoved();
         gm.gridManager.CloseRange();
-
-        // 5. 重新弹出菜单（传送后可攻击/等待）
-        ShowMenu(unit, true);
-
-        // 6. 传送后如有敌人可打则显示攻击范围
-        gm.gridManager.ShowAttackRange(unit);
     }
 }

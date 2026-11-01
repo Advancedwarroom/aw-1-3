@@ -29,6 +29,7 @@ public virtual void OnTurnEnd()
     isAttacked = false;
     movedThisTurnForAutoRepair = false; autoRepairAfterMoveDone = false;
     hasActed = false;   // ✅ 修复：此前从不重置，生产/合流/补给/修理过的单位永久失去补给/修理/自爆等按钮
+    hasTeleportedThisTurn = false;  // ✅ 传送每回合限一次：回合结束重置（防止传送后直接传回/二次传送）
     movePoints = defaultMovePoints;
     SetWaitVisual(false);
     // ✅ 恢复 idle 动画后再启动呼吸（animSprite 单位需要）
@@ -54,6 +55,7 @@ public bool hasActed = false;
     public Grids originalGrid;
     public bool isMoved;
     public bool isAttacked;
+    public bool hasTeleportedThisTurn;  // ✅ 本回合是否已传送过：传送每回合限一次（ActionMenu.Teleport 使用，回合结束重置）
     public Label hpLabel;
     public Sprite2D sprite;
 
