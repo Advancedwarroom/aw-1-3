@@ -108,8 +108,9 @@ public partial class GridManager
                         return;
                     }
                     
-                    // 检查2: 兵器阻挡（非Oozium单位）
-                    if (infantry is not Oozium && g.weapon != null)
+                    // 检查2: 兵器阻挡（非Oozium单位；宇宙战舰/空天战机可飞越；导弹井可站上发射）
+                    if (infantry is not Oozium && g.weapon != null && g.weapon is not MissileSilo
+                        && infantry.moveType != MoveType.SpaceShiper && infantry.moveType != MoveType.AeroSpacer)
                     {
                         TruncateAndMove(infantry, lastValidGrid);
                         return;
@@ -170,6 +171,7 @@ public partial class GridManager
     {
         if (requestingUnit.overlapType == UnitOverlapType.Oozium && grid.weapon != null)
             return false;
+        // ✅ 宇宙战舰/空天战机：可飞越兵器（不 blocked）
             
         var otherUnits = grid.infantries.Where(i => i != requestingUnit && IsInstanceValid(i)).ToList();
         if (otherUnits.Count == 0) return true;
@@ -453,8 +455,9 @@ public partial class GridManager
                 && g.infantries.Any(u => Infantry.IsTruncationBlocker(infantry, u)))
             { hardBlocked = true; break; }
 
-            // ✅ 检查2: 兵器阻挡（非Oozium）
-            if (infantry is not Oozium && g.weapon != null) { hardBlocked = true; break; }
+            // ✅ 检查2: 兵器阻挡（非Oozium；宇宙战舰/空天战机可飞越；导弹井可站上发射）
+            if (infantry is not Oozium && g.weapon != null && g.weapon is not MissileSilo
+                && infantry.moveType != MoveType.SpaceShiper && infantry.moveType != MoveType.AeroSpacer) { hardBlocked = true; break; }
 
             // ✅ 检查3: 地形不可移动
             int moveCost = infantry.GetMoveCostOnGrid(g);

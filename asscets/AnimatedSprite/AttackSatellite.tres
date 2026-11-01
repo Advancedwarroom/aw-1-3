@@ -1,0 +1,22 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/攻击卫星.png" id="1_t0_0"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/攻击卫星.png" id="1_t1_0"]
+
+[sub_resource type="Animation" id="Animation_0"]
+length = 0.001
+loop_mode = 1
+
+[sub_resource type="Animation" id="Animation_1"]
+length = 0.001
+loop_mode = 1
+
+[sub_resource type="AtlasTexture" id="Atlas_0_0"]
+atlas = ExtResource("1_t0_0")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="Atlas_1_0"]
+atlas = ExtResource("1_t1_0")
+region = Rect2(0, 0, 64, 64)
+[resource]
+animations = [{"frames": [{"duration": 1.0, "texture": SubResource("Atlas_0_0")}], "loop": true, "name": &"AttackSatellite1", "speed": 2.0}, {"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_0")}], "loop": true, "name": &"AttackSatellite2", "speed": 2.0}]

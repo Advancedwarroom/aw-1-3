@@ -312,6 +312,9 @@ private List<Grids> GetAdjacentGrids(Grids center)
             TranslateGroup.SetText(explodeButton, isExplosionPreview ? "确认爆炸" : "爆炸");
         }
 
+        // ✅ 导弹井发射 / 天基打击按钮
+        UpdateSiloStrikeButtons();
+
         if (repairButton != null)
         {
             // ✅ 修复按钮：任何开启修复模块的单位，且未行动时显示

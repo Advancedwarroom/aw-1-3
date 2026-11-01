@@ -321,6 +321,9 @@ protected virtual void ApplyUnitRegistryConfig()
 
 public override void _Process(double delta)
 {
+    // ✅ 力场支援模块：持续锁值
+    if (forceSupportEnabled) TickForceSupport(delta);
+
     // ✅ 广义受伤现形
     if (damageRevealLastHp < 0) damageRevealLastHp = health;
     else if (health < damageRevealLastHp)

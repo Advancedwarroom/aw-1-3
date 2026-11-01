@@ -1,0 +1,58 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://spricts/ForceSatellite.cs" id="1_unit"]
+[ext_resource type="SpriteFrames" uid="" path="res://asscets/AnimatedSprite/ForceSatellite.tres" id="4_anim"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ship"]
+size = Vector2(32, 32)
+
+[node name="ForceSatellite" type="Node2D" node_paths=PackedStringArray("animSprite", "baseAnimSprite")]
+script = ExtResource("1_unit")
+useDefaultConfig = false
+canCapture = false
+visionRange = 3
+moveType = 10
+attackType = 1
+defaultMovePoints = 6
+movePoints = 6
+baseAttack = 0
+maxHealth = 270
+health = 270
+canAttackAfterMoving = true
+maxFuel = 99
+fuel = 99
+consumeFuel = false
+isArmoredUnit = true
+animSprite = NodePath("Base2D")
+baseAnimSprite = NodePath("Base2D")
+forceSupportEnabled = true
+forceSupportToUnits = false
+forceSupportToWeapons = true
+forceSupportLockHP = true
+forceSupportTeamPolicy = 0
+forceSupportMaxRange = 2
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_ship")
+
+[node name="HpLabel" type="Label" parent="."]
+z_index = 10
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+theme_override_colors/font_color = Color(0.9, 0.5, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "10"
+
+[node name="Base2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(16, 16)
+sprite_frames = ExtResource("4_anim")
+animation = &"ForceSatellite1"
+
+[connection signal="input_event" from="Area2D" to="." method="InputClick"]

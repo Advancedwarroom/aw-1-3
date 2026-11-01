@@ -1,0 +1,50 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://spricts/MissileSilo.cs" id="1_silo"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/MissileSilo.tres" id="2_anim"]
+
+[sub_resource type="RectangleShape2D" id="Shape"]
+size = Vector2(32, 32)
+
+[node name="MissileSilo" type="Node2D" node_paths=PackedStringArray("animSprite")]
+script = ExtResource("1_silo")
+team = "Player0"
+canRotate = false
+canAttack = false
+maxHealth = 999
+health = 999
+contributesToVictory = false
+siloEnabled = true
+oneTimeUse = true
+canBeResupplied = true
+factionLocked = false
+siloAttackable = false
+useAmmoSystem = false
+strikeMinRange = 1
+strikeMaxRange = 99
+blastMaxRadius = 2
+effectHealthDelta = -30
+animSprite = NodePath("AnimatedSprite2D")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(16, 16)
+sprite_frames = ExtResource("2_anim")
+animation = &"MissileSilo"
+autoplay = "MissileSilo"
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(16, 16)
+shape = SubResource("Shape")
+
+[node name="HpLabel" type="Label" parent="."]
+offset_left = 4.0
+offset_top = 36.0
+offset_right = 30.0
+offset_bottom = 52.0
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 12
+text = ""

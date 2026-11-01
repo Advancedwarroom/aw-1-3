@@ -367,6 +367,13 @@ public partial class TerrainEditor
             ["black_obelisk"] = "res://Prefabs/black_obelisk.tscn",
             ["blackobelisk"] = "res://Prefabs/black_obelisk.tscn",
             ["BlackObelisk"] = "res://Prefabs/black_obelisk.tscn",
+            ["missile_silo"] = "res://Prefabs/missile_silo.tscn",
+            ["missilesilo"] = "res://Prefabs/missile_silo.tscn",
+            ["MissileSilo"] = "res://Prefabs/missile_silo.tscn",
+            ["force_satellite"] = "res://Prefabs/ForceSatellite.tscn",
+            ["ForceSatellite"] = "res://Prefabs/ForceSatellite.tscn",
+            ["attack_satellite"] = "res://Prefabs/AttackSatellite.tscn",
+            ["AttackSatellite"] = "res://Prefabs/AttackSatellite.tscn",
         };
         if (awmeNameMap.TryGetValue(typeName, out string explicitPath))
         {
