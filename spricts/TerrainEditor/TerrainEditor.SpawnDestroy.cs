@@ -87,17 +87,17 @@ private void SpawnUnitAtGrid(Grids grid, string scenePath, string team)
 
     try
     {
-        if (grid.weapon != null)
-        {
-            TranslateGroup.SetText(spawnHintLabel, "❌ 该格子已有兵器，不能放置单位");
-            spawnHintLabel.AddThemeColorOverride("font_color", Colors.Red);
-            return;
-        }
-
+        // ✅ 无视一切直接放：兵器/设施不挡单位；同种类（单位）直接覆盖替换
         // ✅ 推送到撤销历史（生成后调用，但旧状态在生成前记录）
         var oldUnit = grid.infantry != null ? SerializeUnitForUndo(grid.infantry) : null;
         var oldWeapon = grid.weapon != null ? SerializeWeaponForUndo(grid.weapon) : null;
         var oldFacility = grid.city != null ? SerializeFacilityForUndo(grid.city) : null;
+        int replacedUnits = 0;
+        foreach (var old in grid.infantries.Where(u => u != null && IsInstanceValid(u)).ToList())
+        {
+            replacedUnits++;
+            gameManager.RemoveUnit(old);
+        }
 
         var unit = scene.Instantiate<Infantry>();
         if (unit == null)
@@ -148,7 +148,8 @@ private void SpawnUnitAtGrid(Grids grid, string scenePath, string team)
         gameManager.UpdateUnitLists();
         gameManager.RefreshSpecializedUnitLists();
 
-        spawnHintLabel.Text = $"✅ {TranslateGroup.T("生成成功")}: {unit.Name}";
+        spawnHintLabel.Text = $"✅ {TranslateGroup.T("生成成功")}: {unit.Name}"
+            + (replacedUnits > 0 ? $"（{TranslateGroup.T("已替换")} {replacedUnits} {TranslateGroup.T("个原单位")}）" : "");
         spawnHintLabel.AddThemeColorOverride("font_color", new Color(0.4f, 1f, 0.4f));
 
         // ✅ 生成后推送撤销记录（传入生成前记录的旧状态）
@@ -177,22 +178,7 @@ private void SpawnWeaponAtGrid(Grids grid, string scenePath, string team)
 
     try
     {
-        if (grid.weapon != null)
-        {
-            TranslateGroup.SetText(spawnHintLabel, "❌ 该格子已有兵器");
-            spawnHintLabel.AddThemeColorOverride("font_color", Colors.Red);
-            return;
-        }
-
-        var blockingUnit = grid.infantries.FirstOrDefault(u => 
-            u != null && IsInstanceValid(u) && u.overlapType == UnitOverlapType.NonOverlapping);
-        if (blockingUnit != null)
-        {
-            spawnHintLabel.Text = $"❌ {TranslateGroup.T("该格子被")} {blockingUnit.Name} {TranslateGroup.T("占据")}";
-            spawnHintLabel.AddThemeColorOverride("font_color", Colors.Red);
-            return;
-        }
-
+        // ✅ 无视一切直接放：单位/设施不挡兵器；同种类（兵器）直接覆盖替换
         // ✅ 推送到撤销历史（生成后调用，但旧状态在生成前记录）
         var oldUnitW = grid.infantry != null ? SerializeUnitForUndo(grid.infantry) : null;
         var oldWeaponW = grid.weapon != null ? SerializeWeaponForUndo(grid.weapon) : null;
@@ -224,6 +210,40 @@ private void SpawnWeaponAtGrid(Grids grid, string scenePath, string team)
         weapon.team = team;
         weapon.Name = $"{team}_{weapon.GetType().Name}_{gameManager.weaponManager.AllWeapons.Count}";
 
+        // ✅ 同种类覆盖替换：清掉新兵器将占据的所有格子上的旧兵器（多格兵器整体移除）
+        var replacedWeapons = new List<Weapon>();
+        foreach (var idx in weapon.GetOccupiedIndices(grid.GridIndex))
+        {
+            if (idx.X < 0 || idx.Y < 0) continue;
+            if (gridManager?.map == null || idx.X >= gridManager.map.GetLength(0) || idx.Y >= gridManager.map.GetLength(1)) continue;
+            var og = gridManager.map[idx.X, idx.Y];
+            if (og == null) continue;
+            foreach (var oldW in og.weapons.Where(w => w != null && IsInstanceValid(w)).ToList())
+                if (!replacedWeapons.Contains(oldW)) replacedWeapons.Add(oldW);
+        }
+        foreach (var oldW in replacedWeapons)
+        {
+            if (oldW.isMultiTile)
+            {
+                foreach (var og2 in oldW.occupiedGrids.ToList())
+                {
+                    if (og2 == null || !IsInstanceValid(og2)) continue;
+                    og2.weapons.Remove(oldW);
+                    if (og2.weapon == oldW) og2.weapon = og2.weapons.Count > 0 ? og2.weapons[0] : null;
+                }
+            }
+            else if (oldW.grid != null)
+            {
+                oldW.grid.weapons.Remove(oldW);
+                if (oldW.grid.weapon == oldW) oldW.grid.weapon = null;
+            }
+            oldW.occupiedGrids?.Clear();
+            gameManager.weaponManager.AllWeapons.Remove(oldW);
+            if (gameManager.selectedWeapon == oldW) gameManager.selectedWeapon = null;
+            if (gameManager.weapons != null) gameManager.weapons.Remove(oldW);
+            oldW.QueueFree();
+        }
+
         gameManager.weaponManager.weaponsNode.AddChild(weapon);
 
         bool bound = gameManager.weaponManager.BindWeaponToGrid(weapon, true);
@@ -250,7 +270,8 @@ private void SpawnWeaponAtGrid(Grids grid, string scenePath, string team)
         ApplySavedWeaponData(weapon);
         gameManager.UpdateUnitLists();
 
-        spawnHintLabel.Text = $"✅ {TranslateGroup.T("生成兵器")}: {weapon.Name}";
+        spawnHintLabel.Text = $"✅ {TranslateGroup.T("生成兵器")}: {weapon.Name}"
+            + (replacedWeapons.Count > 0 ? $"（{TranslateGroup.T("已替换")} {replacedWeapons.Count} {TranslateGroup.T("个旧兵器")}）" : "");
         spawnHintLabel.AddThemeColorOverride("font_color", new Color(0.4f, 1f, 0.4f));
 
         // ✅ 生成后推送撤销记录（传入生成前记录的旧状态）
@@ -649,13 +670,7 @@ private void SpawnFacilityAtGrid(Grids grid)
 // ✅ 在格子生成设施（spawnMenu 用，支持模板参数）
 private void SpawnFacilityAtGrid(Grids grid, string scenePath, string team)
 {
-    if (grid.city != null)
-    {
-        TranslateGroup.SetText(spawnHintLabel, "❌ 该格子已有设施");
-        spawnHintLabel.AddThemeColorOverride("font_color", Colors.Red);
-        return;
-    }
-    
+    // ✅ 无视一切直接放：单位/兵器不挡设施；同种类（设施）直接覆盖替换
     if (string.IsNullOrEmpty(scenePath))
     {
         TranslateGroup.SetText(spawnHintLabel, "❌ 场景路径为空");
@@ -676,6 +691,14 @@ private void SpawnFacilityAtGrid(Grids grid, string scenePath, string team)
     var oldUnitF = grid.infantry != null ? SerializeUnitForUndo(grid.infantry) : null;
     var oldWeaponF = grid.weapon != null ? SerializeWeaponForUndo(grid.weapon) : null;
     var oldFacilityF = grid.city != null ? SerializeFacilityForUndo(grid.city) : null;
+    
+    // ✅ 同种类覆盖替换：旧设施直接替换
+    bool replacedFacility = grid.city != null && IsInstanceValid(grid.city);
+    if (replacedFacility)
+    {
+        grid.city.QueueFree();
+        grid.city = null;
+    }
     
     var facility = scene.Instantiate<Facility>();
     if (facility == null)
@@ -704,7 +727,8 @@ private void SpawnFacilityAtGrid(Grids grid, string scenePath, string team)
     }
     
     ApplySavedFacilityData(facility);
-    spawnHintLabel.Text = $"✅ {TranslateGroup.T("生成设施")}: {facility.GetType().Name} ({team})";
+    spawnHintLabel.Text = $"✅ {TranslateGroup.T("生成设施")}: {facility.GetType().Name} ({team})"
+        + (replacedFacility ? $"（{TranslateGroup.T("已替换旧设施")}）" : "");
     spawnHintLabel.AddThemeColorOverride("font_color", new Color(0.4f, 1f, 0.4f));
     
     // ✅ 生成后推送撤销记录（传入生成前记录的旧状态）
