@@ -71,7 +71,7 @@ public partial class AI_Manager
                 if (n == null) continue;
                 int sc = StepCost(u, n);
                 if (sc < 0) continue;
-                if (n.weapon != null && IsInstanceValid(n.weapon) && u.overlapType != UnitOverlapType.Oozium) continue;
+                if (n.weapon != null && IsInstanceValid(n.weapon) && u.overlapType != UnitOverlapType.Oozium && !n.weapon.AllowsPassage(u)) continue; // ✦适配：门禁白名单（Gate）放行则可通过
                 int nc = cc + sc;
                 if (nc > movePts) continue;
                 int nf = fuelUsed[cur] + (n.gridType == GridType.TP ? 0 : sc);
@@ -103,7 +103,7 @@ public partial class AI_Manager
     {
         partner = null;
         if (g == u.grid) return EndKind.Free;
-        if (g.weapon != null && IsInstanceValid(g.weapon) && u.overlapType != UnitOverlapType.Oozium) return EndKind.None;
+        if (g.weapon != null && IsInstanceValid(g.weapon) && u.overlapType != UnitOverlapType.Oozium && !g.weapon.AllowsPassage(u)) return EndKind.None; // ✦适配：白名单放行可停留
         var others = g.infantries.Where(o => o != null && o != u && IsInstanceValid(o) && !o.isTransported).ToList();
         // AI 不知道雾中/隐身敌军：当作空格（真实移动时会被截断）
         var known = others.Where(o => !IsEnemy(o.team) || ctx.enemies.Contains(o)).ToList();
@@ -127,7 +127,7 @@ public partial class AI_Manager
     {
         if (g == u.grid) return true;
         var others = g.infantries.Where(o => o != null && o != u && IsInstanceValid(o) && !o.isTransported).ToList();
-        if (others.Count == 0) return g.weapon == null || u.overlapType == UnitOverlapType.Oozium;
+        if (others.Count == 0) return g.weapon == null || !IsInstanceValid(g.weapon) || u.overlapType == UnitOverlapType.Oozium || g.weapon.AllowsPassage(u); // ✦适配
         if (others.Any(o => o.team != u.team && o.team != TeamHelper.Player)) return false;
         return u.overlapType == UnitOverlapType.Overlapping || u.overlapType == UnitOverlapType.Oozium;
     }

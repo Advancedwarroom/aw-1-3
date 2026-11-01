@@ -131,7 +131,7 @@ public partial class AI_Manager
             score -= counter / (float)u.maxHealth * UnitValue(u);
             if (hpAfter <= 0) score -= UnitValue(u);
             score -= ThreatLoss(u, g, hpAfter, stillStealthAfter, kill ? e : null);
-            score += Terrain(u, g) * 200;
+            score += Terrain(u, g) * 200 + TerrainEffectScore(u, g); // ✦适配：格子自定义效果
             bool hideAfter = freeToggle && !stillStealthAfter && WantsHide(u, g, hpAfter);
             if (hideAfter) score += ThreatLoss(u, g, hpAfter, false, kill ? e : null) - ThreatLoss(u, g, hpAfter, true, kill ? e : null);
             plans.Add(new Plan { dest = g, act = Act.Attack, target = e, score = score, preReveal = needReveal, postHide = hideAfter, note = $"伤{dealt}{(kill ? " 击杀" : "")} 反{counter}" });
@@ -187,7 +187,7 @@ public partial class AI_Manager
         if (progress > 0) score += 1200 + progress * 40;   // 已经占了一半，别半途而废
         float risk = ThreatLoss(u, g, u.health, false);
         score -= risk * 0.7f;                               // 占领本身值得冒点险
-        score += Terrain(u, g) * 150;
+        score += Terrain(u, g) * 150 + TerrainEffectScore(u, g) * 0.5f; // ✦适配：格子自定义效果（占领权重减半）
         if (u.aiRole == 2) score += 1500;   // AI 档案：占点优先
         plans.Add(new Plan { dest = g, act = Act.Capture, score = score, preReveal = needReveal, note = $"占领 剩{turns}回合" });
     }
@@ -449,10 +449,77 @@ public partial class AI_Manager
     private float Terrain(Infantry u, Grids g) =>
         u.defenseBonusType == Infantry.DefenseBonusType.CanDefenseBonus ? g.TerrainDefenseBonus : 0f;
 
+    /// <summary>✦适配：格子自定义效果站位估值——AI 会主动规避伤害地形、利用治疗/补给/成长地形（与回合结算步骤同源数值）</summary>
+    private float TerrainEffectScore(Infantry u, Grids g)
+    {
+        if (u == null || g == null) return 0;
+        float v = 0;
+
+        // ① 血量变化（fixedDamagePerTurn/fixedAttackPerTurn：正=扣血 负=回血；攻击经防御，按全额粗估）
+        int hpDelta = g.fixedDamagePerTurn + g.fixedAttackPerTurn;
+        if (hpDelta > 0)
+        {
+            int real = Math.Min(hpDelta, u.health);
+            v -= real / (float)Math.Max(1, u.maxHealth) * UnitValue(u) * 0.8f;   // 扣血地形=按最大血量比例罚分
+        }
+        else if (hpDelta < 0)
+        {
+            int heal = -hpDelta;
+            int room = g.canOverMaxHealth ? heal : Math.Max(0, u.maxHealth - u.health);
+            int real = Math.Min(heal, room);
+            v += real / (float)Math.Max(1, u.maxHealth) * UnitValue(u) * (u.health < u.maxHealth * 0.7f ? 0.7f : 0.2f); // 缺血时治疗地形价值更高
+        }
+
+        // ② 最大血量增减（扩容=成长 资产；缩容=侵蚀）
+        if (g.fixedMaxHealthChangePerTurn != 0)
+            v += g.fixedMaxHealthChangePerTurn * 30f;
+
+        // ③ 全种类弹药增减（缺弹时补给地形价值更高）
+        foreach (var k in Infantry.AllAmmoKinds)
+        {
+            int c = g.GetAmmoKindChange(k);
+            if (c == 0) continue;
+            int max = u.GetBaseMaxAmmo(k);
+            if (max <= 0) continue;
+            int cur = u.GetAmmo(k);
+            if (c > 0) v += Math.Min(c, Math.Max(0, max - cur)) * 25f + (cur == 0 ? 200 : 0);
+            else v -= Math.Min(-c, cur) * 25f;
+        }
+
+        // ④ 全种类弹药上限增减
+        foreach (var k in Infantry.AllAmmoKinds)
+        {
+            int mc = g.GetAmmoKindMaxChange(k);
+            if (mc != 0 && u.GetBaseMaxAmmo(k) > 0) v += mc * 15f;
+        }
+
+        // ⑤ 燃油增减（快断油时补给地形价值飙升；耗油地形可能直接坠毁）
+        if (u.consumeFuel && g.fixedFuelChangePerTurn != 0)
+        {
+            if (g.fixedFuelChangePerTurn > 0)
+            {
+                v += Math.Min(g.fixedFuelChangePerTurn, Math.Max(0, u.maxFuel - u.fuel)) * 12f;
+                if (u.fuel <= (u.dailyFuelConsumption + (u.isStealthed ? u.stealthFuelCostPerDay : 0)) * 2) v += 300;
+            }
+            else
+            {
+                int drain = Math.Min(-g.fixedFuelChangePerTurn, u.fuel);
+                v -= drain * 12f;
+                if (u.fuel + g.fixedFuelChangePerTurn <= 0 && u.destroyOnOutOfFuel) v -= UnitValue(u) * 0.5f;
+            }
+        }
+
+        // ⑥ 燃油上限增减
+        if (u.consumeFuel && g.fixedMaxFuelChangePerTurn != 0)
+            v += g.fixedMaxFuelChangePerTurn * 8f;
+
+        return v;
+    }
+
     /// <summary>站位价值：根据角色向目标推进 / 撤退修整 / 地形 / 不堵工厂</summary>
     private float PositionScore(Infantry u, Grids g)
     {
-        float s = Terrain(u, g) * 300;
+        float s = Terrain(u, g) * 300 + TerrainEffectScore(u, g); // ✦适配：格子自定义效果（伤害/治疗/弹药/燃料/上限增减）
 
         // 不要堵住自家工厂
         if (g.city != null && g.city.canProduce && g.city.facilityTeam == aiTeam && g != u.grid) s -= 900;
