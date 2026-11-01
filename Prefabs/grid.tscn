@@ -14,7 +14,7 @@
 [ext_resource type="Texture2D" uid="uid://6t1w7tjxivn6" path="res://art/Grids/地形/TP.png" id="12_fhrta"]
 [ext_resource type="Texture2D" uid="uid://ctr2dwifwlwrt" path="res://art/Grids/地形/Reef.png" id="13_fqpsr"]
 [ext_resource type="Texture2D" uid="uid://5cwwbc0qnlwk" path="res://art/Grids/地形/PipeSeam.png" id="14_00fs3"]
-[ext_resource type="Texture2D" uid="uid://dloef8jixlpda" path="res://art/Grids/地形/Road.png" id="14_b73tk"]
+[ext_resource type="Texture2D" uid="uid://dloef8jixlpda" path="res://art/Grids/地形/ROAD.png" id="14_b73tk"]
 [ext_resource type="Texture2D" uid="uid://bb734ha8bqmgr" path="res://art/Grids/地形/Pipe.png" id="14_tvkgv"]
 [ext_resource type="Texture2D" uid="uid://bf1qqlsrtj86o" path="res://art/Grids/地形/LAVASide.png" id="15_x3au7"]
 [ext_resource type="Texture2D" uid="uid://bbykd0k0j8tge" path="res://art/Grids/地形/BRIDGE.png" id="16_nquop"]
@@ -25,6 +25,38 @@
 [ext_resource type="Texture2D" uid="uid://1is84ohecbydx" path="res://art/Grids/地形/Plasma_0.png" id="33_plasma"]
 [ext_resource type="Texture2D" uid="uid://0hw8jhcun15h8" path="res://art/Grids/地形/Creeper_0.png" id="34_creeper"]
 [ext_resource type="Texture2D" uid="uid://sezr2z0sv4mi2" path="res://art/Gate/Gate_NS.png" id="35_gate"]
+[ext_resource type="Texture2D" uid="uid://kywskmak2gfor" path="res://art/Grids/地形/Wall_0.png" id="36_wall"]
+[ext_resource type="Texture2D" uid="uid://3yx4jkdunbo51" path="res://art/Grids/地形/WeakWall_0.png" id="37_weak_wall"]
+[ext_resource type="Texture2D" uid="uid://8de4dy3j5v4xn" path="res://art/Grids/地形/Wasteland_0.png" id="38_wasteland"]
+[ext_resource type="Texture2D" uid="uid://20yn9tlhlkfyk" path="res://art/Grids/地形/Ruin2_0.png" id="39_ruins2"]
+[ext_resource type="Texture2D" uid="uid://at2q2kcerjhan" path="res://art/Grids/地形/Ruin3_0.png" id="40_ruins3"]
+[ext_resource type="Texture2D" uid="uid://o1zcoa9cgmnoe" path="res://art/Grids/地形/DesertGround_0.png" id="41_desert_ground"]
+[ext_resource type="Texture2D" uid="uid://lkm3due4ofvpk" path="res://art/Grids/地形/SnowGround_0.png" id="42_snow_ground"]
+[ext_resource type="Texture2D" uid="uid://1coq8a7vdjmyk" path="res://art/Grids/地形/WasteGround_0.png" id="43_waste_ground"]
+[ext_resource type="Texture2D" uid="uid://1l2cauhf7himd" path="res://art/Grids/地形/DesertRoad_0.png" id="44_desert_road"]
+[ext_resource type="Texture2D" uid="uid://uj1mtpmaaic1h" path="res://art/Grids/地形/SnowRoad_0.png" id="45_snow_road"]
+[ext_resource type="Texture2D" uid="uid://lk36jub78cqu4" path="res://art/Grids/地形/WasteRoad_0.png" id="46_waste_road"]
+[ext_resource type="Texture2D" uid="uid://qm6otuljq2b88" path="res://art/Grids/地形/DesertForest_0.png" id="47_desert_forest"]
+[ext_resource type="Texture2D" uid="uid://fcu9zf8zs8klc" path="res://art/Grids/地形/SnowForest_0.png" id="48_snow_forest"]
+[ext_resource type="Texture2D" uid="uid://yr54vg9y1zs6n" path="res://art/Grids/地形/WasteForest_0.png" id="49_waste_forest"]
+[ext_resource type="Texture2D" uid="uid://kmdb1hl3b9ss9" path="res://art/Grids/地形/DesertHill_0.png" id="50_desert_hill"]
+[ext_resource type="Texture2D" uid="uid://jsgzdavwc5iuv" path="res://art/Grids/地形/SnowHill_0.png" id="51_snow_hill"]
+[ext_resource type="Texture2D" uid="uid://cdu2sfcqv0ni3" path="res://art/Grids/地形/WasteHill_0.png" id="52_waste_hill"]
+[ext_resource type="Texture2D" uid="uid://zlox9vrvzbx57" path="res://art/Grids/地形/DesertRuins_0.png" id="53_desert_ruins"]
+[ext_resource type="Texture2D" uid="uid://sv9o82ctv2rt4" path="res://art/Grids/地形/SnowRuins_0.png" id="54_snow_ruins"]
+[ext_resource type="Texture2D" uid="uid://8t6d2evkg6j78" path="res://art/Grids/地形/WasteRuins_0.png" id="55_waste_ruins"]
+[ext_resource type="Texture2D" uid="uid://3ypyl81at6f5y" path="res://art/Grids/地形/DesertWasteland_0.png" id="56_desert_wasteland"]
+[ext_resource type="Texture2D" uid="uid://6mn9cit2rqcbt" path="res://art/Grids/地形/SnowWasteland_0.png" id="57_snow_wasteland"]
+[ext_resource type="Texture2D" uid="uid://fijkip88wa8bp" path="res://art/Grids/地形/WasteWasteland_0.png" id="58_waste_wasteland"]
+[ext_resource type="Texture2D" uid="uid://fyezl7stsmnss" path="res://art/Grids/地形/DesertPipe_0.png" id="59_desert_pipe"]
+[ext_resource type="Texture2D" uid="uid://6yewz2b9481eb" path="res://art/Grids/地形/SnowPipe_0.png" id="60_snow_pipe"]
+[ext_resource type="Texture2D" uid="uid://7jxabdo14l8sg" path="res://art/Grids/地形/WastePipe_0.png" id="61_waste_pipe"]
+[ext_resource type="Texture2D" uid="uid://kfhx35f0ttbi1" path="res://art/Grids/地形/DesertPipeSeam_0.png" id="62_desert_pipeseam"]
+[ext_resource type="Texture2D" uid="uid://p6r3fv8iwuee3" path="res://art/Grids/地形/SnowPipeSeam_0.png" id="63_snow_pipeseam"]
+[ext_resource type="Texture2D" uid="uid://qc4m9e4is3d56" path="res://art/Grids/地形/WastePipeSeam_0.png" id="64_waste_pipeseam"]
+[ext_resource type="Texture2D" uid="uid://qy4p2ezvz4sxg" path="res://art/Grids/地形/DesertBrokenPipe_0.png" id="65_desert_brokenpipe"]
+[ext_resource type="Texture2D" uid="uid://kogdqmmp1k076" path="res://art/Grids/地形/SnowBrokenPipe_0.png" id="66_snow_brokenpipe"]
+[ext_resource type="Texture2D" uid="uid://rff0chf1xm289" path="res://art/Grids/地形/WasteBrokenPipe_0.png" id="67_waste_brokenpipe"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0ha60"]
 size = Vector2(32, 32)
@@ -51,7 +83,39 @@ terrainIconTextures = Dictionary[int, Texture2D]({
 30: ExtResource("31_ruin"),
 33: ExtResource("33_plasma"),
 34: ExtResource("34_creeper"),
-35: ExtResource("35_gate")
+35: ExtResource("35_gate"),
+36: ExtResource("36_wall"),
+37: ExtResource("37_weak_wall"),
+38: ExtResource("38_wasteland"),
+39: ExtResource("39_ruins2"),
+40: ExtResource("40_ruins3"),
+41: ExtResource("41_desert_ground"),
+42: ExtResource("42_snow_ground"),
+43: ExtResource("43_waste_ground"),
+44: ExtResource("44_desert_road"),
+45: ExtResource("45_snow_road"),
+46: ExtResource("46_waste_road"),
+47: ExtResource("47_desert_forest"),
+48: ExtResource("48_snow_forest"),
+49: ExtResource("49_waste_forest"),
+50: ExtResource("50_desert_hill"),
+51: ExtResource("51_snow_hill"),
+52: ExtResource("52_waste_hill"),
+53: ExtResource("53_desert_ruins"),
+54: ExtResource("54_snow_ruins"),
+55: ExtResource("55_waste_ruins"),
+56: ExtResource("56_desert_wasteland"),
+57: ExtResource("57_snow_wasteland"),
+58: ExtResource("58_waste_wasteland"),
+59: ExtResource("59_desert_pipe"),
+60: ExtResource("60_snow_pipe"),
+61: ExtResource("61_waste_pipe"),
+62: ExtResource("62_desert_pipeseam"),
+63: ExtResource("63_snow_pipeseam"),
+64: ExtResource("64_waste_pipeseam"),
+65: ExtResource("65_desert_brokenpipe"),
+66: ExtResource("66_snow_brokenpipe"),
+67: ExtResource("67_waste_brokenpipe")
 })
 
 [node name="GridArea" type="Area2D" parent="." unique_id=1570731547]

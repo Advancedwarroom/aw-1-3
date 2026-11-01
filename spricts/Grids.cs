@@ -13,6 +13,16 @@ public enum GridType
 	PLASMA,  // 等离子（DoR：完全不可通行；陨石被毁→相连等离子消失）
 	CREEPER, // 蔓生藤蔓（DoR Creeper：不可通行装饰地形）
 	GATE,    // 门（Gate模块配套地形；通行由Gate兵器白名单控制）
+	WALL, WEAK_WALL, WASTELAND, RUINS2, RUINS3, // ✅ CW墙系零成本项：墙/脆弱墙(不可通行)/荒地/废墟变体
+	DESERT_GROUND, SNOW_GROUND, WASTE_GROUND,   // ✅ CW三气候皮肤组（消耗/防御与基础地形一致）
+	DESERT_ROAD, SNOW_ROAD, WASTE_ROAD,
+	DESERT_FOREST, SNOW_FOREST, WASTE_FOREST,
+	DESERT_HILL, SNOW_HILL, WASTE_HILL,
+	DESERT_RUINS, SNOW_RUINS, WASTE_RUINS,
+	DESERT_WASTELAND, SNOW_WASTELAND, WASTE_WASTELAND,
+	DESERT_PIPE, SNOW_PIPE, WASTE_PIPE,
+	DESERT_PIPESEAM, SNOW_PIPESEAM, WASTE_PIPESEAM,
+	DESERT_BROKENPIPE, SNOW_BROKENPIPE, WASTE_BROKENPIPE,
 }
 
 public enum GridVisionMode { None, TowerCone, TowerRay }
@@ -482,7 +492,8 @@ public partial class Grids : Node2D
                 GridType.TRACK => 0.0f, GridType.STATION => 0.20f, GridType.BRIDGE => 0.0f,
                 GridType.LAVABRIDGE => 0.0f, GridType.PASSABLEPIPE => 0.10f, GridType.SHIPGATE => 0.10f,
                 GridType.OVERPASS => 0.30f, GridType.BROKENPIPE => 0.20f, GridType.RUINS => 0.30f,
-                GridType.BROKENTRACK => 0.20f, GridType.LAVAFOG => 0.50f, _ => 0.0f
+                GridType.BROKENTRACK => 0.20f, GridType.LAVAFOG => 0.50f,
+                GridType.WALL => 0.0f, GridType.WEAK_WALL => 0.0f, GridType.WASTELAND => 0.20f, GridType.RUINS2 => 0.30f, GridType.RUINS3 => 0.30f, GridType.DESERT_GROUND => 0.10f, GridType.SNOW_GROUND => 0.10f, GridType.WASTE_GROUND => 0.10f, GridType.DESERT_ROAD => 0.0f, GridType.SNOW_ROAD => 0.0f, GridType.WASTE_ROAD => 0.0f, GridType.DESERT_FOREST => 0.20f, GridType.SNOW_FOREST => 0.20f, GridType.WASTE_FOREST => 0.20f, GridType.DESERT_HILL => 0.40f, GridType.SNOW_HILL => 0.40f, GridType.WASTE_HILL => 0.40f, GridType.DESERT_RUINS => 0.30f, GridType.SNOW_RUINS => 0.30f, GridType.WASTE_RUINS => 0.30f, GridType.DESERT_WASTELAND => 0.20f, GridType.SNOW_WASTELAND => 0.20f, GridType.WASTE_WASTELAND => 0.20f, GridType.DESERT_PIPE => 0.0f, GridType.SNOW_PIPE => 0.0f, GridType.WASTE_PIPE => 0.0f, GridType.DESERT_PIPESEAM => 0.10f, GridType.SNOW_PIPESEAM => 0.10f, GridType.WASTE_PIPESEAM => 0.10f, GridType.DESERT_BROKENPIPE => 0.20f, GridType.SNOW_BROKENPIPE => 0.20f, GridType.WASTE_BROKENPIPE => 0.20f, _ => 0.0f
             };
         }
     }
@@ -710,6 +721,14 @@ public partial class Grids : Node2D
             GridType.RIVER => "River",
             GridType.PLASMA => "Plasma",   // ✅ 等离子：多方向变体（复用CW素材）
             GridType.CREEPER => "Creeper", // ✅ 蔓生藤蔓：多方向变体（复用CW素材）
+            GridType.WALL => "Wall",           // ✅ 墙：多方向变体（复用CW素材）
+            GridType.WEAK_WALL => "WeakWall",  // ✅ 脆弱墙：多方向变体
+            GridType.DESERT_ROAD => "DesRoad",  // ✅ 三气候公路
+            GridType.SNOW_ROAD => "SnowRoad",
+            GridType.WASTE_ROAD => "WasteRoad",
+            GridType.DESERT_PIPE => "DesPipe", // ✅ 三气候管道
+            GridType.SNOW_PIPE => "SnowPipe",
+            GridType.WASTE_PIPE => "WastePipe",
             _ => null
         };
         if (prefix == null) return null;

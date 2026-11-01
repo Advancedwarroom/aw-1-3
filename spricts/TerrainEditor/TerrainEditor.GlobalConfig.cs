@@ -943,7 +943,18 @@ private void RefreshAllUnitVision()
         GridType.SHIPGATE, GridType.OVERPASS, GridType.BROKENPIPE,
         GridType.RUINS, GridType.BROKENTRACK, GridType.LAVAFOG,
         // ✅ DoR新增：等离子/蔓生藤蔓/门（陨石毁→相连等离子消失；Gate门模块白名单通行）
-        GridType.PLASMA, GridType.CREEPER, GridType.GATE
+        GridType.PLASMA, GridType.CREEPER, GridType.GATE,
+        // ✅ CW墙系零成本项 + 三气候皮肤组
+        GridType.WALL, GridType.WEAK_WALL, GridType.WASTELAND, GridType.RUINS2, GridType.RUINS3,
+        GridType.DESERT_GROUND, GridType.SNOW_GROUND, GridType.WASTE_GROUND,
+        GridType.DESERT_ROAD, GridType.SNOW_ROAD, GridType.WASTE_ROAD,
+        GridType.DESERT_FOREST, GridType.SNOW_FOREST, GridType.WASTE_FOREST,
+        GridType.DESERT_HILL, GridType.SNOW_HILL, GridType.WASTE_HILL,
+        GridType.DESERT_RUINS, GridType.SNOW_RUINS, GridType.WASTE_RUINS,
+        GridType.DESERT_WASTELAND, GridType.SNOW_WASTELAND, GridType.WASTE_WASTELAND,
+        GridType.DESERT_PIPE, GridType.SNOW_PIPE, GridType.WASTE_PIPE,
+        GridType.DESERT_PIPESEAM, GridType.SNOW_PIPESEAM, GridType.WASTE_PIPESEAM,
+        GridType.DESERT_BROKENPIPE, GridType.SNOW_BROKENPIPE, GridType.WASTE_BROKENPIPE
     };
 
     private readonly Dictionary<GridType, Color> terrainColors = new()
@@ -983,6 +994,38 @@ private void RefreshAllUnitVision()
         { GridType.LAVAFOG, new Color(0.7f, 0.2f, 0.1f) },
         { GridType.PLASMA, new Color(0.3f, 0.8f, 0.9f) },   // 等离子：青色
         { GridType.CREEPER, new Color(0.2f, 0.5f, 0.2f) },   // 蔓生藤蔓：深绿
-        { GridType.GATE, new Color(0.6f, 0.5f, 0.3f) }      // 门：木色
+        { GridType.GATE, new Color(0.6f, 0.5f, 0.3f) },     // 门：木色
+        { GridType.WALL, new Color(0.62f, 0.58f, 0.52f) },
+        { GridType.WEAK_WALL, new Color(0.55f, 0.5f, 0.44f) },
+        { GridType.WASTELAND, new Color(0.45f, 0.38f, 0.28f) },
+        { GridType.RUINS2, new Color(0.42f, 0.37f, 0.32f) },
+        { GridType.RUINS3, new Color(0.44f, 0.39f, 0.33f) },
+        { GridType.DESERT_GROUND, new Color(0.85f, 0.75f, 0.45f) },
+        { GridType.DESERT_ROAD, new Color(0.9f, 0.82f, 0.6f) },
+        { GridType.DESERT_FOREST, new Color(0.55f, 0.6f, 0.3f) },
+        { GridType.DESERT_HILL, new Color(0.7f, 0.6f, 0.35f) },
+        { GridType.DESERT_RUINS, new Color(0.72f, 0.62f, 0.45f) },
+        { GridType.DESERT_WASTELAND, new Color(0.65f, 0.55f, 0.35f) },
+        { GridType.DESERT_PIPE, new Color(0.75f, 0.65f, 0.4f) },
+        { GridType.DESERT_PIPESEAM, new Color(0.8f, 0.7f, 0.45f) },
+        { GridType.DESERT_BROKENPIPE, new Color(0.6f, 0.5f, 0.3f) },
+        { GridType.SNOW_GROUND, new Color(0.85f, 0.9f, 0.95f) },
+        { GridType.SNOW_ROAD, new Color(0.75f, 0.82f, 0.9f) },
+        { GridType.SNOW_FOREST, new Color(0.55f, 0.7f, 0.75f) },
+        { GridType.SNOW_HILL, new Color(0.7f, 0.78f, 0.88f) },
+        { GridType.SNOW_RUINS, new Color(0.72f, 0.78f, 0.85f) },
+        { GridType.SNOW_WASTELAND, new Color(0.65f, 0.72f, 0.82f) },
+        { GridType.SNOW_PIPE, new Color(0.62f, 0.72f, 0.85f) },
+        { GridType.SNOW_PIPESEAM, new Color(0.68f, 0.78f, 0.9f) },
+        { GridType.SNOW_BROKENPIPE, new Color(0.5f, 0.6f, 0.72f) },
+        { GridType.WASTE_GROUND, new Color(0.55f, 0.4f, 0.42f) },
+        { GridType.WASTE_ROAD, new Color(0.62f, 0.46f, 0.46f) },
+        { GridType.WASTE_FOREST, new Color(0.42f, 0.35f, 0.4f) },
+        { GridType.WASTE_HILL, new Color(0.48f, 0.36f, 0.4f) },
+        { GridType.WASTE_RUINS, new Color(0.52f, 0.42f, 0.44f) },
+        { GridType.WASTE_WASTELAND, new Color(0.45f, 0.35f, 0.38f) },
+        { GridType.WASTE_PIPE, new Color(0.58f, 0.45f, 0.5f) },
+        { GridType.WASTE_PIPESEAM, new Color(0.63f, 0.5f, 0.55f) },
+        { GridType.WASTE_BROKENPIPE, new Color(0.42f, 0.32f, 0.36f) },
     };
 }
