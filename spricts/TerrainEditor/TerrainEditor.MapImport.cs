@@ -258,6 +258,37 @@ public partial class TerrainEditor
 
             var lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
+            // ✅ 天气系统（模块15）：预扫描天气配置（旧版无这些行=沿用当前设置）
+            foreach (var rawLine in lines)
+            {
+                string wl = rawLine.Trim();
+                if (wl.StartsWith("WeatherChances: "))
+                {
+                    var parts = wl.Substring("WeatherChances: ".Length).Split(',');
+                    for (int i = 0; i < parts.Length && i < WeatherSystem.Chances.Length; i++)
+                        if (int.TryParse(parts[i].Trim(), out int c)) WeatherSystem.Chances[i] = Mathf.Clamp(c, 0, 100);
+                }
+                else if (wl.StartsWith("WeatherRandom: "))
+                    WeatherSystem.SetRandomWeather(wl.EndsWith("On"));
+                else if (wl.StartsWith("WeatherDuration: "))
+                {
+                    var m = System.Text.RegularExpressions.Regex.Match(wl.Substring("WeatherDuration: ".Length), @"(\d+)\s*-\s*(\d+)");
+                    if (m.Success)
+                    {
+                        int dmin = Math.Max(1, int.Parse(m.Groups[1].Value));
+                        int dmax = Math.Max(dmin, int.Parse(m.Groups[2].Value));
+                        WeatherSystem.RandomDurationMin = dmin;
+                        WeatherSystem.RandomDurationMax = dmax;
+                    }
+                }
+                else if (wl.StartsWith("Weather: "))
+                {
+                    var m = System.Text.RegularExpressions.Regex.Match(wl.Substring("Weather: ".Length), @"(\w+)\s*,\s*(\d+)");
+                    if (m.Success && Enum.TryParse<WeatherType>(m.Groups[1].Value, out var wt))
+                        WeatherSystem.SetWeather(wt, Math.Max(1, int.Parse(m.Groups[2].Value)));
+                }
+            }
+
             // ✅ 先扫描一遍计算地图尺寸
             int mapWidth = 0, mapHeight = 0;
             string scanSection = "";

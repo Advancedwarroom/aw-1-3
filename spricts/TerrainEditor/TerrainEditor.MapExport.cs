@@ -38,6 +38,11 @@ public partial class TerrainEditor
         sb.AppendLine($"ExportTime: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         bool fogEnabled = gameManager?.fogOfWarManager?.isFogOfWarEnabled ?? false;
         sb.AppendLine($"FogOfWar: {(fogEnabled ? "Enabled" : "Disabled")}");
+        // ✅ 天气系统（模块15）：当前天气+剩余天数、出现权重、随机开关、持续天数随图导出
+        sb.AppendLine($"Weather: {WeatherSystem.Current},{WeatherSystem.DaysRemaining}");
+        sb.AppendLine($"WeatherChances: {string.Join(",", WeatherSystem.Chances)}");
+        sb.AppendLine($"WeatherRandom: {(WeatherSystem.RandomWeather ? "On" : "Off")}");
+        sb.AppendLine($"WeatherDuration: {WeatherSystem.RandomDurationMin}-{WeatherSystem.RandomDurationMax}");
         sb.AppendLine();
 
         sb.AppendLine("=== Terrain Matrix [x,y]=Type ===");

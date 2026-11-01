@@ -519,6 +519,122 @@ private void RefreshAllUnitVision()
 
         globalConfigContainer.AddChild(fogHBox);
 
+        // ✅ 天气系统（模块15）：编辑模式可改当前天气 + 出现权重可调
+        var weatherSection = CreateConfigSectionTitle(TranslateGroup.T("🌦️ 天气系统"));
+        globalConfigContainer.AddChild(weatherSection);
+
+        // 当前天气（立即生效）
+        var weatherHBox = new HBoxContainer();
+        weatherHBox.AddThemeConstantOverride("separation", 10);
+        var weatherLabel = new Label();
+        TranslateGroup.SetText(weatherLabel, "当前天气:");
+        weatherLabel.CustomMinimumSize = new Vector2(90, 28);
+        weatherLabel.AddThemeFontSizeOverride("font_size", 13);
+        weatherHBox.AddChild(weatherLabel);
+
+        var weatherOption = new OptionButton();
+        weatherOption.Name = "WeatherTypeOption";
+        foreach (WeatherType wt in Enum.GetValues(typeof(WeatherType)))
+            weatherOption.AddItem(TranslateGroup.T(WeatherSystem.WeatherName(wt)));
+        weatherOption.Selected = (int)WeatherSystem.Current;
+        weatherOption.CustomMinimumSize = new Vector2(110, 28);
+        weatherOption.AddThemeFontSizeOverride("font_size", 12);
+        weatherOption.ItemSelected += (index) => {
+            WeatherSystem.SetWeather((WeatherType)(int)index, 1);   // 立即生效（持续1天，之后按权重轮换）
+            ShowImportHint($"🌦️ {TranslateGroup.T("天气已切换")}: {WeatherSystem.WeatherName(WeatherSystem.Current)}");
+        };
+        weatherHBox.AddChild(weatherOption);
+        globalConfigContainer.AddChild(weatherHBox);
+
+        // 随机轮换开关
+        var weatherRandomHBox = new HBoxContainer();
+        weatherRandomHBox.AddThemeConstantOverride("separation", 10);
+        var weatherRandomLabel = new Label();
+        TranslateGroup.SetText(weatherRandomLabel, "每日随机轮换:");
+        weatherRandomLabel.CustomMinimumSize = new Vector2(90, 28);
+        weatherRandomLabel.AddThemeFontSizeOverride("font_size", 13);
+        weatherRandomHBox.AddChild(weatherRandomLabel);
+        var weatherRandomCheck = new CheckBox();
+        weatherRandomCheck.ButtonPressed = WeatherSystem.RandomWeather;
+        weatherRandomCheck.CustomMinimumSize = new Vector2(28, 28);
+        weatherRandomCheck.Toggled += (pressed) => WeatherSystem.SetRandomWeather(pressed);
+        weatherRandomHBox.AddChild(weatherRandomCheck);
+        var weatherRandomHint = new Label();
+        TranslateGroup.SetText(weatherRandomHint, "(关闭=保持当前天气)");
+        weatherRandomHint.AddThemeFontSizeOverride("font_size", 10);
+        weatherRandomHint.AddThemeColorOverride("font_color", new Color(0.6f, 0.6f, 0.6f));
+        weatherRandomHBox.AddChild(weatherRandomHint);
+        globalConfigContainer.AddChild(weatherRandomHBox);
+
+        // 出现权重（晴/雨/雪/沙暴/雾）
+        var weightNames = new[] { "晴权重", "雨权重", "雪权重", "沙暴权重", "雾权重" };
+        for (int wi = 0; wi < 5; wi++)
+        {
+            var weightHBox = new HBoxContainer();
+            weightHBox.AddThemeConstantOverride("separation", 10);
+            var weightLabel = new Label();
+            TranslateGroup.SetText(weightLabel, weightNames[wi] + ":");
+            weightLabel.CustomMinimumSize = new Vector2(90, 26);
+            weightLabel.AddThemeFontSizeOverride("font_size", 12);
+            weightHBox.AddChild(weightLabel);
+            var weightSpin = new SpinBox();
+            weightSpin.MinValue = 0;
+            weightSpin.MaxValue = 100;
+            weightSpin.Step = 5;
+            weightSpin.Value = WeatherSystem.Chances[wi];
+            weightSpin.CustomMinimumSize = new Vector2(90, 26);
+            weightSpin.AddThemeFontSizeOverride("font_size", 12);
+            int widx = wi;
+            weightSpin.ValueChanged += (newVal) => WeatherSystem.Chances[widx] = (int)newVal;
+            weightHBox.AddChild(weightSpin);
+            globalConfigContainer.AddChild(weightHBox);
+        }
+        var weightHint = new Label();
+        TranslateGroup.SetText(weightHint, "(总和参考100，按比例抽取；雾默认0=仅CO技能/规则指定)");
+        weightHint.AddThemeFontSizeOverride("font_size", 10);
+        weightHint.AddThemeColorOverride("font_color", new Color(0.6f, 0.6f, 0.6f));
+        globalConfigContainer.AddChild(weightHint);
+
+        // 随机持续天数（min~max）
+        var durationHBox = new HBoxContainer();
+        durationHBox.AddThemeConstantOverride("separation", 8);
+        var durationLabel = new Label();
+        TranslateGroup.SetText(durationLabel, "随机持续天数:");
+        durationLabel.CustomMinimumSize = new Vector2(90, 26);
+        durationLabel.AddThemeFontSizeOverride("font_size", 12);
+        durationHBox.AddChild(durationLabel);
+        var durMinSpin = new SpinBox();
+        durMinSpin.MinValue = 1;
+        durMinSpin.MaxValue = 7;
+        durMinSpin.Value = WeatherSystem.RandomDurationMin;
+        durMinSpin.CustomMinimumSize = new Vector2(70, 26);
+        durMinSpin.AddThemeFontSizeOverride("font_size", 12);
+        durationHBox.AddChild(durMinSpin);
+        var durationMidLabel = new Label();
+        durationMidLabel.Text = "~";
+        durationMidLabel.AddThemeFontSizeOverride("font_size", 12);
+        durationHBox.AddChild(durationMidLabel);
+        var durMaxSpin = new SpinBox();
+        durMaxSpin.MinValue = 1;
+        durMaxSpin.MaxValue = 7;
+        durMaxSpin.Value = WeatherSystem.RandomDurationMax;
+        durMaxSpin.CustomMinimumSize = new Vector2(70, 26);
+        durMaxSpin.AddThemeFontSizeOverride("font_size", 12);
+        durationHBox.AddChild(durMaxSpin);
+        globalConfigContainer.AddChild(durationHBox);
+
+        // 联动约束：min ≤ max
+        durMinSpin.ValueChanged += (newVal) => {
+            WeatherSystem.RandomDurationMin = Mathf.Clamp((int)newVal, 1, 7);
+            if (durMaxSpin.Value < WeatherSystem.RandomDurationMin)
+                durMaxSpin.Value = WeatherSystem.RandomDurationMin;
+        };
+        durMaxSpin.ValueChanged += (newVal) => {
+            WeatherSystem.RandomDurationMax = Mathf.Clamp((int)newVal, 1, 7);
+            if (durMinSpin.Value > WeatherSystem.RandomDurationMax)
+                durMinSpin.Value = WeatherSystem.RandomDurationMax;
+        };
+
         var unitSection = CreateConfigSectionTitle(TranslateGroup.T("👁️ 单位基础视野配置"));
         globalConfigContainer.AddChild(unitSection);
 
