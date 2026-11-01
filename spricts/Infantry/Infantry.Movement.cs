@@ -14,6 +14,14 @@ public static Dictionary<Infantry, int> unitsCannotMove = new Dictionary<Infantr
     public int stunTurnsRemaining = 0;            // 剩余麻痹回合（运行时；由施加方Export决定时长）
     public bool IsStunned => stunTurnsRemaining > 0;
 
+    // ========== ✅ CO 模块25（状态系统）：燃烧/虚弱（麻痹复用上面的 stun）==========
+    public int burnTurnsRemaining = 0;   // 剩余燃烧回合
+    public int burnDamage = 0;          // 每回合掉血（HP 1-10，千分制×10结算）
+    public int weakTurnsRemaining = 0;   // 剩余虚弱回合
+    public int weakPercent = 0;         // 攻击降低百分比
+    public bool IsBurning => burnTurnsRemaining > 0;
+    public bool IsWeakened => weakTurnsRemaining > 0;
+
     /// <summary>施加麻痹：持续 turns 回合（本方回合开始递减；麻痹中不能移动/攻击/行动）</summary>
     public void ApplyStun(int turns)
     {

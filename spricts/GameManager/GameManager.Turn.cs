@@ -198,6 +198,19 @@ public partial class GameManager
                 unit.SetWaitVisual(true);
             }
 
+            // ✅ CO 模块25（状态系统）：燃烧掉血/虚弱递减（当前行动势力单位在其回合开始结算）
+            if (unit.team == TeamHelper.GetPhaseTeamName(turnPhase))
+            {
+                if (unit.burnTurnsRemaining > 0)
+                {
+                    unit.health = Mathf.Max(1, unit.health - unit.burnDamage * 10);   // 燃烧最低留1HP
+                    unit.UpdateHpLabel();
+                    unit.burnTurnsRemaining--;
+                }
+                if (unit.weakTurnsRemaining > 0)
+                    unit.weakTurnsRemaining--;
+            }
+
             // ✅ 生产/建造占用回合（非自动化）：进度没走完的回合，单位保持待机
             if (unit.isProducing && !unit.productionAutomation)
             {

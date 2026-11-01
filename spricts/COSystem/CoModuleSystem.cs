@@ -217,6 +217,8 @@ public static class CoModuleSystem
         float bonus = Sum(attacker.team, 1, "offBonus", attacker);
         // ✅ 模块16（升级）：单位等级攻/防加成（每级+4%）
         bonus += (attacker.Level - 1) * 4f;
+        // ✅ 模块25（状态系统）：虚弱降攻
+        if (attacker.weakTurnsRemaining > 0) bonus -= attacker.weakPercent;
         // ✅ Tag 搭配加成（合体技期间）
         if (GetState(attacker.team)?.powerMode == CoPowerMode.Tag)
             bonus += GetTagSynergyBonus(attacker.team).attack;
@@ -307,27 +309,24 @@ public static class CoModuleSystem
 
     // ---------- 发动时效果（COP/SCOP/Tag 统一入口） ----------
     /// <summary>
-    /// 大招发动时的即时效果：模块8（healHp 全军回血）、模块15（setWeather/weatherTurns 改变天气）。
-    /// 后续模块 7 生成单位、9 区域导弹、24 建筑状态、25 状态效果也在此扩展。
+    /// 大招发动时的即时效果：模块7 生成单位、8 全军回血、9 区域导弹、15 改天气、24 建筑状态、25 状态效果。
     /// </summary>
     static void ExecuteActivationEffects(string team)
     {
         var st = GetState(team);
         if (st?.profile == null) return;
+        var tree = Engine.GetMainLoop() as SceneTree;
+        var gm = tree?.GetFirstNodeInGroup("game_manager") as GameManager;
 
         // ✅ 模块8：全军回血
         int healHp = GetHealHp(team);
-        if (healHp != 0)
-        {
-            var tree = Engine.GetMainLoop() as SceneTree;
-            if (tree != null)
-                foreach (var n in tree.GetNodesInGroup("infantry"))
-                {
-                    if (n is not Infantry i || i.team != team) continue;
-                    i.health = Mathf.Clamp(i.health + healHp, 1, i.GetEffectiveMaxHealth());
-                    i.UpdateHpLabel();
-                }
-        }
+        if (healHp != 0 && tree != null)
+            foreach (var n in tree.GetNodesInGroup("infantry"))
+            {
+                if (n is not Infantry i || i.team != team) continue;
+                i.health = Mathf.Clamp(i.health + healHp, 1, i.GetEffectiveMaxHealth());
+                i.UpdateHpLabel();
+            }
 
         // ✅ 模块15：改变天气（0=晴 1=雨 2=雪 3=沙暴 4=雾）
         int weather = Mathf.RoundToInt(Sum(team, 15, "setWeather"));
@@ -336,6 +335,135 @@ public static class CoModuleSystem
             int wDays = Mathf.RoundToInt(Sum(team, 15, "weatherTurns"));
             WeatherSystem.SetWeather((WeatherType)weather, Mathf.Max(1, wDays));
         }
+
+        // ✅ 模块7（生成单位）：在自己的城市上刷兵（Sensei 式：spawnUnitId + spawnHp）
+        foreach (var m7 in ActiveModules(team, 7))
+        {
+            var vals = m7.GetPhaseValues(st.powerMode);
+            if (!vals.TryGetValue("spawnUnitId", out float uid)) continue;
+            string unitId = SpawnUnitIds.TryGetValue(Mathf.RoundToInt(uid), out var s) ? s : "Infantry";
+            int spawnHp = vals.TryGetValue("spawnHp", out float h) ? Mathf.RoundToInt(h) : 9;   // HP 1-10
+            int maxCount = vals.TryGetValue("spawnCount", out float c) ? Mathf.RoundToInt(c) : 999;
+            if (gm?.gridManager?.grids == null) continue;
+            int spawned = 0;
+            foreach (var g in gm.gridManager.grids)
+            {
+                if (g?.city == null || g.infantry != null || spawned >= maxCount) continue;
+                if (g.city.facilityTeam != team) continue;   // 自己的城市
+                if (SpawnCoUnit(g, unitId, team, spawnHp) != null) spawned++;
+            }
+            GD.Print($"[CO] {team} 模块7 生成单位：{unitId}×{spawned}（{spawnHp}HP）");
+        }
+
+        // ✅ 模块9（区域导弹）：对敌军最密集处发射导弹（missileCount/missileDamage/blastRadius）
+        int missileCount = Mathf.RoundToInt(Sum(team, 9, "missileCount"));
+        if (missileCount > 0 && gm?.gridManager?.grids != null)
+        {
+            int dmg = Mathf.RoundToInt(Sum(team, 9, "missileDamage"));               // HP 1-10
+            int radius = Mathf.RoundToInt(Sum(team, 9, "blastRadius"));
+            if (radius <= 0) radius = 2;
+            var grids = gm.gridManager.grids;
+            var hitCenters = new List<Grids>();
+            for (int mi = 0; mi < missileCount; mi++)
+            {
+                // 目标：blast 半径内敌军数最多的格子（避开已打击中心）
+                Grids best = null; int bestScore = 0;
+                foreach (var g in grids)
+                {
+                    if (g == null || hitCenters.Contains(g)) continue;
+                    int score = 0;
+                    foreach (var g2 in grids)
+                    {
+                        if (g2?.infantry == null || !IsEnemy(team, g2.infantry.team)) continue;
+                        int d = Mathf.Abs(g2.GridIndex.X - g.GridIndex.X) + Mathf.Abs(g2.GridIndex.Y - g.GridIndex.Y);
+                        if (d <= radius) score++;
+                    }
+                    if (score > bestScore) { bestScore = score; best = g; }
+                }
+                if (best == null || bestScore == 0) break;
+                hitCenters.Add(best);
+                foreach (var g2 in grids)
+                {
+                    if (g2?.infantry == null || !IsEnemy(team, g2.infantry.team)) continue;
+                    int d = Mathf.Abs(g2.GridIndex.X - best.GridIndex.X) + Mathf.Abs(g2.GridIndex.Y - best.GridIndex.Y);
+                    if (d > radius) continue;
+                    var u = g2.infantry;
+                    u.health = Mathf.Max(1, u.health - dmg * 10);   // 千分制
+                    u.UpdateHpLabel();
+                }
+            }
+            GD.Print($"[CO] {team} 模块9 区域导弹：{hitCenters.Count} 发（伤害{dmg}HP 半径{radius}）");
+        }
+
+        // ✅ 模块24（建筑状态）：给敌方设施上状态（facStatus 1-4 + facStatusTurns）
+        int facStatus = Mathf.RoundToInt(Sum(team, 24, "facStatus"));
+        if (facStatus is >= 1 and <= 4 && gm?.gridManager?.grids != null)
+        {
+            int facTurns = Mathf.RoundToInt(Sum(team, 24, "facStatusTurns"));
+            facTurns = facTurns > 0 ? facTurns : Mathf.Max(1, st.powerTurnsLeft);
+            foreach (var g in gm.gridManager.grids)
+            {
+                if (g?.city == null || !IsEnemy(team, g.city.facilityTeam)) continue;
+                g.city.AddStatus((FacilityStatusType)facStatus, facTurns, team);
+            }
+            GD.Print($"[CO] {team} 模块24 建筑状态：{(FacilityStatusType)facStatus} ×{facTurns}回合");
+        }
+
+        // ✅ 模块25（状态系统）：燃烧/麻痹/虚弱施加给全部敌军（持续=大招时长）
+        float burn = Sum(team, 25, "burnHp");
+        float stun = Sum(team, 25, "stunTurns");
+        float weak = Sum(team, 25, "weakPercent");
+        if ((burn != 0 || stun != 0 || weak != 0) && tree != null)
+        {
+            int dur = Mathf.Max(1, st.powerTurnsLeft);
+            foreach (var n in tree.GetNodesInGroup("infantry"))
+            {
+                if (n is not Infantry u || !IsEnemy(team, u.team)) continue;
+                if (burn > 0) { u.burnDamage = Mathf.RoundToInt(burn); u.burnTurnsRemaining = dur; }
+                if (stun > 0) u.ApplyStun(Mathf.RoundToInt(stun));
+                if (weak > 0) { u.weakPercent = Mathf.RoundToInt(weak); u.weakTurnsRemaining = dur; }
+            }
+            GD.Print($"[CO] {team} 模块25 状态：burn={burn} stun={stun} weak={weak} ×{dur}回合");
+        }
+    }
+
+    /// <summary>模块7 单位编号 → aw-1-3 兵种 ID</summary>
+    static readonly Dictionary<int, string> SpawnUnitIds = new()
+    {
+        { 1, "Infantry" }, { 2, "Mech" }, { 3, "Bike" }, { 4, "Recon" }, { 5, "LightTank" },
+    };
+
+    /// <summary>敌对判定（模块9/24/25 目标过滤）</summary>
+    static bool IsEnemy(string fromTeam, string otherTeam)
+        => otherTeam != fromTeam && TeamHelper.IsEnemyForAttacker(fromTeam, otherTeam);
+
+    /// <summary>模块7：在指定格生成单位（复用生产管线：场景实例化+绑格+注册）</summary>
+    static Infantry SpawnCoUnit(Grids g, string unitId, string team, int hp)
+    {
+        var tree = Engine.GetMainLoop() as SceneTree;
+        var gm = tree?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.unitManager == null || g == null || !UnitProductionDatabase.HasUnit(unitId)) return null;
+        var info = UnitProductionDatabase.GetInfo(unitId);
+        var scene = GD.Load<PackedScene>(info.ScenePath);
+        if (scene == null) return null;
+        var unit = scene.Instantiate<Infantry>();
+        if (unit == null) return null;
+        unit.Position = g.Position;
+        unit.team = team;
+        unit.Name = $"{team}_{unitId}_{gm.unitManager.AllUnits.Count + 1}";
+        gm.unitManager.units.AddChild(unit);
+        if (!gm.unitManager.BindUnitToGrid(unit, true)) { unit.QueueFree(); return null; }
+        gm.unitManager.AllUnits.Add(unit);
+        gm.RegisterUnit(unit, gm.InferCategory(unit));
+        unit.OnClickPiece = gm.OnSelectPiece;
+        unit.UpdateTeamVisual();
+        unit.UpdateHpLabel();
+        if (hp > 0 && hp < 10)
+        {
+            unit.health = Mathf.Clamp(hp * 10, 1, unit.maxHealth);   // HP→千分制
+            unit.UpdateHpLabel();
+        }
+        return unit;
     }
 
     // ---------- 能量条（模块 27 附属） ----------

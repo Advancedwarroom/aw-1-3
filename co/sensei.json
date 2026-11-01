@@ -29,6 +29,20 @@
    "cop": {
     "defBonus": 10
    }
+  },
+  {
+   "module": 7,
+   "name": "生成单位",
+   "duration": "instant",
+   "durationTurns": 1,
+   "cop": {
+    "spawnUnitId": 1,
+    "spawnHp": 9
+   },
+   "scop": {
+    "spawnUnitId": 2,
+    "spawnHp": 9
+   }
   }
  ],
  "charge": {
