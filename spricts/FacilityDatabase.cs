@@ -19,6 +19,14 @@ public static class FacilityDatabase
         ["TempPort"]    = "res://Prefabs/TempPort.tscn",
         // ✅ 中转口：Rig 在原管道接缝（管道废墟）上建造的供能中继站，接管超级兵工厂
         ["RelayJunction"] = "res://Prefabs/RelayJunction.tscn",
+        // ✅ 总部：占领敌方HQ即获胜（改变team则Lose）
+        ["HQ"] = "res://Prefabs/HQ.tscn",
+        // ✅ 雷达：占领后去雾（可配范围/自动化/强视野/强侦查/照明塔）
+        ["Radar"] = "res://Prefabs/Radar.tscn",
+        // ✅ 通信塔：占领后给己方单位加成/减成
+        ["ComTower"] = "res://Prefabs/ComTower.tscn",
+        // ✅ 秘密实验室：占领后解锁单位生产白名单
+        ["Lab"] = "res://Prefabs/Lab.tscn",
     };
 
     // ✅ 建筑地形要求（未登记=任意地形）：DoR 原作——临时机场只能建在平原，临时港口建在海滩

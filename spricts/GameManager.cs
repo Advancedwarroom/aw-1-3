@@ -125,6 +125,8 @@ public partial class GameManager : Node
     if (TurnLabel != null) TurnLabel.ZIndex = 200;
     if (UnitLists != null) UnitLists.ZIndex = 200;
     gameEnded = false;
+    // ✅ 新对局：重置全局可生成单位白名单（Lab解锁）
+    UnitProductionWhitelist.Reset();
 
         if (fogOfWarManager == null)
     {

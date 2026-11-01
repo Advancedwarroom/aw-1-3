@@ -183,6 +183,17 @@ public partial class GameManager
         }
     }
 
+    /// <summary>✅ 触发某队伍判负（如HQ被占领）</summary>
+    public void TriggerTeamLose(string losingTeam, string reason)
+    {
+        if (gameEnded) return;
+        // 确定胜方：默认另一方
+        string winner = losingTeam == "Player1" ? "Player2" : "Player1";
+        ShowVictory(winner, losingTeam);
+        // 可扩展：显示判负原因 reason
+        System.Console.WriteLine($"[Victory] {losingTeam} 判负: {reason}");
+    }
+
 private void ShowVictory(string winner, string loser)
 {
     gameEnded = true;

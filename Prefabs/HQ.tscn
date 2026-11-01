@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://spricts/HQ.cs" id="1_hq"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/HQ.tres" id="2_hq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hq"]
+size = Vector2(33, 33)
+
+[node name="HQ" type="Node2D"]
+z_index = 1
+script = ExtResource("1_hq")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(16.5, 16.5)
+shape = SubResource("RectangleShape2D_hq")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(16, 4)
+scale = Vector2(1.0, 1.12)
+sprite_frames = ExtResource("2_hq")
+animation = &"P0HQ"

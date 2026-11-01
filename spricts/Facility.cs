@@ -710,7 +710,7 @@ public partial class Facility : Node2D
 
     // ========== 设施视野（P-1设施给所有势力共享） ==========
 
-    public HashSet<Grids> CalculateFacilityVision(GameManager gm)
+    public virtual HashSet<Grids> CalculateFacilityVision(GameManager gm)
     {
         var visible = new HashSet<Grids>();
         if (gm == null || gm.gridManager?.map == null) return visible;

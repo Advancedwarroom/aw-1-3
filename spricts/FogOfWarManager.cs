@@ -423,6 +423,8 @@ public partial class FogOfWarManager : Node
         foreach (var grid in visible)
         {
             if (grid == null || !grid.requiresAdjacentVision) continue;
+            // ✅ 强视野豁免：雷达强视野范围内的森林/礁石格免临格判定
+            if (Radar.StrongVisionExemptGrids != null && Radar.StrongVisionExemptGrids.Contains(grid)) continue;
 
             // 检查是否有任何视野提供者紧邻该格子
             bool hasAdjacentProvider = false;

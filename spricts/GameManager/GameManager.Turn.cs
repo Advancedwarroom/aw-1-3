@@ -68,6 +68,12 @@ public partial class GameManager
             {
                 if (g?.city != null && (g.city.facilityTeam == currentTeam || g.city.facilityTeam == TeamHelper.Player))
                     g.city.ResetProductionCount();
+                // ✅ 雷达：每回合开始重置/激活（自动模式）
+                if (g?.city is Radar radar)
+                    radar.OnTurnStartRadar();
+                // ✅ 通信塔：每回合开始重置/激活（自动模式）
+                if (g?.city is ComTower comTower)
+                    comTower.OnTurnStartComTower();
             }
         }
 

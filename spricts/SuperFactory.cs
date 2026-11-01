@@ -379,6 +379,10 @@ public partial class SuperFactory : Weapon
         if (!UnitProductionDatabase.HasUnit(unitName)) return TranslateGroup.T("未知单位");
         var info = UnitProductionDatabase.GetInfo(unitName);
 
+        // ✅ Lab白名单：isUpdatable=true 的单位必须在全局可生成白名单中（编辑模式放置不受限）
+        if (!UnitProductionWhitelist.CanProduceUnit(unitName))
+            return TranslateGroup.T("该单位需先占领实验室解锁");
+
         // ✅ 待机上限：规格"0.8倍资金生产待机单位（最大三个）"
         if (!instantMode && dualProductionMode)
         {
