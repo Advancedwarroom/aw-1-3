@@ -1,0 +1,60 @@
+{
+ "id": "melanthe",
+ "name": "Melanthe",
+ "army": "DM",
+ "bio": "A genius scientist that harbors a great hatred for mankind. Believes plants to be superior life forms.",
+ "copName": "Synthetic Seedlings",
+ "scopName": "Agent Dreadroot",
+ "powerStars": 3,
+ "superStars": 4,
+ "zoneRange": 3,
+ "coUnits": [
+  "NEOSPIDER_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 50
+   },
+   "d2d": {
+    "offBonus": 20
+   },
+   "zone": {
+    "offBonus": 40
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "zone": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 8,
+   "name": "血量/弹药/燃料变更",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "healHp": 3
+   },
+   "scop": {
+    "healHp": 4
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

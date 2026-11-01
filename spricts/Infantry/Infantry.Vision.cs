@@ -29,8 +29,10 @@ public int ActualVisionRange
 {
     get 
     {
-        if (!useConfigVision && visionRange >= 0) return visionRange;
-        return VisionConfig.GetUnitVisionRange(UnitTypeId, TemplateId);
+        // ✅ CO 模块系统·模块4（视野加成）
+        int coBonus = CoModuleSystem.GetVisionBonus(this);
+        if (!useConfigVision && visionRange >= 0) return Mathf.Max(0, visionRange + coBonus);
+        return Mathf.Max(0, VisionConfig.GetUnitVisionRange(UnitTypeId, TemplateId) + coBonus);
     }
 }
 

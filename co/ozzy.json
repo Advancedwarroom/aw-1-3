@@ -1,0 +1,51 @@
+{
+ "id": "ozzy",
+ "name": "Ozzy",
+ "army": "AC",
+ "bio": "A psychoanalyst who specializes in defensive tactics when he's not playing his guitar. A habitual womanizer.",
+ "copName": "Hammer On",
+ "scopName": "Grand Finale",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": 2,
+ "coUnits": [
+  "IRON_SHIELD_GENERATOR"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "zone": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 100
+   },
+   "d2d": {
+    "defBonus": 15
+   },
+   "scop": {
+    "defBonus": 200
+   },
+   "zone": {
+    "defBonus": 50
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

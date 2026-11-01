@@ -1,0 +1,66 @@
+{
+ "id": "cairn",
+ "name": "Cairn",
+ "army": "BD",
+ "bio": "A wilderness survival expert who excels at using natural terrain to her advantage.",
+ "copName": "Call of the Wild",
+ "scopName": "Force of Nature",
+ "powerStars": 2,
+ "superStars": 3,
+ "zoneRange": 4,
+ "coUnits": [
+  "RANGER"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "scop": {
+    "offBonus": 10
+   },
+   "zone": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "zone": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 3,
+   "name": "攻击范围加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "rangeBonus": 1
+   }
+  },
+  {
+   "module": 8,
+   "name": "血量/弹药/燃料变更",
+   "duration": "turns",
+   "durationTurns": 1,
+   "scop": {
+    "healHp": 1
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

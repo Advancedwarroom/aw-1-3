@@ -1,0 +1,43 @@
+{
+ "id": "zandra",
+ "name": "Zandra",
+ "army": "BD",
+ "bio": "A youthful CO that will protect her village at all costs. She is skilled in dealing with sandstorms.",
+ "copName": "Sand Shift",
+ "scopName": "Desert Gale",
+ "powerStars": 4,
+ "superStars": 3,
+ "zoneRange": 3,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "zone": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "zone": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

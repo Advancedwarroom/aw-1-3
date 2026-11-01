@@ -266,4 +266,11 @@ CoW 中 DoR 系 CO（Brenner/Lin/Will/Isabella/Gage/Tasha/Tabitha/Penny/Caulder 
 5. **版本差异**：规则集选择 aw/aw2/awds/awdc 时按第七节覆盖表加载差异（星数/Zone/模块开关）。
 6. **自定义 CO**：UI 面板 → 生成 JSON；头像上传存 `user_co/` 目录；脑洞通过 29 号限定模块 + 25 号状态模块组合覆盖。
 
-> 搬运优先级建议：先做 1/2/5/13/18/19 号模块（原作 CO 90% 的机制都靠它们），再做能量条与 COP/SCOP，最后做 Zone 与配合/多屏规则。
+> **✅ 落地进度（已完成的部分见下）：**
+> - **数据层**：`spricts/COSystem/CoProfile.cs`（JSON 档案模型，`co/<id>.json` × 76 个已从 CoW 数值批量生成：经典系取 awds 规则集覆盖，DoR 系取 awdc 规则集以保留 Zone 值）
+> - **运行层**：`spricts/COSystem/CoModuleSystem.cs`（势力→CO 状态、30 模块查询、能量条、大招发动/过期、Zone 判定）；势力绑定走 `co/bindings.json`
+> - **已接线模块**：1 伤害（`CalculateFinalDamage`）、2 防御（同左+地形星）、3 射程（`GetFireRangeBonus` 待接 UI）、4 视野（`ActualVisionRange`）、5 移动（`ShowMoveRange`/移动判定/移动消耗）、8 回血（大招按钮内全军回复）、11 经济（`AddFundsForTeam`）、13 运气（`CalculateFinalDamage` 末段）、18 占领（`GetCapturePower`）、27 能量条（攻击/反击/损失/生产打点）
+> - **UI**：`ActionMenu.CoPower.cs`（技能/大招按钮，能量攒满显示）
+> - **待做**：6 多次移动、7 生成单位、9 区域导弹、10 逆转联动、12 生产价格接线（查询已有）、14-17、19-26、28-29 的接线与 UI；CO 头像上传界面；Tag Power 多 CO 联动
+
+搬运优先级建议：先做 1/2/5/13/18/19 号模块（原作 CO 90% 的机制都靠它们），再做能量条与 COP/SCOP，最后做 Zone 与配合/多屏规则。

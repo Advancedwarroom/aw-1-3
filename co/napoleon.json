@@ -1,0 +1,48 @@
+{
+ "id": "napoleon",
+ "name": "Napoleon",
+ "army": "MA",
+ "bio": "The current second commander of the Metal Army. Believes Metal Army's ingenuity gives it a right to control the world.",
+ "copName": "Blast Shield",
+ "scopName": "Last Stand",
+ "powerStars": 4,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "IRON_SHIELD_GENERATOR"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "scop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 30
+   },
+   "d2d": {
+    "defBonus": 20
+   },
+   "scop": {
+    "defBonus": 40
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

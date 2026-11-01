@@ -1,0 +1,57 @@
+{
+ "id": "koal",
+ "name": "Koal",
+ "army": "BG",
+ "bio": "A commander of the Bolt Guard Army who is always planning his next destructive act.",
+ "copName": "Forced March",
+ "scopName": "Trail of Woe",
+ "powerStars": 3,
+ "superStars": 2,
+ "zoneRange": -1,
+ "coUnits": [
+  "HOT_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 30
+   },
+   "d2d": {
+    "offBonus": 10
+   },
+   "scop": {
+    "offBonus": 40
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 5,
+   "name": "移动模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "moveBonus": 1
+   },
+   "scop": {
+    "moveBonus": 2
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

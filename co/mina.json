@@ -1,0 +1,37 @@
+{
+ "id": "mina",
+ "name": "Mina",
+ "army": "PF",
+ "bio": "Mina is very protective of those around her, and willing to fight to keep them safe. Don't let her cute appearance deceive you.",
+ "copName": "Portent of Adversity",
+ "scopName": "Dark Lightning",
+ "powerStars": 3,
+ "superStars": 5,
+ "zoneRange": -1,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

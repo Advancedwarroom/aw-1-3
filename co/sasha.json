@@ -1,0 +1,39 @@
+{
+ "id": "sasha",
+ "name": "Sasha",
+ "army": "BM",
+ "bio": "Colin's older sister. Normally ladylike, but becomes daring when she gets angry.",
+ "copName": "Market Crash",
+ "scopName": "War Bonds",
+ "powerStars": 2,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "LOGIC_TRUCK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

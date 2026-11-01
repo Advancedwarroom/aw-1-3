@@ -1,0 +1,60 @@
+{
+ "id": "mary",
+ "name": "Mary",
+ "army": "AC",
+ "bio": "A ruthless commander recruited into the Amber Corona Army.",
+ "copName": "Highway of Pain",
+ "scopName": "Bloody Mary",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": 2,
+ "coUnits": [
+  "AT_CYCLE"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "scop": {
+    "offBonus": 30
+   },
+   "zone": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "zone": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 18,
+   "name": "效率/速率",
+   "duration": "turns",
+   "durationTurns": 1,
+   "d2d": {
+    "captureBonus": 5
+   },
+   "scop": {
+    "captureBonus": 15
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

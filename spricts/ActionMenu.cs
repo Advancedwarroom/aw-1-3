@@ -318,6 +318,9 @@ private List<Grids> GetAdjacentGrids(Grids center)
         // ✅ N屏地图：传送按钮（站在有出链的格子上时显示）
         UpdateTeleportButtonVisibility(unit);
 
+        // ✅ CO 三十模块体系：COP/SCOP 按钮（能量条攒满时显示）
+        UpdateCoPowerButtons(unit);
+
         if (repairButton != null)
         {
             // ✅ 修复按钮：任何开启修复模块的单位，且未行动时显示

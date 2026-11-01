@@ -1,0 +1,51 @@
+{
+ "id": "lin",
+ "name": "Lin",
+ "army": "AC",
+ "bio": "A calm commander of Amber Corona. Believes that in battle, the clearest thinker wins.",
+ "copName": "Preliminary Scout",
+ "scopName": "Night Vision",
+ "powerStars": 4,
+ "superStars": 2,
+ "zoneRange": 1,
+ "coUnits": [
+  "INTEL_TRUCK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 30
+   },
+   "scop": {
+    "offBonus": 50
+   },
+   "zone": {
+    "offBonus": 30
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 30
+   },
+   "scop": {
+    "defBonus": 50
+   },
+   "zone": {
+    "defBonus": 30
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

@@ -1,0 +1,51 @@
+{
+ "id": "sonja",
+ "name": "Sonja",
+ "army": "YC",
+ "bio": "Kanbei's cool and collected daughter who likes to plan before acting. She excels in gathering information.",
+ "copName": "Enhanced Vision",
+ "scopName": "Counter Break",
+ "powerStars": 3,
+ "superStars": 2,
+ "zoneRange": -1,
+ "coUnits": [
+  "INTEL_TRUCK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 4,
+   "name": "视野加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "visionBonus": 2
+   },
+   "d2d": {
+    "visionBonus": 1
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

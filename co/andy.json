@@ -1,0 +1,63 @@
+{
+ "id": "andy",
+ "name": "Andy",
+ "army": "OS",
+ "bio": "A whiz with a wrench, this mechanical boy wonder earned fame as the hero who saved Macro Land in the last great war.",
+ "copName": "Hyper Repair",
+ "scopName": "Hyper Upgrade",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "REPAIR_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "scop": {
+    "offBonus": 30
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 5,
+   "name": "移动模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "scop": {
+    "moveBonus": 1
+   }
+  },
+  {
+   "module": 8,
+   "name": "血量/弹药/燃料变更",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "healHp": 2
+   },
+   "scop": {
+    "healHp": 5
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

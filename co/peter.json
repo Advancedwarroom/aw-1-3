@@ -1,0 +1,42 @@
+{
+ "id": "peter",
+ "name": "Peter",
+ "army": "GE",
+ "bio": "A veteran CO with over 30 years of experience, mostly from the plains of Cosmo Land. Cautious but decisive.",
+ "copName": "General Offensive",
+ "scopName": "Bombing Run",
+ "powerStars": 2,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "ROYAL_GUARD"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 40
+   },
+   "d2d": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

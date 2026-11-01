@@ -1,0 +1,73 @@
+{
+ "id": "isabella",
+ "name": "Isabella",
+ "army": "AC",
+ "bio": "Has no memory of her past. Rescued by Will, she has joined Amber Corona.",
+ "copName": "Deep Strike",
+ "scopName": "Overlord",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": 2,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "scop": {
+    "offBonus": 30
+   },
+   "zone": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 20
+   },
+   "scop": {
+    "defBonus": 30
+   },
+   "zone": {
+    "defBonus": 20
+   }
+  },
+  {
+   "module": 3,
+   "name": "攻击范围加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "rangeBonus": 1
+   },
+   "scop": {
+    "rangeBonus": 2
+   }
+  },
+  {
+   "module": 5,
+   "name": "移动模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "moveBonus": 1
+   },
+   "scop": {
+    "moveBonus": 2
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

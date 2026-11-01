@@ -1,0 +1,46 @@
+{
+ "id": "penny",
+ "name": "Penny",
+ "army": "DM",
+ "bio": "Youngest child of Caulder. She is still too young to know right from wrong.",
+ "copName": "Stormfront",
+ "scopName": "Enigma",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": 3,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "scop": {
+    "offBonus": 30
+   },
+   "zone": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "zone": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

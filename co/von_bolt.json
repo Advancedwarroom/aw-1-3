@@ -1,0 +1,45 @@
+{
+ "id": "von_bolt",
+ "name": "Von Bolt",
+ "army": "BG",
+ "bio": "Former commander-in-chief of the Bolt Guard forces. A mysterious old man who has been alive for a very, very long time. Mastermind of the Omega war.",
+ "copName": "Shockwave",
+ "scopName": "Deus Ex Machina",
+ "powerStars": 6,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "CRYSTAL_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "d2d": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 20
+   },
+   "d2d": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

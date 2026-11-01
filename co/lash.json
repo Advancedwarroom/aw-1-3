@@ -1,0 +1,39 @@
+{
+ "id": "lash",
+ "name": "Lash",
+ "army": "BH",
+ "bio": "The wunderkind of the Black Hole forces. Small but fierce. Designed most of Black Hole's recent weaponry.",
+ "copName": "Terrain Tactics",
+ "scopName": "Prime Tactics",
+ "powerStars": 4,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "NEOSPIDER_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

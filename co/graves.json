@@ -1,0 +1,43 @@
+{
+ "id": "graves",
+ "name": "Graves",
+ "army": "DM",
+ "bio": "A former assassin, dissatisfied with where Wars World is headed. Secretly aids Hawke's cause and overtly aids Dark Matter. No one knows where his true loyalties lie.",
+ "copName": "Plague",
+ "scopName": "Perdition",
+ "powerStars": 4,
+ "superStars": 3,
+ "zoneRange": 3,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "zone": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 15
+   },
+   "zone": {
+    "defBonus": 15
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

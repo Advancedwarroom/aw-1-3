@@ -1,0 +1,45 @@
+{
+ "id": "robosturm",
+ "name": "Robo-Sturm",
+ "army": "MA",
+ "bio": "After Sturm's second defeat, Black Hole was in need of new, strong CO's, so Lash invented a second, mechanical Sturm. That quickly proved to be a bad idea after he refused to take orders from humans and formed his own army.",
+ "copName": "Mechanized Storm",
+ "scopName": "Mechanized Destruction",
+ "powerStars": 4,
+ "superStars": 5,
+ "zoneRange": -1,
+ "coUnits": [
+  "TANK_HUNTER"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "d2d": {
+    "offBonus": -20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 60
+   },
+   "d2d": {
+    "defBonus": 20
+   },
+   "scop": {
+    "defBonus": 80
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

@@ -1,0 +1,54 @@
+{
+ "id": "ik_486_b7",
+ "name": "IK-486-B7",
+ "army": "MA",
+ "bio": "One of Lash's latest inventions. He likes to stay at the same place and defend it against anything that comes to him.",
+ "copName": "Wall of Defense",
+ "scopName": "Great Counterstrike",
+ "powerStars": 3,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "CHAPERON"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 3,
+   "name": "攻击范围加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "rangeBonus": 2
+   },
+   "d2d": {
+    "rangeBonus": 1
+   },
+   "scop": {
+    "rangeBonus": 3
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

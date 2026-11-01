@@ -1,0 +1,45 @@
+{
+ "id": "rattigan",
+ "name": "Rattigan",
+ "army": "YC",
+ "bio": "A dutiful CO of the Yellow Comet Army addled by a childhood phobia. Blames Sensei for Yellow Comet's lack of former glory.",
+ "copName": "Raid",
+ "scopName": "The Sweep",
+ "powerStars": 3,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "AUTO_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 30
+   },
+   "d2d": {
+    "offBonus": 25
+   },
+   "scop": {
+    "offBonus": 50
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "scop": {
+    "defBonus": 30
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

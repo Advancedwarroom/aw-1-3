@@ -1,0 +1,75 @@
+{
+ "id": "epoch",
+ "name": "Epoch",
+ "army": "MA",
+ "bio": "The first prototype for the Robot Commanding Officer Series invented by Lash.",
+ "copName": "Short Circuit",
+ "scopName": "Shocker",
+ "powerStars": 1,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "AUTO_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "scop": {
+    "offBonus": 30
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 20
+   },
+   "scop": {
+    "defBonus": 30
+   }
+  },
+  {
+   "module": 3,
+   "name": "攻击范围加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "scop": {
+    "rangeBonus": 1
+   }
+  },
+  {
+   "module": 5,
+   "name": "移动模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "scop": {
+    "moveBonus": 1
+   }
+  },
+  {
+   "module": 13,
+   "name": "运气加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "luckMax": 10
+   },
+   "scop": {
+    "luckMax": 15
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

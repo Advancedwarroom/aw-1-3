@@ -1,0 +1,43 @@
+{
+ "id": "hawke",
+ "name": "Hawke",
+ "army": "BH",
+ "bio": "A commander of the Black Hole Army who will stop at nothing to achieve his goals.",
+ "copName": "Black Wave",
+ "scopName": "Black Storm",
+ "powerStars": 5,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "d2d": {
+    "offBonus": 10
+   },
+   "scop": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

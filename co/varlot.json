@@ -1,0 +1,63 @@
+{
+ "id": "varlot",
+ "name": "Varlot",
+ "army": "DM",
+ "bio": "Varlot joined the military and rose through the ranks, slowly but surely. Currently is a sub-commander, but is hoping to be promoted really soon.",
+ "copName": "Acquisition",
+ "scopName": "Hostile Takeover",
+ "powerStars": 4,
+ "superStars": 4,
+ "zoneRange": 3,
+ "coUnits": [
+  "SMUGGLER"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "zone": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 20
+   },
+   "zone": {
+    "defBonus": 20
+   }
+  },
+  {
+   "module": 8,
+   "name": "血量/弹药/燃料变更",
+   "duration": "turns",
+   "durationTurns": 1,
+   "scop": {
+    "healHp": 4
+   }
+  },
+  {
+   "module": 18,
+   "name": "效率/速率",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "captureBonus": 5
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

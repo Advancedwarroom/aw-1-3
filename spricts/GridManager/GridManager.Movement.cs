@@ -310,7 +310,8 @@ public partial class GridManager
                 totalFuelCost += moveCost;
         }
 
-        if (infantry.movePoints < totalMoveCost) return;
+        // ✅ CO 模块系统·模块5：移动力加成同步到实际移动判定（与 ShowMoveRange 显示一致）
+        if (infantry.movePoints + CoModuleSystem.GetMovementBonus(infantry) < totalMoveCost) return;
 
         if (infantry.consumeFuel && infantry.fuel < totalFuelCost) return;
 
@@ -499,6 +500,8 @@ public partial class GridManager
     private int GetActualMoveCost(Infantry infantry, Grids g)
     {
         int cost = infantry.GetMoveCostOnGrid(g);
+        // ✅ CO 模块系统·模块5（移动模块：移动消耗减少，下限1）
+        if (cost < 999) cost = Mathf.Max(1, cost - CoModuleSystem.GetMovementCostReduction(infantry, g));
         return cost >= 999 ? 999 : cost;
     }
 

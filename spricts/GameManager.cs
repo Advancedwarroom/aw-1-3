@@ -90,6 +90,9 @@ public partial class GameManager : Node
         // ✅ 初始化势力系统（动态调色板 + 多势力支持）
         TeamHelper.InitializeDefaults();
         TeamHelper.LoadFactionsFromExtraSave();
+
+        // ✅ CO 三十模块体系：加载 co/*.json 档案 + bindings.json 势力绑定
+        CoModuleSystem.EnsureLoaded();
         
         RequestStoragePermissionsIfNeeded();
         CallDeferred(nameof(DeferredInit));

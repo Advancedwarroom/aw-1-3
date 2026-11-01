@@ -1,0 +1,63 @@
+{
+ "id": "will",
+ "name": "Will",
+ "army": "AC",
+ "bio": "Former Brown Desert cadet. Joined Amber Corona after being rescued by Brenner.",
+ "copName": "Rally Cry",
+ "scopName": "New Era",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": 2,
+ "coUnits": [
+  "HOT_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 30
+   },
+   "d2d": {
+    "offBonus": 10
+   },
+   "scop": {
+    "offBonus": 50
+   },
+   "zone": {
+    "offBonus": 30
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "zone": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 5,
+   "name": "移动模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "moveBonus": 1
+   },
+   "scop": {
+    "moveBonus": 2
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

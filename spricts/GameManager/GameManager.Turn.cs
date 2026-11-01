@@ -22,6 +22,8 @@ public partial class GameManager
         }
 
         HideProductionMenu();
+        // ✅ CO 模块系统：当前势力回合结束（COP/SCOP 效果过期判定 + 每回合重置）
+        CoModuleSystem.OnTeamTurnEnd(TeamHelper.GetPhaseTeamName(turnPhase));
         turnEndLabel?.Show();
         GetTree().CreateTimer(1.2f).Timeout += () => turnEndLabel?.Hide();
         int previousTurn = turns; 

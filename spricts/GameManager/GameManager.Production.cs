@@ -299,6 +299,8 @@ public partial class GameManager
         productionTargetFacility.productionsThisTurn++;
         // ✅ P-1公共设施：记录使用势力，添加"不可生产"状态给当前势力
         productionTargetFacility.OnUnitProducedBy(currentTeam);
+        // ✅ CO 模块系统·模块27：生产单位打点（能量条）
+        CoModuleSystem.OnUnitProduced(currentTeam);
 
         UpdateUnitLists();
         RefreshSpecializedUnitLists();
@@ -380,6 +382,8 @@ public partial class GameManager
         facility.productionsThisTurn++;
         // ✅ P-1公共设施：记录使用势力
         facility.OnUnitProducedBy(team);
+        // ✅ CO 模块系统·模块27：生产单位打点（能量条）
+        CoModuleSystem.OnUnitProduced(team);
 
         UpdateUnitLists();
         RefreshSpecializedUnitLists();

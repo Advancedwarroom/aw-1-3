@@ -1,0 +1,30 @@
+{
+ "id": "drake",
+ "name": "Drake",
+ "army": "GE",
+ "bio": "A big-hearted former pirate who hates fighting. Also a great surfer.",
+ "copName": "Tsunami",
+ "scopName": "Typhoon",
+ "powerStars": 4,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "MISSILE_SUB"
+ ],
+ "modules": [
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

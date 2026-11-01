@@ -1,0 +1,43 @@
+{
+ "id": "olaf",
+ "name": "Olaf",
+ "army": "BM",
+ "bio": "He may be a pompous braggart, but his tactical prowess has earned him the respect of his peers, the admiration of his people, and the nickname 'Old Man Winter'.",
+ "copName": "Blizzard",
+ "scopName": "Winter Fury",
+ "powerStars": 3,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "d2d": {
+    "offBonus": 20
+   },
+   "scop": {
+    "offBonus": 30
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

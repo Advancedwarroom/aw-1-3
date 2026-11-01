@@ -1,0 +1,51 @@
+{
+ "id": "caulder",
+ "name": "Caulder",
+ "army": "DM",
+ "bio": "Head of IDS - the research department of Dark Matter. Conducts in inhuman experiments. All he wants is to be free to satisfy his curiosity.",
+ "copName": "Mass Regeneration",
+ "scopName": "Perfect Healing",
+ "powerStars": 7,
+ "superStars": 5,
+ "zoneRange": 3,
+ "coUnits": [
+  "CRYSTAL_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "zone": {
+    "offBonus": 60
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "zone": {
+    "defBonus": 60
+   }
+  },
+  {
+   "module": 8,
+   "name": "血量/弹药/燃料变更",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "healHp": 5
+   },
+   "scop": {
+    "healHp": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

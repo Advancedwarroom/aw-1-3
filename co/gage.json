@@ -1,0 +1,63 @@
+{
+ "id": "gage",
+ "name": "Gage",
+ "army": "BD",
+ "bio": "Brown Desert Army soldier. A man of few words, but a consummate professional.",
+ "copName": "Longshot",
+ "scopName": "Sniper's Shot",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": 2,
+ "coUnits": [
+  "SIEGE_CANNON"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 30
+   },
+   "scop": {
+    "offBonus": 50
+   },
+   "zone": {
+    "offBonus": 30
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 20
+   },
+   "scop": {
+    "defBonus": 30
+   },
+   "zone": {
+    "defBonus": 20
+   }
+  },
+  {
+   "module": 3,
+   "name": "攻击范围加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "rangeBonus": 2
+   },
+   "scop": {
+    "rangeBonus": 3
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

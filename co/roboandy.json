@@ -1,0 +1,54 @@
+{
+ "id": "roboandy",
+ "name": "Robo-Andy",
+ "army": "MA",
+ "bio": "Lash was asked by the Black Hole Army to create artificial intelligence able to direct troops. However, being given orders by a computer freaked out the soldiers, so she fixed the problem by putting it in an experimental duplicate of Andy from Orange Star.",
+ "copName": "Cooldown",
+ "scopName": "Critical Mass",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "AT_CYCLE"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "d2d": {
+    "offBonus": 4
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 8,
+   "name": "血量/弹药/燃料变更",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "healHp": 1
+   },
+   "scop": {
+    "healHp": 3
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

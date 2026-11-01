@@ -279,8 +279,10 @@ public partial class GridManager
         ClearWeaponRange(); 
 
         int effectiveMovePoints = infantry.movePoints;
+        // ✅ CO 模块系统·模块5（移动模块：移动力加成）
+        effectiveMovePoints += CoModuleSystem.GetMovementBonus(infantry);
         if (infantry.consumeFuel)
-            effectiveMovePoints = Mathf.Min(infantry.movePoints, infantry.fuel);
+            effectiveMovePoints = Mathf.Min(effectiveMovePoints, infantry.movePoints + infantry.fuel);
 
         // ✅ 究极自由：所有单位使用统一的通用移动范围计算
         CalculateMoveRangeGeneric(infantry, effectiveMovePoints);

@@ -1,0 +1,45 @@
+{
+ "id": "kanbei",
+ "name": "Kanbei",
+ "army": "YC",
+ "bio": "The emperor of Yellow Comet. A skilled commander who has a soft spot for his daughter.",
+ "copName": "Morale Boost",
+ "scopName": "Samurai Spirit",
+ "powerStars": 4,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "ROYAL_GUARD"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 60
+   },
+   "scop": {
+    "offBonus": 70
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 30
+   },
+   "scop": {
+    "defBonus": 70
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

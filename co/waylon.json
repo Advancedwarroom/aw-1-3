@@ -1,0 +1,54 @@
+{
+ "id": "waylon",
+ "name": "Waylon",
+ "army": "TI",
+ "bio": "A Teal Isle Commander. Destructive, egotistical, and extremely vain.",
+ "copName": "Bad Company",
+ "scopName": "Wingman",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": 2,
+ "coUnits": [
+  "KIROV"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 30
+   },
+   "scop": {
+    "offBonus": 60
+   },
+   "zone": {
+    "offBonus": 30
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 200
+   },
+   "d2d": {
+    "defBonus": 20
+   },
+   "scop": {
+    "defBonus": 310
+   },
+   "zone": {
+    "defBonus": 40
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

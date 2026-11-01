@@ -70,6 +70,8 @@ public partial class GameManager
         }
 
         // ✅ 支持任意势力
+        // ✅ CO 模块系统·模块11（经济模块）：收入百分比增减
+        income = Mathf.Max(0, Mathf.RoundToInt(income * (100f + CoModuleSystem.GetIncomeModifierPercent(team)) / 100f));
         int maxFunds = GetTeamFundsMax(team);
         int current = GetTeamFunds(team);
         SetTeamFunds(team, current + income);

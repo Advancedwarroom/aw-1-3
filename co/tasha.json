@@ -1,0 +1,63 @@
+{
+ "id": "tasha",
+ "name": "Tasha",
+ "army": "BD",
+ "bio": "Brown Desert soldier. Burns with desire to avenge her late brother. Aims to make Teal Isles pay for what they did.",
+ "copName": "Sonic Boom",
+ "scopName": "Fox One",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": 1,
+ "coUnits": [
+  "KIROV"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 50
+   },
+   "d2d": {
+    "offBonus": 15
+   },
+   "scop": {
+    "offBonus": 70
+   },
+   "zone": {
+    "offBonus": 50
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 30
+   },
+   "scop": {
+    "defBonus": 30
+   }
+  },
+  {
+   "module": 5,
+   "name": "移动模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "moveBonus": 2
+   },
+   "scop": {
+    "moveBonus": 2
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

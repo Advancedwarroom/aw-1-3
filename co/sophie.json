@@ -1,0 +1,45 @@
+{
+ "id": "sophie",
+ "name": "Sophie",
+ "army": "AC",
+ "bio": "A skilled veteran that demands perfection from her soldiers. She is small but feisty.",
+ "copName": "Sudden Strike",
+ "scopName": "Total War",
+ "powerStars": 2,
+ "superStars": 4,
+ "zoneRange": 2,
+ "coUnits": [
+  "COMMANDO"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "zone": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 20
+   },
+   "zone": {
+    "defBonus": 20
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

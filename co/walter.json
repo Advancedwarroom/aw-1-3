@@ -1,0 +1,45 @@
+{
+ "id": "walter",
+ "name": "Walter",
+ "army": "TI",
+ "bio": "Commander of the Capital Guard of Teal Islands. He excels in survival and sheer tenacity. Nicknamed 'The Long Standing Guardian'.",
+ "copName": "Memento",
+ "scopName": "Magnum Opus",
+ "powerStars": 5,
+ "superStars": 4,
+ "zoneRange": 2,
+ "coUnits": [
+  "INTEL_TRUCK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "zone": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 20
+   },
+   "zone": {
+    "defBonus": 20
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

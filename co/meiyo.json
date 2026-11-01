@@ -1,0 +1,18 @@
+{
+ "id": "meiyo",
+ "name": "Meiyo",
+ "army": "GS",
+ "bio": "The Supreme Commander of Golden Sun. A veteran of battles who relies on experienced troops.",
+ "copName": "Training Camp",
+ "scopName": "War Training",
+ "powerStars": 3,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [],
+ "modules": [],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

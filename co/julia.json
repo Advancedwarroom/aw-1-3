@@ -1,0 +1,48 @@
+{
+ "id": "julia",
+ "name": "Julia",
+ "army": "DM",
+ "bio": "A devoted CO who embraces Dark Matter's ideals and wishes to unite the world. She excels at utilizing propaganda to demoralize her enemies.",
+ "copName": "Rallying Cry",
+ "scopName": "Media Mayhem",
+ "powerStars": 5,
+ "superStars": 5,
+ "zoneRange": 2,
+ "coUnits": [
+  "PARTISAN"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 80
+   },
+   "d2d": {
+    "offBonus": 65
+   },
+   "zone": {
+    "offBonus": 80
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "zone": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

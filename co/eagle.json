@@ -1,0 +1,33 @@
+{
+ "id": "eagle",
+ "name": "Eagle",
+ "army": "GE",
+ "bio": "Green Earth's daring pilot hero. Joined the air force to honor his father's legacy.",
+ "copName": "Lightning Drive",
+ "scopName": "Lightning Strike",
+ "powerStars": 3,
+ "superStars": 6,
+ "zoneRange": -1,
+ "coUnits": [
+  "KIROV"
+ ],
+ "modules": [
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "scop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

@@ -1,0 +1,39 @@
+{
+ "id": "adder",
+ "name": "Adder",
+ "army": "BH",
+ "bio": "A self-absorbed CO who believes his skills are matchless. Second to Hawke in rank.",
+ "copName": "Sideslip",
+ "scopName": "Sidewinder",
+ "powerStars": 2,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "HOT_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

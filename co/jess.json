@@ -1,0 +1,51 @@
+{
+ "id": "jess",
+ "name": "Jess",
+ "army": "GE",
+ "bio": "A gallant tank-driving commander who excels at analysing information. Often argues with Eagle.",
+ "copName": "Turbo Charge",
+ "scopName": "Overdrive",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "TANK_HUNTER"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 5,
+   "name": "移动模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "moveBonus": 1
+   },
+   "scop": {
+    "moveBonus": 2
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

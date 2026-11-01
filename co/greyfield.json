@@ -1,0 +1,63 @@
+{
+ "id": "greyfield",
+ "name": "Greyfield",
+ "army": "TI",
+ "bio": "Wants to rule as the supreme global leader. Ambitious and power-hungry.",
+ "copName": "Supply Chain",
+ "scopName": "High Command",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": 3,
+ "coUnits": [
+  "MISSILE_SUB"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "scop": {
+    "offBonus": 70
+   },
+   "zone": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 50
+   },
+   "d2d": {
+    "defBonus": 20
+   },
+   "scop": {
+    "defBonus": 70
+   },
+   "zone": {
+    "defBonus": 50
+   }
+  },
+  {
+   "module": 5,
+   "name": "移动模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "scop": {
+    "moveBonus": 1
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

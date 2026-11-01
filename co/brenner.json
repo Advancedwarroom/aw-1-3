@@ -1,0 +1,60 @@
+{
+ "id": "brenner",
+ "name": "Brenner",
+ "army": "AC",
+ "bio": "He has faith in the goodness of humanity and feels a strong duty to help anyone who is in trouble.",
+ "copName": "Reinforce",
+ "scopName": "Lifeline",
+ "powerStars": 4,
+ "superStars": 2,
+ "zoneRange": 3,
+ "coUnits": [
+  "REPAIR_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "zone": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 30
+   },
+   "scop": {
+    "defBonus": 50
+   },
+   "zone": {
+    "defBonus": 30
+   }
+  },
+  {
+   "module": 8,
+   "name": "血量/弹药/燃料变更",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "healHp": 3
+   },
+   "scop": {
+    "healHp": 5
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

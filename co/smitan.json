@@ -1,0 +1,45 @@
+{
+ "id": "smitan",
+ "name": "Smitan",
+ "army": "GE",
+ "bio": "A violent old commander of the Green Earth army who hates limitations.",
+ "copName": "Scramble Tactics",
+ "scopName": "Flare Drive",
+ "powerStars": 3,
+ "superStars": 5,
+ "zoneRange": -1,
+ "coUnits": [
+  "SIEGE_CANNON"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "d2d": {
+    "offBonus": 10
+   },
+   "scop": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

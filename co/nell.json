@@ -1,0 +1,49 @@
+{
+ "id": "nell",
+ "name": "Nell",
+ "army": "OS",
+ "bio": "Rachel's older sister and supreme commander of the Orange Star Army, Nell is an able commanding officer with a superb sense of fashion.",
+ "copName": "Lucky Star",
+ "scopName": "Lady Luck",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 13,
+   "name": "运气加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "luckMax": 60
+   },
+   "scop": {
+    "luckMax": 100
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

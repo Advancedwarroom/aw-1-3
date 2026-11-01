@@ -1,0 +1,51 @@
+{
+ "id": "forsythe",
+ "name": "Forsythe",
+ "army": "BD",
+ "bio": "A Brown Desert Commander who was called out of retirement to defend his nation. Wants Brown Desert to be free so they can live in peace.",
+ "copName": "Power of Honor",
+ "scopName": "Knights of the Desert",
+ "powerStars": 5,
+ "superStars": 1,
+ "zoneRange": 5,
+ "coUnits": [
+  "CHAPERON"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 20
+   },
+   "scop": {
+    "offBonus": 30
+   },
+   "zone": {
+    "offBonus": 20
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 20
+   },
+   "scop": {
+    "defBonus": 30
+   },
+   "zone": {
+    "defBonus": 20
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

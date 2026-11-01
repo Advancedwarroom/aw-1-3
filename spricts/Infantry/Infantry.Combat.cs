@@ -47,29 +47,40 @@ public virtual int CalculateFinalDamage(Infantry target, WeaponType weaponType, 
     // 攻击方血量系数
     float attackerHealthPercent = (float)health / GetEffectiveMaxHealth();
     float actualAttack = baseDamage * attackerHealthPercent;
-    
+
+    // ✅ CO 模块系统·模块1（伤害加成）：攻击方 CO 攻击力百分比
+    float coOffBonus = CoModuleSystem.GetOffenseBonusPercent(this);
+    actualAttack *= Mathf.Max(0f, 100f + coOffBonus) / 100f;
+
     // 地形
     float terrainDefense = (target.defenseBonusType == DefenseBonusType.CanDefenseBonus && target.grid != null
             && (target.grid.city == null || !target.grid.city.HasStatus(FacilityStatusType.NoCover)))
         ? target.grid.TerrainDefenseBonus * Mathf.Max(0, 100 + (target.grid.city?.defenseSuppressPercent ?? 0)) / 100f
         : 0f;
+    // ✅ CO 模块系统·模块2（防御加成）：防守方 CO 地形防御星加成
+    terrainDefense = Mathf.Max(0f, terrainDefense + CoModuleSystem.GetTerrainDefenseBonus(target) / 100f);
     float terrainMultiplier = 1.0f - terrainDefense;
     float afterTerrain = actualAttack * terrainMultiplier;
-    
+
+    // ✅ CO 模块系统·模块2（防御加成）：防守方 CO 减伤百分比
+    afterTerrain *= Mathf.Max(0.05f, 100f - CoModuleSystem.GetDefenseBonusPercent(target)) / 100f;
+
     // 防御阈值
     int effectiveDefense = target.GetEffectiveDefense(target.grid);
     float rawDamage = afterTerrain - effectiveDefense;
-    
+
     if (rawDamage <= 0)
     {
         return 0;
     }
-    
+
     // 反击乘系数
     if (isCounter)
         rawDamage *= counterMul;
-    
-    return Mathf.Max(1, Mathf.RoundToInt(rawDamage));
+
+    // ✅ CO 模块系统·模块13（运气加成）：最终伤害随机浮动（±luck 区间）
+    int luckRoll = CoModuleSystem.GetLuckRoll(this);
+    return Mathf.Max(1, Mathf.RoundToInt(rawDamage) + luckRoll);
 }
 
 // 反击
@@ -398,6 +409,9 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     
     // 应用伤害
     target.health -= attackDamage;
+        // ✅ CO 模块系统·模块27（能量条积累）：造成/受到伤害打点
+        CoModuleSystem.OnDamageDealt(team, attackDamage);
+        CoModuleSystem.OnDamageTaken(target.team, attackDamage);
         ApplyStealthRevealOnDamage(target);   // ✅ 受伤现形（含阈值模式）
         target.CheckStealthThresholds();   // ✅ 受伤后阈值矩阵重判
         target.SyncDamageRevealTracker();     // ✅ 已按"单位攻击"处理过，广义监听不重复触发
@@ -411,7 +425,13 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
         if (stealthRevealOnAttack) RevealStealth();   // ✅ 攻击后现形（先于反击结算：现形即暴露给反击）
         if (!allowCounter || !CanTargetStealth(target, this) || target.health <= 0) counterDamage = 0;   // ✅ 反击门+死亡消除(AW原教旨)：单向打击/打不了隐身者/被秒者→不还手
     this.health -= counterDamage;
-        if (counterDamage > 0) ApplyStealthRevealOnDamage(this);   // ✅ 反击也是单位攻击：攻击方受伤同样走受伤现形
+        if (counterDamage > 0)
+        {
+            // ✅ 模块27：反击造成/受到伤害打点
+            CoModuleSystem.OnDamageDealt(target.team, counterDamage);
+            CoModuleSystem.OnDamageTaken(team, counterDamage);
+            ApplyStealthRevealOnDamage(this);   // ✅ 反击也是单位攻击：攻击方受伤同样走受伤现形
+        }
         CheckStealthThresholds();   // ✅ 反击掉血后阈值矩阵重判
         SyncDamageRevealTracker();
     
@@ -425,6 +445,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     // ========== 死亡处理 ==========
     if (target.health <= 0 && !target.TryFlee())
     {
+        CoModuleSystem.OnUnitLost(target.team);   // ✅ 模块27：损失单位打点（先于死亡）
         target.OnDestroyed();
         if (target.grid != null)
         {
@@ -440,6 +461,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     
     if (this.health <= 0 && !TryFlee())
     {
+        CoModuleSystem.OnUnitLost(team);   // ✅ 模块27：损失单位打点
         this.OnDestroyed();
         if (this.grid != null)
         {

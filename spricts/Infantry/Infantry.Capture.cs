@@ -27,12 +27,13 @@ public partial class Infantry
     if (health <= maxHealth)
     {
         float healthPerBar = maxHealth / 10f;
-        return Mathf.Clamp(Mathf.RoundToInt(health / healthPerBar), 1, 10);
+        // ✅ CO 模块系统·模块18（效率/速率：占领加成）
+        return Mathf.Clamp(Mathf.RoundToInt(health / healthPerBar) + CoModuleSystem.GetCaptureBonus(this), 1, 10);
     }
     else
     {
         float healthPerBar = maxHealth / 10f;
-        return Mathf.RoundToInt(health / healthPerBar);
+        return Mathf.RoundToInt(health / healthPerBar) + CoModuleSystem.GetCaptureBonus(this);
     }
 }
 

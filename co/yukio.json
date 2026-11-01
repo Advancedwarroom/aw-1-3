@@ -1,0 +1,45 @@
+{
+ "id": "yukio",
+ "name": "Yukio",
+ "army": "DM",
+ "bio": "Founder of the Dark Matter Cooperation. He's the primary reason for the invasions of Sturm and Von Bolt. He uses war as a way of making money and doesn't care if people die.",
+ "copName": "Dark Assault",
+ "scopName": "Total Invasion",
+ "powerStars": 8,
+ "superStars": 7,
+ "zoneRange": 4,
+ "coUnits": [
+  "LOGIC_TRUCK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "zone": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "zone": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

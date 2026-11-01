@@ -56,6 +56,7 @@ public bool hasActed = false;
     public bool isMoved;
     public bool isAttacked;
     public bool hasTeleportedThisTurn;  // ✅ 本回合是否已传送过：传送每回合限一次（ActionMenu.Teleport 使用，回合结束重置）
+    [Export] public bool isCoUnit = false;  // ✅ CO 单位（模块19/30：携带 CO Zone 的载体，由 CO 专属单位系统设置）
     public Label hpLabel;
     public Sprite2D sprite;
 

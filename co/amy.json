@@ -1,0 +1,49 @@
+{
+ "id": "amy",
+ "name": "Amy",
+ "army": "PF",
+ "bio": "The Commander-in-Chief of Pink Frontier. A former physicist who was thrust into war. She is now a hardened naval commander.",
+ "copName": "Fluid Dynamics",
+ "scopName": "Photon Discharge",
+ "powerStars": 3,
+ "superStars": 5,
+ "zoneRange": -1,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 5,
+   "name": "移动模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "moveBonus": 2
+   },
+   "d2d": {
+    "moveBonus": 1
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

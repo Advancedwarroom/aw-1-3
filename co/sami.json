@@ -1,0 +1,48 @@
+{
+ "id": "sami",
+ "name": "Sami",
+ "army": "OS",
+ "bio": "A strong-willed Orange Star special forces captain who loves long hair, despite having short hair for some reason.",
+ "copName": "Double Time",
+ "scopName": "Victory March",
+ "powerStars": 3,
+ "superStars": 6,
+ "zoneRange": -1,
+ "coUnits": [
+  "COMMANDO"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 60
+   },
+   "scop": {
+    "offBonus": 90
+   },
+   "zone": {
+    "offBonus": 50
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "zone": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

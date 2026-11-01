@@ -1,0 +1,39 @@
+{
+ "id": "nana",
+ "name": "Nana",
+ "army": "PF",
+ "bio": "The lovable, cute, and amazingly talented granddaughter of Hachi. Known to be incredibly scary when angry.",
+ "copName": "Chain Reaction",
+ "scopName": "Explosive Tantrum",
+ "powerStars": 5,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "SIEGE_CANNON"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

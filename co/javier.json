@@ -1,0 +1,39 @@
+{
+ "id": "javier",
+ "name": "Javier",
+ "army": "GE",
+ "bio": "A Green Earth commander who values chivalry and honor above all else. Often orders his units to charge.",
+ "copName": "Tower Shield",
+ "scopName": "Tower of Power",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "CHAPERON"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

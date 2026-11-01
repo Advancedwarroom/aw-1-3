@@ -1,0 +1,39 @@
+{
+ "id": "flak",
+ "name": "Flak",
+ "army": "BH",
+ "bio": "The strongman of the Black Hole Army. Promoted from private by Hawke, who was impressed by his natural ability.",
+ "copName": "Brute Force",
+ "scopName": "Barbaric Blow",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "AT_CYCLE"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

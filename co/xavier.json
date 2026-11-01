@@ -1,0 +1,28 @@
+{
+ "id": "xavier",
+ "name": "Xavier",
+ "army": "GS",
+ "bio": "Fulfills his duties without second thought or consideration of the after-effects of his actions. Wears a pair of fake claws.",
+ "copName": "Phasing Charge",
+ "scopName": "Reality Minus",
+ "powerStars": 3,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

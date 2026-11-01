@@ -1,0 +1,51 @@
+{
+ "id": "colin",
+ "name": "Colin",
+ "army": "BM",
+ "bio": "Blue Moon's rich boy CO and Sasha's little brother. A gifted CO with a sharp, if insecure, mind.",
+ "copName": "Gold Rush",
+ "scopName": "Power of Money",
+ "powerStars": 2,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "LOGIC_TRUCK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "d2d": {
+    "offBonus": -10
+   },
+   "scop": {
+    "offBonus": 3.33
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 12,
+   "name": "生产模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "d2d": {
+    "costPercent": -20
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

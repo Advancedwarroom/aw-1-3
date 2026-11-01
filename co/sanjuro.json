@@ -1,0 +1,54 @@
+{
+ "id": "sanjuro",
+ "name": "Sanjuro",
+ "army": "GS",
+ "bio": "A respected mercenary from Golden Sun. Once he accepts a job, he sees it through to the end, no matter how difficult or dangerous it becomes.",
+ "copName": "Heart of Gold",
+ "scopName": "Buying Power",
+ "powerStars": 2,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "SMUGGLER"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "scop": {
+    "offBonus": 50
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "scop": {
+    "defBonus": 30
+   }
+  },
+  {
+   "module": 12,
+   "name": "生产模块",
+   "duration": "turns",
+   "durationTurns": 1,
+   "d2d": {
+    "costPercent": 0.01
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

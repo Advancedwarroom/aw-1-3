@@ -1,0 +1,39 @@
+{
+ "id": "jugger",
+ "name": "Jugger",
+ "army": "BG",
+ "bio": "A robot-like commander in the Bolt Guard Army. No one knows his true identity!",
+ "copName": "Overclock",
+ "scopName": "System Crash",
+ "powerStars": 3,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "AUTO_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

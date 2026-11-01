@@ -1,0 +1,48 @@
+{
+ "id": "grimm",
+ "name": "Grimm",
+ "army": "YC",
+ "bio": "A Yellow Comet commander with a dynamic personality. Could care less about the details. His nickname is Lighting Grimm.",
+ "copName": "Knuckleduster",
+ "scopName": "Haymaker",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "AT_CYCLE"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 60
+   },
+   "d2d": {
+    "offBonus": 30
+   },
+   "scop": {
+    "offBonus": 90
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": -10
+   },
+   "d2d": {
+    "defBonus": -20
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

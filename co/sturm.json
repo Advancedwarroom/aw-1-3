@@ -1,0 +1,49 @@
+{
+ "id": "sturm",
+ "name": "Sturm",
+ "army": "BH",
+ "bio": "The original commander of the Black Hole Army. A mysterious invader from another world. Mastermind of the Cosmo and Macro wars.",
+ "copName": "Meteor Slam",
+ "scopName": "Meteor Strike",
+ "powerStars": 5,
+ "superStars": 5,
+ "zoneRange": -1,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 30
+   },
+   "d2d": {
+    "offBonus": 20
+   },
+   "scop": {
+    "offBonus": 50
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 30
+   },
+   "d2d": {
+    "defBonus": 20
+   },
+   "scop": {
+    "defBonus": 50
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

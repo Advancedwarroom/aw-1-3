@@ -1,0 +1,49 @@
+{
+ "id": "joey",
+ "name": "Joey",
+ "army": "TI",
+ "bio": "Loves to live and fight on the edge. He prefers risks and gambles over safety.",
+ "copName": "Eccentricity",
+ "scopName": "Tempestuous Technique",
+ "powerStars": 4,
+ "superStars": 3,
+ "zoneRange": 3,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 60
+   },
+   "d2d": {
+    "offBonus": 20
+   },
+   "scop": {
+    "offBonus": 60
+   },
+   "zone": {
+    "offBonus": 60
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 30
+   },
+   "scop": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

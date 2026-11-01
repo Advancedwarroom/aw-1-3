@@ -1,0 +1,54 @@
+{
+ "id": "alexis",
+ "name": "Alexis",
+ "army": "PF",
+ "bio": "A crystal-obsessed person. Blindly follows orders.",
+ "copName": "Crystal Brace",
+ "scopName": "Crystal Edge",
+ "powerStars": 4,
+ "superStars": 4,
+ "zoneRange": -1,
+ "coUnits": [
+  "REPAIR_TANK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 30
+   },
+   "scop": {
+    "offBonus": 50
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 8,
+   "name": "血量/弹药/燃料变更",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "healHp": 3
+   },
+   "scop": {
+    "healHp": 3
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

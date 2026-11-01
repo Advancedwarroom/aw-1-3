@@ -1,0 +1,60 @@
+{
+ "id": "grit",
+ "name": "Grit",
+ "army": "BM",
+ "bio": "A laid-back style masks his dependability. A peerless marksman. Works well with Olaf.",
+ "copName": "Snipe Attack",
+ "scopName": "Super Snipe",
+ "powerStars": 3,
+ "superStars": 3,
+ "zoneRange": -1,
+ "coUnits": [
+  "SIEGE_CANNON"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "d2d": {
+    "offBonus": 20
+   },
+   "scop": {
+    "offBonus": 60
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   }
+  },
+  {
+   "module": 3,
+   "name": "攻击范围加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "rangeBonus": 2
+   },
+   "d2d": {
+    "rangeBonus": 1
+   },
+   "scop": {
+    "rangeBonus": 3
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

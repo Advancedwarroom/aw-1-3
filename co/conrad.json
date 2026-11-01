@@ -1,0 +1,45 @@
+{
+ "id": "conrad",
+ "name": "Conrad",
+ "army": "TI",
+ "bio": "A damage analyst from Teal Isles who favors precise tactics. Very intelligent, but inexperienced.",
+ "copName": "Calculated Strike",
+ "scopName": "Precision Assault",
+ "powerStars": 3,
+ "superStars": 4,
+ "zoneRange": 3,
+ "coUnits": [
+  "INTEL_TRUCK"
+ ],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 10
+   },
+   "zone": {
+    "offBonus": 10
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 10
+   },
+   "zone": {
+    "defBonus": 10
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}

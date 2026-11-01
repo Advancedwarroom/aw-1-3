@@ -1,0 +1,49 @@
+{
+ "id": "tabitha",
+ "name": "Tabitha",
+ "army": "DM",
+ "bio": "Belongs to the private army of Dark Matter. Eldest daughter of Caulder. Extremely cruel.",
+ "copName": "Firestorm",
+ "scopName": "Apocalypse",
+ "powerStars": 4,
+ "superStars": 4,
+ "zoneRange": 3,
+ "coUnits": [],
+ "modules": [
+  {
+   "module": 1,
+   "name": "伤害加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "offBonus": 60
+   },
+   "scop": {
+    "offBonus": 60
+   },
+   "zone": {
+    "offBonus": 60
+   }
+  },
+  {
+   "module": 2,
+   "name": "防御加成",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "defBonus": 60
+   },
+   "scop": {
+    "defBonus": 60
+   },
+   "zone": {
+    "defBonus": 60
+   }
+  }
+ ],
+ "charge": {
+  "damageDealtWeight": 1,
+  "damageTakenWeight": 1,
+  "chargeDivisor": 100
+ }
+}
