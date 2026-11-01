@@ -363,7 +363,7 @@ public partial class Facility : Node2D
         UpdateCaptureVisual();
     }
 
-    public void OnCaptureCompleted(Infantry unit)
+    public virtual void OnCaptureCompleted(Infantry unit)
     {
         foreach (var u in capturingUnits.ToList()) { if (u != unit) { u.currentCaptureProgress = 0; u.capturingGrid = null; } }
         capturingUnits.Clear();

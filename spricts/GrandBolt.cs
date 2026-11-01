@@ -45,6 +45,13 @@ public partial class GrandBolt : Weapon
     public List<bool> weakPointDestroyed = new List<bool>();     // 各弱点是否已摧毁
     [Export] public int destroyedWeakPointCount = 0;           // 已摧毁弱点数
 
+    // ========== 3.5 弱点护盾（原作：黑水晶保护弱点·Factory标准 N:M 显式绑定表）==========
+    [ExportGroup("弱点护盾（原作：黑水晶保护·显式绑定）")]
+    [Export] public bool weakPointsShieldedByCrystals = false;        // 3.5原作机制：弱点由护盾源保护
+    [Export] public string crystalTypeName = "Crystal";                  // 3.5护盾源类型名（默认黑水晶，可换任意兵器）
+    [Export] public int[] shieldWeakPointIndices = new int[0];           // 3.5绑定表：每条绑定一项=被保护弱点序号（一弱点多源/一源多弱点均可）
+    [Export] public Vector2I[] shieldSourceOffsets = new Vector2I[0];// 3.5与上一数组同序：护盾源格（相对锚点格）
+
     // ========== 4. 中心大弱点（困兽犹斗模式）==========
     [ExportGroup("困兽犹斗（中心大弱点）")]
     [Export] public bool desperateModeEnabled = true;          // 4.是否开启困兽犹斗模式
@@ -177,6 +184,7 @@ public partial class GrandBolt : Weapon
     {
         if (weakPointIndex < 0 || weakPointIndex >= weakPointHealths.Count) return;
         if (weakPointDestroyed[weakPointIndex]) return; // 已摧毁
+        if (IsWeakPointShielded(weakPointIndex)) return;   // ✅ 显式绑定护盾：登记源存活→伤害无效
 
         weakPointHealths[weakPointIndex] -= damage;
         weakPointHealths[weakPointIndex] = Mathf.Max(0, weakPointHealths[weakPointIndex]);
@@ -187,6 +195,33 @@ public partial class GrandBolt : Weapon
             destroyedWeakPointCount++;
             OnWeakPointDestroyed(weakPointIndex);
         }
+    }
+
+    // ✅ Factory标准绑定表：遍历登记绑定（同 CheckPowerLinkage 接缝判定访问模式）
+    private bool IsWeakPointShielded(int weakPointIndex)
+    {
+        if (!weakPointsShieldedByCrystals) return false;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager?.map == null || grid == null) return false;
+        var map = gm.gridManager.map;
+        var anchor = grid.GridIndex;
+        int n = Mathf.Min(shieldWeakPointIndices.Length, shieldSourceOffsets.Length);
+        for (int k = 0; k < n; k++)
+        {
+            if (shieldWeakPointIndices[k] != weakPointIndex) continue;
+            int sx = anchor.X + shieldSourceOffsets[k].X;
+            int sy = anchor.Y + shieldSourceOffsets[k].Y;
+            if (sx < 0 || sy < 0 || sx >= map.GetLength(0) || sy >= map.GetLength(1)) continue;
+            var g = map[sx, sy];
+            if (g == null) continue;
+            foreach (var w in g.weapons)
+            {
+                if (IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed
+                    && w.GetType().Name == crystalTypeName)
+                    return true;
+            }
+        }
+        return false;
     }
 
     private void OnWeakPointDestroyed(int index)

@@ -5,6 +5,11 @@ using System.Collections.Generic;
 
 public partial class Weapon : Node2D
 {
+    // ===== 子类共享的通用虚方法桩（BlackCannon 族/管道/工厂族覆写接口）=====
+    public virtual string GetAnimName() => GetType().Name;
+    public virtual string GetIdleAnimName() => GetType().Name;
+    public virtual string GetBlackCannonFullInfo() => "";
+
     [Export] public bool CanAttackWeapon = false;
 
     [ExportGroup("攻击准入")]

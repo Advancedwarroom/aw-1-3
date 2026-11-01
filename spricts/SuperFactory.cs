@@ -1,3 +1,4 @@
+using CannonDirection = BlackCannon.CannonDirection;
 // SuperFactory.cs - 超级兵工厂 Black Hole Factory（AW2 原作 Factory 的完全体重制版）
 // 原作机制：
 // 1. 3×4 = 12 格多格占据，完全不可通行、无地形星（摧毁后仍不可通行）
@@ -487,7 +488,7 @@ public partial class SuperFactory : Weapon
 
     public override string GetBrokenAnimName() => "SuperFactoryBroken";
 
-    protected override string GetAnimName() => GetFactoryAnimName();
+    public override string GetAnimName() => GetFactoryAnimName();
 
     /// <summary>按队伍选贴图动画（橙/蓝/绿/黄/中立/黑洞六套原版色，无需 Shader 染色）</summary>
     public string GetFactoryAnimName()

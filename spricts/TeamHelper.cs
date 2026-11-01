@@ -226,7 +226,7 @@ public static class FactionPaletteManager
         mat = new ShaderMaterial();
         mat.Shader = PaletteShader;
         // P0 中立 / 内置原版势力：不禁用也行，但 P0 保持中立灰
-        bool neutral = factionId == Player0;
+        bool neutral = factionId == TeamHelper.Player0;
         mat.SetShaderParameter("mode", 3);
         mat.SetShaderParameter("enabled", !neutral);
         mat.SetShaderParameter("tone", new Color(1, 1, 1, 1));
@@ -332,6 +332,13 @@ public static class TeamHelper
     public const string Player0 = "Player0";    // P0 中立
     public const string Player1 = "Player1";    // P1
     public const string Player2 = "Player2";    // P2
+    // ===== P3~P8（四方向/多势力扩展：SuperFactory 分势力生产等引用）=====
+    public const string Player3 = "Player3";    // P3
+    public const string Player4 = "Player4";    // P4
+    public const string Player5 = "Player5";    // P5
+    public const string Player6 = "Player6";    // P6
+    public const string Player7 = "Player7";    // P7
+    public const string Player8 = "Player8";    // P8
     
     // 最大势力数
     public const int MaxFactions = 100;
