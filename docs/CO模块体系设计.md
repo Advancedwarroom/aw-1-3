@@ -107,3 +107,86 @@ CoW 中 DoR 系 CO（Brenner/Lin/Will/Isabella/Gage/Tasha/Tabitha/Penny/Caulder 
 - 时限模块（第 20 号）标注每个效果的 永久/临时、可叠加/不可叠加、最高层数；
 - 特殊限定（第 29 号）给任意模块加条件（地形/单位类型/天气/回合……）。
 
+## 六、76 个原作 CO 全量盘点（CoW `resources/scripts/cos`）
+
+> 模块号见第一节。星数=CoW 基础版 init 的 COP★/SCOP★（四代差异覆盖见第七节）。
+> 全部 76 个 CO 均已实现：AI 放大时机、COP/SCOP 动画、专属音乐、台词全套——搬运时这些配置可直接翻译。
+
+| CO | 阵营 | COP★ | SCOP★ | Zone | 模块组合 | 专属单位 |
+|---|---|---|---|---|---|---|
+| Adam | BD | Decimation (4) | Cartesian Cleanup (5) | 3 | 1,2,5,26 | - |
+| Adder | BH | Sideslip (2) | Sidewinder (3) | 3 | 1,2,5,19,26,27 | Hot Tank |
+| Aira | PF | Gust Storm (4) | Hurricannon (4) | 3 | 1,2,5,26 | - |
+| Alexander | BM | Peace Riots (3) | Inevitable Revolution (4) | 3 | 1,2,11,18,19,26 | Partisan |
+| Alexis | PF | Crystal Brace (4) | Crystal Edge (4) | 3 | 1,2,8,19,26 | Repair Tank |
+| Amy | PF | Fluid Dynamics (3) | Photon Discharge (5) | 2 | 1,2,5,12,19,26 | - |
+| Andy | OS | Hyper Repair (3) | Hyper Upgrade (3) | 3 | 1,2,5,19,26 | Repair Tank |
+| Beast | DM | Steroids (3) | The Beast's Law (3) | 2 | 1,2,5,19,26 | At Cycle |
+| Brenner | AC | Reinforce (4) | Lifeline (2) | 3 | 1,2,19,26 | Repair Tank |
+| Cairn | BD | Call of the Wild (2) | Force of Nature (3) | 4 | 1,2,3,4,5,19,26,30 | Ranger |
+| Cassidy | TI | Rampage (3) | Scorched Earth (4) | 2 | 1,2,26 | - |
+| Caulder | DM | Mass Regeneration (7) | Perfect Healing (5) | 3 | 1,2,19,26 | Crystal Tank |
+| Colin | BM | Gold Rush (2) | Power of Money (4) | 1 | 1,2,12,19,26 | Logic Truck |
+| Conrad | TI | Calculated Strike (3) | Precision Assault (4) | 3 | 1,2,4,13,19,26 | Intel Truck |
+| Davis | TI | Survival Plans (3) | The Stronger Side (3) | 3 | 1,2,13,19,26 | - |
+| Drake | GE | Tsunami (4) | Typhoon (3) | 2 | 1,2,5,19,26 | Missile Sub |
+| Eagle | GE | Lightning Drive (3) | Lightning Strike (6) | 3 | 1,2,5,19,26 | Kirov |
+| Epoch | MA | Short Circuit (1) | Shocker (4) | 3 | 1,2,3,5,13,14,19,26 | Auto Tank |
+| Flak | BH | Brute Force (3) | Barbaric Blow (3) | 3 | 1,2,13,19,26 | At Cycle |
+| Forsythe | BD | Power of Honor (5) | Knights of the Desert (1) | 5 | 1,2,19,26 | Chaperon |
+| Gage | BD | Longshot (3) | Sniper's Shot (3) | 2 | 1,2,3,19,26 | Siege Cannon |
+| Graves | DM | Plague (4) | Perdition (3) | 3 | 1,2,26 | - |
+| Greyfield | TI | Supply Chain (3) | High Command (3) | 3 | 1,2,5,19,26 | Missile Sub |
+| Grimm | YC | Knuckleduster (3) | Haymaker (3) | 3 | 1,2,19,26 | At Cycle |
+| Grit | BM | Snipe Attack (3) | Super Snipe (3) | 2 | 1,2,3,19,26 | Siege Cannon |
+| Hachi | OS | Barter (3) | Merchant Union (2) | 1 | 1,2,12,19,24,26 | Smuggler |
+| Hawke | BH | Black Wave (5) | Black Storm (4) | 3 | 1,2,26 | - |
+| IK-486-B7 | MA | Wall of Defense (3) | Great Counterstrike (4) | 3 | 1,2,3,19,26 | Chaperon |
+| Isabella | AC | Deep Strike (3) | Overlord (3) | 2 | 1,2,3,5,26 | - |
+| Jake | OS | Beat Down (3) | Block Rock (3) | 3 | 1,2,3,5,19,26 | Tank Hunter |
+| Javier | GE | Tower Shield (3) | Tower of Power (3) | 3 | 1,2,19,26 | Chaperon |
+| Jess | GE | Turbo Charge (3) | Overdrive (3) | 3 | 1,2,5,19,26 | Tank Hunter |
+| Joey | TI | Eccentricity (4) | Tempestuous Technique (3) | 3 | 1,2,10,12,26 | - |
+| Jugger | BG | Overclock (3) | System Crash (4) | 3 | 1,2,13,19,26 | Auto Tank |
+| Julia | DM | Rallying Cry (5) | Media Mayhem (5) | 2 | 1,2,19,26 | Partisan |
+| Kanbei | YC | Morale Boost (4) | Samurai Spirit (3) | 2 | 1,2,12,19,26 | Royal Guard |
+| Kindle | BG | Urban Blight (3) | High Society (3) | 3 | 1,2,19,26 | Partisan |
+| Koal | BG | Forced March (3) | Trail of Woe (2) | 3 | 1,2,5,19,26 | Hot Tank |
+| Lash | BH | Terrain Tactics (4) | Prime Tactics (3) | 3 | 1,2,5,19,26,30 | Neospider Tank |
+| Lin | AC | Preliminary Scout (4) | Night Vision (2) | 1 | 1,2,4,19,26 | Intel Truck |
+| Mary | AC | Highway of Pain (3) | Bloody Mary (3) | 2 | 1,2,18,19,24,26 | At Cycle |
+| Max | OS | Max Force (3) | Max Blast (3) | 3 | 1,2,3,5,19,26 | Tank Hunter |
+| Meiyo | GS | Training Camp (3) | War Training (4) | 3 | 1,2,26 | - |
+| Melanthe | DM | Synthetic Seedlings (3) | Agent Dreadroot (4) | 3 | 1,2,8,19,26 | Neospider Tank |
+| Mina | PF | Portent of Adversity (3) | Dark Lightning (5) | 3 | 1,2,26 | - |
+| Minamoto | GS | Wind Blade (3) | Storm Slash (3) | 3 | 1,2,5,19,26 | Neospider Tank |
+| Nana | PF | Chain Reaction (5) | Explosive Tantrum (4) | 2 | 1,2,19,26 | Siege Cannon |
+| Napoleon | MA | Blast Shield (4) | Last Stand (4) | 3 | 1,2,19,26 | Iron Shield Generator |
+| Nell | OS | Lucky Star (3) | Lady Luck (3) | 3 | 1,2,13,26 | - |
+| Olaf | BM | Blizzard (3) | Winter Fury (4) | 3 | 1,2,5,15,26 | - |
+| Ozzy | AC | Hammer On (3) | Grand Finale (3) | 2 | 1,2,19,26 | Iron Shield Generator |
+| Penny | DM | Stormfront (3) | Enigma (3) | 3 | 1,2,3,4,5,15,26 | - |
+| Peter | GE | General Offensive (2) | Bombing Run (3) | 3 | 1,2,19,26 | Royal Guard |
+| Rachel | OS | Lucky Lass (3) | Covering Fire (3) | 2 | 1,2,8,13,26 | - |
+| Rattigan | YC | Raid (3) | The Sweep (4) | 3 | 1,2,5,19,26 | Auto Tank |
+| Robo-Andy | MA | Cooldown (3) | Critical Mass (3) | 3 | 1,2,13,19,26 | At Cycle |
+| Robo-Sturm | MA | Mechanized Storm (4) | Mechanized Destruction (5) | 2 | 1,2,5,19,26 | Tank Hunter |
+| Sabaki | AC | Speed Salvage (3) | Rejuvenation Raid (3) | 3 | 1,2,19,26 | Crystal Tank |
+| Sami | OS | Double Time (3) | Victory March (6) | 3 | 1,2,5,18,19,26 | Commando |
+| Sanjuro | GS | Heart of Gold (2) | Buying Power (4) | 2 | 1,2,5,12,19,26 | Smuggler |
+| Sasha | BM | Market Crash (2) | War Bonds (4) | 2 | 1,2,11,19,26 | Logic Truck |
+| Sensei | YC | Copter Command (2) | Airborne Assault (4) | 1 | 1,2,5,19,26 | Commando |
+| Smitan | GE | Scramble Tactics (3) | Flare Drive (5) | 3 | 1,2,3,19,26 | Siege Cannon |
+| Sonja | YC | Enhanced Vision (3) | Counter Break (2) | 2 | 1,2,4,10,13,14,19,26 | Intel Truck |
+| Sophie | AC | Sudden Strike (2) | Total War (4) | 2 | 1,2,19,26 | Commando |
+| Sturm | BH | Meteor Slam (5) | Meteor Strike (5) | 3 | 1,2,5,26 | - |
+| Tabitha | DM | Firestorm (4) | Apocalypse (4) | - | 1,2,26 | - |
+| Tasha | BD | Sonic Boom (3) | Fox One (3) | 1 | 1,2,5,19,26 | Kirov |
+| Varlot | DM | Acquisition (4) | Hostile Takeover (4) | 3 | 1,2,11,18,19,26 | Smuggler |
+| Von Bolt | BG | Shockwave (6) | Deus Ex Machina (4) | 3 | 1,2,19,26 | Crystal Tank |
+| Walter | TI | Memento (5) | Magnum Opus (4) | 2 | 1,2,14,19,26 | Intel Truck |
+| Waylon | TI | Bad Company (3) | Wingman (3) | 2 | 1,2,19,26 | Kirov |
+| Will | AC | Rally Cry (3) | New Era (3) | 2 | 1,2,5,19,26 | Hot Tank |
+| Xavier | GS | Phasing Charge (3) | Reality Minus (4) | 3 | 1,2,26 | - |
+| Yukio | DM | Dark Assault (8) | Total Invasion (7) | 4 | 1,2,19,26 | Logic Truck |
+| Zandra | BD | Sand Shift (4) | Desert Gale (3) | 3 | 1,2,3,15,26 | - |
