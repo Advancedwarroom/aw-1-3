@@ -271,6 +271,8 @@ public partial class Infantry
     {
         if (unit == null) return false;
         if (unit.team == viewerTeam) return true;
+        // ✅ CO 模块14（隐藏/反隐藏）：观察方 CO 拥有反隐（antiStealth）→ 看破一切隐身/隐蔽
+        if (CoModuleSystem.GetAntiStealth(viewerTeam)) return true;
         if (unit.stealthFlareRevealed) return true;   // 被照明弹照出的照常
         if (!unit.isStealthed)
         {
@@ -317,6 +319,8 @@ public partial class Infantry
     public static bool CanTargetStealth(Infantry attacker, Infantry target)
     {
         if (target == null || !target.isStealthed) return true;
+        // ✅ CO 模块14（隐藏/反隐藏）：攻击方 CO 拥有反隐（antiStealth）→ 可直接攻击隐身单位
+        if (attacker != null && CoModuleSystem.GetAntiStealth(attacker.team)) return true;
         if (target.stealthRevealOnFlare && target.IsFlareLit()) return true;   // ✅ 照明弹照出：可攻击
         if (target.stealthAttackableBy == null || target.stealthAttackableBy.Length == 0) return false;
         return System.Array.IndexOf(target.stealthAttackableBy, attacker.UnitTypeId) >= 0;

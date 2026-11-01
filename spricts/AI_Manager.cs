@@ -120,6 +120,8 @@ public partial class AI_Manager : Node
     {
         if (!IsCurrentPhaseAI() || isRunningAI) return;
         aiTeam = TeamHelper.GetPhaseTeamName(gameManager.turnPhase);
+        // ✅ CO 模块26（AI模块）：AI 势力能量够就自动放大（优先 Tag/SCOP）
+        CoModuleSystem.AIAutoPower(aiTeam);
         isRunningAI = true;
         isBusy = false;
         stage = 0;

@@ -15,6 +15,7 @@ public class CoTeamState
     public bool powerUsedThisTurn = false;  // 一回合只能放一次
     public bool tagExtraTurnUsed = false;    // Tag Power 的全军再动是否已用（一次合体只再动一次）
     public int coLevel = 0;                // ✅ 模块17（CO四级）：0-3，放大招升级
+    public bool stealthAllActive = false;  // ✅ 模块14：本波大招是否开了全军隐身（到期解除）
 }
 
 public static class CoModuleSystem
@@ -291,6 +292,10 @@ public static class CoModuleSystem
     public static bool IsExclusiveUnit(string team, string unitTypeId)
         => GetExclusiveUnits(team).Contains(unitTypeId);
 
+    /// <summary>模块14（隐藏/反隐藏）：该势力是否拥有反隐（antiStealth，看破并可直接攻击隐身单位）</summary>
+    public static bool GetAntiStealth(string team)
+        => Sum(team, 14, "antiStealth") > 0f;
+
     /// <summary>模块10（逆转/联动）：该单位是否拥有先制反击（firstStrike）</summary>
     public static bool GetFirstStrike(Infantry unit)
         => unit != null && Sum(unit.team, 10, "firstStrike", unit) > 0f;
@@ -424,6 +429,18 @@ public static class CoModuleSystem
                 if (weak > 0) { u.weakPercent = Mathf.RoundToInt(weak); u.weakTurnsRemaining = dur; }
             }
             GD.Print($"[CO] {team} 模块25 状态：burn={burn} stun={stun} weak={weak} ×{dur}回合");
+        }
+
+        // ✅ 模块14（隐藏）：发动时全军隐身（stealthAll，大招到期自动解除）
+        if (Sum(team, 14, "stealthAll") > 0f && tree != null)
+        {
+            st.stealthAllActive = true;
+            foreach (var n in tree.GetNodesInGroup("infantry"))
+            {
+                if (n is not Infantry u || u.team != team) continue;
+                u.isStealthed = true;
+            }
+            GD.Print($"[CO] {team} 模块14：全军隐身开启");
         }
     }
 
@@ -599,6 +616,77 @@ public static class CoModuleSystem
         return true;
     }
 
+    // ---------- 模块26（AI模块）：AI 自动放大 ----------
+    /// <summary>AI 势力回合开始时调用：能量够就放大招（优先 Tag/SCOP，再 COP）</summary>
+    public static void AIAutoPower(string team)
+    {
+        if (!HasCo(team)) return;
+        try
+        {
+            if (CanUseTagPower(team)) ActivateTagPower(team);
+            else if (CanUseSuperPower(team)) ActivateSuperPower(team);
+            else if (CanUsePower(team)) ActivatePower(team);
+        }
+        catch (System.Exception e)
+        {
+            GD.PrintErr($"[CO] AI 自动放大失败：{e.Message}");
+        }
+    }
+
+    // ---------- 模块21/22/23：脚本 API（操作权/势力/外交） ----------
+    /// <summary>模块21（操作权改变）：单位移交（team 变更+待机+迷雾刷新）</summary>
+    public static void TransferUnit(Infantry unit, string toTeam)
+    {
+        if (unit == null || !IsInstanceValid(unit) || string.IsNullOrEmpty(toTeam)) return;
+        unit.team = toTeam;
+        unit.hasActed = true;            // 移交后当场待机
+        unit.state = UnitState.Acted;
+        unit.UpdateTeamVisual();
+        ((Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("fog_of_war_manager") as FogOfWarManager)?.OnUnitMoved();
+    }
+
+    /// <summary>模块22（势力改变）：设施/城市移交（全局）</summary>
+    public static void TransferCity(Facility f, string toTeam)
+    {
+        if (f == null || !IsInstanceValid(f) || string.IsNullOrEmpty(toTeam)) return;
+        f.facilityTeam = toTeam;
+        f.UpdateCityVisual();
+        ((Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("fog_of_war_manager") as FogOfWarManager)?.OnUnitMoved();
+    }
+
+    /// <summary>模块22（势力改变）：某势力全部单位+设施整体移交</summary>
+    public static void TransferFaction(string fromTeam, string toTeam)
+    {
+        var tree = Engine.GetMainLoop() as SceneTree;
+        if (tree == null) return;
+        foreach (var n in tree.GetNodesInGroup("infantry"))
+        {
+            if (n is Infantry u && u.team == fromTeam) TransferUnit(u, toTeam);
+        }
+        var gm = tree.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager?.grids != null)
+            foreach (var g in gm.gridManager.grids)
+            {
+                if (g?.city != null && g.city.facilityTeam == fromTeam) TransferCity(g.city, toTeam);
+            }
+    }
+
+    /// <summary>模块11/23（资金转移）：赠款</summary>
+    public static void GiftFunds(string fromTeam, string toTeam, int amount)
+    {
+        if (amount <= 0) return;
+        var gm = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm == null) return;
+        int avail = gm.GetTeamFunds(fromTeam);
+        int give = Mathf.Min(avail, amount);
+        if (give <= 0) return;
+        gm.SetTeamFunds(fromTeam, avail - give);
+        gm.SetTeamFunds(toTeam, gm.GetTeamFunds(toTeam) + give);
+    }
+
+    /// <summary>模块23（外交）：结盟/解盟（运行时全局生效）</summary>
+    public static void SetAlliance(string a, string b, bool allied) => TeamHelper.SetAlliance(a, b, allied);
+
     /// <summary>模块6（多次移动加成）：全势力单位恢复可行动（Tag Power / 特殊模块用）</summary>
     public static void GrantTeamExtraTurn(string team)
     {
@@ -642,6 +730,18 @@ public static class CoModuleSystem
         {
             GD.Print($"[CO] {team} 的 {st.profile.name} 大招效果结束");
             st.powerMode = CoPowerMode.Off;
+            // ✅ 模块14：大招到期解除全军隐身
+            if (st.stealthAllActive)
+            {
+                st.stealthAllActive = false;
+                var tree = Engine.GetMainLoop() as SceneTree;
+                if (tree != null)
+                    foreach (var n in tree.GetNodesInGroup("infantry"))
+                    {
+                        if (n is not Infantry u || u.team != team || !u.isStealthed) continue;
+                        u.RevealStealth();
+                    }
+            }
         }
     }
 

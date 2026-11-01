@@ -41,6 +41,15 @@
    "d2d": {
     "visionBonus": 1
    }
+  },
+  {
+   "module": 14,
+   "name": "隐藏/反隐藏",
+   "duration": "turns",
+   "durationTurns": 1,
+   "d2d": {
+    "antiStealth": 1
+   }
   }
  ],
  "charge": {
