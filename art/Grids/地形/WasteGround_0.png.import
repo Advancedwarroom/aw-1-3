@@ -2,27 +2,41 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://1coq8a7vdjmyk"
-path="res://.godot/imported/00cbe7be1c1cf4e2700589aa5aa3e03f.ctex"
+uid="uid://c48joxpdycefy"
+path.s3tc="res://.godot/imported/WasteGround_0.png-5c7e0d87d788ce01255776b40ce1a031.s3tc.ctex"
+path.etc2="res://.godot/imported/WasteGround_0.png-5c7e0d87d788ce01255776b40ce1a031.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
+
+[deps]
+
+source_file="res://art/Grids/地形/WasteGround_0.png"
+dest_files=["res://.godot/imported/WasteGround_0.png-5c7e0d87d788ce01255776b40ce1a031.s3tc.ctex", "res://.godot/imported/WasteGround_0.png-5c7e0d87d788ce01255776b40ce1a031.etc2.ctex"]
 
 [params]
 
 compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/bptc_ldr=0
 compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
+process/channel_remap/red=0
+process/channel_remap/green=1
+process/channel_remap/blue=2
+process/channel_remap/alpha=3
 process/fix_alpha_border=true
 process/premult_alpha=false
 process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1

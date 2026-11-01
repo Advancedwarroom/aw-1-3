@@ -2,27 +2,41 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://3yx4jkdunbo51"
-path="res://.godot/imported/48bbea8d2a412be1eccf457839e9304f.ctex"
+uid="uid://bw31e5w3ovkuo"
+path.s3tc="res://.godot/imported/WeakWall_0.png-b3fd6581c3505ee1f080e9989a6374d3.s3tc.ctex"
+path.etc2="res://.godot/imported/WeakWall_0.png-b3fd6581c3505ee1f080e9989a6374d3.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
+
+[deps]
+
+source_file="res://art/Grids/地形/WeakWall_0.png"
+dest_files=["res://.godot/imported/WeakWall_0.png-b3fd6581c3505ee1f080e9989a6374d3.s3tc.ctex", "res://.godot/imported/WeakWall_0.png-b3fd6581c3505ee1f080e9989a6374d3.etc2.ctex"]
 
 [params]
 
 compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
+compress/uastc_level=0
+compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/bptc_ldr=0
 compress/normal_map=0
 compress/channel_pack=0
 mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
+process/channel_remap/red=0
+process/channel_remap/green=1
+process/channel_remap/blue=2
+process/channel_remap/alpha=3
 process/fix_alpha_border=true
 process/premult_alpha=false
 process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
