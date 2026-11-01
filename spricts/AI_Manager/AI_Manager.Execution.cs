@@ -30,7 +30,28 @@ public partial class AI_Manager
             if (p.preReveal && u.isStealthed && CanToggle(u)) u.ToggleStealth();
 
             bool ambushed = false;
-            if (p.dest != null && p.dest != u.grid)
+            if (p.tpVia != null)
+            {
+                // ✅ N屏传送：先走到传送起点（可原地），再按"传送"落到 dest
+                if (p.tpVia != u.grid)
+                {
+                    var (viaFinal, viaAmb, viaSteps) = MoveAlong(u, p.path, false);
+                    ambushed = viaAmb || viaFinal != p.tpVia;
+                    extra = viaSteps * moveStepTime;
+                    if (extra > 0)
+                    {
+                        await ToSignal(GetTree().CreateTimer(extra), SceneTreeTimer.SignalName.Timeout);
+                        if (!IsInstanceValid(this) || !isRunningAI) return;
+                    }
+                    if (!IsInstanceValid(u)) return;
+                }
+                if (!ambushed && !TryTeleport(u, p.dest))
+                {
+                    Log("  传送失败（落点被占/不可通行），行动中止");
+                    ambushed = true;
+                }
+            }
+            else if (p.dest != null && p.dest != u.grid)
             {
                 var (final, amb, steps) = MoveAlong(u, p.path, p.act == Act.Load || p.act == Act.Merge);
                 ambushed = amb || final != p.dest;

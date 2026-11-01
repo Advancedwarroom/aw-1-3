@@ -145,6 +145,7 @@ public partial class AI_Manager
         var goals = goalsFn();
         f = new Dictionary<Grids, int>();
         var open = new PriorityQueue<Grids, int>();
+        var rev = ReverseTeleportMap();   // ✅ N屏传送：落点 → 所有可传来的源格
         foreach (var g in goals.Where(x => x != null).Distinct()) { f[g] = 0; open.Enqueue(g, 0); }
         while (open.TryDequeue(out var cur, out int cc))
         {
@@ -155,10 +156,21 @@ public partial class AI_Manager
             {
                 var n = At(cur.GridIndex.X + d.X, cur.GridIndex.Y + d.Y);
                 if (n == null || StepCost(u, n) < 0) continue;
+                if (n.screenId != cur.screenId) continue;   // ✅ N屏隔离：步行不跨屏，跨屏只能走传送
                 int nc = cc + Math.Max(1, enter < 0 ? 1 : enter);
                 if (f.TryGetValue(n, out int old) && old <= nc) continue;
                 f[n] = nc; open.Enqueue(n, nc);
             }
+            // ✅ N屏传送：从落点反向走回传送源格（传送本身不耗移动力，场内记 TeleportFieldCost 以便优先近路）
+            if (rev.TryGetValue(cur.GridIndex, out var srcs))
+                foreach (var si in srcs)
+                {
+                    var n = gameManager.gridManager.GetGridAt(si);
+                    if (n == null || StepCost(u, n) < 0) continue;
+                    int nc = cc + TeleportFieldCost;
+                    if (f.TryGetValue(n, out int old) && old <= nc) continue;
+                    f[n] = nc; open.Enqueue(n, nc);
+                }
         }
         ctx.distCache[k] = f;
         return f;
