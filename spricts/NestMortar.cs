@@ -12,7 +12,8 @@ public partial class NestMortar : Weapon
         maxHealth = partMaxHealth; health = partMaxHealth;
         canRotate = false;
         contributesToVictory = false;
-        // 原作：迫击炮不可摧毁、集群落点（Export 里配置射程/弹药/伤害后生效）
+        // 原作：迫击炮不可摧毁；弹道=导弹发射井式（左右各3格+整列直轰到底），5HP，砸最贵单位集群；
+        // 双炮每日交替+代打规则（Export 配置射程/弹药/目标模式）
         base._Ready();
     }
 }
