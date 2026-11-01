@@ -292,3 +292,21 @@ CoW 中 DoR 系 CO（Brenner/Lin/Will/Isabella/Gage/Tasha/Tabitha/Penny/Caulder 
 - **Tag Power 无上限**：`List<CoProfile> partners` 结构本身不限数量；合体星数=主 SCOP★+全部搭档 COP★；Tag 模式合并所有 CO 的 SCOP 模块
 - **模块15 天气技能**：`setWeather`（0晴/1雨/2雪/3沙暴/4雾）+ `weatherTurns`（持续天数）+ `weatherImmune`（常态免疫）
 - **Tag 搭配加成（CoW Tagpower.js 全量搬运）**：`co/tag_synergy.json` 收录 CoW 的 180 组 CO 搭配；`GetTagSynergyBonus` 对主+全部搭档**两两组合求和**（3 个 CO 吃 3 对、4 个吃 6 对，无上限）；攻击% 加进 `GetOffenseBonusPercent`、运气加成抬 `GetLuckRoll` 上限——**对比 CoW：原作每玩家固定 2 个 CO 槽位（`getCO(0)/getCO(1)`），aw-1-3 无上限**
+
+**第四轮落地（剩余模块全清 + 编辑模式天气面板）：**
+- **模块10（逆转/先制反击）**：`firstStrike`——防守方先手，反击先结算、攻击方按掉血后战力出手；攻击方被先手打死则本次攻击取消（能量打点同步）
+- **模块16（升级）**：单位 `xp` 字段，击杀得 XP（默认100/`xpPerKill` 可配），Level 1-3（120/300 阈值），攻防每级+4%
+- **模块17（CO四级）**：`CoTeamState.coLevel` 0-3，SCOP/Tag 发动升 1 级；模块条目 `minCoLevel/maxCoLevel` 区间门控
+- **模块20（时限）**：`duration` 支持 `permanent`（999回合）/`instant`（瞬时，发动时效果已结算）
+- **模块29（特殊限定）**：等级区间并入限定过滤（单位类型/地形/直间接/CO等级四维）
+- **模块7（生成单位）**：`spawnUnitId`（1步兵/2机甲/3摩托/4侦察/5轻坦）+`spawnHp`+`spawnCount`，自己的城市刷兵，复用生产管线（Sensei 已写入示例）
+- **模块9（区域导弹）**：`missileCount`/`missileDamage`/`blastRadius`，自动瞄准敌军最密集处、避开已打击中心
+- **模块24（建筑状态）**：`facStatus`（1不可生产/2无收入/3无掩体/4无物资）+`facStatusTurns`，施加给全部敌方设施
+- **模块25（状态系统）**：`burnHp`（燃烧每回合掉血，最低留1HP）/`stunTurns`（麻痹复用 ApplyStun）/`weakPercent`（虚弱降攻），回合开始结算（当前行动势力）
+- **模块14（隐藏/反隐藏）**：`antiStealth` 反隐（看破+可直接攻击隐身，接入 IsVisibleTo/CanTargetStealth，Sonja 示例）；`stealthAll` 发动时全军隐身、大招到期自动解除
+- **模块26（AI模块）**：`AIAutoPower`——AI 势力回合开始自动放大（优先 Tag/SCOP/COP）
+- **模块21/22/23（脚本API）**：`TransferUnit`/`TransferCity`/`TransferFaction`（操作权/势力改变，移交后当场待机）/`GiftFunds`/`SetAlliance`
+- **模块28（多屏 CO 死亡）**：`OnCoUnitDestroyed`——CO 单位阵亡时全图（含多屏）无残存 `isCoUnit` 则 CO 死亡（Unregister，模块效果全部失效）；任一屏还有载体则 CO 不死
+- **编辑模式天气面板**：全局配置新增「天气系统」区——当前天气下拉立即生效、每日随机轮换开关、五种天气出现权重 0-100 可调（默认 70/10/10/10/0）、随机持续天数 min~max；地图导出/导入 txt 携带 `Weather/WeatherChances/WeatherRandom/WeatherDuration` 四行随图存取
+
+至此 30 大模块全部落地（1-30），配合模块（多CO合体/一局多次移动/CO死亡）与能量条七来源齐备。

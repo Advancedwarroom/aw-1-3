@@ -387,7 +387,10 @@ public override void _Process(double delta)
 }
     public virtual void OnDestroyed()
     {
-        
+        // ✅ CO 模块28（多屏 CO 死亡）：CO 单位阵亡——全图（含多屏）无残存 isCoUnit 则 CO 死亡
+        if (isCoUnit)
+            CoModuleSystem.OnCoUnitDestroyed(this);
+
         // 如果正在占领中，清理占领状态
         if (currentCaptureProgress > 0 && capturingGrid != null)
         {

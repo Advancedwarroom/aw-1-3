@@ -745,6 +745,26 @@ public static class CoModuleSystem
         }
     }
 
+    // ---------- 模块28（多屏 CO 死亡） ----------
+    /// <summary>
+    /// CO 单位阵亡时调用：全图（含多屏）无残存 isCoUnit → CO 死亡（Unregister，模块效果全部失效）。
+    /// 多屏规则：任一屏上还有该 CO 的存活载体，CO 就不算死。
+    /// </summary>
+    public static void OnCoUnitDestroyed(Infantry dyingUnit)
+    {
+        string team = dyingUnit?.team;
+        if (string.IsNullOrEmpty(team) || !HasCo(team)) return;
+        var tree = Engine.GetMainLoop() as SceneTree;
+        if (tree == null) return;
+        foreach (var n in tree.GetNodesInGroup("infantry"))
+        {
+            if (n is not Infantry i || i == dyingUnit || i.team != team || !i.isCoUnit) continue;
+            return;   // 还有残存 CO 单位（多屏合并判定）
+        }
+        GD.Print($"[CO] {team} 的 CO 单位全部阵亡（含多屏）——CO 死亡，模块效果全部失效");
+        Unregister(team);
+    }
+
     /// <summary>清档（重开局）</summary>
     public static void ResetAll()
     {
