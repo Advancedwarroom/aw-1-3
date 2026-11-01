@@ -167,4 +167,79 @@ public partial class BlackArc : Weapon
         if (arcStrikeCooldownCounter > 0)
             arcStrikeCooldownCounter--;
     }
+
+    // ========== AI 兵器操作（全适配：中立/玩家方走自带AI，AI阵营由 AI_Manager 按视野操作）==========
+
+    public override void ExecuteAI()
+    {
+        // 自带AI只服务 P0/P-1（中立）与玩家方兵器；AI阵营兵器由 AI_Manager.OperateArc 带视野操作
+        if (!TeamHelper.ShouldWeaponUseAI(team) && !TeamHelper.ShouldPlayerWeaponUseAI(3, team))
+            return;
+        if (hasActed || !ArcStrikeReady) return;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager == null) return;
+        var best = AIBestStrikeGrid(gm, null);
+        if (best != null) PerformArcStrike(best, gm);
+    }
+
+    /// <summary>AI评分：射程内找天基打击收益最大的目标格（visibleFilter 非空=只用可见单位计分）</summary>
+    public Grids AIBestStrikeGrid(GameManager gm, System.Func<Infantry, bool> visibleFilter)
+    {
+        Grids best = null;
+        int bestScore = 0;
+        int cx = grid.GridIndex.X, cy = grid.GridIndex.Y;
+        for (int tx = 0; tx < gm.gridManager.searchRange.X; tx++)
+        {
+            for (int ty = 0; ty < gm.gridManager.searchRange.Y; ty++)
+            {
+                int dist = Mathf.Abs(tx - cx) + Mathf.Abs(ty - cy);
+                if (dist < arcStrikeMinRange || dist > arcStrikeMaxRange) continue;
+                int score = AIStrikeScore(gm, tx, ty, visibleFilter);
+                if (score > bestScore) { bestScore = score; best = gm.gridManager.map[tx, ty]; }
+            }
+        }
+        return best;
+    }
+
+    private int AIStrikeScore(GameManager gm, int tx, int ty, System.Func<Infantry, bool> visibleFilter)
+    {
+        int score = 0;
+        for (int dx = -arcEffectRangeX; dx <= arcEffectRangeX; dx++)
+        {
+            for (int dy = -arcEffectRangeY; dy <= arcEffectRangeY; dy++)
+            {
+                int x = tx + dx, y = ty + dy;
+                if (x < 0 || y < 0 || x >= gm.gridManager.searchRange.X || y >= gm.gridManager.searchRange.Y) continue;
+                var g = gm.gridManager.map[x, y];
+                if (g == null) continue;
+                foreach (var u in g.infantries)
+                {
+                    if (u == null || !IsInstanceValid(u)) continue;
+                    if (visibleFilter != null && !visibleFilter(u)) continue;
+                    if (!ArcTargetTeamOk(u.team)) continue;       // 打击政策外的目标不受影响
+                    int v = AITargetValue(u.maxHealth, u.health, u.cost);
+                    score += TeamHelper.IsEnemyForAttacker(team, u.team) ? v : -v;   // 误伤己方=负分
+                }
+                if (arcStrikeAffectsWeapons)
+                {
+                    foreach (var w in g.weapons)
+                    {
+                        if (w == null || !IsInstanceValid(w) || w.isDestroyed || w == this) continue;
+                        if (!ArcTargetTeamOk(w.team)) continue;
+                        int v = AITargetValue(w.maxHealth, w.health, w.cost);
+                        score += TeamHelper.IsEnemyForAttacker(team, w.team) ? v : -v;
+                    }
+                }
+            }
+        }
+        return score;
+    }
+
+    private int AITargetValue(int maxHp, int hp, int targetCost)
+    {
+        int baseV = Mathf.Max(1000, targetCost);
+        if (hp <= arcStrikeDamage) return baseV;                   // 一击必杀=全额价值
+        float frac = arcStrikeDamage / (float)Mathf.Max(1, maxHp);
+        return Mathf.RoundToInt(frac * baseV);
+    }
 }

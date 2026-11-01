@@ -45,12 +45,13 @@ public partial class AI_Manager
 
         if (best == null)
         {
-            foreach (var u in pending) { handled.Add(u); FinishUnit(u); }
+            foreach (var u in pending) { handled.Add(u); TryFireSilo(u); FinishUnit(u); }
             Next(0.05f);
             return;
         }
 
         handled.Add(best.unit);
+        TryFireSilo(best.unit);   // ✅ 行动前先发射脚下的导弹井（免费动作，不消耗单位行动）
         Log($"{best.unit.GetType().Name}@{best.unit.grid?.GridIndex} → {best.act} 目的地{best.dest?.GridIndex} 分数{best.score:F0} {best.note}");
         ExecutePlan(best);
     }

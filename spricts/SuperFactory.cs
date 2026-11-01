@@ -520,4 +520,34 @@ public partial class SuperFactory : Weapon
         info += $"{TranslateGroup.T("旋转")}: {(factoryCanRotate ? TranslateGroup.T("可旋转（90/180/270）") : TranslateGroup.T("锁定"))}\n";
         return info;
     }
+
+    // ========== AI 兵器操作（全适配：中立/玩家方走自带AI，AI阵营由 AI_Manager 反制选兵生产）==========
+
+    public override void ExecuteAI()
+    {
+        // 自带AI只服务 P0/P-1（中立）与玩家方工厂；AI阵营工厂由 AI_Manager.OperateFactory 反制选兵生产
+        if (!TeamHelper.ShouldWeaponUseAI(team) && !TeamHelper.ShouldPlayerWeaponUseAI(3, team))
+            return;
+        // 简易策略：能产就产，免费生产优先最高造价（价值最大化）
+        while (CanProduceNow())
+        {
+            Grids exit = null;
+            foreach (var e in GetProductionExitGrids())
+                if (e != null && IsInstanceValid(e) && e.infantries.Count == 0 && e.weapons.Count == 0) { exit = e; break; }
+            if (exit == null) break;   // 生产口全被占住
+            var names = producibleUnitNames.Count > 0 ? producibleUnitNames.ToList()
+                                                       : new List<string>(UnitProductionDatabase.GetAllUnitNames());
+            string pick = null; int bestScore = int.MinValue;
+            foreach (var n in names)
+            {
+                if (!UnitProductionDatabase.HasUnit(n)) continue;
+                if (isUpdatable && !UnitProductionWhitelist.CanProduce(n)) continue;
+                int c = UnitProductionDatabase.GetInfo(n).Cost;
+                if (c > bestScore) { bestScore = c; pick = n; }
+            }
+            if (pick == null) break;
+            string err = ProduceUnitAt(pick, exit, instantMoveAfterProduction, team);
+            if (!string.IsNullOrEmpty(err)) break;
+        }
+    }
 }

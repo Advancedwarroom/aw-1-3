@@ -28,7 +28,12 @@ public partial class AI_Manager
             if (w == null || !IsInstanceValid(w) || w.isDestroyed) continue;
             // 黑炮/巨炮/死光自带 AI 只服务 P0/P-1，阵营兵器由这里按"能力"操作；激光自带 AI 不设阵营门，直接用
             if (w is Crystal) continue;   // 黑水晶等单位走位完再脉冲（见 PulseCrystals）
-            bool acted = w is BlackCannon bc ? OperateCannon(bc) : RunBuiltinWeaponAI(w);
+            // ✅ 阵营兵器AI用AI_Manager操作（带视野）；P0/P-1兵器走自带AI
+            bool acted = w is BlackCannon bc ? OperateCannon(bc)
+                : w is BlackArc arc ? OperateArc(arc)
+                : w is GrandBolt gb ? OperateGrandBolt(gb)
+                : w is SuperFactory sf ? OperateFactory(sf)
+                : RunBuiltinWeaponAI(w);
             Next(acted ? stepDelay : 0.05f);
             return;
         }
@@ -210,5 +215,131 @@ public partial class AI_Manager
         if (canDestroy && dmg >= t.health) v += UnitValue(t) * killBonusRatio;
         if (t.capturingGrid != null && t.currentCaptureProgress > 0) v += 800;   // 打断占领
         return v;
+    }
+
+    // ========== 新兵器 AI 操作（黑色弧光/大雷弹/超级兵工厂）==========
+
+    /// <summary>黑色弧光 AI：射程内找天基打击收益最大的目标格（只用本势力视野内的目标计分）</summary>
+    private bool OperateArc(BlackArc arc)
+    {
+        if (arc == null || !IsInstanceValid(arc) || arc.isDestroyed) return false;
+        if (!arc.arcStrikeEnabled || arc.hasActed || !arc.ArcStrikeReady) return false;
+        if (!TeamHelper.ShouldWeaponUseAI(arc.team)) return false;   // 玩家方兵器不在此操作
+        if (gameManager?.gridManager == null) return false;
+        var best = arc.AIBestStrikeGrid(gameManager, u => IsInstanceValid(u) && CanSee(u));
+        if (best == null) return false;
+        arc.PerformArcStrike(best, gameManager);
+        return true;
+    }
+
+    /// <summary>大雷弹 AI：蠕动压敌/逼近 + 绝境模式生产Oozium（只用本势力视野内的目标计分）</summary>
+    private bool OperateGrandBolt(GrandBolt gb)
+    {
+        if (gb == null || !IsInstanceValid(gb) || gb.isDestroyed) return false;
+        if (!TeamHelper.ShouldWeaponUseAI(gb.team)) return false;   // 玩家方兵器不在此操作
+        if (gameManager?.gridManager == null) return false;
+        gb.AIWriggleAndSpawn(gameManager, u => IsInstanceValid(u) && CanSee(u));
+        return true;
+    }
+
+    /// <summary>超级兵工厂 AI：反制选兵（同城市生产评分），能产就产（出口被占满/次数用完为止）</summary>
+    private bool OperateFactory(SuperFactory f)
+    {
+        if (f == null || !IsInstanceValid(f) || f.isDestroyed || !f.CanProduceNow()) return false;
+        if (!TeamHelper.ShouldWeaponUseAI(f.team)) return false;   // 玩家方工厂由玩家操作
+        if (gameManager?.unitManager == null) return false;
+        var myCounts = ctx.mine.GroupBy(u => u.UnitTypeId).ToDictionary(x => x.Key, x => x.Count());
+        int capturers = (gameManager.unitManager.AllUnits ?? new List<Infantry>())
+            .Count(u => u != null && IsInstanceValid(u) && u.team == aiTeam && u.health > 0 && u.captureAbility != CaptureAbility.CannotCapture);
+        var known = ctx.enemies.Select(e => (e, e.health)).Concat(ctx.remembered.Select(r => (r.u, r.hp))).ToList();
+        bool produced = false;
+        while (f.CanProduceNow())
+        {
+            var exits = f.GetProductionExitGrids()
+                .Where(g => g != null && IsInstanceValid(g) && g.infantries.Count == 0 && g.weapons.Count == 0).ToList();
+            if (exits.Count == 0) break;
+            var names = f.producibleUnitNames.Count > 0 ? f.producibleUnitNames.ToList()
+                                                       : UnitProductionDatabase.GetAllUnitNames().ToList();
+            string best = null; float bestScore = float.NegativeInfinity;
+            foreach (var name in names)
+            {
+                if (!UnitProductionDatabase.HasUnit(name)) continue;
+                int cost = UnitProductionDatabase.GetInfo(name).Cost;
+                if (cost <= 0) continue;
+                if (!f.productionFree && cost > gameManager.GetTeamFunds(aiTeam)) continue;
+                if (f.isUpdatable && !UnitProductionWhitelist.CanProduce(name)) continue;
+                float s = ProductionScore(name, cost, known, myCounts, capturers);
+                if (s > bestScore) { bestScore = s; best = name; }
+            }
+            if (best == null) break;
+            string err = f.ProduceUnitAt(best, exits[0], f.instantMoveAfterProduction, aiTeam);
+            if (!string.IsNullOrEmpty(err)) break;
+            produced = true;
+        }
+        return produced;
+    }
+
+    // ========== 导弹井（单位踩井发射的免费动作）==========
+
+    /// <summary>导弹井 AI：单位行动前先发射脚下的井（LaunchMissile 不消耗单位行动）。目标=打击面内可见敌人价值最大、不误伤己方的格子</summary>
+    private void TryFireSilo(Infantry u)
+    {
+        if (u == null || !IsInstanceValid(u) || u.grid == null) return;
+        foreach (var w in u.grid.weapons)
+        {
+            if (w is not MissileSilo silo || !IsInstanceValid(silo)) continue;
+            if (!silo.CanBeFiredBy(u)) continue;
+            var target = BestSiloTarget(silo);
+            if (target != null)
+            {
+                Log($"{u.GetType().Name}@{u.grid.GridIndex} 发射导弹井 → {target.GridIndex}");
+                silo.LaunchMissile(target, u);
+            }
+            return;   // 一格一井
+        }
+    }
+
+    private Grids BestSiloTarget(MissileSilo silo)
+    {
+        if (gameManager?.gridManager == null || silo.grid == null) return null;
+        Grids best = null; float bestScore = 0;
+        int sx = silo.grid.GridIndex.X, sy = silo.grid.GridIndex.Y;
+        foreach (var cand in gameManager.gridManager.grids)
+        {
+            if (cand == null) continue;
+            int d = Mathf.Abs(cand.GridIndex.X - sx) + Mathf.Abs(cand.GridIndex.Y - sy);
+            if (d < silo.strikeMinRange || d > silo.strikeMaxRange) continue;
+            float score = 0;
+            foreach (var g in gameManager.gridManager.grids)
+            {
+                int bd = Mathf.Abs(g.GridIndex.X - cand.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - cand.GridIndex.Y);
+                if (bd < silo.blastMinRadius || bd > silo.blastMaxRadius) continue;
+                foreach (var e in g.infantries)
+                {
+                    if (e == null || !IsInstanceValid(e) || e.health <= 0) continue;
+                    if (!silo.TargetUnitTeamOk(e.team)) continue;              // 打击政策外不受影响
+                    bool enemy = TeamHelper.IsEnemyForAttacker(aiTeam, e.team);
+                    if (enemy && !CanSee(e)) continue;                        // 雾中敌人不计分（公平性）
+                    if (!enemy) { score -= 400; continue; }                    // 误伤己方/友军
+                    int dmg = -silo.effectHealthDelta;                        // 负值=伤害
+                    if (dmg <= 0) continue;
+                    int real = Math.Min(dmg, e.health);
+                    score += real / (float)Math.Max(1, e.maxHealth) * UnitValue(e);
+                    if (dmg >= e.health) score += UnitValue(e) * 0.5f;         // 击杀奖励
+                }
+                if (silo.affectsWeapons)
+                {
+                    foreach (var w in g.weapons)
+                    {
+                        if (w == null || !IsInstanceValid(w) || w.isDestroyed) continue;
+                        if (!silo.TargetTeamOk(w.team)) continue;
+                        if (!TeamHelper.IsEnemyForAttacker(aiTeam, w.team)) { score -= 300; continue; }
+                        score += Mathf.Max(300f, w.cost * 0.3f);
+                    }
+                }
+            }
+            if (score > bestScore) { bestScore = score; best = cand; }
+        }
+        return best;
     }
 }

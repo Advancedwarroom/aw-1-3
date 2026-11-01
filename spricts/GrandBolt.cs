@@ -415,4 +415,108 @@ public partial class GrandBolt : Weapon
     {
         base.RefreshTeamVisual(); // 整体随势力变色
     }
+
+    // ========== AI 兵器操作（全适配：中立/玩家方走自带AI，AI阵营由 AI_Manager 按视野操作）==========
+
+    public override void ExecuteAI()
+    {
+        // 自带AI只服务 P0/P-1（中立）与玩家方兵器；AI阵营兵器由 AI_Manager.OperateGrandBolt 带视野操作
+        if (!TeamHelper.ShouldWeaponUseAI(team) && !TeamHelper.ShouldPlayerWeaponUseAI(3, team))
+            return;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager == null) return;
+        AIWriggleAndSpawn(gm, null);
+    }
+
+    /// <summary>AI操作：蠕动（压敌/逼近）+ 绝境模式生产Oozium（visibleFilter 非空=只用可见单位计分）</summary>
+    public void AIWriggleAndSpawn(GameManager gm, System.Func<Infantry, bool> visibleFilter)
+    {
+        if (isDestroyed) return;
+        if (CanWriggle())
+        {
+            var dir = AIBestWriggleDirection(gm, visibleFilter);
+            if (dir != Vector2I.Zero) Wriggle(dir, gm);
+        }
+        while (CanProduceOozium())
+        {
+            var g = AIBestOoziumGrid(gm);
+            if (g == null) break;
+            ProduceOozium(g, gm);
+        }
+    }
+
+    private Vector2I AIBestWriggleDirection(GameManager gm, System.Func<Infantry, bool> visibleFilter)
+    {
+        var targets = gm.unitManager.AllUnits
+            .Where(u => u != null && IsInstanceValid(u) && u.health > 0 && u.grid != null
+                        && (visibleFilter == null || visibleFilter(u))
+                        && TeamHelper.IsEnemyForAttacker(team, u.team)).ToList();
+        if (targets.Count == 0) return Vector2I.Zero;
+        Vector2I best = Vector2I.Zero;
+        int bestScore = 0;                                   // 只在确实更优时才动
+        foreach (var dir in new[] { new Vector2I(1, 0), new Vector2I(-1, 0), new Vector2I(0, 1), new Vector2I(0, -1) })
+        {
+            var newAnchor = grid.GridIndex + dir * wriggleDistance;
+            var indices = GetOccupiedIndices(newAnchor);
+            bool oob = indices.Any(i => i.X < 0 || i.Y < 0
+                || i.X >= gm.gridManager.searchRange.X || i.Y >= gm.gridManager.searchRange.Y);
+            if (oob) continue;
+            int score = 0;
+            int minDist = int.MaxValue;
+            foreach (var t in targets)
+                minDist = Mathf.Min(minDist,
+                    Mathf.Abs(t.grid.GridIndex.X - newAnchor.X) + Mathf.Abs(t.grid.GridIndex.Y - newAnchor.Y));
+            score -= minDist * 10;                            // 逼近最近敌人
+            foreach (var i in indices)
+            {
+                var g = gm.gridManager.map[i.X, i.Y];
+                if (g == null) continue;
+                foreach (var u in g.infantries)
+                {
+                    if (u == null || !IsInstanceValid(u)) continue;
+                    if (visibleFilter != null && !visibleFilter(u)) continue;
+                    int v = Mathf.Max(1000, u.cost);
+                    if (TeamHelper.IsEnemyForAttacker(team, u.team)) score += v;   // 蠕动压扁敌人
+                    else score -= v * 2;                                            // 压扁己方=重罚
+                }
+            }
+            if (score > bestScore) { bestScore = score; best = dir; }
+        }
+        return best;
+    }
+
+    private Grids AIBestOoziumGrid(GameManager gm)
+    {
+        Grids best = null;
+        int bestScore = int.MinValue;
+        var seen = new HashSet<Vector2I>();
+        foreach (var og in occupiedGrids)
+        {
+            if (og == null || !IsInstanceValid(og)) continue;
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    int x = og.GridIndex.X + dx, y = og.GridIndex.Y + dy;
+                    if (!seen.Add(new Vector2I(x, y))) continue;
+                    if (x < 0 || y < 0 || x >= gm.gridManager.searchRange.X || y >= gm.gridManager.searchRange.Y) continue;
+                    var g = gm.gridManager.map[x, y];
+                    if (g == null) continue;
+                    if (g.weapons.Count > 0) continue;                                     // 不压兵器
+                    if (g.infantries.Any(u => u != null && IsInstanceValid(u) && u.overlapType != UnitOverlapType.Overlapping)) continue;
+                    int d = int.MaxValue;
+                    foreach (var t in gm.unitManager.AllUnits)
+                    {
+                        if (t == null || !IsInstanceValid(t) || t.grid == null) continue;
+                        if (!TeamHelper.IsEnemyForAttacker(team, t.team)) continue;
+                        d = Mathf.Min(d, Mathf.Abs(t.grid.GridIndex.X - x) + Mathf.Abs(t.grid.GridIndex.Y - y));
+                    }
+                    int score = -d;                                                         // 越靠近敌人越好
+                    if (score > bestScore) { bestScore = score; best = g; }
+                }
+            }
+        }
+        return best;
+    }
 }

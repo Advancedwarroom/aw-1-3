@@ -88,13 +88,13 @@ public partial class MissileSilo : Weapon
         return AreFriendly(team, firingTeam);
     }
 
-    private bool TargetTeamOk(string targetTeam)
+    public bool TargetTeamOk(string targetTeam)
     {
         bool friendly = AreFriendly(team, targetTeam);
         return siloTeamPolicy switch { 0 => friendly, 1 => !friendly, _ => true };
     }
 
-    private bool TargetUnitTeamOk(string targetTeam)
+    public bool TargetUnitTeamOk(string targetTeam)
     {
         bool friendly = AreFriendly(team, targetTeam);
         return targetUnitPolicy switch { 0 => friendly, 1 => !friendly, _ => true };
