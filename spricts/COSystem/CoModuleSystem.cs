@@ -657,7 +657,7 @@ public static class CoModuleSystem
     /// <summary>模块21（操作权改变）：单位移交（team 变更+待机+迷雾刷新）</summary>
     public static void TransferUnit(Infantry unit, string toTeam)
     {
-        if (unit == null || !IsInstanceValid(unit) || string.IsNullOrEmpty(toTeam)) return;
+        if (unit == null || !GodotObject.IsInstanceValid(unit) || string.IsNullOrEmpty(toTeam)) return;
         unit.team = toTeam;
         unit.hasActed = true;            // 移交后当场待机
         unit.state = UnitState.Acted;
@@ -668,7 +668,7 @@ public static class CoModuleSystem
     /// <summary>模块22（势力改变）：设施/城市移交（全局）</summary>
     public static void TransferCity(Facility f, string toTeam)
     {
-        if (f == null || !IsInstanceValid(f) || string.IsNullOrEmpty(toTeam)) return;
+        if (f == null || !GodotObject.IsInstanceValid(f) || string.IsNullOrEmpty(toTeam)) return;
         f.facilityTeam = toTeam;
         f.UpdateCityVisual();
         ((Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("fog_of_war_manager") as FogOfWarManager)?.OnUnitMoved();

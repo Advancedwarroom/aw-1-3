@@ -12,7 +12,7 @@ public partial class CoEditorUI : CanvasLayer
     private Panel panel;
     private OptionButton coSelect;
     private LineEdit nameEdit;
-    private LineEdit bioEdit;
+    private TextEdit bioEdit;
     private LineEdit armyEdit;
     private LineEdit copNameEdit;
     private LineEdit scopNameEdit;
@@ -25,6 +25,7 @@ public partial class CoEditorUI : CanvasLayer
     private OptionButton addModuleOpt;
     private OptionButton addSlotOpt;
     private OptionButton addKeyOpt;
+    private LineEdit addKeyEdit;
     private SpinBox addValueSpin;
     private SpinBox addTurnsSpin;
     private OptionButton addDurationOpt;
@@ -80,7 +81,7 @@ public partial class CoEditorUI : CanvasLayer
     {
         panel = new Panel();
         panel.CustomMinimumSize = new Vector2(560, 660);
-        panel.SetAnchorsPreset(LayoutPreset.Center);
+        panel.SetAnchorsPreset(Control.LayoutPreset.Center);
         panel.ZIndex = 100;
 
         var panelStyle = new StyleBoxFlat();
@@ -115,7 +116,7 @@ public partial class CoEditorUI : CanvasLayer
         panel.AddChild(scroll);
 
         var box = new VBoxContainer();
-        box.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        box.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         box.AddThemeConstantOverride("separation", 8);
         scroll.AddChild(box);
 
@@ -250,10 +251,15 @@ public partial class CoEditorUI : CanvasLayer
         addRow2.AddThemeConstantOverride("separation", 6);
         addRow2.AddChild(MakeLabel("数值键:"));
         addKeyOpt = new OptionButton();
-        addKeyOpt.Editable = true;   // 可自由输入非常用键
         foreach (string k in CommonKeys) addKeyOpt.AddItem(k);
-        addKeyOpt.CustomMinimumSize = new Vector2(170, 28);
+        addKeyOpt.CustomMinimumSize = new Vector2(150, 28);
+        addKeyOpt.ItemSelected += (idx) => { addKeyEdit.Text = CommonKeys[(int)idx]; };
         addRow2.AddChild(addKeyOpt);
+        addKeyEdit = new LineEdit();
+        addKeyEdit.Text = "offBonus";
+        addKeyEdit.CustomMinimumSize = new Vector2(150, 28);
+        addKeyEdit.PlaceholderText = TranslateGroup.T("数值键(可自由输入)");
+        addRow2.AddChild(addKeyEdit);
         addRow2.AddChild(MakeLabel("值:"));
         addValueSpin = MakeSpin(-999, 9999, 10);
         addRow2.AddChild(addValueSpin);
@@ -417,7 +423,7 @@ public partial class CoEditorUI : CanvasLayer
         if (editing == null) { NewCo(); }
         int modId = addModuleOpt.Selected + 1;
         string slot = addSlotOpt.Selected == 1 ? "cop" : addSlotOpt.Selected == 2 ? "scop" : addSlotOpt.Selected == 3 ? "zone" : "d2d";
-        string key = addKeyOpt.Editable && !string.IsNullOrEmpty(addKeyOpt.Text) ? addKeyOpt.Text : CommonKeys[Mathf.Max(0, addKeyOpt.Selected)];
+        string key = string.IsNullOrWhiteSpace(addKeyEdit.Text) ? CommonKeys[Mathf.Max(0, addKeyOpt.Selected)] : addKeyEdit.Text.Trim();
         float value = (float)addValueSpin.Value;
         int turns = (int)addTurnsSpin.Value;
         string duration = addDurationOpt.Selected == 1 ? "permanent" : addDurationOpt.Selected == 2 ? "instant" : "turns";

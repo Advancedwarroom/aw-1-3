@@ -261,16 +261,16 @@ public class CoProfile
     {
         DirAccess.MakeDirRecursiveAbsolute(CustomDir);
         using var f = FileAccess.Open($"{CustomDir}/{id}.json", FileAccess.ModeFlags.Write);
-        if (f == null) return Error.FileWriteError;
+        if (f == null) return Error.Failed;
         f.StoreString(Json.Stringify(ToDict(), "  "));
         return Error.Ok;
     }
 
-    /// <summary>加载头像贴图（支持 res:// 与 user:// 路径；空返回 null）</summary>
+    /// <summary>加载头像贴图（支持 res:// 与 user:// 路径；空/失败返回 null）</summary>
     public ImageTexture GetAvatarTexture()
     {
         if (string.IsNullOrEmpty(avatar)) return null;
-        var tex = ImageTexture.LoadFromFile(avatar);
-        return tex;
+        var img = Image.LoadFromFile(avatar);
+        return img != null ? ImageTexture.CreateFromImage(img) : null;
     }
 }

@@ -14,7 +14,7 @@ public partial class GameManager
 
         // 全屏色调（雨蓝/雪白/沙暴橙/雾灰）
         weatherTint = new ColorRect { MouseFilter = Control.MouseFilterEnum.Ignore };
-        weatherTint.SetAnchorsPreset(Control.Preset.FullRect);
+        weatherTint.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         layer.AddChild(weatherTint);
 
         // 左上角标签（回合标签下方）
