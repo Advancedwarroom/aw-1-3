@@ -127,6 +127,7 @@ public partial class GameManager : Node
     gameEnded = false;
     // ✅ 新对局：重置全局可生成单位白名单（Lab解锁）
     UnitProductionWhitelist.Reset();
+    Lab.ResetGlobalCount();
 
         if (fogOfWarManager == null)
     {

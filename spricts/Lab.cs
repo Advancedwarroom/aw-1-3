@@ -1,20 +1,41 @@
 // Lab.cs - 秘密实验室（Research Laboratory）
 // 原作AW2：占领解锁新型坦克(Neotank)科技。
-// 本作规格：占领后解锁"可生成单位白名单"。
-// 配合 Infantry.isUpdatable（是否更新Export）：
-//   - isUpdatable=false → 与Lab无关，直接可生产
-//   - isUpdatable=true  → 必须被Lab解锁（加入全局白名单）才能生产
-// 编辑模式放置不受限制。
+// 本作规格（实验室模块）：
+//   1. Export 是否开启
+//   2. Export 占领n个该种建筑后新增/减少的全局白名单（1个后、2个后、3个后…无数种组合！）
+//   3. 占领仅限这个建筑新增/减少的单位白名单
+// 配合 Facility.isUpdatable / Infantry.isUpdatable（是否更新Export）：
+//   - isUpdatable=true  → 生产受全局白名单限制（单位必须在白名单中）
+//   - isUpdatable=false → 不受限制
+//   - 编辑模式放置、单位使用均不受影响——仅限制生产
 using Godot;
 using System.Linq;
 
 public partial class Lab : Facility
 {
-    [ExportGroup("实验室 - 解锁配置")]
-    /// <summary>本Lab占领后解锁的可生成单位白名单（单位名/TemplateId）</summary>
+    [ExportGroup("实验室模块")]
+    /// <summary>1. 是否开启实验室模块</summary>
+    [Export] public bool labEnabled = true;
+
+    // ========== 2. 分层占领解锁：占领n个后新增/减少的全局白名单 ==========
+    [ExportGroup("实验室 - 分层占领解锁（占领n个后）")]
+    /// <summary>占领数量分层（如 [1, 2, 3] 表示占领1个/2个/3个后各触发一层）</summary>
+    [Export] public Godot.Collections.Array<int> tieredCaptureCounts = new();
+    /// <summary>各层新增的单位（逗号分隔，与tieredCaptureCounts平行。如 ["Neotank,Megatank", "Stealth", "BlackBomb"]）</summary>
+    [Export] public Godot.Collections.Array<string> tieredAddUnitStrings = new();
+    /// <summary>各层减少（移除）的单位（逗号分隔，与tieredCaptureCounts平行。如 ["", "OldTank", ""]）</summary>
+    [Export] public Godot.Collections.Array<string> tieredRemoveUnitStrings = new();
+
+    // ========== 3. 占领仅限这个建筑新增/减少的单位白名单 ==========
+    [ExportGroup("实验室 - 本建筑专属白名单")]
+    /// <summary>占领本Lab后新增（解锁）的单位</summary>
     [Export] public Godot.Collections.Array<string> labUnitWhitelist = new();
-    /// <summary>是否在占领时解锁（默认开启）</summary>
-    [Export] public bool unlockOnCapture = true;
+    /// <summary>占领本Lab后减少（移除）的单位</summary>
+    [Export] public Godot.Collections.Array<string> labUnitBlacklist = new();
+
+    // ========== 运行时 ==========
+    /// <summary>全局已占领Lab总数（用于分层判定）</summary>
+    public static int TotalLabsCaptured = 0;
 
     protected override (string neutral, string red, string blue)? GetTeamAnimNames()
         => ("P0Lab", "labteam1", "labteam2");
@@ -24,19 +45,84 @@ public partial class Lab : Facility
         base._Ready();
     }
 
-    /// <summary>占领后解锁白名单单位</summary>
+    /// <summary>占领后：递增全局计数 + 应用分层规则 + 应用本Lab专属白名单</summary>
     public override void OnCaptureCompleted(Infantry unit)
     {
         base.OnCaptureCompleted(unit);
-        if (unlockOnCapture)
-            UnlockLabUnits();
+        if (!labEnabled) return;
+
+        // ✅ 递增全局Lab占领计数
+        TotalLabsCaptured++;
+
+        // ✅ 2. 应用分层占领规则（当前计数对应的层）
+        ApplyTieredRules(TotalLabsCaptured);
+
+        // ✅ 3. 应用本Lab专属白名单（新增/减少）
+        ApplyPerLabWhitelist();
     }
 
-    /// <summary>✅ 解锁本Lab的白名单单位（加入全局可生成单位白名单）</summary>
-    public void UnlockLabUnits()
+    /// <summary>✅ 分层规则：占领 capturedCount 个后，新增/减少对应全局白名单</summary>
+    private void ApplyTieredRules(int capturedCount)
     {
-        if (labUnitWhitelist == null || labUnitWhitelist.Count == 0) return;
-        UnitProductionWhitelist.UnlockUnits(labUnitWhitelist.ToList());
-        GD.Print($"[Lab] 解锁单位: {string.Join(\", \", labUnitWhitelist)}");
+        if (tieredCaptureCounts == null) return;
+        for (int i = 0; i < tieredCaptureCounts.Count; i++)
+        {
+            if (tieredCaptureCounts[i] != capturedCount) continue;
+
+            // 新增
+            if (i < tieredAddUnitStrings.Count)
+            {
+                var add = ParseUnitList(tieredAddUnitStrings[i]);
+                if (add.Count > 0)
+                {
+                    UnitProductionWhitelist.UnlockUnits(add);
+                    GD.Print($"[Lab] 占领{capturedCount}个后 解锁: {string.Join(", ", add)}");
+                }
+            }
+            // 减少
+            if (i < tieredRemoveUnitStrings.Count)
+            {
+                var remove = ParseUnitList(tieredRemoveUnitStrings[i]);
+                if (remove.Count > 0)
+                {
+                    UnitProductionWhitelist.LockUnits(remove);
+                    GD.Print($"[Lab] 占领{capturedCount}个后 移除: {string.Join(", ", remove)}");
+                }
+            }
+        }
+    }
+
+    /// <summary>✅ 本Lab专属白名单：占领后新增/减少</summary>
+    private void ApplyPerLabWhitelist()
+    {
+        if (labUnitWhitelist != null && labUnitWhitelist.Count > 0)
+        {
+            UnitProductionWhitelist.UnlockUnits(labUnitWhitelist.ToList());
+            GD.Print($"[Lab] 本Lab解锁: {string.Join(", ", labUnitWhitelist)}");
+        }
+        if (labUnitBlacklist != null && labUnitBlacklist.Count > 0)
+        {
+            UnitProductionWhitelist.LockUnits(labUnitBlacklist.ToList());
+            GD.Print($"[Lab] 本Lab移除: {string.Join(", ", labUnitBlacklist)}");
+        }
+    }
+
+    /// <summary>解析逗号分隔的单位名列表</summary>
+    private static System.Collections.Generic.List<string> ParseUnitList(string csv)
+    {
+        var result = new System.Collections.Generic.List<string>();
+        if (string.IsNullOrEmpty(csv)) return result;
+        foreach (var s in csv.Split(','))
+        {
+            var t = s.Trim();
+            if (!string.IsNullOrEmpty(t)) result.Add(t);
+        }
+        return result;
+    }
+
+    /// <summary>重置全局Lab计数（新对局）</summary>
+    public static void ResetGlobalCount()
+    {
+        TotalLabsCaptured = 0;
     }
 }

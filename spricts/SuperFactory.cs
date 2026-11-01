@@ -25,6 +25,8 @@ public partial class SuperFactory : Weapon
     [Export] public Godot.Collections.Array<string> producibleUnitNames = new();  // 生产列表（空=全列表）
 
     [ExportGroup("超级兵工厂 - 双生产菜单（自创模式：是否新玩法）")]
+    /// <summary>✅ 是否更新：填"是"则本建筑的生产受全局"可生成单位白名单"限制（需Lab解锁）。</summary>
+    [Export] public bool isUpdatable = true;
     [Export] public bool dualProductionMode = false;           // 是否新玩法：开启后即时/待机两种生产
     [Export] public float instantCostMultiplier = 1.2f;       // 即时单位资金倍率（生产出来就能动）
     [Export] public float standbyCostMultiplier = 0.8f;       // 待机单位资金倍率（正常生产，下回合才能动）
@@ -379,8 +381,8 @@ public partial class SuperFactory : Weapon
         if (!UnitProductionDatabase.HasUnit(unitName)) return TranslateGroup.T("未知单位");
         var info = UnitProductionDatabase.GetInfo(unitName);
 
-        // ✅ Lab白名单：isUpdatable=true 的单位必须在全局可生成白名单中（编辑模式放置不受限）
-        if (!UnitProductionWhitelist.CanProduceUnit(unitName))
+        // ✅ Lab白名单：仅当本建筑isUpdatable=true时，生产受全局白名单限制
+        if (isUpdatable && !UnitProductionWhitelist.CanProduce(unitName))
             return TranslateGroup.T("该单位需先占领实验室解锁");
 
         // ✅ 待机上限：规格"0.8倍资金生产待机单位（最大三个）"

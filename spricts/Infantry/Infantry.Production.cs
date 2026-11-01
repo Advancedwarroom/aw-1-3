@@ -20,9 +20,9 @@ using System.Linq;
 public partial class Infantry
 {
     [ExportGroup("生产模块")]
-    /// <summary>✅ 是否更新：填"是"则该单位的生产受全局"可生成单位白名单"限制（需Lab解锁）。
-    /// 填"否"则与Lab无关（不受白名单限制）。编辑模式放置不受限制。</summary>
-    [Export] public bool isUpdatable = false;
+    /// <summary>✅ 是否更新：填"是"则本[单位]的生产受全局"可生成单位白名单"限制（需Lab解锁）。
+    /// 填"否"则与Lab无关。仅限制生产——编辑模式放置、单位使用不受影响。</summary>
+    [Export] public bool isUpdatable = true;
     [Export] public bool canProduceUnits = false;                                   // ① 是否可生产
     [Export(PropertyHint.Enum, "关闭,内部,外部,可选内外")] public int productionLocationMode = 0;  // ② 生产位置
     [Export] public int productionMinRange = 1;                                     // ③ 外部生产最小范围
@@ -86,8 +86,8 @@ public partial class Infantry
         var info = UnitProductionDatabase.GetInfo(unitId);
         if (string.IsNullOrEmpty(info.ScenePath)) return false;
 
-        // ✅ Lab白名单：isUpdatable=true 的单位必须在全局可生成白名单中（编辑模式放置不受限）
-        if (!UnitProductionWhitelist.CanProduceUnit(unitId)) return false;
+        // ✅ Lab白名单：仅当本[生产者]isUpdatable=true时，生产受全局白名单限制
+        if (isUpdatable && !UnitProductionWhitelist.CanProduce(unitId)) return false;
 
         if (!productionFree && !TryConsumeAmmo(AmmoKind.Production)) return false;  // 开工消耗 1 发生产弹药（无消耗模式跳过）
 

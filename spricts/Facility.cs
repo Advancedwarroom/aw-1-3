@@ -80,6 +80,10 @@ public partial class Facility : Node2D
     }
 
     [ExportGroup("设施基础")]
+    /// <summary>✅ 是否更新：填"是"则本建筑的生产受全局"可生成单位白名单"限制（需Lab解锁）。
+    /// 填"否"则与Lab无关（不受白名单限制）。原作所有建筑模板默认"是"(true)。
+    /// 编辑模式放置、单位使用均不受影响——仅限制本建筑的【生产】。</summary>
+    [Export] public bool isUpdatable = true;
     [Export] public string facilityTeam = "";
     [Export] public int capturePointsRequired = 20;
     [Export] public int healMode = 0;
