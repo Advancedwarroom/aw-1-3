@@ -61,7 +61,7 @@ public partial class GridManager
                     int moveCost = infantry.GetMoveCostOnGrid(neighbor);   // ✅ 与实际移动一致（含港口靠泊等设施覆盖）
                     if (moveCost >= 999 || moveCost == int.MaxValue) continue;
 
-                    if (infantry is not Oozium && neighbor.weapon != null)
+                    if (infantry is not Oozium && neighbor.weapon != null && !neighbor.weapon.AllowsPassage(infantry))
                         continue;
 
                     int newCost = accCost + moveCost;
@@ -154,7 +154,7 @@ public partial class GridManager
                 if (g.infantries.Any(u => Infantry.IsTruncationBlocker(selectedUnit, u)
                         && Infantry.IsVisibleTo(u, selectedUnit.team, grids)))
                     blocked = true; // 敌方单位阻挡（✅ 隐身中看不见的不参与预览截断，防暴露；实际移动仍会被截断）
-                else if (selectedUnit is not Oozium && g.weapon != null)
+                else if (selectedUnit is not Oozium && g.weapon != null && !g.weapon.AllowsPassage(selectedUnit))
                     blocked = true; // 兵器阻挡
                 else
                 {
@@ -386,7 +386,7 @@ public partial class GridManager
                 if (best.TryGetValue(neighbor, out int old) && newCost >= old) continue;
                 if (newCost > maxMove) continue;
 
-                if (infantry is not Oozium && neighbor.weapon != null)
+                if (infantry is not Oozium && neighbor.weapon != null && !neighbor.weapon.AllowsPassage(infantry))
                     continue;
 
                 // ✅ 可见格子或迷雾关闭时：敌方单位所在格子不加入移动范围（仅NonOverlapping）

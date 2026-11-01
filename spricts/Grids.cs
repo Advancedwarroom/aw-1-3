@@ -10,6 +10,9 @@ public enum GridType
 	REEF, WHIRLPOOL, LAVASIDE, SEAFOG, LANDFOG, WATERFALL, CLIFF, SLOPE, CAVE, HOLE,
 	PIPESEAM, TRACK, STATION, BRIDGE, LAVABRIDGE, PASSABLEPIPE, SHIPGATE, OVERPASS,
 	BROKENPIPE, RUINS, BROKENTRACK, LAVAFOG,
+	PLASMA,  // 等离子（DoR：完全不可通行；陨石被毁→相连等离子消失）
+	CREEPER, // 蔓生藤蔓（DoR Creeper：不可通行装饰地形）
+	GATE,    // 门（Gate模块配套地形；通行由Gate兵器白名单控制）
 }
 
 public enum GridVisionMode { None, TowerCone, TowerRay }
@@ -705,6 +708,8 @@ public partial class Grids : Node2D
             GridType.ROAD => "Road",
             GridType.BRIDGE => "Bridge",
             GridType.RIVER => "River",
+            GridType.PLASMA => "Plasma",   // ✅ 等离子：多方向变体（复用CW素材）
+            GridType.CREEPER => "Creeper", // ✅ 蔓生藤蔓：多方向变体（复用CW素材）
             _ => null
         };
         if (prefix == null) return null;

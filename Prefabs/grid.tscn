@@ -20,6 +20,12 @@
 [ext_resource type="Texture2D" uid="uid://bbykd0k0j8tge" path="res://art/Grids/地形/BRIDGE.png" id="16_nquop"]
 [ext_resource type="Texture2D" uid="uid://0hq17p5572l4" path="res://art/Grids/地形/BrokenPipeSeam.png" id="16_p0itk"]
 
+[ext_resource type="Texture2D" uid="uid://n4pngel4x5rgs" path="res://art/Grids/地形/Meteor_0.png" id="30_meteor"]
+[ext_resource type="Texture2D" uid="uid://2y4h4p96v3baa" path="res://art/Grids/地形/Ruin.png" id="31_ruin"]
+[ext_resource type="Texture2D" uid="uid://1is84ohecbydx" path="res://art/Grids/地形/Plasma_0.png" id="33_plasma"]
+[ext_resource type="Texture2D" uid="uid://0hw8jhcun15h8" path="res://art/Grids/地形/Creeper_0.png" id="34_creeper"]
+[ext_resource type="Texture2D" uid="uid://sezr2z0sv4mi2" path="res://art/Gate/Gate_NS.png" id="35_gate"]
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0ha60"]
 size = Vector2(32, 32)
 
@@ -40,7 +46,12 @@ terrainIconTextures = Dictionary[int, Texture2D]({
 13: ExtResource("15_x3au7"),
 21: ExtResource("14_00fs3"),
 24: ExtResource("16_nquop"),
-29: ExtResource("16_p0itk")
+29: ExtResource("16_p0itk"),
+6: ExtResource("30_meteor"),
+30: ExtResource("31_ruin"),
+33: ExtResource("33_plasma"),
+34: ExtResource("34_creeper"),
+35: ExtResource("35_gate")
 })
 
 [node name="GridArea" type="Area2D" parent="." unique_id=1570731547]

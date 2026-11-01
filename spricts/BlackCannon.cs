@@ -213,7 +213,7 @@ public override void _Ready()
         UpdateDirectionVisual();
     }
 
-    protected virtual string GetAnimName()
+    public override string GetAnimName()
     {
         string teamPrefix = "cannon" + TeamHelper.ArtSuffix(team);
         string dirSuffix = direction switch

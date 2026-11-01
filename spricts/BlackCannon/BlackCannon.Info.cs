@@ -9,7 +9,7 @@ public partial class BlackCannon
 {
 
     // ========== ✅ 新增：获取黑炮完整信息（用于信息面板） ==========
-    public virtual string GetBlackCannonFullInfo()
+    public override string GetBlackCannonFullInfo()
     {
         string info = "";
 

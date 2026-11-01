@@ -170,6 +170,12 @@ public partial class WeaponManager : Node
         // 对齐位置到格子中心（锚点）
         weapon.Position = targetGrid.Position;
 
+        // ✅ 门模块：放置/绑定后把占据格地形刷成 GATE（配合白名单通行；摧毁时恢复 GROUND）
+        if (weapon is Gate gate && !gate.isDestroyed)
+        {
+            gate.ApplyGateTerrain();
+        }
+
         return true;
     }
 

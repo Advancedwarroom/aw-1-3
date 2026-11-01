@@ -130,6 +130,15 @@ public partial class Weapon : Node2D
         return occupiedGrids.Contains(checkGrid);
     }
 
+    /// <summary>
+    /// ✅ 通行判定：该兵器是否允许 mover 通过其占据的格子
+    /// 默认 false（兵器阻挡一切移动，原行为）；导弹井/Gate等子类按需覆盖
+    /// </summary>
+    public virtual bool AllowsPassage(Infantry mover)
+    {
+        return false;
+    }
+
     public virtual void OnMultiTileDestroyed()
     {
         isDestroyed = true;
@@ -146,6 +155,7 @@ public partial class Weapon : Node2D
     }
 
     public virtual string GetBrokenAnimName() { return ""; }
+    // GetIdleAnimName 虚方法已由上游 6ae660d 补齐（返回 GetType().Name）
 
     public virtual void UpdateMultiTileVisual()
     {
@@ -412,17 +422,69 @@ public partial class Weapon : Node2D
         }
         if (health <= 0)
         {
-            if (grid != null && (grid.gridType == GridType.PIPESEAM || grid.gridType == GridType.METEORITE))
+            if (grid != null && grid.gridType == GridType.PIPESEAM)
             {
-                string terrainName = grid.gridType == GridType.PIPESEAM ? "PIPESEAM" : "METEORITE";
                 targetGrid.gridType = GridType.BROKENPIPE;
                 var sprite = targetGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
                 if (sprite != null) { var tween = CreateTween(); tween.TweenProperty(sprite, "modulate", new Color(0.3f, 0.3f, 0.3f), 0.5f); }
+            }
+            else if (grid != null && grid.gridType == GridType.METEORITE)
+            {
+                // ✅ 陨石被毁：原格恢复平原 + 相连等离子全部消失（DoR原作机制）
+                RemoveConnectedPlasma();
+                targetGrid.gridType = GridType.GROUND;
             }
             var area = GetNodeOrNull<Area2D>("Area2D");
             if (area != null) area.SetDeferred("input_pickable", false);
             if (gm?.selectedWeapon == this) gm.selectedWeapon = null;
             CallDeferred(nameof(OnDestroyed));
+        }
+    }
+
+    /// <summary>
+    /// ✅ 陨石被毁时：从本格出发BFS清除所有相连的等离子地形（变平原）
+    /// DoR原作：击毁陨石后与其相连的等离子全部消失，原格恢复平原/海
+    /// </summary>
+    protected void RemoveConnectedPlasma()
+    {
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var gridMgr = gm?.gridManager;
+        if (gridMgr?.map == null || grid == null) return;
+
+        var queue = new System.Collections.Generic.Queue<Grids>();
+        var visited = new System.Collections.Generic.HashSet<Grids>();
+        queue.Enqueue(grid);
+        visited.Add(grid);
+        int removed = 0;
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            foreach (var neighbor in gridMgr.GetNeighbours(current))
+            {
+                if (neighbor == null || visited.Contains(neighbor)) continue;
+                if (neighbor.gridType != GridType.PLASMA) continue;
+                visited.Add(neighbor);
+                queue.Enqueue(neighbor);
+
+                // ✅ 等离子消失：变平原 + 清理占据兵器引用 + 刷新贴图
+                neighbor.gridType = GridType.GROUND;
+                var neighborWeapons = neighbor.weapons;
+                foreach (var w in neighborWeapons.ToArray())
+                {
+                    if (w == null || !IsInstanceValid(w)) continue;
+                    neighborWeapons.Remove(w);
+                    if (neighbor.weapon == w) neighbor.weapon = neighborWeapons.Count > 0 ? neighborWeapons[0] : null;
+                }
+                neighbor.UpdateTerrainIcon();
+                removed++;
+            }
+        }
+
+        if (removed > 0)
+        {
+            // ✅ 多方向地形：等离子消失后刷新全图方向位掩码
+            gridMgr.RefreshAllTerrainDirections();
         }
     }
 
@@ -432,7 +494,7 @@ public partial class Weapon : Node2D
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         gm?.gridManager?.ClearWeaponRange();
         Grids.IsForceActionMode = false;
-        if (grid != null && (grid.gridType == GridType.PIPESEAM || grid.gridType == GridType.METEORITE))
+        if (grid != null && grid.gridType == GridType.PIPESEAM)
         {
             var targetGrid = grid;
             targetGrid.weapons.Remove(this);
@@ -440,6 +502,16 @@ public partial class Weapon : Node2D
             targetGrid.gridType = GridType.BROKENPIPE;
             if (targetGrid.city != null)
                 targetGrid.city.healAmount = 0; targetGrid.city.flareAmmoSupply = 0; targetGrid.city.explodeAmmoSupply = 0; targetGrid.city.primaryAmmoSupply = 0; targetGrid.city.fuelSupply = 0;
+            var sprite = targetGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
+            if (sprite != null) { var tween = CreateTween(); tween.TweenProperty(sprite, "modulate", new Color(0.4f, 0.7f, 0.3f), 0.5f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut); }
+        }
+        else if (grid != null && grid.gridType == GridType.METEORITE)
+        {
+            // ✅ 陨石被毁：原格恢复平原 + 相连等离子全部消失（DoR原作机制）
+            var targetGrid = grid;
+            targetGrid.weapons.Remove(this);
+            if (targetGrid.weapon == this) targetGrid.weapon = targetGrid.weapons.Count > 0 ? targetGrid.weapons[0] : null;
+            targetGrid.gridType = GridType.GROUND;
             var sprite = targetGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
             if (sprite != null) { var tween = CreateTween(); tween.TweenProperty(sprite, "modulate", new Color(0.4f, 0.7f, 0.3f), 0.5f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut); }
         }

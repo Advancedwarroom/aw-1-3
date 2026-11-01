@@ -35,7 +35,7 @@ public partial class GrandBolt : Weapon
 
     // ========== 3. 弱点系统（3个，不同行）==========
     [ExportGroup("弱点系统")]
-    [Export] public Vector2I[] weakPointOffsets = new Vector2I[] {
+    [Export] public Godot.Collections.Array<Vector2I> weakPointOffsets = new Godot.Collections.Array<Vector2I> {
         new Vector2I(4, 2),    // 左弱点
         new Vector2I(9, 1),   // 中弱点
         new Vector2I(14, 2),  // 右弱点
@@ -50,7 +50,7 @@ public partial class GrandBolt : Weapon
     [Export] public bool weakPointsShieldedByCrystals = false;        // 3.5原作机制：弱点由护盾源保护
     [Export] public string crystalTypeName = "Crystal";                  // 3.5护盾源类型名（默认黑水晶，可换任意兵器）
     [Export] public int[] shieldWeakPointIndices = new int[0];           // 3.5绑定表：每条绑定一项=被保护弱点序号（一弱点多源/一源多弱点均可）
-    [Export] public Vector2I[] shieldSourceOffsets = new Vector2I[0];// 3.5与上一数组同序：护盾源格（相对锚点格）
+    [Export] public Godot.Collections.Array<Vector2I> shieldSourceOffsets = new Godot.Collections.Array<Vector2I>();// 3.5与上一数组同序：护盾源格（相对锚点格）
 
     // ========== 4. 中心大弱点（困兽犹斗模式）==========
     [ExportGroup("困兽犹斗（中心大弱点）")]
@@ -101,7 +101,7 @@ public partial class GrandBolt : Weapon
         // 初始化弱点血量
         weakPointHealths.Clear();
         weakPointDestroyed.Clear();
-        for (int i = 0; i < weakPointOffsets.Length; i++)
+        for (int i = 0; i < weakPointOffsets.Count; i++)
         {
             weakPointHealths.Add(weakPointMaxHealth);
             weakPointDestroyed.Add(false);
@@ -148,7 +148,7 @@ public partial class GrandBolt : Weapon
         if (gm?.gridManager?.map == null) return result;
         var anchorIndex = grid?.GridIndex ?? new Vector2I(0, 0);
 
-        for (int i = 0; i < weakPointOffsets.Length; i++)
+        for (int i = 0; i < weakPointOffsets.Count; i++)
         {
             if (weakPointDestroyed.Count > i && weakPointDestroyed[i]) continue; // 已摧毁的不再可攻击
             var wpIndex = anchorIndex + weakPointOffsets[i];
@@ -205,7 +205,7 @@ public partial class GrandBolt : Weapon
         if (gm?.gridManager?.map == null || grid == null) return false;
         var map = gm.gridManager.map;
         var anchor = grid.GridIndex;
-        int n = Mathf.Min(shieldWeakPointIndices.Length, shieldSourceOffsets.Length);
+        int n = Mathf.Min(shieldWeakPointIndices.Length, shieldSourceOffsets.Count);
         for (int k = 0; k < n; k++)
         {
             if (shieldWeakPointIndices[k] != weakPointIndex) continue;
@@ -227,7 +227,7 @@ public partial class GrandBolt : Weapon
     private void OnWeakPointDestroyed(int index)
     {
         // ✅ 弱点被摧毁后不能生产单位（仅困兽犹斗的Oozium生产不受影响）
-        if (destroyedWeakPointCount >= weakPointOffsets.Length)
+        if (destroyedWeakPointCount >= weakPointOffsets.Count)
         {
             // 全部弱点被摧毁
             if (enterDesperateOnAllDestroyed && desperateModeEnabled)

@@ -424,4 +424,10 @@ public partial class MissileSilo : Weapon
         string ammo = oneTimeUse ? TranslateGroup.T("一次性") : $"{currentAmmo}/{maxAmmo}";
         return $"{TranslateGroup.T("导弹发射井")} [{state}] {TranslateGroup.T("弹药")}:{ammo}";
     }
+
+    // ✅ 导弹井可通行（单位站上发射）：通行判定接口（原各处 is not MissileSilo 特判的统一收口）
+    public override bool AllowsPassage(Infantry mover)
+    {
+        return true;
+    }
 }

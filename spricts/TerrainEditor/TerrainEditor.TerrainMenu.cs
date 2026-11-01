@@ -286,6 +286,9 @@ private void CloseTerrainMenu()
             GridType.RUINS => TranslateGroup.T("🏚️ 废墟"),
             GridType.BROKENTRACK => TranslateGroup.T("💥🛤️ 破碎铁路"),
             GridType.LAVAFOG => TranslateGroup.T("🌋🌫️ 岩浆迷雾"),
+            GridType.PLASMA => TranslateGroup.T("💠 等离子"),
+            GridType.CREEPER => TranslateGroup.T("🌿 蔓生藤蔓"),
+            GridType.GATE => TranslateGroup.T("🚪 门(兵器设施)"),
             _ => type.ToString()
         };
     }
@@ -305,6 +308,9 @@ private void CloseTerrainMenu()
             GridType.LAVABRIDGE => 0.0f, GridType.PASSABLEPIPE => 0.10f, GridType.SHIPGATE => 0.10f,
             GridType.OVERPASS => 0.30f, GridType.BROKENPIPE => 0.20f, GridType.RUINS => 0.30f,
             GridType.BROKENTRACK => 0.20f, GridType.LAVAFOG => 0.50f,
+            GridType.PLASMA => 0.0f,   // 等离子：无地形星
+            GridType.CREEPER => 0.0f,  // 蔓生藤蔓：无地形星
+            GridType.GATE => 0.10f,    // 门：1星（同船闸）
             _ => 0.0f
         };
         return bonus > 0 ? $"[防御{bonus * 100:F0}%]" : TranslateGroup.T("[无防御]");

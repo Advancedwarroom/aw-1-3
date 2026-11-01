@@ -56,6 +56,12 @@ public partial class TerrainEditor
             tempWeapon.isMultiTile = true;
             tempWeapon.size = bo.multiTileSize;
         }
+        // ✅ 门模块：gateSize 宽×高全自由度（1×1 单格门直接生成；>1 走多格预览）
+        if (tempWeapon is Gate gt && !tempWeapon.isMultiTile && gt.gateSize.X * gt.gateSize.Y > 1)
+        {
+            tempWeapon.isMultiTile = true;
+            tempWeapon.size = gt.gateSize;
+        }
 
         // 如果不是多格兵器，直接生成（不走预览流程）
         if (!tempWeapon.isMultiTile)

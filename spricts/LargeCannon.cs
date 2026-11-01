@@ -260,7 +260,7 @@ public partial class LargeCannon : BlackCannon
     }
 
     // ✅ 覆盖动画名称：匹配 LargeCannon.tres 中的动画命名
-    protected override string GetAnimName()
+    public override string GetAnimName()
     {
         string dirSuffix = direction switch
         {

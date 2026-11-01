@@ -523,7 +523,7 @@ public partial class DeathRay : BlackCannon
         return $"Broken{dirSuffix}";
     }
 
-    protected override string GetAnimName()
+    public override string GetAnimName()
     {
         string dirSuffix = direction switch
         {

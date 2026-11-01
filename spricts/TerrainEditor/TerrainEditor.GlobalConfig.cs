@@ -197,6 +197,9 @@ private readonly List<UnitTemplate> weaponTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("🏭 超级兵工厂"), ScenePath = "res://Prefabs/SuperFactory.tscn", 
         Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.6f, 0.5f, 0.4f), 
         Description = TranslateGroup.T("AW2原作Black Hole Factory：3×4多格12格；三生产口免费即刻生产（每回合3个）；免疫一切伤害，摧毁联动管道接缝使其瘫痪变中立；Rig可建中转口接管；缴获红利3个免费即刻单位；可旋转90/180/270（带碰撞检查）") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🚪 门 Gate"), ScenePath = "res://Prefabs/Gate.tscn", 
+        Category = TranslateGroup.T("兵器"), Team = "Player1", DisplayColor = new Color(0.6f, 0.5f, 0.3f), 
+        Description = TranslateGroup.T("门模块（CW素材）：1.是否开启 2.所属势力 3.血量999 4.白名单（友/敌/全）+gateSize宽×高全自由度；血量耗尽前只有白名单能通过，耗尽后残骸敞开全通行，占据格地形恢复平原") },
 };
 
 private readonly List<UnitTemplate> facilityTemplates = new()
@@ -938,7 +941,9 @@ private void RefreshAllUnitVision()
         GridType.PIPESEAM, GridType.TRACK, GridType.STATION,
         GridType.BRIDGE, GridType.LAVABRIDGE, GridType.PASSABLEPIPE,
         GridType.SHIPGATE, GridType.OVERPASS, GridType.BROKENPIPE,
-        GridType.RUINS, GridType.BROKENTRACK, GridType.LAVAFOG
+        GridType.RUINS, GridType.BROKENTRACK, GridType.LAVAFOG,
+        // ✅ DoR新增：等离子/蔓生藤蔓/门（陨石毁→相连等离子消失；Gate门模块白名单通行）
+        GridType.PLASMA, GridType.CREEPER, GridType.GATE
     };
 
     private readonly Dictionary<GridType, Color> terrainColors = new()
@@ -975,6 +980,9 @@ private void RefreshAllUnitVision()
         { GridType.BROKENPIPE, new Color(0.3f, 0.3f, 0.3f) },
         { GridType.RUINS, new Color(0.4f, 0.35f, 0.3f) },
         { GridType.BROKENTRACK, new Color(0.3f, 0.3f, 0.25f) },
-        { GridType.LAVAFOG, new Color(0.7f, 0.2f, 0.1f) }
+        { GridType.LAVAFOG, new Color(0.7f, 0.2f, 0.1f) },
+        { GridType.PLASMA, new Color(0.3f, 0.8f, 0.9f) },   // 等离子：青色
+        { GridType.CREEPER, new Color(0.2f, 0.5f, 0.2f) },   // 蔓生藤蔓：深绿
+        { GridType.GATE, new Color(0.6f, 0.5f, 0.3f) }      // 门：木色
     };
 }

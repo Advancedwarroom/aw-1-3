@@ -421,7 +421,7 @@ public partial class BlackObelisk : BlackCannon
     }
 
     // ✅ 覆盖动画名称：匹配 BlackObelisk.tres 中的动画命名
-    protected override string GetAnimName()
+    public override string GetAnimName()
     {
         return "BlackObelisk";
     }

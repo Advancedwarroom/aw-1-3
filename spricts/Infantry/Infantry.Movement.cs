@@ -125,6 +125,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.PIPE => 999,
             GridType.LAVA => 999,
             GridType.PIPESEAM => 999,  
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 2,
             GridType.STATION => 1,
@@ -166,6 +169,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.PIPE => 999,
             GridType.LAVA => 999,
             GridType.PIPESEAM => 999, 
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 1,
             GridType.STATION => 1,
@@ -207,6 +213,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.METEORITE => 999,
             GridType.PIPE => 999,
             GridType.PIPESEAM => 999,  // Oozium不能通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 1,
             GridType.STATION => 1,
@@ -248,6 +257,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.PIPE => 999,
             GridType.LAVA => 999,
             GridType.PIPESEAM => 999,  // 履带不能通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 2,
             GridType.STATION => 1,
@@ -289,6 +301,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.PIPE => 999,
             GridType.LAVA => 999,
             GridType.PIPESEAM => 999, 
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 3,
             GridType.STATION => 2,
@@ -315,6 +330,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.CAVE => 1,
             GridType.HOLE => 1,
             GridType.PIPESEAM => 999, 
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             GridType.GROUND => 999,
             GridType.FOREST => 999,
 
@@ -371,6 +389,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.METEORITE => 999,
             GridType.PIPE => 999,
             GridType.PIPESEAM => 999,  // 战机不能通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 1,
             GridType.STATION => 1,
@@ -412,6 +433,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.METEORITE => 999,
             GridType.PIPE => 999,
             GridType.PIPESEAM => 999,  // 飞艇不能通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 1,
             GridType.STATION => 1,
@@ -453,6 +477,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.METEORITE => 999,
             GridType.PIPE => 999,
             GridType.PIPESEAM => 999,  // 无人机不能通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 1,
             GridType.STATION => 1,
@@ -494,6 +521,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.METEORITE => 999,
             GridType.PIPE => 999,
             GridType.PIPESEAM => 999,  
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             GridType.TRACK => 1,
             GridType.STATION => 1,
             GridType.BRIDGE => 1,
@@ -534,6 +564,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.METEORITE => 999,
             GridType.PIPE => 999,
             GridType.PIPESEAM => 999,  // 直升机不能通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 1,
             GridType.STATION => 1,
@@ -575,6 +608,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.METEORITE => 1,
             GridType.PIPE => 1,
             GridType.PIPESEAM => 1,    // 战舰可通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 1,
             GridType.STATION => 1,
@@ -608,6 +644,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.CAVE => 1,
             GridType.HOLE => 1,
             GridType.PIPESEAM => 999,  // 气垫不能通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             GridType.GROUND => 999,
             GridType.FOREST => 999,
 
@@ -636,6 +675,9 @@ public virtual int GetMoveCost(GridType gridType)
         {
             GridType.PIPE => 1,
             GridType.PIPESEAM => 1,    // 管道行者可通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             GridType.TP => 0,
             GridType.GROUND => 999,
             GridType.FOREST => 999,
@@ -681,6 +723,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.SHIPGATE => 2,
             GridType.OVERPASS => 2,
             GridType.PIPESEAM => 999,  // 岩浆行者不能通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // 新增地形
             GridType.TRACK => 999,
             GridType.STATION => 999,
@@ -704,6 +749,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.OVERPASS => 1,
             GridType.LAVAFOG => 3,
             GridType.PIPESEAM => 999,  // 岩浆登陆者不能通过管道接缝
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             _ => 999
         },
 
@@ -766,6 +814,9 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.METEORITE => 5,
             GridType.PIPE => 5,
             GridType.PIPESEAM => 5,
+            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
+            GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             GridType.TRACK => 1,
             GridType.STATION => 1,
             GridType.BRIDGE => 1,

@@ -289,7 +289,7 @@ public bool CanMoveTo(Vector2I gridPos, Infantry unit)
     }
 
     // ✅ 兵器阻挡（非Oozium不能通过兵器格子）
-    if (unit is not Oozium && grid.weapon != null)
+    if (unit is not Oozium && grid.weapon != null && !grid.weapon.AllowsPassage(unit))
         return false;
     
     // ✅ 友方单位不阻挡路径，敌方单位阻挡在GridManager.CalculateMoveRangeGeneric中处理
