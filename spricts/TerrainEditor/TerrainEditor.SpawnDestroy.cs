@@ -176,6 +176,21 @@ private void SpawnWeaponAtGrid(Grids grid, string scenePath, string team)
         return;
     }
 
+    // ✅ 旧地图兼容：卫星等步兵系（Infantry）单位曾被收录在兵器段，
+    //    根节点不是 Weapon 时 Instantiate<Weapon> 会失败——自动改走单位层生成
+    try
+    {
+        var probe = scene.Instantiate();
+        bool isInfantryRoot = probe is Infantry;
+        probe.QueueFree();
+        if (isInfantryRoot)
+        {
+            SpawnUnitAtGrid(grid, scenePath, team);
+            return;
+        }
+    }
+    catch (Exception) { /* 探测失败则继续按兵器处理 */ }
+
     try
     {
         // ✅ 无视一切直接放：单位/设施不挡兵器；同种类（兵器）直接覆盖替换

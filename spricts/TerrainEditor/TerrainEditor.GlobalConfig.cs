@@ -160,6 +160,13 @@ private readonly List<UnitTemplate> unitTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("🚢 突击舰"), ScenePath = "res://Prefabs/KamikazeBoat.tscn",
         Category = TranslateGroup.T("海军"), Team = "Player1", DisplayColor = new Color(0.3f, 0.6f, 0.8f),
         Description = TranslateGroup.T("DoR战列舰：25000/移动5/视野3/弹6/射程3-5/可移动后攻击") },
+    // ✅ 太空军卫星（Infantry 系，属单位层；此前误收录在兵器层已修正）
+    new UnitTemplate { DisplayName = TranslateGroup.T("🛰️ 力场卫星 Black Onyx"), ScenePath = "res://Prefabs/ForceSatellite.tscn",
+        Category = TranslateGroup.T("太空军"), Team = "Player1", DisplayColor = new Color(0.6f, 0.3f, 0.9f),
+        Description = TranslateGroup.T("AW3黑玛瑙战斗卫星：宇宙战舰移动方式，无武器，HP270（=导弹伤害30×9，九次击落）；力场支援模块锁血/锁弹/锁油，仅攻击卫星可击伤(55%)") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🛰️ 攻击卫星 The Black Amber"), ScenePath = "res://Prefabs/AttackSatellite.tscn",
+        Category = TranslateGroup.T("太空军"), Team = "Player1", DisplayColor = new Color(0.9f, 0.4f, 0.9f),
+        Description = TranslateGroup.T("攻击卫星 The Black Amber（AW3）：宇宙战舰移动方式，普通弹药打同类65%/力场卫星55%；天基打击模块固定50%伤害") },
 };
 
 private readonly List<UnitTemplate> weaponTemplates = new()
@@ -185,12 +192,6 @@ private readonly List<UnitTemplate> weaponTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("🚀 导弹发射井"), ScenePath = "res://Prefabs/missile_silo.tscn", 
         Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.6f, 0.6f, 0.6f), 
         Description = TranslateGroup.T("AW原作导弹井：单位站上井口发射，5×5菱形3HP伤害；发射台模块15项全配置（势力/可摧毁/弹药/自动恢复/打击效果等）") },
-    new UnitTemplate { DisplayName = TranslateGroup.T("🛰️ 力场卫星 Black Onyx"), ScenePath = "res://Prefabs/ForceSatellite.tscn", 
-        Category = TranslateGroup.T("太空军"), Team = "Player1", DisplayColor = new Color(0.6f, 0.3f, 0.9f), 
-        Description = TranslateGroup.T("AW3黑玛瑙战斗卫星：宇宙战舰移动方式，无武器，HP270（=导弹伤害30×9，九次击落）；力场支援模块锁血/锁弹/锁油，仅攻击卫星可击伤(55%)") },
-    new UnitTemplate { DisplayName = TranslateGroup.T("🛰️ 攻击卫星 The Black Amber"), ScenePath = "res://Prefabs/AttackSatellite.tscn", 
-        Category = TranslateGroup.T("太空军"), Team = "Player1", DisplayColor = new Color(0.9f, 0.4f, 0.9f), 
-        Description = TranslateGroup.T("攻击卫星 The Black Amber（AW3）：宇宙战舰移动方式，普通弹药打同类65%/力场卫星55%；天基打击模块固定50%伤害") },
     new UnitTemplate { DisplayName = TranslateGroup.T("⚙️ 管道接缝"), ScenePath = "res://Prefabs/PipeSeam.tscn", 
         Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.5f, 0.5f, 0.6f), 
         Description = TranslateGroup.T("Black Hole 管道动脉唯一可攻击部位：99HP，防御≈中型坦克（受击×0.45），摧毁后地形变管道废墟；管道构造者可临格修复") },
@@ -200,6 +201,16 @@ private readonly List<UnitTemplate> weaponTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("🚪 门 Gate"), ScenePath = "res://Prefabs/Gate.tscn", 
         Category = TranslateGroup.T("兵器"), Team = "Player1", DisplayColor = new Color(0.6f, 0.5f, 0.3f), 
         Description = TranslateGroup.T("门模块（CW素材）：1.是否开启 2.所属势力 3.血量999 4.白名单（友/敌/全）+gateSize宽×高全自由度；血量耗尽前只有白名单能通过，耗尽后残骸敞开全通行，占据格地形恢复平原") },
+    // ✅ 补录此前未收录的兵器（AW原作特殊兵器）
+    new UnitTemplate { DisplayName = TranslateGroup.T("🌌 黑色弧光 Black Arc"), ScenePath = "res://Prefabs/BlackArc.tscn",
+        Category = TranslateGroup.T("兵器"), Team = "Player1", DisplayColor = new Color(0.35f, 0.3f, 0.45f),
+        Description = TranslateGroup.T("AW原作黑色弧形兵器：可被攻击扣血；拥有天基打击（轨道轰炸）能力，点击兵器弹出天基打击按钮→十字准星瞄准→以目标格为核心的x-y范围扣血；天基打击模块全Export可拼装") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("👻 幽灵炮 Ghost Cannon"), ScenePath = "res://Prefabs/GhostCannon.tscn",
+        Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.5f, 0.55f, 0.65f),
+        Description = TranslateGroup.T("AW2/3原作特殊兵器：只能被防空/反空单位和空军/天空军单位攻击扣血，陆军/海军无法攻击；伤害类别限制模块（Weapon基类可拼装Export）") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("⚡ 巨型雷电 Grand Bolt"), ScenePath = "res://Prefabs/GrandBolt.tscn",
+        Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.75f, 0.35f, 0.75f),
+        Description = TranslateGroup.T("AWDS最终关Von Bolt巨型兵器：约19宽×13高不规则多格，3个弱点（各有冷却回合），摧毁全部弱点=胜利；可Export开关：蠕动（每回合平移1格）/困兽犹斗（弱点全毁后中心大弱点+产Oozium）") },
 };
 
 private readonly List<UnitTemplate> facilityTemplates = new()
@@ -222,6 +233,22 @@ private readonly List<UnitTemplate> facilityTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("⚓ 临时港口"), ScenePath = "res://Prefabs/TempPort.tscn", 
         Category = TranslateGroup.T("设施"), Team = "Player0", DisplayColor = new Color(0.3f, 0.6f, 0.7f), 
         Description = TranslateGroup.T("DoR 工程车搭建（海滩）：可占领、维修补给舰船；不能生产、无收入") },
+    // ✅ 补录此前未收录的设施（HQ/实验室/雷达/通信塔/中转口）
+    new UnitTemplate { DisplayName = TranslateGroup.T("🏳️ 大本营 HQ"), ScenePath = "res://Prefabs/HQ.tscn",
+        Category = TranslateGroup.T("设施"), Team = "Player0", DisplayColor = new Color(0.9f, 0.75f, 0.2f),
+        Description = TranslateGroup.T("总部（Headquarters）：占领敌方HQ即获胜；被占领时原归属队伍直接判负（GameManager.Victory 处理）；Export 可配置改变team则Lose") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🔬 秘密实验室 Lab"), ScenePath = "res://Prefabs/Lab.tscn",
+        Category = TranslateGroup.T("设施"), Team = "Player0", DisplayColor = new Color(0.7f, 0.7f, 0.8f),
+        Description = TranslateGroup.T("AW2原作：占领解锁新型坦克(Neotank)科技；实验室模块Export：是否开启/占领n个后新增或减少全局白名单（1个后、2个后…无数种组合）") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("📡 雷达 Radar"), ScenePath = "res://Prefabs/Radar.tscn",
+        Category = TranslateGroup.T("设施"), Team = "Player0", DisplayColor = new Color(0.5f, 0.75f, 0.6f),
+        Description = TranslateGroup.T("占领后清除迷雾；雷达模块：x-y范围去雾/自动化/强视野/强侦查；照明塔模块：x-y选目标点去雾（如照明弹，无弹药）/是否自动化，全Export可拼装") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🗼 通信塔 Com Tower"), ScenePath = "res://Prefabs/ComTower.tscn",
+        Category = TranslateGroup.T("设施"), Team = "Player0", DisplayColor = new Color(0.8f, 0.6f, 0.75f),
+        Description = TranslateGroup.T("AWDS原作：占领后提升己方单位攻击力；通信塔模块Export：是否开启/占领后对血量、弹药、燃料、攻击力、防御力、移动力的加成减成/是否自动化") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🔌 中转口 Relay Junction"), ScenePath = "res://Prefabs/RelayJunction.tscn",
+        Category = TranslateGroup.T("设施"), Team = "Player0", DisplayColor = new Color(0.55f, 0.5f, 0.6f),
+        Description = TranslateGroup.T("Rig在管道废墟（原接缝位置）临格建造（2回合20进度，期间受攻击扣进度）；完成即绑定最近超级兵工厂→兵工厂归属改为建造方（触发缴获红利）；供能中继站") },
 };
 
 // UI 引用
