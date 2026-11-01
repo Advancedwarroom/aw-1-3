@@ -51,6 +51,11 @@ public partial class TerrainEditor
             tempWeapon.isMultiTile = true;
             tempWeapon.size = dr.multiTileSize;
         }
+        if (tempWeapon is BlackObelisk bo && !tempWeapon.isMultiTile)
+        {
+            tempWeapon.isMultiTile = true;
+            tempWeapon.size = bo.multiTileSize;
+        }
 
         // 如果不是多格兵器，直接生成（不走预览流程）
         if (!tempWeapon.isMultiTile)
@@ -225,6 +230,12 @@ public partial class TerrainEditor
             lc.UpdateDirectionVisual();
             lc.UpdateAmmoVisual();
             lc.UpdateMultiTileVisual();
+        }
+        if (weapon is BlackObelisk bo2)
+        {
+            bo2.direction = BlackCannon.CannonDirection.Up; // 黑尖塔固定朝向
+            bo2.UpdateDirectionVisual();
+            bo2.UpdateMultiTileVisual();
         }
 
         gameManager.UpdateUnitLists();

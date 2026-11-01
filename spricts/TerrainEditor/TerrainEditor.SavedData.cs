@@ -166,6 +166,10 @@ public partial class TerrainEditor
             {
                 dr.multiTileSize = new Vector2I(data.sizeX, data.sizeY);
             }
+            else if (weapon is BlackObelisk bo)
+            {
+                bo.multiTileSize = new Vector2I(data.sizeX, data.sizeY);
+            }
         }
 
         // 设置方向

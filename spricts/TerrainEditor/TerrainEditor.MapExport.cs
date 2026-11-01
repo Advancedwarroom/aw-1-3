@@ -364,6 +364,9 @@ public partial class TerrainEditor
             ["DeathRay"] = "res://Prefabs/death_ray.tscn",
             ["Crystal"] = "res://Prefabs/crystal.tscn",
             ["crystal"] = "res://Prefabs/crystal.tscn",
+            ["black_obelisk"] = "res://Prefabs/black_obelisk.tscn",
+            ["blackobelisk"] = "res://Prefabs/black_obelisk.tscn",
+            ["BlackObelisk"] = "res://Prefabs/black_obelisk.tscn",
         };
         if (awmeNameMap.TryGetValue(typeName, out string explicitPath))
         {

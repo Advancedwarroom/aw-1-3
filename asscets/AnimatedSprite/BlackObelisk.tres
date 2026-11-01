@@ -1,0 +1,27 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://asscets/Weapons/BlackObelisk/BlackObelisk1.png" id="1_obelisk"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/BlackObelisk/BlackObelisk2.png" id="2_obelisk"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/BlackObelisk/BlackObeliskBroken.png" id="3_obelisk"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_obelisk")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_obelisk")
+}],
+"loop": true,
+"name": &"BlackObelisk",
+"speed": 2.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("3_obelisk")
+}],
+"loop": true,
+"name": &"BrokenObelisk",
+"speed": 5.0
+}]

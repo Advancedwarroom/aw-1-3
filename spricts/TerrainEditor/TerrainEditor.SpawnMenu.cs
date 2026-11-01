@@ -674,6 +674,11 @@ private void CloseSpawnMenu()
                             temp.isMultiTile = true;
                             temp.size = dr.multiTileSize;
                         }
+                        else if (temp is BlackObelisk bo && !temp.isMultiTile)
+                        {
+                            temp.isMultiTile = true;
+                            temp.size = bo.multiTileSize;
+                        }
 
                         bool isMulti = temp.isMultiTile;
                         temp.QueueFree();

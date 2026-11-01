@@ -176,6 +176,9 @@ private readonly List<UnitTemplate> weaponTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("☠️ 死光炮"), ScenePath = "res://Prefabs/death_ray.tscn", 
         Category = TranslateGroup.T("兵器"), Team = "Player1", DisplayColor = new Color(0.8f, 0.1f, 0.8f), 
         Description = TranslateGroup.T("3×3多格死光炮，四方向3格宽激光，摧毁后仍不可通行") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🗼 黑尖塔"), ScenePath = "res://Prefabs/black_obelisk.tscn", 
+        Category = TranslateGroup.T("兵器"), Team = "Player1", DisplayColor = new Color(0.45f, 0.3f, 0.9f), 
+        Description = TranslateGroup.T("3×3多格黑尖塔（AW3），不攻击；每回合开始2格内我方单位+2HP并补满油弹，仅正门可受击，摧毁后仍不可通行") },
 };
 
 private readonly List<UnitTemplate> facilityTemplates = new()
