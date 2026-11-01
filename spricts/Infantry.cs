@@ -57,6 +57,10 @@ public bool hasActed = false;
     public bool isAttacked;
     public bool hasTeleportedThisTurn;  // ✅ 本回合是否已传送过：传送每回合限一次（ActionMenu.Teleport 使用，回合结束重置）
     [Export] public bool isCoUnit = false;  // ✅ CO 单位（模块19/30：携带 CO Zone 的载体，由 CO 专属单位系统设置）
+    // ✅ 模块16（升级）：单位经验——击杀得 XP，等级攻/防每级+4%（CoModuleSystem 查询应用）
+    public int xp = 0;
+    public int Level => xp >= 300 ? 3 : xp >= 120 ? 2 : 1;
+    public void GainXp(int amount) => xp += Mathf.Max(0, amount);
     public Label hpLabel;
     public Sprite2D sprite;
 

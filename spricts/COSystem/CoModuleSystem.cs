@@ -14,6 +14,7 @@ public class CoTeamState
     public int powerTurnsLeft = 0;      // 大招剩余己方回合数
     public bool powerUsedThisTurn = false;  // 一回合只能放一次
     public bool tagExtraTurnUsed = false;    // Tag Power 的全军再动是否已用（一次合体只再动一次）
+    public int coLevel = 0;                // ✅ 模块17（CO四级）：0-3，放大招升级
 }
 
 public static class CoModuleSystem
@@ -154,6 +155,8 @@ public static class CoModuleSystem
                     if (m.directOnly && indirect) continue;
                     if (m.indirectOnly && !indirect) continue;
                 }
+                // ✅ 模块17（CO四级）+ 模块29：等级区间门控（不在区间=本条不生效）
+                if (m.minCoLevel > st.coLevel || m.maxCoLevel < st.coLevel) continue;
                 // ✅ 模块30 Zone 判定：zoneRange>=0 时，非 Zone 内单位只吃 d2d 档
                 if (st.profile.zoneRange >= 0 && unit != null && unit.grid != null)
                 {
@@ -212,6 +215,8 @@ public static class CoModuleSystem
     {
         if (attacker == null) return 0;
         float bonus = Sum(attacker.team, 1, "offBonus", attacker);
+        // ✅ 模块16（升级）：单位等级攻/防加成（每级+4%）
+        bonus += (attacker.Level - 1) * 4f;
         // ✅ Tag 搭配加成（合体技期间）
         if (GetState(attacker.team)?.powerMode == CoPowerMode.Tag)
             bonus += GetTagSynergyBonus(attacker.team).attack;
@@ -219,7 +224,7 @@ public static class CoModuleSystem
     }
 
     public static float GetDefenseBonusPercent(Infantry defender)
-        => defender == null ? 0 : Sum(defender.team, 2, "defBonus", defender);
+        => defender == null ? 0 : Sum(defender.team, 2, "defBonus", defender) + (defender.Level - 1) * 4f;
 
     public static float GetTerrainDefenseBonus(Infantry defender)
         => defender == null ? 0 : Sum(defender.team, 2, "terrainStars", defender);
@@ -283,6 +288,18 @@ public static class CoModuleSystem
     /// <summary>模块19：某单位是否为该势力 CO 的专属单位（生产时用于 isCoUnit 标记）</summary>
     public static bool IsExclusiveUnit(string team, string unitTypeId)
         => GetExclusiveUnits(team).Contains(unitTypeId);
+
+    /// <summary>模块10（逆转/联动）：该单位是否拥有先制反击（firstStrike）</summary>
+    public static bool GetFirstStrike(Infantry unit)
+        => unit != null && Sum(unit.team, 10, "firstStrike", unit) > 0f;
+
+    /// <summary>模块16（升级）：击杀获取的经验值（默认100，可被模块 xpPerKill 改写）</summary>
+    public static int GetKillXp(Infantry killer)
+    {
+        if (killer == null) return 0;
+        float v = Sum(killer.team, 16, "xpPerKill", killer);
+        return v > 0 ? Mathf.RoundToInt(v) : 100;
+    }
 
     /// <summary>模块15（天气/战争迷雾）：该单位是否免疫天气惩罚（weatherImmune）</summary>
     public static bool GetWeatherImmune(Infantry unit)
@@ -394,6 +411,7 @@ public static class CoModuleSystem
         var st = GetState(team);
         if (!CanUseSuperPower(team)) return false;
         st.powerMode = CoPowerMode.Scop;
+        st.coLevel = Mathf.Min(3, st.coLevel + 1);   // ✅ 模块17（CO四级）：放大招升级
         st.powerTurnsLeft = PowerDuration(st, CoPowerMode.Scop);
         st.powerUsedThisTurn = true;
         st.charge = 0f;
@@ -441,6 +459,7 @@ public static class CoModuleSystem
         var st = GetState(team);
         if (!CanUseTagPower(team)) return false;
         st.powerMode = CoPowerMode.Tag;
+        st.coLevel = Mathf.Min(3, st.coLevel + 1);   // ✅ 模块17（CO四级）：合体技也升级
         st.powerTurnsLeft = PowerDuration(st, CoPowerMode.Tag);
         st.powerUsedThisTurn = true;
         st.charge = 0f;
@@ -475,7 +494,12 @@ public static class CoModuleSystem
         // 默认：持续到下一次己方回合结束（AW 标准 = 1 个己方回合）
         foreach (var m in st.profile.modules)
             if (m.module is 1 or 2 or 3 or 4 or 5 or 13 or 18)
+            {
+                // ✅ 模块20（时限）：permanent=持续整局 / instant=瞬时（发动时效果已结算）
+                if (m.duration == "permanent") return 999;
+                if (m.duration == "instant") return 1;
                 return Mathf.Max(1, m.durationTurns);
+            }
         return 1;
     }
 

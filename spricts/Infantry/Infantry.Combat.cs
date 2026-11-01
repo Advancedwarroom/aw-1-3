@@ -399,6 +399,46 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
         && target.attackType != AttackType.NoAttack
         && target.IsTargetInCounterRange(this)
         && TeamHelper.CanCounterAttack(target.team);
+
+    // ✅ CO 模块系统·模块10（逆转/先制反击）：防守方先手——反击先结算，攻击方按掉血后战力出手
+    if (canTargetCounter && CoModuleSystem.GetFirstStrike(target))
+    {
+        WeaponType fsWeapon = target.SelectWeaponByMatrix(this);
+        counterDamage = target.CalculateFinalDamage(this, fsWeapon, isCounter: true);
+        this.health -= counterDamage;
+        if (counterDamage > 0)
+        {
+            // ✅ 模块27：先制反击造成/受到伤害打点
+            CoModuleSystem.OnDamageDealt(target.team, counterDamage);
+            CoModuleSystem.OnDamageTaken(team, counterDamage);
+            ApplyStealthRevealOnDamage(this);
+        }
+        CheckStealthThresholds();
+        this.UpdateHpLabel();
+        // 攻击方被先手打死 → 本次攻击取消（AW 先制规则：死人开不了枪）
+        if (this.health <= 0 && !TryFlee())
+        {
+            CoModuleSystem.OnUnitLost(team);
+            // ✅ 模块16：先制反击击杀也得 XP
+            target.GainXp(CoModuleSystem.GetKillXp(target));
+            this.OnDestroyed();
+            if (this.grid != null)
+            {
+                this.grid.infantries.Remove(this);
+                if (this.grid.infantry == this)
+                    this.grid.infantry = this.grid.infantries.Count > 0 ? this.grid.infantries[0] : null;
+                this.grid = null;
+            }
+            this.CallDeferred("queue_free");
+            var gmFs = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+            gmFs?.RemovePiece(this);
+            return;
+        }
+        canTargetCounter = false;   // 先制反击已结算，后续不再反击
+        counterDamage = 0;
+        // ✅ 攻击伤害按攻击方掉血后的战力计算（CalculateFinalDamage 读当前 health）
+        attackDamage = CalculateFinalDamage(target, weapon);
+    }
     
     // 旧行为（可选）：按挨打前血量算反击
     if (canTargetCounter && target.counterUsePreDamageHp)
@@ -446,6 +486,8 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     if (target.health <= 0 && !target.TryFlee())
     {
         CoModuleSystem.OnUnitLost(target.team);   // ✅ 模块27：损失单位打点（先于死亡）
+        // ✅ 模块16（升级）：击杀得 XP
+        this.GainXp(CoModuleSystem.GetKillXp(this));
         target.OnDestroyed();
         if (target.grid != null)
         {
@@ -462,6 +504,8 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     if (this.health <= 0 && !TryFlee())
     {
         CoModuleSystem.OnUnitLost(team);   // ✅ 模块27：损失单位打点
+        // ✅ 模块16（升级）：反击击杀也得 XP
+        target.GainXp(CoModuleSystem.GetKillXp(target));
         this.OnDestroyed();
         if (this.grid != null)
         {

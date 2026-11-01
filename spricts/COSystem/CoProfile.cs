@@ -25,6 +25,9 @@ public class CoModuleEntry
     public List<string> terrainTypes = new(); // 限定地形（空=全部）
     public bool directOnly = false;    // 仅直接攻击
     public bool indirectOnly = false; // 仅间接攻击
+    // ✅ 模块17（CO四级）：本模块条目要求的 CO 等级区间（0=不限制）
+    public int minCoLevel = 0;
+    public int maxCoLevel = 99;
 
     public Godot.Collections.Dictionary<string, float> GetPhaseValues(CoPowerMode mode)
         => mode == CoPowerMode.Cop ? cop : mode == CoPowerMode.Scop || mode == CoPowerMode.Tag ? scop : d2d;
@@ -85,6 +88,8 @@ public class CoProfile
             maxStacks = m.ContainsKey("maxStacks") ? m["maxStacks"].AsInt32() : 1,
             directOnly = m.ContainsKey("directOnly") && m["directOnly"].AsBool(),
             indirectOnly = m.ContainsKey("indirectOnly") && m["indirectOnly"].AsBool(),
+            minCoLevel = m.ContainsKey("minCoLevel") ? m["minCoLevel"].AsInt32() : 0,
+            maxCoLevel = m.ContainsKey("maxCoLevel") ? m["maxCoLevel"].AsInt32() : 99,
         };
         foreach (string k in new[] { "unitTypes", "terrainTypes" })
             if (m.ContainsKey(k) && m[k].VariantType == Variant.Type.Array)
