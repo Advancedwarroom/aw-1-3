@@ -68,3 +68,42 @@ CoW 对应实现：`getAiUsePower(co, powerSurplus, ...)` 的 `powerSurplus` 即
 - 多个 CO 可配合**同时发动 COP/SCOP**（CoW 的 Tag Power：`GameEnums.PowerMode_Tagpower`，两人合体大）；
 - 一局内多次移动/CO 单位被摧毁 → 死亡失败，或永久不可使用该 COP/SCOP 与常态加减成；
 - **多屏规则**：多屏战争下某一屏失败时，若该屏有残存 CO，则该 CO 死亡（全覆盖含玩家自设计脑洞）。
+
+## 四、区域型模块（第 30 号，四代 DoR 系）
+
+四代 CO 的核心差异：不靠全局 D2D，而是靠 **CO Zone**。
+
+- 生效载体：CO 单位本体，或搭载该 CO 单位的载具（运输舰装载 CO 时区域跟随载具）；
+- 区域内：我方单位获得 Zone 内效果（`getCustomUnitZoneBoost` / 各 hook 的 `inCORange` 分支）；
+- 区域外：获得另一种效果（通常为负或为 0，如 Greyfield 区域外防御下降）；
+- 范围：`getCOUnitRange`（CoW 中 DoR 系 CO 基本为 3，Javier 等可变）；
+- 缩放：区域大小/强度受前 30 模块及 COP/SCOP 影响（COP 期间可全场化、SCOP 期间范围扩大——自研时做成模块参数）。
+
+CoW 中 DoR 系 CO（Brenner/Lin/Will/Isabella/Gage/Tasha/Tabitha/Penny/Caulder 等）全部已实现此模式，数值可直接搬。
+
+## 五、自定义 CO 体系（玩家脑洞全覆盖）
+
+### 5.1 基础信息（三件套，零门槛）
+
+| 项 | 说明 |
+|---|---|
+| 自定义头像 | 玩家上传图片（CoW 用 `resources/images/co/<army>/co_<id>+face.png` 系列四态：face/nrm/mini/info，可参考裁切规格） |
+| 自定义名称 | 默认英文 ID，玩家可改 |
+| 自定义介绍 | Bio/Hits/Miss/台词（CoW 每个原作 CO 都带全套：`getBio` `getHits` `getMiss` `getPowerSentences` `getVictorySentences` `getDefeatSentences`） |
+
+### 5.2 技能槽位（四槽）
+
+| 槽位 | 说明 | CoW 对应 |
+|---|---|---|
+| None | 常态被动（D2D） | `getOffensiveBonus` 等的 default 分支 |
+| COP | 小技能（能量条满一档） | `activatePower` + `getPowerName`/`getPowerDescription` |
+| SCOP | 大技能（能量条满二档） | `activateSuperpower` + `getSuperPowerName`/`getSuperPowerDescription` |
+| CO Zone | 区域型（可选，四代模式） | `getCOUnitRange` + `inCORange` 分支 |
+
+### 5.3 组装方式
+
+- 每个 CO 从 30 大模块中勾选 1..N 个，每模块配三档数值（常态/COP/SCOP），CO Zone 模块配第四档（区域内/区域外两套）；
+- 能量条模块（第 27 号）选择积累来源与口径（范围/全局）；
+- 时限模块（第 20 号）标注每个效果的 永久/临时、可叠加/不可叠加、最高层数；
+- 特殊限定（第 29 号）给任意模块加条件（地形/单位类型/天气/回合……）。
+
