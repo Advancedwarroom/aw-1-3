@@ -289,6 +289,11 @@ public partial class GameManager
 
             if (!IsInstanceValid(unit) || unit.health <= 0) continue;
 
+            // 2.5 ✦优化：格子最大值变化（血量/弹药/燃油上限，先于实际值变化）
+            grid.ApplyGridMaxStatChanges(unit);
+
+            if (!IsInstanceValid(unit) || unit.health <= 0) continue;
+
             // 3. 格子自定义固定伤害（不走防御，可为负回血）
             grid.ApplyGridCustomDamage(unit);
 

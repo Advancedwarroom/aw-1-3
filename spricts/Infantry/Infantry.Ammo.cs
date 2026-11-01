@@ -89,7 +89,38 @@ public partial class Infantry
         foreach (var kind in AllAmmoKinds) RefillAmmo(kind);
     }
 
-    private void SetAmmoRaw(AmmoKind kind, int value)
+    /// <summary>✦优化：读取单种弹药上限基础值（不含雾战等加成；地形最大值变化模块用）</summary>
+    public int GetBaseMaxAmmo(AmmoKind kind) => kind switch
+    {
+        AmmoKind.Primary => maxPrimaryAmmo,
+        AmmoKind.Explode => maxExplodeAmmo,
+        AmmoKind.Flare => maxFlareAmmo,
+        AmmoKind.StealthBullet => maxStealthBullets,
+        AmmoKind.RevealBullet => maxRevealBullets,
+        AmmoKind.CamoBullet => maxCamoBullets,
+        AmmoKind.Production => maxProductionAmmo,
+        AmmoKind.Construction => maxConstructionAmmo,
+        _ => 0,
+    };
+
+    /// <summary>✦优化：写入单种弹药上限基础值（夹取>=0；地形最大值变化模块用）</summary>
+    public void SetMaxAmmoRaw(AmmoKind kind, int value)
+    {
+        value = Mathf.Max(0, value);
+        switch (kind)
+        {
+            case AmmoKind.Primary: maxPrimaryAmmo = value; break;
+            case AmmoKind.Explode: maxExplodeAmmo = value; break;
+            case AmmoKind.Flare: maxFlareAmmo = value; break;
+            case AmmoKind.StealthBullet: maxStealthBullets = value; break;
+            case AmmoKind.RevealBullet: maxRevealBullets = value; break;
+            case AmmoKind.CamoBullet: maxCamoBullets = value; break;
+            case AmmoKind.Production: maxProductionAmmo = value; break;
+            case AmmoKind.Construction: maxConstructionAmmo = value; break;
+        }
+    }
+
+    public void SetAmmoRaw(AmmoKind kind, int value) // ✦优化：改为public供地形效果模块使用
     {
         switch (kind)
         {

@@ -50,12 +50,32 @@ public partial class Grids : Node2D
     [Export] public int fixedDamagePerTurn = 0;
     [Export] public int fixedAttackPerTurn = 0;
     [Export] public bool canOverMaxHealth = false;
+    [Export] public int fixedMaxHealthChangePerTurn = 0; // ✦优化：最大血量每回合增减（正=增 负=减）
 
     [ExportGroup("格子弹药/燃料系统")]
-    [Export] public int fixedAmmoChangePerTurn = 0;
+    [Export] public int fixedAmmoChangePerTurn = 0; // 主武器弹药增减（旧字段兼容保留，与下方种类增减可叠加）
+    // ✦优化：全部8种弹药实际值每回合增减（0=不生效；正=补充 负=消耗）
+    [Export] public int ammoChangePrimary = 0;       // 主弹药
+    [Export] public int ammoChangeExplode = 0;      // 自爆弹
+    [Export] public int ammoChangeFlare = 0;        // 照明弹
+    [Export] public int ammoChangeStealth = 0;      // 隐身弹
+    [Export] public int ammoChangeReveal = 0;       // 显形弹
+    [Export] public int ammoChangeCamo = 0;        // 迷彩弹
+    [Export] public int ammoChangeProduction = 0;  // 生产弹
+    [Export] public int ammoChangeConstruction = 0; // 建造弹
+    // ✦优化：全部8种弹药上限每回合增减（正=扩容 负=缩容）
+    [Export] public int ammoMaxChangePrimary = 0;
+    [Export] public int ammoMaxChangeExplode = 0;
+    [Export] public int ammoMaxChangeFlare = 0;
+    [Export] public int ammoMaxChangeStealth = 0;
+    [Export] public int ammoMaxChangeReveal = 0;
+    [Export] public int ammoMaxChangeCamo = 0;
+    [Export] public int ammoMaxChangeProduction = 0;
+    [Export] public int ammoMaxChangeConstruction = 0;
     [Export] public bool ammoCanOverMax = false;
     [Export] public bool ammoCanReachZero = true;
     [Export] public int fixedFuelChangePerTurn = 0;
+    [Export] public int fixedMaxFuelChangePerTurn = 0; // ✦优化：燃油上限每回合增减
     [Export] public bool fuelCanOverMax = false;
     [Export] public bool fuelCanReachZero = true;
 
@@ -386,7 +406,32 @@ public partial class Grids : Node2D
 
     public void ApplyGridAmmoChange(Infantry unit)
     {
-        if (unit == null || !IsInstanceValid(unit) || fixedAmmoChangePerTurn == 0) return;
+        if (unit == null || !IsInstanceValid(unit)) return;
+
+        // ✦优化：全种类弹药增减（统一走Infantry弹药系统；fixedAmmoChangePerTurn仍单独生效于主弹药，可叠加）
+        foreach (Infantry.AmmoKind kind in Infantry.AllAmmoKinds)
+        {
+            int kindChange = GetAmmoKindChange(kind);
+            if (kindChange == 0) continue;
+            if (unit.GetBaseMaxAmmo(kind) <= 0) continue; // 该单位无此弹药种类
+            int oldA = unit.GetAmmo(kind);
+            if (kindChange > 0)
+            {
+                if (ammoCanOverMax) unit.SetAmmoRaw(kind, oldA + kindChange); // 无上限补充
+                else unit.AddAmmo(kind, kindChange);                          // 夹到上限
+            }
+            else
+            {
+                int nv = oldA - Mathf.Abs(kindChange);
+                nv = ammoCanReachZero ? Mathf.Max(0, nv) : Mathf.Max(1, nv);  // 不可归零则强制剩1
+                unit.SetAmmoRaw(kind, nv);
+            }
+            int deltaA = unit.GetAmmo(kind) - oldA;
+            if (deltaA != 0)
+                ShowTerrainDamageEffect(unit, $"{GetAmmoKindName(kind)}{(deltaA > 0 ? "+" : "")}{deltaA} (地形)", new Color(0.9f, 0.7f, 0.2f));
+        }
+
+        if (fixedAmmoChangePerTurn == 0) return;
         if (!unit.hasPrimaryWeapon || !unit.primaryHasLimitedAmmo || unit.maxPrimaryAmmo >= 99) return;
         if (fixedAmmoChangePerTurn > 0)
         {
@@ -436,6 +481,122 @@ public partial class Grids : Node2D
     private int CalculateDamageThroughDefense(Infantry unit, int baseDamage)
     {
         return Mathf.Max(0, baseDamage - unit.GetEffectiveDefense(this));
+    }
+
+    /// <summary>✦优化：每回合最大值变化（血量/弹药上限/燃油上限）。先于实际值变化执行。</summary>
+    public void ApplyGridMaxStatChanges(Infantry unit)
+    {
+        if (unit == null || !IsInstanceValid(unit)) return;
+
+        // 最大血量
+        if (fixedMaxHealthChangePerTurn != 0)
+        {
+            int oldMax = unit.maxHealth;
+            unit.maxHealth = Mathf.Max(1, oldMax + fixedMaxHealthChangePerTurn);
+            if (!canOverMaxHealth && unit.health > unit.maxHealth) unit.health = unit.maxHealth; // 缩容时钳制当前值
+            unit.UpdateHpLabel();
+            if (unit.maxHealth != oldMax)
+                ShowTerrainDamageEffect(unit, $"MAX血量{(unit.maxHealth > oldMax ? "+" : "")}{unit.maxHealth - oldMax} (地形)", new Color(0.8f, 0.5f, 1f));
+        }
+
+        // 各弹药种类上限
+        foreach (Infantry.AmmoKind kind in Infantry.AllAmmoKinds)
+        {
+            int mc = GetAmmoKindMaxChange(kind);
+            if (mc == 0) continue;
+            int baseMax = unit.GetBaseMaxAmmo(kind);
+            if (baseMax <= 0 && mc < 0) continue; // 无此弹药系统则不缩容
+            int newMax = Mathf.Max(0, baseMax + mc);
+            if (newMax == baseMax) continue;
+            unit.SetMaxAmmoRaw(kind, newMax);
+            if (!ammoCanOverMax && unit.GetAmmo(kind) > newMax)
+                unit.SetAmmoRaw(kind, newMax); // 缩容后钳制当前值
+            ShowTerrainDamageEffect(unit, $"MAX{GetAmmoKindName(kind)}{(newMax > baseMax ? "+" : "")}{newMax - baseMax} (地形)", new Color(0.9f, 0.6f, 0.3f));
+        }
+
+        // 燃油上限
+        if (fixedMaxFuelChangePerTurn != 0 && unit.consumeFuel)
+        {
+            int oldMaxF = unit.maxFuel;
+            unit.maxFuel = Mathf.Max(0, oldMaxF + fixedMaxFuelChangePerTurn);
+            if (!fuelCanOverMax && unit.fuel > unit.maxFuel) unit.fuel = unit.maxFuel;
+            if (unit.maxFuel != oldMaxF)
+                ShowTerrainDamageEffect(unit, $"MAX燃油{(unit.maxFuel > oldMaxF ? "+" : "")}{unit.maxFuel - oldMaxF} (地形)", new Color(0.5f, 0.7f, 1f));
+        }
+    }
+
+    /// <summary>✦优化：弹药种类中文名（与Infantry.AmmoKind一一对应）</summary>
+    public static string GetAmmoKindName(Infantry.AmmoKind kind) => kind switch
+    {
+        Infantry.AmmoKind.Primary => "主弹药",
+        Infantry.AmmoKind.Explode => "自爆弹",
+        Infantry.AmmoKind.Flare => "照明弹",
+        Infantry.AmmoKind.StealthBullet => "隐身弹",
+        Infantry.AmmoKind.RevealBullet => "显形弹",
+        Infantry.AmmoKind.CamoBullet => "迷彩弹",
+        Infantry.AmmoKind.Production => "生产弹",
+        Infantry.AmmoKind.Construction => "建造弹",
+        _ => kind.ToString(),
+    };
+
+    /// <summary>✦优化：读取某弹药种类的每回合增减</summary>
+    public int GetAmmoKindChange(Infantry.AmmoKind kind) => kind switch
+    {
+        Infantry.AmmoKind.Primary => ammoChangePrimary,
+        Infantry.AmmoKind.Explode => ammoChangeExplode,
+        Infantry.AmmoKind.Flare => ammoChangeFlare,
+        Infantry.AmmoKind.StealthBullet => ammoChangeStealth,
+        Infantry.AmmoKind.RevealBullet => ammoChangeReveal,
+        Infantry.AmmoKind.CamoBullet => ammoChangeCamo,
+        Infantry.AmmoKind.Production => ammoChangeProduction,
+        Infantry.AmmoKind.Construction => ammoChangeConstruction,
+        _ => 0,
+    };
+
+    /// <summary>✦优化：读取某弹药种类的上限每回合增减</summary>
+    public int GetAmmoKindMaxChange(Infantry.AmmoKind kind) => kind switch
+    {
+        Infantry.AmmoKind.Primary => ammoMaxChangePrimary,
+        Infantry.AmmoKind.Explode => ammoMaxChangeExplode,
+        Infantry.AmmoKind.Flare => ammoMaxChangeFlare,
+        Infantry.AmmoKind.StealthBullet => ammoMaxChangeStealth,
+        Infantry.AmmoKind.RevealBullet => ammoMaxChangeReveal,
+        Infantry.AmmoKind.CamoBullet => ammoMaxChangeCamo,
+        Infantry.AmmoKind.Production => ammoMaxChangeProduction,
+        Infantry.AmmoKind.Construction => ammoMaxChangeConstruction,
+        _ => 0,
+    };
+
+    /// <summary>✦优化：写入某弹药种类的每回合增减（编辑器用）</summary>
+    public void SetAmmoKindChange(Infantry.AmmoKind kind, int value)
+    {
+        switch (kind)
+        {
+            case Infantry.AmmoKind.Primary: ammoChangePrimary = value; break;
+            case Infantry.AmmoKind.Explode: ammoChangeExplode = value; break;
+            case Infantry.AmmoKind.Flare: ammoChangeFlare = value; break;
+            case Infantry.AmmoKind.StealthBullet: ammoChangeStealth = value; break;
+            case Infantry.AmmoKind.RevealBullet: ammoChangeReveal = value; break;
+            case Infantry.AmmoKind.CamoBullet: ammoChangeCamo = value; break;
+            case Infantry.AmmoKind.Production: ammoChangeProduction = value; break;
+            case Infantry.AmmoKind.Construction: ammoChangeConstruction = value; break;
+        }
+    }
+
+    /// <summary>✦优化：写入某弹药种类的上限每回合增减（编辑器用）</summary>
+    public void SetAmmoKindMaxChange(Infantry.AmmoKind kind, int value)
+    {
+        switch (kind)
+        {
+            case Infantry.AmmoKind.Primary: ammoMaxChangePrimary = value; break;
+            case Infantry.AmmoKind.Explode: ammoMaxChangeExplode = value; break;
+            case Infantry.AmmoKind.Flare: ammoMaxChangeFlare = value; break;
+            case Infantry.AmmoKind.StealthBullet: ammoMaxChangeStealth = value; break;
+            case Infantry.AmmoKind.RevealBullet: ammoMaxChangeReveal = value; break;
+            case Infantry.AmmoKind.CamoBullet: ammoMaxChangeCamo = value; break;
+            case Infantry.AmmoKind.Production: ammoMaxChangeProduction = value; break;
+            case Infantry.AmmoKind.Construction: ammoMaxChangeConstruction = value; break;
+        }
     }
 
     private void CheckUnitDeath(Infantry unit, string source)

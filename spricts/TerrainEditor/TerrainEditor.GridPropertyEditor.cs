@@ -118,6 +118,8 @@ private void BuildGridPropertyEditor(Grids grid)
         () => grid.fixedAttackPerTurn, (v) => { grid.fixedAttackPerTurn = (int)v; });
     CreateMemberControl(grid, "canOverMaxHealth", typeof(bool),
         () => grid.canOverMaxHealth, (v) => { grid.canOverMaxHealth = (bool)v; });
+    CreateMemberControl(grid, "fixedMaxHealthChangePerTurn", typeof(int), // ✦优化：最大血量增减
+        () => grid.fixedMaxHealthChangePerTurn, (v) => { grid.fixedMaxHealthChangePerTurn = (int)v; });
 
     // 弹药/燃料
     var ammoLabel = new Label();
@@ -128,12 +130,31 @@ private void BuildGridPropertyEditor(Grids grid)
 
     CreateMemberControl(grid, "fixedAmmoChangePerTurn", typeof(int),
         () => grid.fixedAmmoChangePerTurn, (v) => { grid.fixedAmmoChangePerTurn = (int)v; });
+    // ✦优化：全种类弹药增减/上限增减
+    CreateMemberControl(grid, "ammoChangePrimary", typeof(int), () => grid.ammoChangePrimary, (v) => { grid.ammoChangePrimary = (int)v; });
+    CreateMemberControl(grid, "ammoChangeExplode", typeof(int), () => grid.ammoChangeExplode, (v) => { grid.ammoChangeExplode = (int)v; });
+    CreateMemberControl(grid, "ammoChangeFlare", typeof(int), () => grid.ammoChangeFlare, (v) => { grid.ammoChangeFlare = (int)v; });
+    CreateMemberControl(grid, "ammoChangeStealth", typeof(int), () => grid.ammoChangeStealth, (v) => { grid.ammoChangeStealth = (int)v; });
+    CreateMemberControl(grid, "ammoChangeReveal", typeof(int), () => grid.ammoChangeReveal, (v) => { grid.ammoChangeReveal = (int)v; });
+    CreateMemberControl(grid, "ammoChangeCamo", typeof(int), () => grid.ammoChangeCamo, (v) => { grid.ammoChangeCamo = (int)v; });
+    CreateMemberControl(grid, "ammoChangeProduction", typeof(int), () => grid.ammoChangeProduction, (v) => { grid.ammoChangeProduction = (int)v; });
+    CreateMemberControl(grid, "ammoChangeConstruction", typeof(int), () => grid.ammoChangeConstruction, (v) => { grid.ammoChangeConstruction = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangePrimary", typeof(int), () => grid.ammoMaxChangePrimary, (v) => { grid.ammoMaxChangePrimary = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangeExplode", typeof(int), () => grid.ammoMaxChangeExplode, (v) => { grid.ammoMaxChangeExplode = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangeFlare", typeof(int), () => grid.ammoMaxChangeFlare, (v) => { grid.ammoMaxChangeFlare = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangeStealth", typeof(int), () => grid.ammoMaxChangeStealth, (v) => { grid.ammoMaxChangeStealth = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangeReveal", typeof(int), () => grid.ammoMaxChangeReveal, (v) => { grid.ammoMaxChangeReveal = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangeCamo", typeof(int), () => grid.ammoMaxChangeCamo, (v) => { grid.ammoMaxChangeCamo = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangeProduction", typeof(int), () => grid.ammoMaxChangeProduction, (v) => { grid.ammoMaxChangeProduction = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangeConstruction", typeof(int), () => grid.ammoMaxChangeConstruction, (v) => { grid.ammoMaxChangeConstruction = (int)v; });
     CreateMemberControl(grid, "ammoCanOverMax", typeof(bool),
         () => grid.ammoCanOverMax, (v) => { grid.ammoCanOverMax = (bool)v; });
     CreateMemberControl(grid, "ammoCanReachZero", typeof(bool),
         () => grid.ammoCanReachZero, (v) => { grid.ammoCanReachZero = (bool)v; });
     CreateMemberControl(grid, "fixedFuelChangePerTurn", typeof(int),
         () => grid.fixedFuelChangePerTurn, (v) => { grid.fixedFuelChangePerTurn = (int)v; });
+    CreateMemberControl(grid, "fixedMaxFuelChangePerTurn", typeof(int), // ✦优化：燃油上限增减
+        () => grid.fixedMaxFuelChangePerTurn, (v) => { grid.fixedMaxFuelChangePerTurn = (int)v; });
     CreateMemberControl(grid, "fuelCanOverMax", typeof(bool),
         () => grid.fuelCanOverMax, (v) => { grid.fuelCanOverMax = (bool)v; });
     CreateMemberControl(grid, "fuelCanReachZero", typeof(bool),

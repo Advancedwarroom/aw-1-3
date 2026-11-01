@@ -15,7 +15,7 @@ public partial class TerrainEditor
     {
         terrainMenuPanel = new Panel();
         terrainMenuPanel.Name = "TerrainMenuPanel";
-        terrainMenuPanel.CustomMinimumSize = new Vector2(280, 680);
+        terrainMenuPanel.CustomMinimumSize = new Vector2(280, 950); // ✦优化：加高容纳全种类弹药编辑
         terrainMenuPanel.SetAnchorsPreset(LayoutPreset.Center);
         terrainMenuPanel.Visible = false;
         terrainMenuPanel.ZIndex = 1000;

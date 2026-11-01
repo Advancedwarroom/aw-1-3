@@ -534,6 +534,15 @@ private void ApplyPreset(Godot.Collections.Dictionary<string, int> dict, string 
         overMaxHBox.AddChild(canOverMaxCheckBox);
         customDamageContainer.AddChild(overMaxHBox);
 
+        var maxHealthHBox = new HBoxContainer();
+        var maxHealthLabel = new Label { Text = TranslateGroup.T("最大血量增减/回合:"), CustomMinimumSize = new Vector2(100, 22) };
+        maxHealthLabel.AddThemeFontSizeOverride("font_size", 11);
+        maxHealthChangeSpinBox = new SpinBox { MinValue = -99, MaxValue = 99, Value = 0, CustomMinimumSize = new Vector2(80, 22) };
+        maxHealthChangeSpinBox.AddThemeFontSizeOverride("font_size", 11);
+        maxHealthHBox.AddChild(maxHealthLabel);
+        maxHealthHBox.AddChild(maxHealthChangeSpinBox);
+        customDamageContainer.AddChild(maxHealthHBox);
+
         terrainMenuPanel.AddChild(customDamageContainer);
     }
 
@@ -581,6 +590,37 @@ private void ApplyPreset(Godot.Collections.Dictionary<string, int> dict, string 
         ammoZeroHBox.AddChild(ammoCanReachZeroCheckBox);
         ammoFuelContainer.AddChild(ammoZeroHBox);
 
+        // ✦优化：全种类弹药编辑（选择种类后设置该种类的增减/上限增减）
+        var kindHBox = new HBoxContainer();
+        var kindLabel = new Label { Text = TranslateGroup.T("弹药种类:"), CustomMinimumSize = new Vector2(100, 22) };
+        kindLabel.AddThemeFontSizeOverride("font_size", 11);
+        ammoKindOptionButton = new OptionButton { CustomMinimumSize = new Vector2(130, 22) };
+        ammoKindOptionButton.AddThemeFontSizeOverride("font_size", 11);
+        foreach (var kn in new[] { "主弹药", "自爆弹", "照明弹", "隐身弹", "显形弹", "迷彩弹", "生产弹", "建造弹" })
+            ammoKindOptionButton.AddItem(TranslateGroup.T(kn));
+        ammoKindOptionButton.ItemSelected += _ => LoadAmmoKindSpinValues();
+        kindHBox.AddChild(kindLabel);
+        kindHBox.AddChild(ammoKindOptionButton);
+        ammoFuelContainer.AddChild(kindHBox);
+
+        var kindChangeHBox = new HBoxContainer();
+        var kindChangeLabel = new Label { Text = TranslateGroup.T("该种类增减/回合:"), CustomMinimumSize = new Vector2(100, 22) };
+        kindChangeLabel.AddThemeFontSizeOverride("font_size", 11);
+        ammoKindChangeSpinBox = new SpinBox { MinValue = -99, MaxValue = 99, Value = 0, CustomMinimumSize = new Vector2(80, 22) };
+        ammoKindChangeSpinBox.AddThemeFontSizeOverride("font_size", 11);
+        kindChangeHBox.AddChild(kindChangeLabel);
+        kindChangeHBox.AddChild(ammoKindChangeSpinBox);
+        ammoFuelContainer.AddChild(kindChangeHBox);
+
+        var kindMaxHBox = new HBoxContainer();
+        var kindMaxLabel = new Label { Text = TranslateGroup.T("该种类上限增减:"), CustomMinimumSize = new Vector2(100, 22) };
+        kindMaxLabel.AddThemeFontSizeOverride("font_size", 11);
+        ammoKindMaxSpinBox = new SpinBox { MinValue = -99, MaxValue = 99, Value = 0, CustomMinimumSize = new Vector2(80, 22) };
+        ammoKindMaxSpinBox.AddThemeFontSizeOverride("font_size", 11);
+        kindMaxHBox.AddChild(kindMaxLabel);
+        kindMaxHBox.AddChild(ammoKindMaxSpinBox);
+        ammoFuelContainer.AddChild(kindMaxHBox);
+
         var separator = new HSeparator();
         separator.CustomMinimumSize = new Vector2(0, 4);
         ammoFuelContainer.AddChild(separator);
@@ -599,6 +639,15 @@ private void ApplyPreset(Godot.Collections.Dictionary<string, int> dict, string 
         fuelHBox.AddChild(fuelLabel);
         fuelHBox.AddChild(fixedFuelSpinBox);
         ammoFuelContainer.AddChild(fuelHBox);
+
+        var maxFuelHBox = new HBoxContainer();
+        var maxFuelLabel = new Label { Text = TranslateGroup.T("燃油上限增减/回合:"), CustomMinimumSize = new Vector2(100, 22) };
+        maxFuelLabel.AddThemeFontSizeOverride("font_size", 11);
+        maxFuelChangeSpinBox = new SpinBox { MinValue = -99, MaxValue = 99, Value = 0, CustomMinimumSize = new Vector2(80, 22) };
+        maxFuelChangeSpinBox.AddThemeFontSizeOverride("font_size", 11);
+        maxFuelHBox.AddChild(maxFuelLabel);
+        maxFuelHBox.AddChild(maxFuelChangeSpinBox);
+        ammoFuelContainer.AddChild(maxFuelHBox);
 
         var fuelOverHBox = new HBoxContainer();
         var fuelOverLabel = new Label { Text = TranslateGroup.T("可超燃料上限:"), CustomMinimumSize = new Vector2(100, 22) };
@@ -626,6 +675,7 @@ private void ApplyPreset(Godot.Collections.Dictionary<string, int> dict, string 
         fixedDamageSpinBox.Value = grid.fixedDamagePerTurn;
         fixedAttackSpinBox.Value = grid.fixedAttackPerTurn;
         canOverMaxCheckBox.ButtonPressed = grid.canOverMaxHealth;
+        maxHealthChangeSpinBox.Value = grid.fixedMaxHealthChangePerTurn;
     }
 
     private void LoadAmmoFuelValues(Grids grid)
@@ -635,8 +685,20 @@ private void ApplyPreset(Godot.Collections.Dictionary<string, int> dict, string 
         ammoCanOverMaxCheckBox.ButtonPressed = grid.ammoCanOverMax;
         ammoCanReachZeroCheckBox.ButtonPressed = grid.ammoCanReachZero;
         fixedFuelSpinBox.Value = grid.fixedFuelChangePerTurn;
+        maxFuelChangeSpinBox.Value = grid.fixedMaxFuelChangePerTurn;
         fuelCanOverMaxCheckBox.ButtonPressed = grid.fuelCanOverMax;
         fuelCanReachZeroCheckBox.ButtonPressed = grid.fuelCanReachZero;
+        ammoKindEditGrid = grid;
+        LoadAmmoKindSpinValues();
+    }
+
+    /// <summary>✦优化：按当前选中的弹药种类刷新增减/上限增减SpinBox</summary>
+    private void LoadAmmoKindSpinValues()
+    {
+        if (ammoKindOptionButton == null || ammoKindEditGrid == null) return;
+        var kind = (Infantry.AmmoKind)(int)ammoKindOptionButton.Selected;
+        ammoKindChangeSpinBox.Value = ammoKindEditGrid.GetAmmoKindChange(kind);
+        ammoKindMaxSpinBox.Value = ammoKindEditGrid.GetAmmoKindMaxChange(kind);
     }
 
     private void SaveCustomDamageValues(Grids grid)
@@ -646,6 +708,7 @@ private void ApplyPreset(Godot.Collections.Dictionary<string, int> dict, string 
         grid.fixedDamagePerTurn = (int)fixedDamageSpinBox.Value;
         grid.fixedAttackPerTurn = (int)fixedAttackSpinBox.Value;
         grid.canOverMaxHealth = canOverMaxCheckBox.ButtonPressed;
+        grid.fixedMaxHealthChangePerTurn = (int)maxHealthChangeSpinBox.Value;
     }
 
     private void SaveAmmoFuelValues(Grids grid)
@@ -655,7 +718,14 @@ private void ApplyPreset(Godot.Collections.Dictionary<string, int> dict, string 
         grid.ammoCanOverMax = ammoCanOverMaxCheckBox.ButtonPressed;
         grid.ammoCanReachZero = ammoCanReachZeroCheckBox.ButtonPressed;
         grid.fixedFuelChangePerTurn = (int)fixedFuelSpinBox.Value;
+        grid.fixedMaxFuelChangePerTurn = (int)maxFuelChangeSpinBox.Value;
         grid.fuelCanOverMax = fuelCanOverMaxCheckBox.ButtonPressed;
         grid.fuelCanReachZero = fuelCanReachZeroCheckBox.ButtonPressed;
+        if (ammoKindOptionButton != null)
+        {
+            var kind = (Infantry.AmmoKind)(int)ammoKindOptionButton.Selected;
+            grid.SetAmmoKindChange(kind, (int)ammoKindChangeSpinBox.Value);
+            grid.SetAmmoKindMaxChange(kind, (int)ammoKindMaxSpinBox.Value);
+        }
     }
 }

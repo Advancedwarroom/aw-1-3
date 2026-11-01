@@ -45,10 +45,16 @@ public partial class TerrainEditor : Control
     private SpinBox fixedDamageSpinBox;
     private SpinBox fixedAttackSpinBox;
     private CheckBox canOverMaxCheckBox;
+    private SpinBox maxHealthChangeSpinBox; // ✦优化：最大血量增减
+    private OptionButton ammoKindOptionButton; // ✦优化：弹药种类选择
+    private SpinBox ammoKindChangeSpinBox;    // ✦优化：选中种类增减
+    private SpinBox ammoKindMaxSpinBox;       // ✦优化：选中种类上限增减
     private SpinBox fixedAmmoSpinBox;
+    private Grids ammoKindEditGrid; // ✦优化：当前正在编辑弹药种类的格子
     private CheckBox ammoCanOverMaxCheckBox;
     private CheckBox ammoCanReachZeroCheckBox;
     private SpinBox fixedFuelSpinBox;
+    private SpinBox maxFuelChangeSpinBox; // ✦优化：燃油上限增减
     private CheckBox fuelCanOverMaxCheckBox;
     private CheckBox fuelCanReachZeroCheckBox;
     private VBoxContainer ammoFuelContainer;

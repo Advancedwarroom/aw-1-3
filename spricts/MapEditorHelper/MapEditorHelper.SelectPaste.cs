@@ -190,6 +190,13 @@ public partial class MapEditorHelper
         cell.gridProperties["canDestroyUnit"] = grid.canDestroyUnit.ToString();
         cell.gridProperties["fixedDamagePerTurn"] = grid.fixedDamagePerTurn.ToString();
         cell.gridProperties["fixedAttackPerTurn"] = grid.fixedAttackPerTurn.ToString();
+        cell.gridProperties["fixedMaxHealthChangePerTurn"] = grid.fixedMaxHealthChangePerTurn.ToString();
+        foreach (Infantry.AmmoKind k in Infantry.AllAmmoKinds)
+        {
+            cell.gridProperties[$"ammoChange#{(int)k}"] = grid.GetAmmoKindChange(k).ToString();
+            cell.gridProperties[$"ammoMaxChange#{(int)k}"] = grid.GetAmmoKindMaxChange(k).ToString();
+        }
+        cell.gridProperties["fixedMaxFuelChangePerTurn"] = grid.fixedMaxFuelChangePerTurn.ToString();
         cell.gridProperties["visionBonus"] = grid.visionBonus.ToString();
         if (grid.infantry != null) cell.unitData = SerializeUnit(grid.infantry);
         if (grid.weapon != null) cell.weaponData = SerializeWeapon(grid.weapon);
@@ -355,6 +362,17 @@ public partial class MapEditorHelper
                 g.fixedDamagePerTurn = int.Parse(fdp);
             if (cell.gridProperties.TryGetValue("fixedAttackPerTurn", out string fap))
                 g.fixedAttackPerTurn = int.Parse(fap);
+            if (cell.gridProperties.TryGetValue("fixedMaxHealthChangePerTurn", out string fmh))
+                g.fixedMaxHealthChangePerTurn = int.Parse(fmh);
+            foreach (Infantry.AmmoKind k in Infantry.AllAmmoKinds)
+            {
+                if (cell.gridProperties.TryGetValue($"ammoChange#{(int)k}", out string ac))
+                    g.SetAmmoKindChange(k, int.Parse(ac));
+                if (cell.gridProperties.TryGetValue($"ammoMaxChange#{(int)k}", out string amc))
+                    g.SetAmmoKindMaxChange(k, int.Parse(amc));
+            }
+            if (cell.gridProperties.TryGetValue("fixedMaxFuelChangePerTurn", out string fmf))
+                g.fixedMaxFuelChangePerTurn = int.Parse(fmf);
             if (cell.gridProperties.TryGetValue("visionBonus", out string vb))
                 g.visionBonus = int.Parse(vb);
 

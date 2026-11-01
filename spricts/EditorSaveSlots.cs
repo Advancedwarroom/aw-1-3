@@ -342,6 +342,7 @@ public partial class EditorSaveSlots : Node
             canDestroyUnit = grid.canDestroyUnit,
             fixedDamagePerTurn = grid.fixedDamagePerTurn,
             fixedAttackPerTurn = grid.fixedAttackPerTurn,
+            fixedMaxHealthChangePerTurn = grid.fixedMaxHealthChangePerTurn, // ✦优化：最大血量增减
             visionBonus = grid.visionBonus,
             savedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds(),
             lastUsedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds()
@@ -453,6 +454,7 @@ public partial class EditorSaveSlots : Node
         grid.canDestroyUnit = data.canDestroyUnit;
         grid.fixedDamagePerTurn = data.fixedDamagePerTurn;
         grid.fixedAttackPerTurn = data.fixedAttackPerTurn;
+        grid.fixedMaxHealthChangePerTurn = data.fixedMaxHealthChangePerTurn;
         grid.visionBonus = data.visionBonus;
         grid.UpdateTerrainIcon();
         data.lastUsedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds();

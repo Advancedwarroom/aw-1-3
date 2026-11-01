@@ -284,6 +284,8 @@ if (currentUnit.canTransportUnits && currentUnit.maxTransportCapacity > 0)
             if (currentUnit.grid.fixedAttackPerTurn != 0)
                 infoText += $"  {TranslateGroup.T("固定攻击")}/回合: {currentUnit.grid.fixedAttackPerTurn} ({(currentUnit.grid.fixedAttackPerTurn > 0 ? TranslateGroup.T("扣血(经防御)") : TranslateGroup.T("回血"))})\n";
             infoText += $"  {TranslateGroup.T("可超血量上限")}: {(currentUnit.grid.canOverMaxHealth ? "✓" : "✗")}\n";
+            if (currentUnit.grid.fixedMaxHealthChangePerTurn != 0) // ✦优化：最大血量增减
+                infoText += $"  {TranslateGroup.T("最大血量增减")}/回合: {(currentUnit.grid.fixedMaxHealthChangePerTurn > 0 ? "+" : "")}{currentUnit.grid.fixedMaxHealthChangePerTurn}\n";
 
             // 弹药相关
             infoText += $"\n[{TranslateGroup.T("弹药系统")}]\n";
@@ -298,6 +300,14 @@ if (currentUnit.canTransportUnits && currentUnit.maxTransportCapacity > 0)
             }
             infoText += $"  {TranslateGroup.T("可超弹药上限")}: {(currentUnit.grid.ammoCanOverMax ? "✓" : "✗")}\n";
             infoText += $"  {TranslateGroup.T("可归零")}: {(currentUnit.grid.ammoCanReachZero ? "✓" : TranslateGroup.T("✗ (强制剩1)"))}\n";
+            // ✦优化：全种类弹药增减显示
+            foreach (Infantry.AmmoKind k in Infantry.AllAmmoKinds)
+            {
+                int kc = currentUnit.grid.GetAmmoKindChange(k);
+                int km = currentUnit.grid.GetAmmoKindMaxChange(k);
+                if (kc != 0 || km != 0)
+                    infoText += $"  {Grids.GetAmmoKindName(k)}: {(kc > 0 ? "+" : "")}{kc}/回合{(km != 0 ? $" (MAX{(km > 0 ? "+" : "")}{km})" : "")}\n";
+            }
 
             // 燃料相关
             infoText += $"\n[{TranslateGroup.T("燃料系统")}]\n";
@@ -311,6 +321,8 @@ if (currentUnit.canTransportUnits && currentUnit.maxTransportCapacity > 0)
                 infoText += $"  {TranslateGroup.T("燃料变化")}/回合: 无\n";
             }
             infoText += $"  {TranslateGroup.T("可超燃料上限")}: {(currentUnit.grid.fuelCanOverMax ? "✓" : "✗")}\n";
+            if (currentUnit.grid.fixedMaxFuelChangePerTurn != 0) // ✦优化：燃油上限增减
+                infoText += $"  {TranslateGroup.T("燃油上限增减")}/回合: {(currentUnit.grid.fixedMaxFuelChangePerTurn > 0 ? "+" : "")}{currentUnit.grid.fixedMaxFuelChangePerTurn}\n";
             infoText += $"  {TranslateGroup.T("可归零")}: {(currentUnit.grid.fuelCanReachZero ? "✓" : TranslateGroup.T("✗ (强制剩1)"))}\n";
         }
 
