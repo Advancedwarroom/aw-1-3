@@ -9,7 +9,7 @@
  "superStars": 3,
  "zoneRange": 4,
  "coUnits": [
-  "RANGER"
+  "Recon"
  ],
  "modules": [
   {
@@ -62,5 +62,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "RANGER"
+ ]
 }

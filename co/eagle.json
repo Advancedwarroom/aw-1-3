@@ -9,7 +9,7 @@
  "superStars": 6,
  "zoneRange": -1,
  "coUnits": [
-  "KIROV"
+  "Bomber"
  ],
  "modules": [
   {
@@ -29,5 +29,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "KIROV"
+ ]
 }

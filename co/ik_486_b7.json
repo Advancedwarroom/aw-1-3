@@ -9,7 +9,7 @@
  "superStars": 4,
  "zoneRange": -1,
  "coUnits": [
-  "CHAPERON"
+  "MdTank"
  ],
  "modules": [
   {
@@ -50,5 +50,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "CHAPERON"
+ ]
 }

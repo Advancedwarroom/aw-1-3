@@ -9,7 +9,7 @@
  "superStars": 4,
  "zoneRange": -1,
  "coUnits": [
-  "IRON_SHIELD_GENERATOR"
+  "Rig"
  ],
  "modules": [
   {
@@ -44,5 +44,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "IRON_SHIELD_GENERATOR"
+ ]
 }

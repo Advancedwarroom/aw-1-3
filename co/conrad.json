@@ -9,7 +9,7 @@
  "superStars": 4,
  "zoneRange": 3,
  "coUnits": [
-  "INTEL_TRUCK"
+  "Recon"
  ],
  "modules": [
   {
@@ -41,5 +41,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "INTEL_TRUCK"
+ ]
 }

@@ -35,6 +35,12 @@ public partial class GameManager
         string currentTeam = TeamHelper.GetPhaseTeamName(turnPhase) ?? "";
         int currentFunds = GetTeamFunds(currentTeam);
 
+        // ✅ CO 模块系统·模块19（专属单位）：该势力 CO 的专属单位并入生产列表（去重、须在单位库中存在）
+        var unitList = new System.Collections.Generic.List<string>(facility.producibleUnitNames);
+        foreach (var coUnit in CoModuleSystem.GetExclusiveUnits(currentTeam))
+            if (!unitList.Contains(coUnit) && UnitProductionDatabase.HasUnit(coUnit))
+                unitList.Add(coUnit);
+
         int remainingProductions = Mathf.Max(0, facility.maxProductionsPerTurn - facility.productionsThisTurn);
         productionMenuTitle.Text = $"🏭 生产菜单 ({facility.GetType().Name})\n💰 资金: {currentFunds} G\n⚙️ 本回合剩余生产: {remainingProductions}/{facility.maxProductionsPerTurn}";
 
@@ -54,12 +60,15 @@ public partial class GameManager
         sep.CustomMinimumSize = new Godot.Vector2(0, 8);
         productionMenuContainer.AddChild(sep);
 
-        foreach (string unitName in facility.producibleUnitNames)
+        foreach (string unitName in unitList)
         {
             if (!UnitProductionDatabase.HasUnit(unitName)) continue;
 
             var info = UnitProductionDatabase.GetInfo(unitName);
-            int prodCost = productionTargetFacility.GetProductionCost(info.Cost);
+            // ✅ CO 模块系统·模块12（生产模块）：生产价格百分比增减（与实际扣费一致）
+            int prodCost = Mathf.Max(1, Mathf.RoundToInt(productionTargetFacility.GetProductionCost(info.Cost)
+                * (100f + CoModuleSystem.GetCostModifierPercent(currentTeam)) / 100f));
+            bool isCoUnit = CoModuleSystem.IsExclusiveUnit(currentTeam, unitName);
             bool canAfford = currentFunds >= prodCost;
             bool gridEmpty = grid.infantries.Count == 0 && grid.weapons.Count == 0;
             bool productionAvailable = facility.CanProduceNow();
@@ -67,7 +76,7 @@ public partial class GameManager
             var btn = new Button();
             btn.CustomMinimumSize = new Godot.Vector2(300, 50);
             btn.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
-            btn.Text = $"{info.DisplayName}\n💰 {prodCost} G";
+            btn.Text = $"{(isCoUnit ? "★" : "")}{info.DisplayName}\n💰 {prodCost} G";
             btn.AddThemeFontSizeOverride("font_size", 13);
 
             if (!productionAvailable)
@@ -245,12 +254,16 @@ public partial class GameManager
         if (!isEditMode)
         {
             int currentFunds = GetTeamFunds(currentTeam);
-            int prodCostUI = productionTargetFacility.GetProductionCost(info.Cost);
+            // ✅ CO 模块系统·模块12（生产模块）：价格增减与菜单显示/扣费一致
+            int prodCostUI = Mathf.Max(1, Mathf.RoundToInt(productionTargetFacility.GetProductionCost(info.Cost)
+                * (100f + CoModuleSystem.GetCostModifierPercent(currentTeam)) / 100f));
             if (currentFunds < prodCostUI)
             {
                 return;
             }
             SetTeamFunds(currentTeam, currentFunds - prodCostUI);
+            // ✅ 模块27（能量条）：消耗资金打点
+            CoModuleSystem.OnFundsSpent(currentTeam, prodCostUI);
         }
 
         // 生成单位
@@ -265,6 +278,8 @@ public partial class GameManager
 
         unit.Position = productionTargetGrid.Position;
         unit.team = currentTeam;
+        // ✅ CO 模块系统·模块19/30：CO 专属单位出厂即 CO 单位（Zone 载体，被毁=CO 死亡规则用）
+        if (CoModuleSystem.IsExclusiveUnit(currentTeam, unitName)) unit.isCoUnit = true;
         int unitNumber = unitManager.AllUnits.Count + 1;
         unit.Name = $"{currentTeam}_{unitName}_{unitNumber}";
 
@@ -323,11 +338,14 @@ public partial class GameManager
 
         var info = UnitProductionDatabase.GetInfo(unitName);
         int currentFunds = GetTeamFunds(team);
-        int prodCostAI = facility.GetProductionCost(info.Cost);
+        // ✅ CO 模块系统·模块12：AI 生产同样吃价格增减
+        int prodCostAI = Mathf.Max(1, Mathf.RoundToInt(facility.GetProductionCost(info.Cost)
+            * (100f + CoModuleSystem.GetCostModifierPercent(team)) / 100f));
         if (currentFunds < prodCostAI) return false;
 
         // 扣除资金
         SetTeamFunds(team, currentFunds - prodCostAI);
+        CoModuleSystem.OnFundsSpent(team, prodCostAI);
 
         // 生成单位
         var scene = GD.Load<PackedScene>(info.ScenePath);

@@ -9,7 +9,7 @@
  "superStars": 2,
  "zoneRange": -1,
  "coUnits": [
-  "HOT_TANK"
+  "MdTank"
  ],
  "modules": [
   {
@@ -53,5 +53,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "HOT_TANK"
+ ]
 }

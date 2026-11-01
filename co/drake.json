@@ -9,7 +9,7 @@
  "superStars": 3,
  "zoneRange": -1,
  "coUnits": [
-  "MISSILE_SUB"
+  "Submarine"
  ],
  "modules": [
   {
@@ -26,5 +26,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "MISSILE_SUB"
+ ]
 }

@@ -9,7 +9,7 @@
  "superStars": 2,
  "zoneRange": 3,
  "coUnits": [
-  "REPAIR_TANK"
+  "Rig"
  ],
  "modules": [
   {
@@ -56,5 +56,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "REPAIR_TANK"
+ ]
 }

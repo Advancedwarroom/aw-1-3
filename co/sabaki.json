@@ -9,7 +9,7 @@
  "superStars": 3,
  "zoneRange": 3,
  "coUnits": [
-  "CRYSTAL_TANK"
+  "Megatank"
  ],
  "modules": [
   {
@@ -53,5 +53,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "CRYSTAL_TANK"
+ ]
 }

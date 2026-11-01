@@ -9,7 +9,7 @@
  "superStars": 3,
  "zoneRange": -1,
  "coUnits": [
-  "AT_CYCLE"
+  "Bike"
  ],
  "modules": [
   {
@@ -50,5 +50,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "AT_CYCLE"
+ ]
 }

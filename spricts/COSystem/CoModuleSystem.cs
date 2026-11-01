@@ -8,10 +8,12 @@ using System.Linq;
 public class CoTeamState
 {
     public CoProfile profile;
-    public float charge = 0f;            // 能量条（星数 = charge）
+    public List<CoProfile> partners = new();  // ✅ 配合模块：Tag Power 搭档 CO（合体技）
+    public float charge = 0f;            // 能量条（星数 = charge；全队共享）
     public CoPowerMode powerMode = CoPowerMode.Off;
     public int powerTurnsLeft = 0;      // 大招剩余己方回合数
     public bool powerUsedThisTurn = false;  // 一回合只能放一次
+    public bool tagExtraTurnUsed = false;    // Tag Power 的全军再动是否已用（一次合体只再动一次）
 }
 
 public static class CoModuleSystem
@@ -29,7 +31,7 @@ public static class CoModuleSystem
         loaded = true;
         foreach (var p in CoProfile.LoadAll())
             Profiles[p.id] = p;
-        // ✅ 势力绑定：co/bindings.json（{"Player1":"andy","Player2":"hawke"}），缺省则不绑定
+        // ✅ 势力绑定：co/bindings.json（{"Player1":"andy"} 或 {"Player1":["andy","eagle"]} 后者=主CO+Tag搭档）
         var bf = FileAccess.Open("res://co/bindings.json", FileAccess.ModeFlags.Read);
         if (bf != null)
         {
@@ -37,8 +39,27 @@ public static class CoModuleSystem
             if (v.VariantType == Variant.Type.Dictionary)
                 foreach (var kv in v.AsGodotDictionary())
                 {
-                    string team = kv.Key.AsString(), coId = kv.Value.AsString();
-                    if (Profiles.ContainsKey(coId)) Teams[team] = new CoTeamState { profile = Profiles[coId] };
+                    string team = kv.Key.AsString();
+                    // 支持单 CO 字符串 或 [主, 搭档...] 数组
+                    if (kv.Value.VariantType == Variant.Type.Array)
+                    {
+                        var arr = kv.Value.AsGodotArray();
+                        if (arr.Count == 0) continue;
+                        string mainId = arr[0].AsString();
+                        if (!Profiles.ContainsKey(mainId)) continue;
+                        Teams[team] = new CoTeamState { profile = Profiles[mainId] };
+                        for (int i = 1; i < arr.Count; i++)
+                        {
+                            string pid = arr[i].AsString();
+                            if (Profiles.ContainsKey(pid) && !Teams[team].partners.Contains(Profiles[pid]))
+                                Teams[team].partners.Add(Profiles[pid]);
+                        }
+                    }
+                    else
+                    {
+                        string coId = kv.Value.AsString();
+                        if (Profiles.ContainsKey(coId)) Teams[team] = new CoTeamState { profile = Profiles[coId] };
+                    }
                 }
             GD.Print("[CO] bindings.json 已绑定势力");
         }
@@ -64,6 +85,24 @@ public static class CoModuleSystem
         GD.Print($"[CO] {team} 绑定 CO：{p.name}（{p.id}）");
     }
 
+    /// <summary>配合模块：给势力追加 Tag Power 搭档 CO</summary>
+    public static void RegisterPartner(string team, string coId)
+    {
+        EnsureLoaded();
+        var st = GetState(team);
+        if (st == null)
+        {
+            GD.PrintErr($"[CO] {team} 未绑定主 CO，无法追加搭档");
+            return;
+        }
+        if (!Profiles.TryGetValue(coId, out var p) || p == st.profile || st.partners.Contains(p)) return;
+        st.partners.Add(p);
+        GD.Print($"[CO] {team} 追加搭档 CO：{p.name}（{p.id}）");
+    }
+
+    public static void ClearPartners(string team) => GetState(team)?.partners.Clear();
+    public static IReadOnlyList<CoProfile> GetPartners(string team) => GetState(team)?.partners ?? (IReadOnlyList<CoProfile>)System.Array.Empty<CoProfile>();
+
     public static void Unregister(string team) => Teams.Remove(team);
     public static bool HasCo(string team) => team != null && Teams.TryGetValue(team, out var s) && s.profile != null;
     public static CoTeamState GetState(string team) => string.IsNullOrEmpty(team) ? null
@@ -71,34 +110,41 @@ public static class CoModuleSystem
     public static CoProfile GetProfile(string team) => GetState(team)?.profile;
 
     // ---------- 模块取值核心 ----------
-    /// <summary>取该势力当前 PowerMode 下某模块的全部数值（含 Zone 判定）</summary>
+    /// <summary>取该势力当前 PowerMode 下某模块的全部数值（含 Zone 判定与 Tag 多 CO 合并）</summary>
     static IEnumerable<CoModuleEntry> ActiveModules(string team, int moduleId, Infantry unit = null)
     {
         var st = GetState(team);
         if (st?.profile == null) yield break;
-        foreach (var m in st.profile.modules)
+        // ✅ 配合模块：Tag Power 时主 CO + 全部搭档 CO 的 SCOP 一并生效
+        var profiles = st.powerMode == CoPowerMode.Tag && st.partners.Count > 0
+            ? new[] { st.profile }.Concat(st.partners)
+            : new[] { st.profile };
+        foreach (var profile in profiles)
         {
-            if (m.module != moduleId) continue;
-            // ✅ 模块29 特殊限定
-            if (unit != null)
+            foreach (var m in profile.modules)
             {
-                if (m.unitTypes.Count > 0 && !m.unitTypes.Contains(unit.UnitTypeId)) continue;
-                if (m.terrainTypes.Count > 0 && (unit.grid == null || !m.terrainTypes.Contains(unit.grid.gridType.ToString()))) continue;
-                bool indirect = !unit.canAttackAfterMoving;   // 移动后不能攻击=间接攻击型（Artillery/Rocket 等）
-                if (m.directOnly && indirect) continue;
-                if (m.indirectOnly && !indirect) continue;
-            }
-            // ✅ 模块30 Zone 判定：zoneRange>=0 时，非 Zone 内单位只吃 d2d 档
-            if (st.profile.zoneRange >= 0 && unit != null && unit.grid != null)
-            {
-                bool inZone = IsInCoZone(team, unit);
-                if (m.module == 30 && !inZone) continue;               // 30 号模块区域外无效
-                if (inZone && m.zone.Count > 0 && st.powerMode == CoPowerMode.Off)
+                if (m.module != moduleId) continue;
+                // ✅ 模块29 特殊限定
+                if (unit != null)
                 {
-                    // Zone CO 常态：区域内用 zone 档（调用方处理，这里仍返回模块）
+                    if (m.unitTypes.Count > 0 && !m.unitTypes.Contains(unit.UnitTypeId)) continue;
+                    if (m.terrainTypes.Count > 0 && (unit.grid == null || !m.terrainTypes.Contains(unit.grid.gridType.ToString()))) continue;
+                    bool indirect = !unit.canAttackAfterMoving;   // 移动后不能攻击=间接攻击型（Artillery/Rocket 等）
+                    if (m.directOnly && indirect) continue;
+                    if (m.indirectOnly && !indirect) continue;
                 }
+                // ✅ 模块30 Zone 判定：zoneRange>=0 时，非 Zone 内单位只吃 d2d 档
+                if (st.profile.zoneRange >= 0 && unit != null && unit.grid != null)
+                {
+                    bool inZone = IsInCoZone(team, unit);
+                    if (m.module == 30 && !inZone) continue;               // 30 号模块区域外无效
+                    if (inZone && m.zone.Count > 0 && st.powerMode == CoPowerMode.Off)
+                    {
+                        // Zone CO 常态：区域内用 zone 档（调用方处理，这里仍返回模块）
+                    }
+                }
+                yield return m;
             }
-            yield return m;
         }
     }
 
@@ -189,6 +235,22 @@ public static class CoModuleSystem
     public static float GetIncomeModifierPercent(string team)
         => Sum(team, 11, "incomePercent");
 
+    /// <summary>模块19（CO 专属单位）：该势力可生产的专属单位列表（主 CO + 搭档，去重）</summary>
+    public static IReadOnlyList<string> GetExclusiveUnits(string team)
+    {
+        var st = GetState(team);
+        if (st?.profile == null) return System.Array.Empty<string>();
+        var list = new List<string>(st.profile.coUnits);
+        foreach (var p in st.partners)
+            foreach (var u in p.coUnits)
+                if (!list.Contains(u)) list.Add(u);
+        return list;
+    }
+
+    /// <summary>模块19：某单位是否为该势力 CO 的专属单位（生产时用于 isCoUnit 标记）</summary>
+    public static bool IsExclusiveUnit(string team, string unitTypeId)
+        => GetExclusiveUnits(team).Contains(unitTypeId);
+
     // ---------- 能量条（模块 27 附属） ----------
     public static float GetCharge(string team) => GetState(team)?.charge ?? 0f;
     public static float GetChargeNeeded(string team, bool scop)
@@ -206,7 +268,9 @@ public static class CoModuleSystem
     {
         var st = GetState(team);
         if (st?.profile == null || amount <= 0) return;
-        st.charge = Mathf.Min(st.charge + amount, st.profile.superStars);
+        // ✅ 上限：无搭档=主CO SCOP★；有搭档=Tag 所需星数（否则攒不到合体技）
+        float cap = st.partners.Count > 0 ? GetTagPowerNeeded(team) : st.profile.superStars;
+        st.charge = Mathf.Min(st.charge + amount, cap);
     }
 
     public static void OnDamageDealt(string team, float damage)
@@ -266,6 +330,53 @@ public static class CoModuleSystem
         return true;
     }
 
+    // ---------- 配合模块：Tag Power（多 CO 合体技） ----------
+    /// <summary>Tag 所需星数 = 主 CO SCOP★ + 全部搭档 COP★（合体消耗）</summary>
+    public static float GetTagPowerNeeded(string team)
+    {
+        var st = GetState(team);
+        if (st?.profile == null || st.partners.Count == 0) return float.MaxValue;
+        return st.profile.superStars + st.partners.Sum(p => p.powerStars);
+    }
+
+    public static bool CanUseTagPower(string team) => GetState(team) is { } s && s.profile != null
+        && s.partners.Count > 0 && s.powerMode == CoPowerMode.Off
+        && s.charge >= GetTagPowerNeeded(team) && !s.powerUsedThisTurn;
+
+    /// <summary>发动 Tag Power：主 CO + 搭档 CO 的 SCOP 一并生效 + 全军可再行动一次（模块6）</summary>
+    public static bool ActivateTagPower(string team)
+    {
+        var st = GetState(team);
+        if (!CanUseTagPower(team)) return false;
+        st.powerMode = CoPowerMode.Tag;
+        st.powerTurnsLeft = PowerDuration(st, CoPowerMode.Tag);
+        st.powerUsedThisTurn = true;
+        st.charge = 0f;
+        st.tagExtraTurnUsed = false;
+        GrantTeamExtraTurn(team);   // ✅ 模块6（多次移动）：合体技全军再动
+        st.tagExtraTurnUsed = true;
+        GD.Print($"[CO] {team} 发动 Tag Power：{st.profile.scopName} × {st.partners.Count + 1} CO 合体");
+        return true;
+    }
+
+    /// <summary>模块6（多次移动加成）：全势力单位恢复可行动（Tag Power / 特殊模块用）</summary>
+    public static void GrantTeamExtraTurn(string team)
+    {
+        var tree = (Engine.GetMainLoop() as SceneTree);
+        if (tree == null) return;
+        foreach (var n in tree.GetNodesInGroup("infantry"))
+        {
+            if (n is not Infantry i || i.team != team) continue;
+            i.hasActed = false;
+            i.isMoved = false;
+            i.isAttacked = false;
+            i.state = UnitState.Idle;
+            i.hasTeleportedThisTurn = false;   // 合体再动回合传送也重置（限一次按回合算）
+            i.SetWaitVisual(false);
+            i.RestoreAnimAndBreath();
+        }
+    }
+
     static int PowerDuration(CoTeamState st, CoPowerMode mode)
     {
         // 默认：持续到下一次己方回合结束（AW 标准 = 1 个己方回合）
@@ -281,6 +392,7 @@ public static class CoModuleSystem
         var st = GetState(team);
         if (st?.profile == null) return;
         st.powerUsedThisTurn = false;
+        st.tagExtraTurnUsed = false;
         if (st.powerTurnsLeft > 0 && --st.powerTurnsLeft <= 0 && st.powerMode != CoPowerMode.Off)
         {
             GD.Print($"[CO] {team} 的 {st.profile.name} 大招效果结束");

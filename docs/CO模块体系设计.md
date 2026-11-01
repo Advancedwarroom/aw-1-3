@@ -271,6 +271,13 @@ CoW 中 DoR 系 CO（Brenner/Lin/Will/Isabella/Gage/Tasha/Tabitha/Penny/Caulder 
 > - **运行层**：`spricts/COSystem/CoModuleSystem.cs`（势力→CO 状态、30 模块查询、能量条、大招发动/过期、Zone 判定）；势力绑定走 `co/bindings.json`
 > - **已接线模块**：1 伤害（`CalculateFinalDamage`）、2 防御（同左+地形星）、3 射程（`GetFireRangeBonus` 待接 UI）、4 视野（`ActualVisionRange`）、5 移动（`ShowMoveRange`/移动判定/移动消耗）、8 回血（大招按钮内全军回复）、11 经济（`AddFundsForTeam`）、13 运气（`CalculateFinalDamage` 末段）、18 占领（`GetCapturePower`）、27 能量条（攻击/反击/损失/生产打点）
 > - **UI**：`ActionMenu.CoPower.cs`（技能/大招按钮，能量攒满显示）
-> - **待做**：6 多次移动、7 生成单位、9 区域导弹、10 逆转联动、12 生产价格接线（查询已有）、14-17、19-26、28-29 的接线与 UI；CO 头像上传界面；Tag Power 多 CO 联动
+> - **待做**：7 生成单位、9 区域导弹、10 逆转联动（FirstStrike hook 查询已有）、14-17、20-26、28-29 的接线与 UI；CO 头像上传界面；CoW 专属兵种（ZCOUNIT_*）实装后替换近似映射
+
+**第二轮落地（射程/专属单位/Tag Power）：**
+- **模块3 攻击范围**：`IsTargetInAttackRange`（攻击判定）+ `ShowMinMaxAttackRange`（范围显示）均加射程/最小射程增减
+- **模块12 生产价格**：生产菜单显示、实际扣费、AI 生产三处同步价格百分比增减
+- **模块19 专属单位**：生产菜单并入 CO 专属单位（★标记、去重），出厂即 `isCoUnit=true`（Zone 载体+CO 死亡规则挂钩）；57 个 CO 的 CoW 专属兵种已映射到 aw-1-3 最接近单位（原始 ID 存 `coUnitsRaw`，后续实装自定义兵种时替换）
+- **配合模块 Tag Power**：`bindings.json` 支持数组 `["主CO","搭档CO",...]`；合体星数=主 SCOP★+搭档 COP★；发动后主 CO+全部搭档的 SCOP 模块合并生效，且**全军再行动一次**（模块6 多次移动，`GrantTeamExtraTurn`，传送次数同步重置）；能量条上限自动抬到合体所需星数；UI 为"合体技"按钮
+- **模块27 补充**：消耗资金打点（`OnFundsSpent`）接入生产扣费处
 
 搬运优先级建议：先做 1/2/5/13/18/19 号模块（原作 CO 90% 的机制都靠它们），再做能量条与 COP/SCOP，最后做 Zone 与配合/多屏规则。

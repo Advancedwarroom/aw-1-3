@@ -76,8 +76,9 @@ public partial class GridManager
         
         attackRange.Clear();
         
-        int minRange = unit.minAttackRange;
-        int maxRange = unit.maxAttackRange;
+        // ✅ CO 模块系统·模块3（攻击范围加成）：射程/最小射程增减同步到范围显示
+        int minRange = Mathf.Max(1, unit.minAttackRange + CoModuleSystem.GetMinFireRangeBonus(unit));
+        int maxRange = unit.maxAttackRange + CoModuleSystem.GetFireRangeBonus(unit);
         
         var allRangeGrids = FindRange(unit.grid, maxRange, false);
         var blindZoneGrids = new HashSet<Grids>();

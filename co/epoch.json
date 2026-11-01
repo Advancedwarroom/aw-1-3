@@ -9,7 +9,7 @@
  "superStars": 4,
  "zoneRange": -1,
  "coUnits": [
-  "AUTO_TANK"
+  "LightTank"
  ],
  "modules": [
   {
@@ -71,5 +71,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "AUTO_TANK"
+ ]
 }

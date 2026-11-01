@@ -9,7 +9,7 @@
  "superStars": 4,
  "zoneRange": 3,
  "coUnits": [
-  "NEOSPIDER_TANK"
+  "Neotank"
  ],
  "modules": [
   {
@@ -56,5 +56,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "NEOSPIDER_TANK"
+ ]
 }

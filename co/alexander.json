@@ -9,7 +9,7 @@
  "superStars": 4,
  "zoneRange": -1,
  "coUnits": [
-  "PARTISAN"
+  "Mech"
  ],
  "modules": [
   {
@@ -44,5 +44,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "PARTISAN"
+ ]
 }

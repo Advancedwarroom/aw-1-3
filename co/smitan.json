@@ -9,7 +9,7 @@
  "superStars": 5,
  "zoneRange": -1,
  "coUnits": [
-  "SIEGE_CANNON"
+  "Rocket"
  ],
  "modules": [
   {
@@ -41,5 +41,8 @@
   "damageDealtWeight": 1,
   "damageTakenWeight": 1,
   "chargeDivisor": 100
- }
+ },
+ "coUnitsRaw": [
+  "SIEGE_CANNON"
+ ]
 }

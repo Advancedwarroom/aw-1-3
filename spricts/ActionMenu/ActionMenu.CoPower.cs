@@ -9,6 +9,7 @@ public partial class ActionMenu
 {
     private Button copButton;
     private Button scopButton;
+    private Button tagButton;
 
     public void EnsureCoPowerButtons()
     {
@@ -34,28 +35,66 @@ public partial class ActionMenu
             parent.AddChild(scopButton);
             parent.MoveChild(scopButton, moveButton.GetIndex() + 2);
         }
+        if (tagButton == null || !IsInstanceValid(tagButton))
+        {
+            if (moveButton == null) return;
+            tagButton = new Button();
+            tagButton.Name = "TagButton";
+            TranslateGroup.SetText(tagButton, "合体技");
+            tagButton.Pressed += OnTagPressed;
+            var parent = moveButton.GetParent();
+            parent.AddChild(tagButton);
+            parent.MoveChild(tagButton, moveButton.GetIndex() + 3);
+        }
     }
 
-    /// <summary>菜单刷新时的 COP/SCOP 按钮可见性（由 ShowMenu 调用）</summary>
+    /// <summary>菜单刷新时的 COP/SCOP/Tag 按钮可见性（由 ShowMenu 调用）</summary>
     public void UpdateCoPowerButtons(Infantry unit)
     {
         EnsureCoPowerButtons();
         if (copButton == null || !IsInstanceValid(copButton)) return;
         if (scopButton == null || !IsInstanceValid(scopButton)) return;
+        if (tagButton == null || !IsInstanceValid(tagButton)) return;
 
         string team = unit?.team;
         bool canCop = unit != null && CoModuleSystem.CanUsePower(team);
         bool canScop = unit != null && CoModuleSystem.CanUseSuperPower(team);
+        bool canTag = unit != null && CoModuleSystem.CanUseTagPower(team);
         copButton.Visible = canCop;
         scopButton.Visible = canScop;
+        tagButton.Visible = canTag;
         if (canCop)
             TranslateGroup.SetText(copButton, $"技能 {CoModuleSystem.GetCharge(team):F1}/{CoModuleSystem.GetProfile(team).powerStars}★");
         if (canScop)
             TranslateGroup.SetText(scopButton, $"大招 {CoModuleSystem.GetCharge(team):F1}/{CoModuleSystem.GetProfile(team).superStars}★");
+        if (canTag)
+            TranslateGroup.SetText(tagButton, $"合体技 {CoModuleSystem.GetCharge(team):F1}/{CoModuleSystem.GetTagPowerNeeded(team):F0}★");
     }
 
     private void OnCopPressed() => ActivateCoPower(false);
     private void OnScopPressed() => ActivateCoPower(true);
+    private void OnTagPressed()
+    {
+        var unit = currentUnit;
+        if (unit == null || !IsInstanceValid(unit)) return;
+        string team = unit.team;
+        if (!CoModuleSystem.ActivateTagPower(team)) return;
+
+        // ✅ 模块8（healHp）：合体技时主 CO + 搭档 CO 的回血模块一并结算
+        int healHp = CoModuleSystem.GetHealHp(team);
+        if (healHp != 0)
+        {
+            foreach (var n in GetTree().GetNodesInGroup("infantry"))
+            {
+                if (n is not Infantry i || i.team != team) continue;
+                i.health = Mathf.Clamp(i.health + healHp, 1, i.GetEffectiveMaxHealth());
+                i.UpdateHpLabel();
+            }
+        }
+
+        Hide();
+        ShowMenu(unit, false);
+    }
 
     private void ActivateCoPower(bool scop)
     {

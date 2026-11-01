@@ -504,14 +504,17 @@ public virtual bool IsTargetInCounterRange(Infantry attacker)
     public virtual bool IsTargetInAttackRange(Infantry target)
     {
         if (target?.grid == null || this.grid == null) return false;
-        
+
         int distance = Mathf.Abs(target.grid.GridIndex.X - this.grid.GridIndex.X) 
                      + Mathf.Abs(target.grid.GridIndex.Y - this.grid.GridIndex.Y);
-        
+
+        // ✅ CO 模块系统·模块3（攻击范围加成）：射程/最小射程增减
+        int coRangeBonus = CoModuleSystem.GetFireRangeBonus(this);
+        int coMinBonus = CoModuleSystem.GetMinFireRangeBonus(this);
         if (useMinMaxAttackRange)
-            return distance >= minAttackRange && distance <= maxAttackRange;
+            return distance >= Mathf.Max(1, minAttackRange + coMinBonus) && distance <= maxAttackRange + coRangeBonus;
         else
-            return distance <= attackRange;
+            return distance <= attackRange + coRangeBonus;
     }
     
 
