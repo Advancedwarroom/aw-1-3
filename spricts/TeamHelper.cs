@@ -613,8 +613,51 @@ public static class TeamHelper
     {
         if (attackerTeam == Player || attackerTeam == Player0)
             return true;
+        // ✅ 盟友机制：同盟势力不算敌人（不能互攻、AI不视为目标）
+        if (AreAllied(attackerTeam, defenderTeam)) return false;
         return attackerTeam != defenderTeam;
     }
+
+    // ========== ✅ 盟友机制（俩势力一伙）：运行时API，全局生效 ==========
+    private static readonly List<(string A, string B)> alliances = new();
+
+    /// <summary>设置/解除同盟（双向）</summary>
+    public static void SetAlliance(string teamA, string teamB, bool allied)
+    {
+        if (string.IsNullOrEmpty(teamA) || string.IsNullOrEmpty(teamB) || teamA == teamB) return;
+        var key = teamA.CompareTo(teamB) <= 0 ? (teamA, teamB) : (teamB, teamA);
+        if (allied) { if (!alliances.Contains(key)) alliances.Add(key); }
+        else alliances.Remove(key);
+    }
+
+    /// <summary>是否同盟（含同势力）</summary>
+    public static bool AreAllied(string teamA, string teamB)
+    {
+        if (teamA == teamB) return true;
+        if (string.IsNullOrEmpty(teamA) || string.IsNullOrEmpty(teamB)) return false;
+        var key = teamA.CompareTo(teamB) <= 0 ? (teamA, teamB) : (teamB, teamA);
+        return alliances.Contains(key);
+    }
+
+    /// <summary>获取某势力的所有盟友</summary>
+    public static List<string> GetAlliedTeams(string team)
+    {
+        var result = new List<string>();
+        if (string.IsNullOrEmpty(team)) return result;
+        foreach (var (a, b) in alliances)
+        {
+            if (a == team && !result.Contains(b)) result.Add(b);
+            if (b == team && !result.Contains(a)) result.Add(a);
+        }
+        return result;
+    }
+
+    /// <summary>清空全部同盟（重置游戏时调用）</summary>
+    public static void ClearAllAlliances() => alliances.Clear();
+
+    /// <summary>获取全部同盟对（面板列表/存档序列化用）</summary>
+    public static System.Collections.Generic.List<(string A, string B)> GetAlliancePairs()
+        => new System.Collections.Generic.List<(string A, string B)>(alliances);
     
     public static bool CanCounterAttack(string defenderTeam)
     {

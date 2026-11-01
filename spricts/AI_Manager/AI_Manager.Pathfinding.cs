@@ -38,7 +38,9 @@ public partial class AI_Manager
                 int d = Math.Abs(dx) + Math.Abs(dy);
                 if (d < minR || d > maxR) continue;
                 var g = At(c.GridIndex.X + dx, c.GridIndex.Y + dy);
-                if (g != null) yield return g;
+                if (g == null) continue;
+                if (g.screenId != c.screenId) continue; // ✅ N屏隔离：环形扫描不跨屏
+                yield return g;
             }
     }
 
@@ -69,6 +71,7 @@ public partial class AI_Manager
             {
                 var n = At(cur.GridIndex.X + d.X, cur.GridIndex.Y + d.Y);
                 if (n == null) continue;
+                if (n.screenId != start.screenId) continue; // ✅ N屏隔离：AI 不跨屏行走（跨屏走传送）
                 int sc = StepCost(u, n);
                 if (sc < 0) continue;
                 if (n.weapon != null && IsInstanceValid(n.weapon) && u.overlapType != UnitOverlapType.Oozium && !n.weapon.AllowsPassage(u)) continue; // ✦适配：门禁白名单（Gate）放行则可通过

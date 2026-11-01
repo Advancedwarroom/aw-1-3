@@ -410,6 +410,39 @@ public partial class GrandBolt : Weapon
         ooziumProducedThisTurn = 0;
     }
 
+    // ========== 电磁爆模块（Von-Bolt 电磁爆：范围伤害+麻痹，持续N回合Export）==========
+    [ExportGroup("电磁爆模块（Von-Bolt 电磁爆）")]
+    [Export] public bool empEnabled = false;                // 是否开启（默认关，不强制）
+    [Export] public int empRadius = 3;                       // 范围（曼哈顿半径，以兵器为核心）
+    [Export] public int empDamage = 30;                      // 伤害（千分制，3HP；0=纯麻痹不伤血）
+    [Export] public int empStunTurns = 1;                    // ✅Export持续时长：麻痹持续回合数
+    [Export] public bool empEnemiesOnly = true;             // 只影响敌军（false=不分敌我）
+
+    /// <summary>电磁爆：本方回合开始时爆发（引擎侧触发）。范围内单位受伤+麻痹empStunTurns回合</summary>
+    public void EmpBurst(GameManager gm)
+    {
+        if (!empEnabled || isDestroyed || grid == null || gm?.unitManager == null) return;
+        var anchor = grid.GridIndex;
+        foreach (var u in (gm.unitManager.AllUnits ?? new List<Infantry>()).ToList())
+        {
+            if (u == null || !IsInstanceValid(u) || u.health <= 0 || u.grid == null) continue;
+            if (empEnemiesOnly && !TeamHelper.IsEnemyForAttacker(team, u.team)) continue;
+            int d = Mathf.Abs(u.grid.GridIndex.X - anchor.X) + Mathf.Abs(u.grid.GridIndex.Y - anchor.Y);
+            if (d > empRadius) continue;
+            if (empDamage > 0)
+            {
+                u.health = Mathf.Max(0, u.health - empDamage);
+                u.UpdateHpLabel();
+                if (u.health <= 0 && !u.TryFlee())
+                {
+                    gm.RemovePiece(u);
+                    continue;
+                }
+            }
+            u.ApplyStun(empStunTurns);   // 麻痹：不能操作，持续empStunTurns回合
+        }
+    }
+
     // ========== 势力变更时刷新外观 ==========
     public override void RefreshTeamVisual()
     {

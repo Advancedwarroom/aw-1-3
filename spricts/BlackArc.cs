@@ -37,6 +37,16 @@ public partial class BlackArc : Weapon
     // ========== 8. 血量（继承基类 maxHealth/health 千分制）==========
     // 可被攻击扣血（原作可被攻击）
 
+    // ========== 9. 力场模块（原作：存活期间保护地图目标物，对其攻击全部无效）==========
+    [ExportGroup("力场模块（原作：黑弧存活时地图目标物攻击全部无效）")]
+    [Export] public bool forceFieldEnabled = false;              // 是否开启力场（默认关，不强制）
+    [Export] public Godot.Collections.Array<Vector2I> forceFieldGridOffsets = new(); // 保护的目标格（相对锚点偏移；空=不保护）
+
+    // ========== 10. 护卫联动模块（原作：护卫炮全毁→黑弧坠落）==========
+    [ExportGroup("护卫联动模块（原作：护卫兵器全毁→黑弧坠落）")]
+    [Export] public bool escortLinkageEnabled = false;           // 是否开启护卫联动（默认关，不强制）
+    [Export] public Godot.Collections.Array<Vector2I> escortGridOffsets = new();   // 护卫兵器所在格（相对锚点偏移；空=无护卫）
+
     // 十字准星瞄准模式状态
     private bool isArcTargeting = false;
 
@@ -54,7 +64,7 @@ public partial class BlackArc : Weapon
         var rangeGrids = gm.gridManager.grids.Where(g =>
         {
             int d = Mathf.Abs(g.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - grid.GridIndex.Y);
-            return d >= arcStrikeMinRange && d <= arcStrikeMaxRange;
+            return d >= arcStrikeMinRange && d <= arcStrikeMaxRange && !IsScreenBlocked(g); // ✅ N屏：默认仅限己图
         }).ToList();
 
         foreach (var g in rangeGrids)
@@ -114,6 +124,8 @@ public partial class BlackArc : Weapon
                 if (nx < 0 || ny < 0 || nx >= gm.gridManager.map.GetLength(0) || ny >= gm.gridManager.map.GetLength(1)) continue;
                 var g = gm.gridManager.map[nx, ny];
                 if (g == null) continue;
+                // ✅ N屏隔离：跨屏格子不受天基打击（开canCrossScreens才可跨图）
+                if (!canCrossScreens && g.screenId != grid.screenId) continue;
 
                 // 对范围内单位造成伤害
                 foreach (var u in (g.infantries ?? new List<Infantry>()).ToList())
@@ -129,8 +141,8 @@ public partial class BlackArc : Weapon
                     }
                 }
 
-                // 对范围内兵器造成伤害
-                if (arcStrikeAffectsWeapons)
+                // 对范围内兵器造成伤害（被力场保护的地图目标物不受影响）
+                if (arcStrikeAffectsWeapons && !IsGridForceFieldProtected(g))
                 {
                     foreach (var w in (g.weapons ?? new List<Weapon>()).ToList())
                     {
@@ -161,11 +173,66 @@ public partial class BlackArc : Weapon
         };
     }
 
-    /// <summary>回合开始：冷却递减</summary>
+    /// <summary>回合开始：冷却递减 + 护卫联动检查</summary>
     public void OnTurnStartArc()
     {
         if (arcStrikeCooldownCounter > 0)
             arcStrikeCooldownCounter--;
+        CheckEscortLinkage();
+    }
+
+    // ========== 力场/护卫联动实现 ==========
+
+    /// <summary>力场判定：某格子是否被任意存活黑弧的力场保护（武器受伤入口调用，Export开关+偏移列表均为空时不保护）</summary>
+    public static bool IsGridForceFieldProtected(Grids target)
+    {
+        if (target == null || !IsInstanceValid(target)) return false;
+        var gm = target.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.weaponManager?.AllWeapons == null) return false;
+        foreach (var w in gm.weaponManager.AllWeapons)
+        {
+            if (w is not BlackArc arc || !IsInstanceValid(w) || w.isDestroyed || w.IsQueuedForDeletion()) continue;
+            if (!arc.forceFieldEnabled || arc.grid == null || arc.forceFieldGridOffsets.Count == 0) continue;
+            var anchor = arc.grid.GridIndex;
+            foreach (var off in arc.forceFieldGridOffsets)
+                if (anchor.X + off.X == target.GridIndex.X && anchor.Y + off.Y == target.GridIndex.Y)
+                    return true;
+        }
+        return false;
+    }
+
+    /// <summary>护卫联动检查：护卫兵器全毁→黑弧坠落（任意兵器被毁后由引擎通知调用）</summary>
+    public void CheckEscortLinkage()
+    {
+        if (isDestroyed || health <= 0 || IsQueuedForDeletion() || !escortLinkageEnabled) return;
+        if (escortGridOffsets.Count == 0) return;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager?.map == null || grid == null) return;
+        var map = gm.gridManager.map;
+        var anchor = grid.GridIndex;
+        foreach (var off in escortGridOffsets)
+        {
+            int ex = anchor.X + off.X, ey = anchor.Y + off.Y;
+            if (ex < 0 || ey < 0 || ex >= map.GetLength(0) || ey >= map.GetLength(1)) continue;
+            var g = map[ex, ey];
+            if (g == null) continue;
+            bool escortAlive = g.weapons.Any(w => w != null && IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed);
+            if (escortAlive) return;   // 还有护卫活着
+        }
+        FallDown();   // 护卫全毁 → 坠落
+    }
+
+    /// <summary>坠落：原作护卫全毁后黑弧坠落（直接摧毁，无视力场）</summary>
+    public void FallDown()
+    {
+        if (isDestroyed || health <= 0) return;
+        ignoreForceField = true;    // 坠落流程绕过力场（防止自己保护自己导致坠不下来）
+        try
+        {
+            health = 0;
+            TakeDamage(99999);
+        }
+        finally { ignoreForceField = false; }
     }
 
     // ========== AI 兵器操作（全适配：中立/玩家方走自带AI，AI阵营由 AI_Manager 按视野操作）==========

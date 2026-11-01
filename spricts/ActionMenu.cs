@@ -315,6 +315,9 @@ private List<Grids> GetAdjacentGrids(Grids center)
         // ✅ 导弹井发射 / 天基打击按钮
         UpdateSiloStrikeButtons();
 
+        // ✅ N屏地图：传送按钮（站在有出链的格子上时显示）
+        UpdateTeleportButtonVisibility(unit);
+
         if (repairButton != null)
         {
             // ✅ 修复按钮：任何开启修复模块的单位，且未行动时显示

@@ -69,7 +69,7 @@ public partial class TerrainEditor
 
         var sb = new System.Text.StringBuilder();
         sb.AppendLine("=== AW Compact ===");
-        sb.AppendLine($"W:{width} H:{height} F:{(fog ? 1 : 0)}");
+        sb.AppendLine($"W:{width} H:{height} F:{(fog ? 1 : 0)} S:{(gridManager?.GetScreenCount() ?? 1)}");
         sb.AppendLine();
 
         sb.AppendLine("=== T ===");
@@ -139,6 +139,21 @@ public partial class TerrainEditor
         sb.AppendLine();
         sb.AppendLine("=== E ===");
 
+        // ✅ N屏：传送链路（每链一行：源>目标 单向/互传）
+        sb.AppendLine("=== TP ===");
+        if (gridManager?.teleportLinks != null)
+        {
+            foreach (var l in gridManager.teleportLinks)
+                sb.AppendLine($"[{l.from.X},{l.from.Y}] > [{l.to.X},{l.to.Y}] {(l.oneWay ? "W" : "B")}");
+        }
+        sb.AppendLine();
+
+        // ✅ 盟友机制：同盟对
+        sb.AppendLine("=== AL ===");
+        foreach (var (a, b) in TeamHelper.GetAlliancePairs())
+            sb.AppendLine($"{a}:{b}");
+        sb.AppendLine();
+
         string content = sb.ToString();
         string fileName = $"AW13_Compact_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
         try
@@ -170,12 +185,13 @@ public partial class TerrainEditor
         try
         {
             if (gameManager != null) gameManager.blockVictoryCheck = true;
+            TeamHelper.ClearAllAlliances(); // ✅ 盟友机制：导入前清空旧同盟
             ClearAllMapEntities();
 
             var lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
             // ✅ 先扫描一遍计算地图尺寸
-            int mapWidth = 0, mapHeight = 0;
+            int mapWidth = 0, mapHeight = 0, mapScreens = 1;
             string scanSection = "";
             foreach (var rawLine in lines)
             {
@@ -185,6 +201,12 @@ public partial class TerrainEditor
                 {
                     scanSection = line.Substring(4, line.Length - 8).Trim();
                     continue;
+                }
+                // ✅ N屏：头部解析屏数 S:n
+                if (scanSection == "AW Compact")
+                {
+                    var sm = System.Text.RegularExpressions.Regex.Match(line, @"S:(\d+)");
+                    if (sm.Success) mapScreens = Math.Max(1, int.Parse(sm.Groups[1].Value));
                 }
                 if (scanSection == "T")
                 {
@@ -212,6 +234,8 @@ public partial class TerrainEditor
 
             if (mapWidth > 0 && mapHeight > 0)
             {
+                // ✅ N屏：先设屏数再建图（screenId 在 Init 中分配）
+                if (gridManager != null) gridManager.screenCount = mapScreens;
                 gridManager?.ResizeMap(mapWidth, mapHeight);
                 // ✅ 关键：ResizeMap 后必须重新获取 grids 引用
                 gridManager?.Init();
@@ -336,6 +360,25 @@ public partial class TerrainEditor
                     if (m.Success && gameManager != null) gameManager.p1Funds = int.Parse(m.Groups[1].Value);
                     m = System.Text.RegularExpressions.Regex.Match(line, @"P2:(\d+)");
                     if (m.Success && gameManager != null) gameManager.p2Funds = int.Parse(m.Groups[1].Value);
+                }
+                else if (section == "TP")
+                {
+                    // ✅ N屏：传送链路 [fx,fy] > [tx,ty] W|B
+                    var m = System.Text.RegularExpressions.Regex.Match(line, @"\[(\d+),(\d+)\]\s*>\s*\[(\d+),(\d+)\]\s*(\w+)");
+                    if (m.Success && gridManager != null)
+                    {
+                        var f = new Vector2I(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value));
+                        var t = new Vector2I(int.Parse(m.Groups[3].Value), int.Parse(m.Groups[4].Value));
+                        bool oneWay = m.Groups[5].Value != "B";
+                        gridManager.AddTeleportLink(f, t, oneWay);
+                    }
+                }
+                else if (section == "AL")
+                {
+                    // ✅ 盟友机制：同盟对 Player1:Player3
+                    var m = System.Text.RegularExpressions.Regex.Match(line, @"^(\w+):(\w+)$");
+                    if (m.Success)
+                        TeamHelper.SetAlliance(m.Groups[1].Value, m.Groups[2].Value, true);
                 }
             }
 

@@ -860,6 +860,22 @@ private void RefreshAllUnitVision()
         heightSpin.AddThemeFontSizeOverride("font_size", 12);
         mapGenHBox.AddChild(heightSpin);
 
+        // ✅ N屏地图：屏数（每屏均为上述宽×高，横向并列成一张大图）
+        var screensLabel = new Label();
+        TranslateGroup.SetText(screensLabel, "屏数:");
+        screensLabel.CustomMinimumSize = new Vector2(40, 28);
+        screensLabel.AddThemeFontSizeOverride("font_size", 13);
+        mapGenHBox.AddChild(screensLabel);
+
+        var screensSpin = new SpinBox();
+        screensSpin.Name = "MapScreensSpin";
+        screensSpin.MinValue = 1;
+        screensSpin.MaxValue = 8;
+        screensSpin.Value = gridManager?.GetScreenCount() ?? 1;
+        screensSpin.CustomMinimumSize = new Vector2(60, 28);
+        screensSpin.AddThemeFontSizeOverride("font_size", 12);
+        mapGenHBox.AddChild(screensSpin);
+
         var genMapBtn = new Button();
         TranslateGroup.SetText(genMapBtn, "🗺️ 生成新地图");
         genMapBtn.CustomMinimumSize = new Vector2(140, 36);
@@ -871,11 +887,115 @@ private void RefreshAllUnitVision()
         genMapBtn.Pressed += () => {
             int w = (int)widthSpin.Value;
             int h = (int)heightSpin.Value;
-            GenerateNewMap(w, h);
+            int sc = (int)screensSpin.Value;
+            GenerateNewMap(w, h, sc);
         };
         mapGenHBox.AddChild(genMapBtn);
 
         globalConfigContainer.AddChild(mapGenHBox);
+
+        // ✅ N屏地图：屏数与传送管理
+        var nscreensSection = CreateConfigSectionTitle(TranslateGroup.T("🖥️ N屏与传送"));
+        globalConfigContainer.AddChild(nscreensSection);
+
+        var nscreensHBox = new HBoxContainer();
+        nscreensHBox.AddThemeConstantOverride("separation", 10);
+
+        var curScreensLabel = new Label();
+        TranslateGroup.SetText(curScreensLabel, "当前屏数:");
+        curScreensLabel.CustomMinimumSize = new Vector2(70, 28);
+        curScreensLabel.AddThemeFontSizeOverride("font_size", 13);
+        nscreensHBox.AddChild(curScreensLabel);
+
+        var curScreensSpin = new SpinBox();
+        curScreensSpin.Name = "CurrentScreensSpin";
+        curScreensSpin.MinValue = 1;
+        curScreensSpin.MaxValue = 8;
+        curScreensSpin.Value = gridManager?.GetScreenCount() ?? 1;
+        curScreensSpin.CustomMinimumSize = new Vector2(60, 28);
+        curScreensSpin.AddThemeFontSizeOverride("font_size", 12);
+        nscreensHBox.AddChild(curScreensSpin);
+
+        var applyScreensBtn = new Button();
+        TranslateGroup.SetText(applyScreensBtn, "应用屏数");
+        applyScreensBtn.CustomMinimumSize = new Vector2(90, 30);
+        applyScreensBtn.AddThemeFontSizeOverride("font_size", 12);
+        applyScreensBtn.Pressed += () => {
+            if (gridManager == null) return;
+            gridManager.screenCount = (int)curScreensSpin.Value;
+            gridManager.RefreshScreenIds();
+            ShowImportHint($"✅ {TranslateGroup.T("已应用屏数")}: {gridManager.GetScreenCount()}");
+        };
+        nscreensHBox.AddChild(applyScreensBtn);
+
+        globalConfigContainer.AddChild(nscreensHBox);
+
+        // 传送编辑模式：点选源格→目标格成链（关闭面板后点地图格子）
+        var tpEditBtn = new Button();
+        TranslateGroup.SetText(tpEditBtn, "🔗 进入传送编辑模式");
+        tpEditBtn.CustomMinimumSize = new Vector2(300, 36);
+        tpEditBtn.AddThemeFontSizeOverride("font_size", 13);
+        tpEditBtn.Pressed += () => {
+            EnterTeleportLinkMode();
+        };
+        globalConfigContainer.AddChild(tpEditBtn);
+
+        // 互传默认开关
+        var tpMutualCheck = new CheckButton();
+        TranslateGroup.SetText(tpMutualCheck, "互传模式（默认单向）");
+        tpMutualCheck.ButtonPressed = teleportMutualDefault;
+        tpMutualCheck.Toggled += (on) => teleportMutualDefault = on;
+        globalConfigContainer.AddChild(tpMutualCheck);
+
+        // 传送链路列表（进入面板时刷新）
+        var tpListContainer = new VBoxContainer();
+        tpListContainer.Name = "TeleportListContainer";
+        globalConfigContainer.AddChild(tpListContainer);
+        RefreshTeleportPanelList(tpListContainer);
+
+        // ✅ 盟友机制：俩势力一伙（运行时全局生效：不能互攻、AI不视为目标、共胜负）
+        var allianceSection = CreateConfigSectionTitle(TranslateGroup.T("🤝 同盟设置"));
+        globalConfigContainer.AddChild(allianceSection);
+
+        var allianceListContainer = new VBoxContainer();
+        allianceListContainer.Name = "AllianceListContainer";
+
+        var allianceHBox = new HBoxContainer();
+        allianceHBox.AddThemeConstantOverride("separation", 10);
+
+        var factionTeams = new string[] { TeamHelper.Player1, TeamHelper.Player2, TeamHelper.Player3, TeamHelper.Player4, TeamHelper.Player5, TeamHelper.Player6, TeamHelper.Player7, TeamHelper.Player8 };
+        var allyA = new OptionButton();
+        var allyB = new OptionButton();
+        foreach (var ft in factionTeams)
+        {
+            allyA.AddItem(ft);
+            allyB.AddItem(ft);
+        }
+        allyA.Selected = 0;
+        allyB.Selected = 2;
+        allyA.CustomMinimumSize = new Vector2(110, 28);
+        allyB.CustomMinimumSize = new Vector2(110, 28);
+        allianceHBox.AddChild(allyA);
+        allianceHBox.AddChild(allyB);
+
+        var allyToggleBtn = new Button();
+        TranslateGroup.SetText(allyToggleBtn, "结盟/解盟");
+        allyToggleBtn.CustomMinimumSize = new Vector2(100, 30);
+        allyToggleBtn.AddThemeFontSizeOverride("font_size", 12);
+        allyToggleBtn.Pressed += () => {
+            string a = factionTeams[allyA.Selected];
+            string b = factionTeams[allyB.Selected];
+            bool now = TeamHelper.AreAllied(a, b);
+            TeamHelper.SetAlliance(a, b, !now);
+            ShowImportHint($"🤝 {a} × {b}: {(!now ? TranslateGroup.T("已结盟") : TranslateGroup.T("已解盟"))}");
+            RefreshAlliancePanelList(allianceListContainer);
+        };
+        allianceHBox.AddChild(allyToggleBtn);
+
+        globalConfigContainer.AddChild(allianceHBox);
+
+        globalConfigContainer.AddChild(allianceListContainer);
+        RefreshAlliancePanelList(allianceListContainer);
 
         var btnHBox = new HBoxContainer();
         btnHBox.AddThemeConstantOverride("separation", 10);

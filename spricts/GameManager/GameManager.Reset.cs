@@ -15,6 +15,8 @@ public partial class GameManager
     {
         gameEnded = false;
         defeatedTeams.Clear(); // ✅ 清理已失败势力记录，避免导入后延迟判定
+        teamsWithPresence.Clear(); // ✅ 清理曾登场记录，重新累计
+        TeamHelper.ClearAllAlliances(); // ✅ 清理同盟关系
         if (victoryPanel != null)
         {
             victoryPanel.Hide();
@@ -27,6 +29,8 @@ public partial class GameManager
     {
         gameEnded = false;
         defeatedTeams.Clear();
+        teamsWithPresence.Clear();
+        TeamHelper.ClearAllAlliances();
         selectedInfantry = null;
         selectedWeapon = null;
         isSelectingAttackTarget = false;

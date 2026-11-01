@@ -14,6 +14,17 @@ public partial class Weapon : Node2D
 
     [ExportGroup("攻击准入")]
     [Export] public string[] excludedAttackerTypes = System.Array.Empty<string>();  // ⚔ 不能被这些单位类型攻击（填类名，如 "Fighter"）
+    [Export] public bool canCrossScreens = false;   // ✅ N屏：能否跨图（跨屏攻击；全屏导弹默认仅限己图，开此Export才可跨图）
+
+    // ✅ N屏：目标格是否被屏隔离挡住（canCrossScreens=true 时忽略屏界）
+    public bool IsScreenBlocked(Grids target)
+    {
+        if (canCrossScreens || target == null || grid == null) return false;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var gmm = gm?.gridManager;
+        if (gmm == null || gmm.GetScreenCount() <= 1) return false;
+        return !gmm.IsSameScreen(grid.GridIndex, target.GridIndex);
+    }
 
     // ✅ 伤害单位类别限制（可拼装模块）：按攻击者的空军/陆军/海军/防空分类过滤，全true=不限制（默认）
     [ExportGroup("伤害单位类别限制")]
@@ -40,7 +51,10 @@ public partial class Weapon : Node2D
     [Export] public int health = 999;
     [Export] public bool canRotate = true;
     [Export] public int maxAttacksPerTurn = 1;
-    [Export] public int cost = 0;  
+    [Export] public int cost = 0;
+
+    // ✅ 力场bypass：坠落等引擎流程内部使用（黑弧护卫全毁坠落时绕过力场）
+    public bool ignoreForceField = false; 
 
     // ========== ✅ 新增：通用弹药系统（子类可覆盖）==========
     [ExportGroup("弹药系统")]
@@ -399,6 +413,9 @@ public partial class Weapon : Node2D
 
     public virtual void TakeDamage(int damage)
     {
+        // ✅ 力场保护：被存活黑弧力场保护的地图目标物，攻击全部无效（坠落流程带bypass）
+        if (!ignoreForceField && BlackArc.IsGridForceFieldProtected(grid)) return;
+
         health -= damage;
         health = Mathf.Max(0, health);
         UpdateHpLabel();
@@ -437,6 +454,8 @@ public partial class Weapon : Node2D
             var area = GetNodeOrNull<Area2D>("Area2D");
             if (area != null) area.SetDeferred("input_pickable", false);
             if (gm?.selectedWeapon == this) gm.selectedWeapon = null;
+            // ✅ 护卫联动：任意兵器被毁后刷新黑弧护卫状态（护卫全毁→坠落）
+            gm?.NotifyBlackArcEscortCheck();
             CallDeferred(nameof(OnDestroyed));
         }
     }

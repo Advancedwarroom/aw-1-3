@@ -10,8 +10,23 @@ public partial class Infantry
 // 卸下后不能移动的单位记录（静态，所有运输单位共享）
 public static Dictionary<Infantry, int> unitsCannotMove = new Dictionary<Infantry, int>();
 
+    // ========== 电磁爆麻痹状态（Von-Bolt 电磁爆：不能操作，持续N回合）==========
+    public int stunTurnsRemaining = 0;            // 剩余麻痹回合（运行时；由施加方Export决定时长）
+    public bool IsStunned => stunTurnsRemaining > 0;
+
+    /// <summary>施加麻痹：持续 turns 回合（本方回合开始递减；麻痹中不能移动/攻击/行动）</summary>
+    public void ApplyStun(int turns)
+    {
+        if (turns <= 0) return;
+        stunTurnsRemaining = Mathf.Max(stunTurnsRemaining, turns);
+        hasActed = true;
+        state = UnitState.Acted;
+        SetWaitVisual(true);
+    }
+
     public virtual bool CanMove()
     {
+        if (IsStunned) return false;   // ✅ 麻痹中不能移动
         if (!consumeFuel) return true;
         return fuel > 0;
     }
@@ -1483,6 +1498,7 @@ public static void UpdateUnitsCannotMove()
 
 public static bool CanUnitMove(Infantry unit)
 {
+    if (unit != null && unit.IsStunned) return false;   // ✅ 麻痹中不能移动
     return !unitsCannotMove.ContainsKey(unit);
 }
 }

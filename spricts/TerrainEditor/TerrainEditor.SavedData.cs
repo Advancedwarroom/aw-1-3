@@ -11,7 +11,7 @@ public partial class TerrainEditor
 {
 
     // ✅ 新增：生成新地图
-    private void GenerateNewMap(int width, int height)
+    private void GenerateNewMap(int width, int height, int screens = 1)
     {
         if (gridManager == null)
         {
@@ -22,26 +22,30 @@ public partial class TerrainEditor
         // 确认对话框
         var confirm = new ConfirmationDialog();
         confirm.Title = TranslateGroup.T("⚠️ 确认生成新地图");
-        confirm.DialogText = $"{TranslateGroup.T("将生成")} {width}×{height} {TranslateGroup.T("的新地图，")}\n{TranslateGroup.T("当前所有单位、兵器、设施将被清空！")}\n\n{TranslateGroup.T("是否继续？")}";
+        confirm.DialogText = $"{TranslateGroup.T("将生成")} {width}×{height} × {screens} {TranslateGroup.T("屏的新地图，")}\n{TranslateGroup.T("当前所有单位、兵器、设施将被清空！")}\n\n{TranslateGroup.T("是否继续？")}";
         confirm.Size = new Vector2I(400, 200);
         confirm.Confirmed += () => {
             confirm.QueueFree();
-            ExecuteGenerateMap(width, height);
+            ExecuteGenerateMap(width, height, screens);
         };
         confirm.Canceled += () => confirm.QueueFree();
         AddChild(confirm);
         confirm.PopupCentered();
     }
 
-    private void ExecuteGenerateMap(int width, int height)
+    private void ExecuteGenerateMap(int width, int height, int screens = 1)
     {
         try
         {
             // 清空所有实体
             ClearAllMapEntities();
 
+            // ✅ N屏：先设屏数再建图（横向条带均分）
+            gridManager.screenCount = screens <= 0 ? 1 : screens;
+            int totalWidth = width * gridManager.screenCount;
+
             // 调整地图大小
-            gridManager.ResizeMap(width, height);
+            gridManager.ResizeMap(totalWidth, height);
             gridManager.Init();
 
             // 所有格子默认设为平原
@@ -59,7 +63,7 @@ public partial class TerrainEditor
             gameManager?.UpdateUnitLists();
             gameManager?.RefreshSpecializedUnitLists();
 
-            ShowImportHint($"✅ {TranslateGroup.T("地图生成成功")}！\n尺寸: {width}×{height}");
+            ShowImportHint($"✅ {TranslateGroup.T("地图生成成功")}！\n{TranslateGroup.T("尺寸")}: {width}×{height} × {gridManager.screenCount}{TranslateGroup.T("屏（总宽")}{totalWidth}{TranslateGroup.T("）")}");
         }
         catch (Exception ex)
         {

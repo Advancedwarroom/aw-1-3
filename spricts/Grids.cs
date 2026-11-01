@@ -32,6 +32,7 @@ public partial class Grids : Node2D
 {
     public Sprite2D attackRangeIcon;
     public Vector2I GridIndex;
+    public int screenId = 0; // ✅ N屏归属屏号（0起）
     public Sprite2D pathIcon;
     [Export] public GridType gridType;
     public List<Infantry> infantries = new();
@@ -113,7 +114,8 @@ public partial class Grids : Node2D
 
     public bool HasEnemyWeapon(string myTeam)
     {
-        return weapons.Any(w => IsInstanceValid(w) && !w.IsQueuedForDeletion() && w.team != myTeam);
+        // ✅ 盟友机制：同盟兵器不算敌方目标
+        return weapons.Any(w => IsInstanceValid(w) && !w.IsQueuedForDeletion() && TeamHelper.IsEnemyForAttacker(myTeam, w.team));
     }
 
     public override void _Ready()

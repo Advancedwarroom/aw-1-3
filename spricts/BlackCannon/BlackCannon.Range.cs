@@ -176,6 +176,8 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
                 var targetGrid = gm.gridManager.map[checkPos.X, checkPos.Y];
                 if (targetGrid != null && targetGrid.gridType != GridType.METEORITE)
                 {
+                    // ✅ N屏隔离：跨屏格子不进射程（开canCrossScreens才可跨图）
+                    if (!canCrossScreens && targetGrid.screenId != grid.screenId) continue;
                     range.Add(targetGrid);
                 }
             }

@@ -82,7 +82,7 @@ public partial class GameManager
         {
             if (wp == null || !IsInstanceValid(wp)) continue;
             if (wp.team != currentTeam) continue;
-            if (wp is GrandBolt gb) gb.OnTurnStartGrandBolt(this);
+            if (wp is GrandBolt gb) { gb.OnTurnStartGrandBolt(this); gb.EmpBurst(this); }   // ✅ 电磁爆：回合开始爆发
             if (wp is BlackArc arc) arc.OnTurnStartArc();
         }
 
@@ -183,6 +183,16 @@ public partial class GameManager
             bool canMoveThisTurn = APC.CanUnitMove(unit);
             unit.isMoved = false;
             unit.isAttacked = false;
+
+            // ✅ 电磁爆麻痹：麻痹中强制待机（不能移动/攻击）；当前行动势力的单位在其回合开始时递减
+            if (unit.stunTurnsRemaining > 0)
+            {
+                if (unit.team == TeamHelper.GetPhaseTeamName(turnPhase))
+                    unit.stunTurnsRemaining--;
+                unit.hasActed = true;
+                unit.state = UnitState.Acted;
+                unit.SetWaitVisual(true);
+            }
 
             // ✅ 生产/建造占用回合（非自动化）：进度没走完的回合，单位保持待机
             if (unit.isProducing && !unit.productionAutomation)

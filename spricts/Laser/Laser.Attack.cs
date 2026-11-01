@@ -72,6 +72,8 @@ public partial class Laser
     private void ApplyDamageToTarget(Infantry target, float baseDamagePercent)
     {
         if (!IsInstanceValid(target)) return;
+        // ✅ N屏隔离：不同屏的单位不受跨图攻击
+        if (target.grid != null && IsScreenBlocked(target.grid)) return;
         if (useModifiedDamage)
             ApplyModifiedDamage(target, baseDamagePercent);
         else
@@ -145,6 +147,10 @@ public partial class Laser
     private void ApplyDamageToWeapon(Weapon target, float baseDamagePercent)
     {
         if (!IsInstanceValid(target)) return;
+        // ✅ 力场保护：被存活黑弧力场保护的地图目标物，激光伤害无效
+        if (!target.ignoreForceField && BlackArc.IsGridForceFieldProtected(target.grid)) return;
+        // ✅ N屏隔离：不同屏的兵器不受跨图攻击
+        if (IsScreenBlocked(target.grid)) return;
         int damage = Mathf.RoundToInt(target.maxHealth * baseDamagePercent);
         damage = Mathf.Max(1, damage);
         if (!CanDestroy)

@@ -23,6 +23,10 @@ public partial class GridManager : Node
     public Infantry selectedUnit;
 
     public WeaponManager weaponManager;
+    // ✅ N屏地图：屏数（1=普通单图）。各屏为地图横向等宽条带
+    [Export] public int screenCount = 1;
+    // ✅ 传送链路（编辑器传送列表维护；运行时TP按钮使用）
+    public List<TeleportLink> teleportLinks = new List<TeleportLink>();
 
     public override void _Ready()
     {
@@ -67,6 +71,63 @@ public partial class GridManager : Node
         return grid.infantry != null && grid.infantry != requesting;
     }
 
+    // ✅ N屏工具：屏号（横向条带均分；余数归入靠前的屏）
+    public int GetScreenId(Vector2I pos)
+    {
+        if (screenCount <= 1 || map == null) return 0;
+        int w = map.GetLength(0);
+        if (w <= 0) return 0;
+        int id = (int)((long)pos.X * screenCount / w);
+        return Math.Min(screenCount - 1, Math.Max(0, id));
+    }
+
+    public int GetScreenCount() => screenCount <= 0 ? 1 : screenCount;
+
+    // ✅ 重新计算所有格子的屏归属（改屏数后调用）
+    public void RefreshScreenIds()
+    {
+        if (map == null) return;
+        foreach (var g in grids)
+            if (g != null) g.screenId = GetScreenId(g.GridIndex);
+    }
+
+    // ✅ N屏隔离核心：是否同一屏
+    public bool IsSameScreen(Vector2I a, Vector2I b) => GetScreenId(a) == GetScreenId(b);
+
+    // ✅ 按索引取格（越界安全）
+    public Grids GetGridAt(Vector2I idx)
+    {
+        if (map == null) return null;
+        int w = map.GetLength(0), h = map.GetLength(1);
+        if (idx.X < 0 || idx.Y < 0 || idx.X >= w || idx.Y >= h) return null;
+        return map[idx.X, idx.Y];
+    }
+
+    // ✅ 传送：取某格的全部出链（N:M，一个源格可对应多个目标格）
+    public List<TeleportLink> GetOutgoingTeleportLinks(Grids g)
+    {
+        if (g == null || teleportLinks == null) return new List<TeleportLink>();
+        return teleportLinks.Where(l => l.from == g.GridIndex).ToList();
+    }
+
+    // ✅ 传送：添加链路（互传时自动补反向链，重复链去重）
+    public void AddTeleportLink(Vector2I f, Vector2I t, bool oneWay)
+    {
+        if (f == t) return;
+        if (teleportLinks.Any(l => l.from == f && l.to == t)) return;
+        teleportLinks.Add(new TeleportLink(f, t, true));
+        if (!oneWay && !teleportLinks.Any(l => l.from == t && l.to == f))
+            teleportLinks.Add(new TeleportLink(t, f, true));
+    }
+
+    public void RemoveTeleportLink(TeleportLink l)
+    {
+        if (l == null) return;
+        teleportLinks.RemoveAll(x => x.from == l.from && x.to == l.to);
+    }
+
+    public void ClearTeleportLinks() => teleportLinks.Clear();
+
     public void Init()
     {
         map = new Grids[searchRange.X, searchRange.Y];
@@ -82,6 +143,7 @@ public partial class GridManager : Node
             {
                 grid.GridIndex = new Vector2I(x, y);
                 map[x, y] = grid;
+                grid.screenId = GetScreenId(grid.GridIndex); // ✅ N屏条带归属
 
                 switch (grid.gridType)
                 {
@@ -133,6 +195,7 @@ public partial class GridManager : Node
     /// </summary>
     public void ResizeMap(int newWidth, int newHeight)
     {
+        teleportLinks.Clear(); // ✅ 尺寸变化后原索引失效，清空传送链（导入时会重建）
         if (GridsNode == null) return;
 
         // 1. 删除所有旧格子（立即删除，避免延迟删除导致 Init 遍历到旧格子）
@@ -210,6 +273,9 @@ public partial class GridManager : Node
             if (map[vector.X, vector.Y] == null) continue;
 
             var neighbor = map[vector.X, vector.Y];
+
+            // ✅ N屏隔离：邻格与起点不同屏则不连通（跨屏只能走传送）
+            if (neighbor.screenId != grid.screenId) continue;
 
             // ✅ 移除METEORITE硬编码：所有地形通行性由GetMoveCost统一控制
             // SpaceShiper等移动方式可以通过METEORITE

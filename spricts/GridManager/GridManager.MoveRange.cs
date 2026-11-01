@@ -58,6 +58,9 @@ public partial class GridManager
                     var neighbor = map[nIdx.X, nIdx.Y];
                     if (neighbor == null) continue;
 
+                    // ✅ N屏隔离：寻路不跨屏
+                    if (neighbor.screenId != from.screenId) continue;
+
                     int moveCost = infantry.GetMoveCostOnGrid(neighbor);   // ✅ 与实际移动一致（含港口靠泊等设施覆盖）
                     if (moveCost >= 999 || moveCost == int.MaxValue) continue;
 
@@ -375,6 +378,9 @@ public partial class GridManager
 
                 var neighbor = map[nIdx.X, nIdx.Y];
                 if (neighbor == null) continue;
+
+                // ✅ N屏隔离：移动范围不跨屏（跨屏只能走传送）
+                if (neighbor.screenId != infantry.grid.screenId) continue;
 
                 int moveCost = infantry.GetMoveCostOnGrid(neighbor);   // ✅ 与实际移动一致（含港口靠泊等设施覆盖）
                 if (moveCost >= 999 || moveCost == int.MaxValue) continue;

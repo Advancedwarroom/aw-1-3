@@ -136,7 +136,7 @@ public partial class MissileSilo : Weapon
         var rangeGrids = gm.gridManager.grids.Where(g =>
         {
             int d = Mathf.Abs(g.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - grid.GridIndex.Y);
-            return d >= strikeMinRange && d <= strikeMaxRange;
+            return d >= strikeMinRange && d <= strikeMaxRange && !IsScreenBlocked(g); // ✅ N屏：默认仅限己图
         }).ToList();
 
         foreach (var g in rangeGrids)

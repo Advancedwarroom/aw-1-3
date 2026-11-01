@@ -188,6 +188,9 @@ public partial class Laser
             var rayGrids = CalculateRayGrids(angle);
             foreach (var rayInfo in rayGrids)
             {
+                if (rayInfo.Grid == null) continue;
+                // ✅ N屏隔离：跨屏格子不进射程（开canCrossScreens才可跨图）
+                if (!canCrossScreens && rayInfo.Grid.screenId != grid.screenId) continue;
                 if (!allGrids.Contains(rayInfo.Grid))
                     allGrids.Add(rayInfo.Grid);
             }

@@ -23,7 +23,7 @@ public partial class AI_Manager
     private void StepUnits()
     {
         BuildContext();
-        var pending = ctx.mine.Where(u => !handled.Contains(u) && u.state != UnitState.Acted && !u.hasActed).ToList();
+        var pending = ctx.mine.Where(u => !handled.Contains(u) && u.state != UnitState.Acted && !u.hasActed && !u.IsStunned).ToList();
         if (pending.Count == 0)
         {
             if (stage == 1) PulseCrystals();

@@ -192,6 +192,15 @@ public override void _Input(InputEvent @event)
             return;
         }
 
+        // ✅ ESC 取消 N屏传送链编辑模式
+        if (isTeleportLinkMode)
+        {
+            CancelTeleportLinkMode();
+            TranslateGroup.SetText(spawnHintLabel, "❌ 已退出传送编辑模式");
+            spawnHintLabel.AddThemeColorOverride("font_color", Colors.Yellow);
+            return;
+        }
+
         // ✅ ESC 取消保存槽等待模式
         var saveSlotsEsc = GetTree()?.GetFirstNodeInGroup("editor_save_slots") as EditorSaveSlots;
         if (saveSlotsEsc != null && saveSlotsEsc.IsWaitingForSaveTarget)

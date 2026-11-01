@@ -20,6 +20,9 @@ public partial class GameManager
     [ExportGroup("兵器摧毁胜利判定")]
     [Export] public bool weaponVictoryEnabled = false;
 
+    // ✅ 曾登场势力记录：从未有单位/兵器的势力不判负（修复地图刚生成时自动判负）
+    private readonly HashSet<string> teamsWithPresence = new();
+
     // 动态移除单位
        public void CheckVictoryCondition()
 {
@@ -41,6 +44,18 @@ public partial class GameManager
     // 获取所有存活单位（排除P-1和P0的中立单位）
     var allUnits = unitManager?.AllUnits.Where(u => IsInstanceValid(u) && u.health > 0).ToList();
     if (allUnits == null) return;
+
+    // ✅ 记录曾登场势力：当前有单位或兵器的势力入册（含其盟友）；全灭判定只对入册势力生效
+    foreach (var team in new[] { TeamHelper.Player1, TeamHelper.Player2 })
+    {
+        bool hasNow = allUnits.Any(u => u.team == team)
+                      || (weaponManager?.AllWeapons.Any(w => IsInstanceValid(w) && !w.isDestroyed && w.team == team) ?? false);
+        if (hasNow)
+        {
+            teamsWithPresence.Add(team);
+            foreach (var ally in TeamHelper.GetAlliedTeams(team)) teamsWithPresence.Add(ally);
+        }
+    }
 
     // ✅ 胜利判定只统计 P1 和 P2 的单位，P-1/P0 不参与胜负判定
     var p1Units = allUnits.Where(u => u.team == TeamHelper.Player1).ToList();
@@ -69,19 +84,36 @@ public partial class GameManager
     bool p1HasWeapons = weaponManager?.AllWeapons.Any(w => IsInstanceValid(w) && !w.isDestroyed && w.team == TeamHelper.Player1) ?? false;
     bool p2HasWeapons = weaponManager?.AllWeapons.Any(w => IsInstanceValid(w) && !w.isDestroyed && w.team == TeamHelper.Player2) ?? false;
 
-    if (!p1Alive && !p1HasWeapons && p2Alive && p1AnnihilationVictoryEnabled)
+    // ✅ 盟友机制：势力组存活 = 本势力或任意盟友还有单位/兵器
+    bool p1GroupAlive = p1Alive || p1HasWeapons || TeamGroupAlive(TeamHelper.Player1, allUnits);
+    bool p2GroupAlive = p2Alive || p2HasWeapons || TeamGroupAlive(TeamHelper.Player2, allUnits);
+
+    if (!p1GroupAlive && p2GroupAlive && p1AnnihilationVictoryEnabled && teamsWithPresence.Contains(TeamHelper.Player1))
     {
         ShowVictory("Player2", "Player1");
     }
-    else if (!p2Alive && !p2HasWeapons && p1Alive && p2AnnihilationVictoryEnabled)
+    else if (!p2GroupAlive && p1GroupAlive && p2AnnihilationVictoryEnabled && teamsWithPresence.Contains(TeamHelper.Player2))
     {
         ShowVictory("Player1", "Player2");
     }
-    else if (!p1Alive && !p2Alive)
+    else if (!p1GroupAlive && !p2GroupAlive && teamsWithPresence.Contains(TeamHelper.Player1) && teamsWithPresence.Contains(TeamHelper.Player2))
     {
         ShowVictory("Draw", "Draw");
     }
 }
+
+    // ✅ 盟友机制：势力组存活判定（本势力或任意盟友还有单位/兵器）
+    private bool TeamGroupAlive(string team, List<Infantry> allUnits)
+    {
+        if (allUnits.Any(u => u.team == team)) return true;
+        if (weaponManager?.AllWeapons.Any(w => IsInstanceValid(w) && !w.isDestroyed && w.team == team) ?? false) return true;
+        foreach (var ally in TeamHelper.GetAlliedTeams(team))
+        {
+            if (allUnits.Any(u => u.team == ally)) return true;
+            if (weaponManager?.AllWeapons.Any(w => IsInstanceValid(w) && !w.isDestroyed && w.team == ally) ?? false) return true;
+        }
+        return false;
+    }
 
     // ✅ 兵器摧毁胜利判定：检查是否满足介入胜利的兵器条件
     // 修复：基于兵器原始归属团队判断，排除中立兵器，避免单一兵器被摧毁导致双方"获胜"
@@ -144,6 +176,12 @@ public partial class GameManager
         foreach (var team in playableTeams)
         {
             if (defeatedTeams.Contains(team)) continue;
+
+            // ✅ 从未登场（无单位无兵器）的势力不判负
+            if (!teamsWithPresence.Contains(team)) continue;
+
+            // ✅ 盟友机制：本势力或任意盟友还有单位/兵器 = 不判负（组存活）
+            if (TeamGroupAlive(team, allUnits)) continue;
 
             bool hasUnits = allUnits?.Any(u => u.team == team) ?? false;
             bool hasWeapons = allWeapons?.Any(w => w.team == team) ?? false;

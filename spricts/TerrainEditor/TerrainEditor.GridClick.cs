@@ -26,6 +26,13 @@ public void OnGridClickedForEdit(Grids grid)
         return;
     }
 
+    // ✅ ===== N屏传送链编辑模式：点格选源/目标，不弹任何菜单 =====
+    if (isTeleportLinkMode)
+    {
+        HandleTeleportGridClick(grid);
+        return;
+    }
+
     // ✅ ===== 最优先：多格兵器预览确认（生成菜单 + 保存槽 统一走这里）=====
     if (isMultiTilePreviewMode && !string.IsNullOrEmpty(pendingMultiTileScenePath))
     {

@@ -33,4 +33,15 @@ public partial class GameManager
             }
         }
     }
+
+    /// <summary>任意兵器被毁后：刷新黑弧护卫联动（护卫全毁→黑弧坠落）</summary>
+    public void NotifyBlackArcEscortCheck()
+    {
+        if (weaponManager == null) return;
+        foreach (var w in weaponManager.AllWeapons.ToList())
+        {
+            if (w is BlackArc arc && IsInstanceValid(w) && !w.IsQueuedForDeletion())
+                arc.CheckEscortLinkage();
+        }
+    }
 }

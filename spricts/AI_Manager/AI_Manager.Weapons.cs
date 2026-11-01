@@ -309,6 +309,7 @@ public partial class AI_Manager
             if (cand == null) continue;
             int d = Mathf.Abs(cand.GridIndex.X - sx) + Mathf.Abs(cand.GridIndex.Y - sy);
             if (d < silo.strikeMinRange || d > silo.strikeMaxRange) continue;
+            if (silo.IsScreenBlocked(cand)) continue; // ✅ N屏：AI 选弹着点默认仅限己图
             float score = 0;
             foreach (var g in gameManager.gridManager.grids)
             {
