@@ -185,9 +185,9 @@ private readonly List<UnitTemplate> weaponTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("🛰️ 力场卫星 Black Onyx"), ScenePath = "res://Prefabs/ForceSatellite.tscn", 
         Category = TranslateGroup.T("太空军"), Team = "Player1", DisplayColor = new Color(0.6f, 0.3f, 0.9f), 
         Description = TranslateGroup.T("AW3黑玛瑙战斗卫星：宇宙战舰移动方式，无武器，HP270（=导弹伤害30×9，九次击落）；力场支援模块锁血/锁弹/锁油，仅攻击卫星可击伤(55%)") },
-    new UnitTemplate { DisplayName = TranslateGroup.T("🛰️ 攻击卫星"), ScenePath = "res://Prefabs/AttackSatellite.tscn", 
+    new UnitTemplate { DisplayName = TranslateGroup.T("🛰️ 攻击卫星 The Black Amber"), ScenePath = "res://Prefabs/AttackSatellite.tscn", 
         Category = TranslateGroup.T("太空军"), Team = "Player1", DisplayColor = new Color(0.9f, 0.4f, 0.9f), 
-        Description = TranslateGroup.T("AW3反卫星攻击卫星：宇宙战舰移动方式，普通弹药打同类65%/力场卫星55%；天基打击模块固定50%伤害") },
+        Description = TranslateGroup.T("攻击卫星 The Black Amber（AW3）：宇宙战舰移动方式，普通弹药打同类65%/力场卫星55%；天基打击模块固定50%伤害") },
 };
 
 private readonly List<UnitTemplate> facilityTemplates = new()
