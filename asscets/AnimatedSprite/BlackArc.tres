@@ -1,0 +1,23 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://asscets/Weapons/BlackArc/BlackArc1.png" id="1_arc"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/BlackArc/BlackArcBroken.png" id="2_arc"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_arc")
+}],
+"loop": true,
+"name": &"BlackArc",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_arc")
+}],
+"loop": true,
+"name": &"BlackArcBroken",
+"speed": 5.0
+}]

@@ -74,6 +74,12 @@ public partial class ActionMenu
         // ✅ 超级兵工厂：显示"生产"按钮
         UpdateFactoryButtons();
 
+        // ✅ 黑色弧光兵器：显示"天基打击"按钮（十字准星瞄准）
+        UpdateArcStrikeButton();
+
+        // ✅ 大雷弹：显示"蠕动"按钮（新机制）
+        UpdateWriggleButton();
+
         Position = weapon.GlobalPosition + new Vector2(-40, -100);
         Show();
     }

@@ -1,0 +1,23 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://asscets/Weapons/GrandBolt/GrandBolt1.png" id="1_gb"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/GrandBolt/GrandBoltBroken.png" id="2_gb"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_gb")
+}],
+"loop": true,
+"name": &"GrandBolt",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_gb")
+}],
+"loop": true,
+"name": &"GrandBoltBroken",
+"speed": 5.0
+}]

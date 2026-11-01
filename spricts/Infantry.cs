@@ -42,6 +42,7 @@ public virtual void OnTurnEnd()
 [ExportGroup("单位特性判定")]
 [Export] public bool isArmoredUnit = false;           // 是否是装甲单位（影响武器选择）
 [Export] public bool IsAirUnit = false;           // 是否为空军单位（影响地形加成判定，不影响移动方式）
+    [Export] public bool isAntiAirUnit = false;         // 是否是防空/反空中单位（能对空中目标造成有效伤害）
 
 public enum DefenseBonusType { NoDefenseBonus, CanDefenseBonus }
 [Export] public DefenseBonusType defenseBonusType = DefenseBonusType.CanDefenseBonus;  // 能否享有地形防御加成

@@ -1,0 +1,23 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://asscets/Weapons/GhostCannon/GhostCannon1.png" id="1_ghost"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/GhostCannon/GhostCannonBroken.png" id="2_ghost"]
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_ghost")
+}],
+"loop": true,
+"name": &"GhostCannon",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_ghost")
+}],
+"loop": true,
+"name": &"GhostCannonBroken",
+"speed": 5.0
+}]

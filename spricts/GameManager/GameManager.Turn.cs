@@ -77,6 +77,15 @@ public partial class GameManager
             }
         }
 
+        // ✅ 兵器回合开始：大雷弹（蠕动/冷却/Oozium生产）、黑色弧光（冷却）
+        foreach (var wp in weaponManager?.AllWeapons ?? new List<Weapon>())
+        {
+            if (wp == null || !IsInstanceValid(wp)) continue;
+            if (wp.team != currentTeam) continue;
+            if (wp is GrandBolt gb) gb.OnTurnStartGrandBolt(this);
+            if (wp is BlackArc arc) arc.OnTurnStartArc();
+        }
+
         // ✅ 资金系统：每回合开始时给当前phase的势力增加资金
         string fundTeam = TeamHelper.GetPhaseTeamName(turnPhase);
         if (!string.IsNullOrEmpty(fundTeam))

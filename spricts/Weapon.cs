@@ -10,6 +10,14 @@ public partial class Weapon : Node2D
     [ExportGroup("攻击准入")]
     [Export] public string[] excludedAttackerTypes = System.Array.Empty<string>();  // ⚔ 不能被这些单位类型攻击（填类名，如 "Fighter"）
 
+    // ✅ 伤害单位类别限制（可拼装模块）：按攻击者的空军/陆军/海军/防空分类过滤，全true=不限制（默认）
+    [ExportGroup("伤害单位类别限制")]
+    [Export] public bool restrictAttackerCategories = false;   // 是否启用单位类别限制
+    [Export] public bool allowAttackerAirUnits = true;         // 允许空军/天空军单位造成伤害
+    [Export] public bool allowAttackerLandUnits = true;        // 允许陆军单位造成伤害
+    [Export] public bool allowAttackerNavalUnits = true;       // 允许海军单位造成伤害
+    [Export] public bool allowAttackerAntiAirUnits = true;     // 允许防空/反空中单位造成伤害
+
     [ExportGroup("多格占据")]
     [Export] public Vector2I size = new Vector2I(1, 1);
     [Export] public bool isMultiTile = false;

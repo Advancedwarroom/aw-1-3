@@ -209,6 +209,19 @@ public virtual bool ConsumePrimaryAmmo()
                 t = t.BaseType;
             }
         }
+        // ✅ 兵器类别限制：按攻击者空军/陆军/海军/防空分类过滤（可拼装模块）
+        if (w.restrictAttackerCategories)
+        {
+            bool attackerIsAir = IsAirUnit;
+            bool attackerIsNaval = moveType == MoveType.Naval;
+            bool attackerIsAntiAir = isAntiAirUnit;
+            bool attackerIsLand = !attackerIsAir && !attackerIsNaval;
+
+            if (attackerIsAir && !w.allowAttackerAirUnits) return false;
+            if (attackerIsNaval && !w.allowAttackerNavalUnits) return false;
+            if (attackerIsAntiAir && !w.allowAttackerAntiAirUnits) return false;
+            if (attackerIsLand && !w.allowAttackerLandUnits) return false;
+        }
         return true;
     }
 
