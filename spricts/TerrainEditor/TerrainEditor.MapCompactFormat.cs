@@ -21,7 +21,7 @@ public partial class TerrainEditor
         { "Bike", "Bke" }, { "FlyBomb", "FBo" }, { "Fighter", "Ftr" }, { "Bomber", "Bom" }, { "BCopter", "BH" }, { "TCopter", "TH" }, { "AntiAirMissile", "SAM" }, { "Stealth", "Stl" }, { "Dog", "Dog" },
         { "PipeRunner", "PRun" },
         { "RepairBoat", "RBt" }, { "Battleship", "BS" }, { "Cruiser", "Cru" }, { "Submarine", "Sub" }, { "Lander", "Lnd" }, { "Carrier", "Car" }, { "Gunboat", "GBt" },
-        { "Neotank", "Neo" }, { "Megatank", "Mga" }, { "WarTank", "WTk" }, { "Rig", "Rig" }, { "Duster", "Dst" }, { "Seaplane", "SPl" }, { "ProducibleBoat", "PBt" }, { "KamikazeBoat", "KBt" }
+        { "Neotank", "Neo" }, { "Megatank", "Mga" }, { "WarTank", "WTk" }, { "Rig", "Rig" }, { "Duster", "Dst" }, { "Seaplane", "SPl" }, { "ProducibleBoat", "PBt" }, { "KamikazeBoat", "KBt" }, { "PipeWorker", "PWk" }
     };
     private readonly Dictionary<string, string> compactWeaponAbbr = new()
     {

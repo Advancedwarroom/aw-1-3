@@ -142,6 +142,25 @@ void fragment() {
             // ===== 模板色表模式 =====
             if (is_template_color(rgb)) result = map_to_faction(rgb);
         }
+        else if (mode == 3) {
+            // ===== 灰度重着色模式：中性灰贴图（导弹井/中立兵器）整体按亮度映射到势力色 =====
+            // 亮度曲线：暗部压到 0.25×主色（保住描边深度），高光逐渐混白（保住高光）
+            // 彩色像素原样保留；纯黑描边(v<tpl_min_val)不处理
+            float g_sat = get_saturation(rgb);
+            vec3 g_hsv = rgb2hsv(rgb);
+            if (g_sat < tpl_min_sat && g_hsv.z >= tpl_min_val) {
+                float l = dot(rgb, vec3(0.299, 0.587, 0.114));
+                vec3 p = primary_color.rgb;
+                if (l <= 0.55) {
+                    // 暗部伽马曲线：描边沉下去，中灰渐入主色
+                    result = p * pow(l / 0.55, 1.25);
+                } else {
+                    // 高光：主色渐白，保住受光面
+                    float t = clamp((l - 0.55) / 0.45, 0.0, 1.0);
+                    result = mix(p, vec3(1.0), t * 0.65);
+                }
+            }
+        }
         else {
             // ===== 兼容模式：红蓝区域自动检测替换 =====
             if (is_red_dominant(rgb)) {

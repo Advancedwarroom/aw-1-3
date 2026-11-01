@@ -406,6 +406,18 @@ public partial class MissileSilo : Weapon
         UpdateSiloVisual();
     }
 
+    // ---------- 势力配色（灰度重着色 Shader 模式3）----------
+    // 导弹井贴图为纯中性灰，模板色表/红蓝兼容模式都染不上色；
+    // 这里整体按亮度映射为「暗部→势力主色→高光」，颜色全随势力改，P0 保持中立灰。
+    protected override void ApplyPaletteMaterial()
+    {
+        if (animSprite == null || !IsInstanceValid(animSprite)) return;
+        var grayMat = FactionPaletteManager.GetGrayscaleMaterial(team);
+        if (grayMat == null) return;
+        // 每实例独立副本：避免待机变暗 tone 污染共享缓存
+        animSprite.Material = (ShaderMaterial)grayMat.Duplicate();
+    }
+
     public string GetSiloInfo()
     {
         string state = isDestroyed || hasFired ? TranslateGroup.T("空导弹井") : TranslateGroup.T("导弹井");

@@ -49,6 +49,18 @@ public partial class Infantry
     public bool ConstructionAllowsInternal => constructionLocationMode == 1 || constructionLocationMode == 3;
     public bool ConstructionAllowsExternal => constructionLocationMode == 2 || constructionLocationMode == 3;
 
+    // ---------- 地形建造条目（管道构造者建管道接缝）----------
+    /// <summary>"Terrain:PIPESEAM" → GridType.PIPESEAM；不是地形条目返回 null</summary>
+    public static GridType? ParseTerrainBuildEntry(string entry)
+    {
+        if (string.IsNullOrEmpty(entry)) return null;
+        if (!entry.StartsWith("Terrain:", System.StringComparison.OrdinalIgnoreCase)) return null;
+        string terrainName = entry[7..].Trim();
+        return System.Enum.TryParse<GridType>(terrainName, true, out var g) ? g : null;
+    }
+
+    public static bool IsTerrainBuildEntry(string entry) => ParseTerrainBuildEntry(entry) != null;
+
     /// <summary>能否开始一次建造（按钮显示条件）</summary>
     public bool CanStartConstruction(bool internalMode)
     {
@@ -66,7 +78,8 @@ public partial class Infantry
     public bool StartConstruction(string facilityType, bool internalMode, Grids externalTargetGrid = null)
     {
         if (!CanStartConstruction(internalMode)) return false;
-        if (FacilityDatabase.GetScenePath(facilityType) == null) return false;
+        // 支持两类条目：① FacilityDatabase 建筑；② "Terrain:地形名"（管道构造者建管道接缝）
+        if (FacilityDatabase.GetScenePath(facilityType) == null && !IsTerrainBuildEntry(facilityType)) return false;
 
         if (!TryConsumeAmmo(AmmoKind.Construction)) return false;  // 开工消耗 1 发建造弹药
 
@@ -123,6 +136,16 @@ public partial class Infantry
 
         if (string.IsNullOrEmpty(facilityType)) return;
 
+        // ✅ 地形建造条目（管道构造者：Terrain:PIPESEAM）
+        var terrainBuild = ParseTerrainBuildEntry(facilityType);
+        if (terrainBuild.HasValue)
+        {
+            if (target == null || !IsInstanceValid(target))
+                target = FindValidExternalConstructionGrid(facilityType);
+            if (target != null) BuildTerrainOnGrid(terrainBuild.Value, target);
+            return;
+        }
+
         if (internalMode)
         {
             // 内部建造与搭载模块无绑定：建好的建筑存进舱内数据，之后「部署」到场上
@@ -135,6 +158,24 @@ public partial class Infantry
             target = FindValidExternalConstructionGrid(facilityType);
         if (target == null) return;
         SpawnFacilityOnGrid(facilityType, target);
+    }
+
+    /// <summary>在目标格铺设地形（管道构造者修复/续接管道接缝）</summary>
+    private void BuildTerrainOnGrid(GridType terrain, Grids target)
+    {
+        target.gridType = terrain;   // Grids._Process 检测变化后自动刷新地形图标/贴图
+
+        // 管道接缝：生成可被攻击的接缝兵器（99HP，防御≈中型坦克，摧毁后地形自动变 BROKENPIPE）
+        if (terrain == GridType.PIPESEAM && target.weapon == null)
+        {
+            var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+            var scene = GD.Load<PackedScene>("res://Prefabs/PipeSeam.tscn");
+            if (gm?.weaponManager != null && scene != null)
+            {
+                var seam = gm.weaponManager.SpawnWeapon(scene, target.GridIndex, team);
+                seam.Name = $"{team}_PipeSeam_{target.GridIndex.X}_{target.GridIndex.Y}";
+            }
+        }
     }
 
     /// <summary>在指定格子上生成建筑（部署/外部建造共用）</summary>
@@ -171,6 +212,15 @@ public partial class Infantry
     /// <summary>⑫ 该建筑能否建在此地形：检查器白名单优先，未配置才用 FacilityDatabase 默认规则</summary>
     public bool CanBuildFacilityOnTerrain(string facilityType, GridType terrain)
     {
+        // ✅ 地形建造条目：管道接缝默认可建在 平原/管道废墟(修复)/管道(延伸) 上
+        var terrainBuild = ParseTerrainBuildEntry(facilityType);
+        if (terrainBuild.HasValue)
+        {
+            if (terrainBuild.Value == GridType.PIPESEAM)
+                return terrain is GridType.GROUND or GridType.BROKENPIPE or GridType.PIPE;
+            return terrain == GridType.GROUND;   // 其他地形条目：默认平原
+        }
+
         if (constructionAllowedTerrains == null || constructionAllowedTerrains.Count == 0)
             return FacilityDatabase.IsTerrainAllowed(facilityType, terrain);
 

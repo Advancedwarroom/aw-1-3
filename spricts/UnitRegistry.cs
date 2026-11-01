@@ -758,6 +758,27 @@ public static class UnitRegistry
             ConsumeFuel = true,
             DailyFuelConsumption = 0,
         },
+        ["PipeWorker"] = new UnitConfig
+        {
+            UnitId = "PipeWorker",
+            DisplayName = TranslateGroup.T("管道构造者"),
+            MoveType = MoveType.Treads,          // 移动方式与新型坦克一致
+            MovePoints = 6,
+            Cost = 7500,
+            AnimPrefix = "pipeworker",
+            HasPrimaryWeapon = false,             // 无攻击力
+            MaxPrimaryAmmo = 0,
+            PrimaryHasLimitedAmmo = true,
+            HasSecondaryWeapon = false,
+            MinAttackRange = 1,
+            MaxAttackRange = 1,
+            CanAttackAfterMoving = false,
+            IsAirUnit = false,
+            VisionRange = 1,
+            MaxFuel = 99,
+            ConsumeFuel = true,
+            DailyFuelConsumption = 0,
+        },
         ["Duster"] = new UnitConfig
         {
             UnitId = "Duster",

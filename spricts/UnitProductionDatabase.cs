@@ -104,6 +104,7 @@ public static class UnitProductionDatabase
         ["Megatank"]       = new("res://Prefabs/Megatank.tscn", 28000, "巨型坦克"),
         ["WarTank"]        = new("res://Prefabs/WarTank.tscn", 22000, "弩级坦克"),
         ["Rig"]            = new("res://Prefabs/Rig.tscn", 5000, "工程车"),
+        ["PipeWorker"]     = new("res://Prefabs/PipeWorker.tscn", 7500, "管道构造者"),
         ["Duster"]         = new("res://Prefabs/Duster.tscn", 13000, "螺旋桨机"),
         ["Seaplane"]       = new("res://Prefabs/Seaplane.tscn", 15000, "水上飞机"),
         ["ProducibleBoat"] = new("res://Prefabs/ProducibleBoat.tscn", 28000, "生产舰"),

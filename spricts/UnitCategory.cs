@@ -49,5 +49,6 @@ public enum UnitCategory
     ProducibleBoat, // 生产舰
     KamikazeBoat,   // 突击舰
 
-    Other       // 其他未分类单位
+    Other,       // 其他未分类单位
+    PipeWorker,  // 管道构造者（黑洞稀有单位）
 }

@@ -145,6 +145,9 @@ private readonly List<UnitTemplate> unitTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("🚧 工程车"), ScenePath = "res://Prefabs/Rig.tscn",
         Category = TranslateGroup.T("陆军"), Team = "Player1", DisplayColor = new Color(0.5f, 0.6f, 0.3f),
         Description = TranslateGroup.T("DoR原作值：5000/移动6/载1步兵系/补给/搭建临时机场·港口") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🔧 管道构造者"), ScenePath = "res://Prefabs/PipeWorker.tscn",
+        Category = TranslateGroup.T("特殊"), Team = "Player1", DisplayColor = new Color(0.5f, 0.4f, 0.6f),
+        Description = TranslateGroup.T("黑洞军稀有单位：履带6格同新型坦克，无攻击力，装甲堪比新型坦克；临格建造/修复管道接缝（建造弹药3发，2回合20进度）") },
     new UnitTemplate { DisplayName = TranslateGroup.T("🛩️ 螺旋桨机"), ScenePath = "res://Prefabs/Duster.tscn",
         Category = TranslateGroup.T("空军"), Team = "Player1", DisplayColor = new Color(0.6f, 0.8f, 1f),
         Description = TranslateGroup.T("DoR原作值：13000/移动8/视野4/机枪弹9/油99") },
@@ -188,6 +191,9 @@ private readonly List<UnitTemplate> weaponTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("🛰️ 攻击卫星 The Black Amber"), ScenePath = "res://Prefabs/AttackSatellite.tscn", 
         Category = TranslateGroup.T("太空军"), Team = "Player1", DisplayColor = new Color(0.9f, 0.4f, 0.9f), 
         Description = TranslateGroup.T("攻击卫星 The Black Amber（AW3）：宇宙战舰移动方式，普通弹药打同类65%/力场卫星55%；天基打击模块固定50%伤害") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("⚙️ 管道接缝"), ScenePath = "res://Prefabs/PipeSeam.tscn", 
+        Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.5f, 0.5f, 0.6f), 
+        Description = TranslateGroup.T("Black Hole 管道动脉唯一可攻击部位：99HP，防御≈中型坦克（受击×0.45），摧毁后地形变管道废墟；管道构造者可临格修复") },
 };
 
 private readonly List<UnitTemplate> facilityTemplates = new()

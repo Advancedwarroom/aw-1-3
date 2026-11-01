@@ -374,6 +374,8 @@ public partial class TerrainEditor
             ["ForceSatellite"] = "res://Prefabs/ForceSatellite.tscn",
             ["attack_satellite"] = "res://Prefabs/AttackSatellite.tscn",
             ["AttackSatellite"] = "res://Prefabs/AttackSatellite.tscn",
+            ["PipeSeam"] = "res://Prefabs/PipeSeam.tscn",
+            ["pipeseam"] = "res://Prefabs/PipeSeam.tscn",
         };
         if (awmeNameMap.TryGetValue(typeName, out string explicitPath))
         {

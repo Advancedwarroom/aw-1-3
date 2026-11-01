@@ -1,0 +1,109 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://spricts/PipeWorker.cs" id="1_ship"]
+[ext_resource type="SpriteFrames" uid="uid://bkmjpiqqtw4s5" path="res://asscets/AnimatedSprite/NoFuelIcno.tres" id="1_nofuel"]
+[ext_resource type="SpriteFrames" uid="uid://ci4pry7uh77cq" path="res://asscets/AnimatedSprite/NoAmmoIcon.tres" id="2_noammo"]
+[ext_resource type="SpriteFrames" uid="uid://bta18psd6oght" path="res://asscets/AnimatedSprite/loaded.tres" id="3_loaded"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/PipeWorker.tres" id="4_anim"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ship"]
+size = Vector2(32, 32)
+
+[node name="PipeWorker" type="Node2D" unique_id=1842263107 node_paths=PackedStringArray("loadedIcon", "noFuelIcon", "noAmmoIcon", "animSprite", "baseAnimSprite")]
+script = ExtResource("1_ship")
+useDefaultConfig = false
+canCapture = false
+unitCategory = 39
+visionRange = 1
+isArmoredUnit = true
+IsAirUnit = false
+defenseBonusType = 0
+loadedIcon = NodePath("HpLabel/loaded")
+noFuelIcon = NodePath("HpLabel/NoFuelIcno")
+moveType = 3
+attackType = 0
+defaultMovePoints = 6
+movePoints = 6
+baseAttack = 0
+canAttackAfterMoving = false
+noAmmoIcon = NodePath("HpLabel/NoAmmoIcon")
+maxFuel = 99
+fuel = 99
+consumeFuel = true
+dailyFuelConsumption = 0
+useDefaultAmmoConfig = false
+hasPrimaryWeapon = false
+maxPrimaryAmmo = 0
+currentPrimaryAmmo = 0
+primaryHasLimitedAmmo = true
+hasSecondaryWeapon = false
+primaryAntiArmor = false
+primaryAntiInfantry = false
+minAttackRange = 1
+maxAttackRange = 1
+attackRange = 1
+animSprite = NodePath("Base2D")
+baseAnimSprite = NodePath("Base2D")
+cost = 7500
+canBuildFacilities = true
+constructionLocationMode = 2
+constructionMinRange = 1
+constructionMaxRange = 1
+constructionAutoPlace = false
+constructionWhitelist = Array[String](["Terrain:PIPESEAM"])
+maxConstructionAmmo = 3
+currentConstructionAmmo = 3
+constructionTotalProgress = 20
+constructionProgressPerTurn = 10
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1221849569]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1934155031]
+position = Vector2(16, 16)
+shape = SubResource("RectangleShape2D_ship")
+
+[node name="HpLabel" type="Label" parent="." unique_id=2064783122]
+z_index = 10
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 40.0
+offset_bottom = 42.0
+pivot_offset = Vector2(4, 4)
+theme_override_colors/font_color = Color(0.99999994, 0.09249958, 0.972881, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 18
+text = "10"
+
+[node name="NoFuelIcno" type="AnimatedSprite2D" parent="HpLabel" unique_id=469249948]
+visible = false
+modulate = Color(1, 0.83137256, 0, 1)
+z_index = 10
+position = Vector2(8, 32)
+sprite_frames = ExtResource("1_nofuel")
+animation = &"No"
+
+[node name="NoAmmoIcon" type="AnimatedSprite2D" parent="HpLabel" unique_id=1413974248]
+visible = false
+modulate = Color(1, 1, 1, 0.654902)
+z_index = 10
+position = Vector2(8, 32)
+sprite_frames = ExtResource("2_noammo")
+animation = &"NoAmmoIcon"
+
+[node name="loaded" type="AnimatedSprite2D" parent="HpLabel" unique_id=1313372044]
+visible = false
+z_index = 10
+position = Vector2(8, 32)
+sprite_frames = ExtResource("3_loaded")
+animation = &"loaded"
+
+[node name="Base2D" type="AnimatedSprite2D" parent="." unique_id=415761861]
+position = Vector2(16, 16)
+scale = Vector2(1.3333334, 1.3333334)
+sprite_frames = ExtResource("4_anim")
+animation = &"PipeWorker1"
+
+[node name="BaseSprite" type="Sprite2D" parent="." unique_id=494166692]
+
+[connection signal="input_event" from="Area2D" to="." method="InputClick"]

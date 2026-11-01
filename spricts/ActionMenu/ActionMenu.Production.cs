@@ -339,7 +339,12 @@ public partial class ActionMenu
             var btn = new Button();
             btn.CustomMinimumSize = new Vector2(120, 32);
             btn.AddThemeFontSizeOverride("font_size", 13);
-            TranslateGroup.SetText(btn, facilityType);
+            // 地形建造条目显示友好名（Terrain:PIPESEAM → 管道接缝）
+            var terrainEntry = Infantry.ParseTerrainBuildEntry(facilityType);
+            string display = terrainEntry.HasValue
+                ? TranslateGroup.T(terrainEntry.Value == GridType.PIPESEAM ? "管道接缝" : terrainEntry.Value.ToString())
+                : facilityType;
+            TranslateGroup.SetText(btn, display);
             btn.Pressed += () =>
             {
                 productionChoiceContainer.Visible = false;

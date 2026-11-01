@@ -328,6 +328,17 @@ public void InitializeDefaultMatrix()
             ["WarTank_Cruiser"] = 35, ["WarTank_Submarine"] = 72, ["WarTank_Lander"] = 115, ["WarTank_Carrier"] = 72, ["WarTank_Gunboat"] = 100, ["WarTank_Neotank"] = 80,
             ["WarTank_Megatank"] = 45, ["WarTank_Rig"] = 129, ["WarTank_Duster"] = 0, ["WarTank_Seaplane"] = 0, ["WarTank_ProducibleBoat"] = 14, ["WarTank_KamikazeBoat"] = 14,
             ["WarTank_WarTank"] = 60,
+
+            // ✅ PipeWorker 管道构造者：装甲堪比新型坦克（承伤值同 Neotank）；自身无武器不反击
+            ["Neotank_PipeWorker"] = 55, ["Megatank_PipeWorker"] = 115, ["Rig_PipeWorker"] = 0,
+            ["Duster_PipeWorker"] = 1, ["Seaplane_PipeWorker"] = 55, ["KamikazeBoat_PipeWorker"] = 40,
+            ["Infantry_PipeWorker"] = 4, ["Mech_PipeWorker"] = 15, ["LightTank_PipeWorker"] = 17,
+            ["MdTank_PipeWorker"] = 45, ["Recon_PipeWorker"] = 1, ["Artillery_PipeWorker"] = 40,
+            ["Rocket_PipeWorker"] = 50, ["AntiAir_PipeWorker"] = 5, ["AntiTank_PipeWorker"] = 55,
+            ["Flare_PipeWorker"] = 1, ["PipeRunner_PipeWorker"] = 50, ["Oozium_PipeWorker"] = 817,
+            ["Bomber_PipeWorker"] = 90, ["BCopter_PipeWorker"] = 20, ["Stealth_PipeWorker"] = 45,
+            ["Dog_PipeWorker"] = 2, ["Battleship_PipeWorker"] = 50, ["WarTank_PipeWorker"] = 80,
+            ["ProducibleBoat_PipeWorker"] = 0, ["Bike_PipeWorker"] = 1,
 };
     }
 

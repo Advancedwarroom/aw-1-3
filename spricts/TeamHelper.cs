@@ -27,6 +27,9 @@ public static class FactionPaletteManager
     // ShaderMaterial 缓存（每个势力一个材质实例）
     private static readonly Dictionary<string, ShaderMaterial> Materials = new();
     
+    // 灰度重着色材质缓存（模式3，中性灰贴图用）
+    private static readonly Dictionary<string, ShaderMaterial> GrayMaterials = new();
+    
     // 共享的 Shader
     private static Shader _paletteShader;
     
@@ -206,6 +209,36 @@ public static class FactionPaletteManager
         mat.SetShaderParameter("secondary_color", faction.SecondaryColor);
         
         Materials[factionId] = mat;
+        return mat;
+    }
+
+    /// <summary>
+    /// 获取势力的灰度重着色材质（模式3）：中性灰贴图（导弹井/无势力原版贴图）整体按亮度
+    /// 映射为「暗部→势力主色→高光」。P0 中立返回 enabled=false 的材质（保持原灰）。
+    /// </summary>
+    public static ShaderMaterial GetGrayscaleMaterial(string factionId)
+    {
+        string cacheKey = factionId + "::gray";
+        if (GrayMaterials.TryGetValue(cacheKey, out var mat) && GodotObject.IsInstanceValid(mat))
+            return mat;
+
+        var faction = GetOrCreateFaction(factionId);
+        mat = new ShaderMaterial();
+        mat.Shader = PaletteShader;
+        // P0 中立 / 内置原版势力：不禁用也行，但 P0 保持中立灰
+        bool neutral = factionId == Player0;
+        mat.SetShaderParameter("mode", 3);
+        mat.SetShaderParameter("enabled", !neutral);
+        mat.SetShaderParameter("tone", new Color(1, 1, 1, 1));
+        mat.SetShaderParameter("template_side", 0);
+        // 灰度阶梯：暗部0.10 / 主色0.35 / 高光0.85（比模板色表更平缓，适合整体灰贴图）
+        mat.SetShaderParameter("tpl_dark", 0.10f);
+        mat.SetShaderParameter("tpl_mid", 0.35f);
+        mat.SetShaderParameter("tpl_light", 0.85f);
+        mat.SetShaderParameter("primary_color", faction.PrimaryColor);
+        mat.SetShaderParameter("secondary_color", faction.SecondaryColor);
+
+        GrayMaterials[cacheKey] = mat;
         return mat;
     }
 

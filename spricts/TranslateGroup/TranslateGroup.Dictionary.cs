@@ -1248,6 +1248,8 @@ public partial class TranslateGroup
         Add("巨型坦克", "Megatank", "メガタンク", "메가탱크", "Megapanzer", "Мегатанк", "巨型坦克", "巨型坦克");
         Add("弩级坦克", "War Tank", "ウォータンク", "워탱크", "Kriegspanzer", "Боевой танк", "弩级坦克", "弩級坦克");
         Add("工程车", "Rig", "工作車", "공작차", "Versorger", "Тягач", "工程车", "工程車");
+        Add("管道构造者", "Pipe Worker", "パイプ職人", "파이프 기술자", "Rohrbauer", "Трубостроитель", "管道构造者", "管道構造者");
+        Add("管道接缝", "Pipe Seam", "パイプ継ぎ目", "파이프 이음매", "Rohrverbindung", "Трубный шов", "管道接缝", "管道接縫");
         Add("螺旋桨机", "Duster", "プロペラ機", "프로펠러기", "Propellerflugzeug", "Винтовой самолёт", "螺旋桨机", "螺旋槳機");
         Add("水上飞机", "Seaplane", "水上機", "수상기", "Wasserflugzeug", "Гидроплан", "水上飞机", "水上飛機");
         Add("生产舰", "Producible Boat", "生産艦", "생산함", "Produktionsschiff", "Корабль-завод", "生产舰", "生產艦");
