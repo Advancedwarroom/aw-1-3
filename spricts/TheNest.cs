@@ -1,5 +1,6 @@
-// TheNest.cs - 巢穴（整体版，DoR 原作 Owl's Nest）
-// 复用 GrandBolt 弱点多格框架：5个可毁炮位=弱点（3固定+2旋转），全毁=巢穴陷落
+// TheNest.cs - 巢穴（整体版，DoR 最终兵器 Owl's Nest，Sunrise 关）
+// 原作权威机制（Wars Wiki）：巢穴无独立本体血条，5门可毁炮即巢穴全部；
+// 五炮全灭=系统过载=巢穴爆炸=胜利。左右出兵口：左恒产陆军/右恒产空军，被堵跳过。
 // 拆分版见 NestCenter/NestCannonFixed/NestCannonRotating/NestMortar
 using Godot;
 
