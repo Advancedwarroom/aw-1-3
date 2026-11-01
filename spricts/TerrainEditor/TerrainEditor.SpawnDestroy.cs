@@ -211,7 +211,12 @@ private void SpawnWeaponAtGrid(Grids grid, string scenePath, string team)
         weapon.Name = $"{team}_{weapon.GetType().Name}_{gameManager.weaponManager.AllWeapons.Count}";
 
         // ✅ 同种类覆盖替换：清掉新兵器将占据的所有格子上的旧兵器（多格兵器整体移除）
+        // ✅ 撤销支持：移除前记录每个旧兵器的原锚点+序列化数据（多格兵器按原锚点完整恢复）
         var replacedWeapons = new List<Weapon>();
+        var replacedAnchors = new List<Vector2I>();
+        var replacedData = new List<SavedWeaponData>();
+        var replacedOldUnits = new List<SavedUnitData>();
+        var replacedOldFacilities = new List<SavedFacilityData>();
         foreach (var idx in weapon.GetOccupiedIndices(grid.GridIndex))
         {
             if (idx.X < 0 || idx.Y < 0) continue;
@@ -223,6 +228,12 @@ private void SpawnWeaponAtGrid(Grids grid, string scenePath, string team)
         }
         foreach (var oldW in replacedWeapons)
         {
+            // 记录旧兵器原锚点及其格子上的单位/设施（撤销时一并恢复）
+            var oldAnchorGrid = oldW.grid;
+            replacedAnchors.Add(oldAnchorGrid != null ? oldAnchorGrid.GridIndex : grid.GridIndex);
+            replacedData.Add(SerializeWeaponForUndo(oldW));
+            replacedOldUnits.Add(oldAnchorGrid != null && oldAnchorGrid.infantry != null ? SerializeUnitForUndo(oldAnchorGrid.infantry) : null);
+            replacedOldFacilities.Add(oldAnchorGrid != null && oldAnchorGrid.city != null ? SerializeFacilityForUndo(oldAnchorGrid.city) : null);
             if (oldW.isMultiTile)
             {
                 foreach (var og2 in oldW.occupiedGrids.ToList())
@@ -275,7 +286,68 @@ private void SpawnWeaponAtGrid(Grids grid, string scenePath, string team)
         spawnHintLabel.AddThemeColorOverride("font_color", new Color(0.4f, 1f, 0.4f));
 
         // ✅ 生成后推送撤销记录（传入生成前记录的旧状态）
-        PushEditorAction(EditorActionType.PlaceWeapon, grid, grid.gridType, oldUnitW, oldWeaponW, oldFacilityW);
+        if (replacedWeapons.Count == 0)
+        {
+            PushEditorAction(EditorActionType.PlaceWeapon, grid, grid.gridType, oldUnitW, oldWeaponW, oldFacilityW);
+        }
+        else
+        {
+            // ✅ 覆盖替换的完整撤销：每个被替换旧兵器一条子记录（在其原锚点，多格兵器按原锚点整体恢复）
+            //    新兵器锚点子记录放最后：撤销时最后清掉新兵器并恢复锚点旧兵器，重做时最后重建新兵器
+            var helper = GetTree()?.GetFirstNodeInGroup("map_editor_helper") as MapEditorHelper;
+            if (helper != null)
+            {
+                var batch = new EditorActionRecord
+                {
+                    actionType = EditorActionType.PlaceWeapon,
+                    position = grid.GridIndex,
+                    oldTerrain = grid.gridType,
+                    newTerrain = grid.gridType,
+                    subActions = new List<EditorActionRecord>()
+                };
+                for (int i = 0; i < replacedWeapons.Count; i++)
+                {
+                    if (replacedAnchors[i] == grid.GridIndex) continue;   // 新锚点上的旧兵器并入锚点子记录
+                    Grids ag = null;
+                    if (replacedAnchors[i].X >= 0 && replacedAnchors[i].Y >= 0
+                        && replacedAnchors[i].X < gridManager.map.GetLength(0) && replacedAnchors[i].Y < gridManager.map.GetLength(1))
+                        ag = gridManager.map[replacedAnchors[i].X, replacedAnchors[i].Y];
+                    var sub = new EditorActionRecord
+                    {
+                        actionType = EditorActionType.PlaceWeapon,
+                        position = replacedAnchors[i],
+                        oldTerrain = ag != null ? ag.gridType : grid.gridType,
+                        newTerrain = ag != null ? ag.gridType : grid.gridType,
+                        oldWeaponData = replacedData[i],
+                        oldUnitData = replacedOldUnits[i],
+                        oldFacilityData = replacedOldFacilities[i],
+                        newUnitData = replacedOldUnits[i],
+                        newFacilityData = replacedOldFacilities[i]
+                    };
+                    batch.subActions.Add(sub);
+                }
+                // 新兵器锚点子记录（最后执行）：旧=锚点上原有的兵器/单位/设施，新=刚放的新兵器
+                SavedWeaponData anchorOld = oldWeaponW;
+                for (int i = 0; i < replacedWeapons.Count; i++)
+                    if (replacedAnchors[i] == grid.GridIndex) { anchorOld = replacedData[i]; break; }
+                batch.subActions.Add(new EditorActionRecord
+                {
+                    actionType = EditorActionType.PlaceWeapon,
+                    position = grid.GridIndex,
+                    oldTerrain = grid.gridType,
+                    newTerrain = grid.gridType,
+                    oldUnitData = oldUnitW,
+                    oldWeaponData = anchorOld,
+                    oldFacilityData = oldFacilityW,
+                    newWeaponData = SerializeWeaponForUndo(weapon)
+                });
+                helper.PushAction(batch);
+            }
+            else
+            {
+                PushEditorAction(EditorActionType.PlaceWeapon, grid, grid.gridType, oldUnitW, oldWeaponW, oldFacilityW);
+            }
+        }
 
     }
     catch (Exception e)
