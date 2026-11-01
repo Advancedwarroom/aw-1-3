@@ -471,6 +471,49 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
             {
                 AddLargeCannonFields(lc);
             }
+            // ✅ 超级兵工厂：图形化联动绑定按钮（点格增删接缝绑定）
+            if (weapon is SuperFactory sf)
+            {
+                var bindBtn = new Button();
+                TranslateGroup.SetText(bindBtn, "🔗 图形化选择联动接缝");
+                bindBtn.CustomMinimumSize = new Vector2(0, 34);
+                bindBtn.Pressed += () =>
+                {
+                    propertyEditorPanel?.Hide();
+                    var initial = new List<Grids>();
+                    var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+                    var map = gm?.gridManager?.map;
+                    if (map != null && sf.grid != null)
+                    {
+                        var anchor = sf.grid.GridIndex;
+                        foreach (var off in sf.linkedSeamOffsets)
+                        {
+                            int sx = anchor.X + off.X, sy = anchor.Y + off.Y;
+                            if (sx >= 0 && sy >= 0 && sx < map.GetLength(0) && sy < map.GetLength(1))
+                            {
+                                var g = map[sx, sy];
+                                if (g != null) initial.Add(g);
+                            }
+                        }
+                    }
+                    BeginBindingSelect("🔗 选择联动管道接缝", initial, (selected) =>
+                    {
+                        // 写回相对坐标
+                        var rels = new Godot.Collections.Array<Vector2I>();
+                        if (sf.grid != null)
+                        {
+                            foreach (var g in selected)
+                            {
+                                rels.Add(g.GridIndex - sf.grid.GridIndex);
+                            }
+                        }
+                        sf.linkedSeamOffsets = rels;
+                        sf.CheckPowerLinkage();
+                        TranslateGroup.SetText(spawnHintLabel, $"✅ 联动接缝已更新：{rels.Count} 处");
+                    });
+                };
+                propertyContainer.AddChild(bindBtn);
+            }
         }
     }
 

@@ -19,6 +19,13 @@ public void OnGridClickedForEdit(Grids grid)
 
     selectedGrid = grid;
 
+    // ✅ ===== 绑定选择模式：点格=增删绑定，不弹任何菜单（确认/取消走底部按钮） =====
+    if (isBindingSelectMode)
+    {
+        HandleBindingGridClick(grid);
+        return;
+    }
+
     // ✅ ===== 最优先：多格兵器预览确认（生成菜单 + 保存槽 统一走这里）=====
     if (isMultiTilePreviewMode && !string.IsNullOrEmpty(pendingMultiTileScenePath))
     {

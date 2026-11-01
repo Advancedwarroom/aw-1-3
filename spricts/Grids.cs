@@ -60,6 +60,15 @@ public partial class Grids : Node2D
     private Godot.Collections.Dictionary<GridType, Sprite2D> terrainIconSprites = new();
     private GridType _lastGridType;
 
+    /// <summary>
+    /// ✅ 多方向地形方向位掩码：N=1, E=2, S=4, W=8（0=孤立）。
+    /// 适用于 PIPE / ROAD / BRIDGE / RIVER 等多方向地形，渲染时自动选择方向变体贴图。
+    /// </summary>
+    [ExportGroup("地形方向")]
+    [Export] public int terrainDirection = 0;
+    private int _lastTerrainDirection = -1;
+    private Sprite2D _directionVariantSprite = null;
+
     [Export] public int gridVisionRange = 1;
     [Export] public TowerDirection towerDirection = TowerDirection.Up;
     [Export] public bool towerCanRotate = false;
@@ -647,13 +656,105 @@ public partial class Grids : Node2D
             if (IsInstanceValid(kvp.Value))
                 kvp.Value.Visible = (kvp.Key == gridType);
         }
+        UpdateDirectionVariant();
+    }
+
+    /// <summary>
+    /// ✅ 多方向地形：根据 terrainDirection 位掩码加载方向变体贴图。
+    /// 支持 PIPE / ROAD / BRIDGE；其它地形不显示变体。
+    /// </summary>
+    private void UpdateDirectionVariant()
+    {
+        string texPath = GetDirectionVariantPath();
+        if (texPath == null)
+        {
+            if (_directionVariantSprite != null && IsInstanceValid(_directionVariantSprite))
+                _directionVariantSprite.Visible = false;
+            return;
+        }
+
+        if (_directionVariantSprite == null || !IsInstanceValid(_directionVariantSprite))
+        {
+            _directionVariantSprite = new Sprite2D
+            {
+                Name = "DirectionVariantSprite",
+                Centered = false,
+                ZIndex = terrainIconZIndex,
+            };
+            AddChild(_directionVariantSprite);
+        }
+
+        var tex = ResourceLoader.Load<Texture2D>(texPath);
+        if (tex != null)
+        {
+            _directionVariantSprite.Texture = tex;
+            _directionVariantSprite.Visible = true;
+        }
+        else
+        {
+            _directionVariantSprite.Visible = false;
+        }
+    }
+
+    /// <summary>解析当前地形+方向对应的变体贴图路径；null=该地形无变体</summary>
+    private string GetDirectionVariantPath()
+    {
+        string prefix = gridType switch
+        {
+            GridType.PIPE => "Pipe",
+            GridType.ROAD => "Road",
+            GridType.BRIDGE => "Bridge",
+            _ => null
+        };
+        if (prefix == null) return null;
+
+        if (gridType == GridType.BRIDGE)
+        {
+            bool hasH = (terrainDirection & 2) != 0 || (terrainDirection & 8) != 0;
+            bool hasV = (terrainDirection & 1) != 0 || (terrainDirection & 4) != 0;
+            return $"res://art/Grids/地形/{(hasV && !hasH ? "BridgeV" : "BridgeH")}.png";
+        }
+
+        string s = "";
+        if ((terrainDirection & 1) != 0) s += "N";
+        if ((terrainDirection & 2) != 0) s += "E";
+        if ((terrainDirection & 4) != 0) s += "S";
+        if ((terrainDirection & 8) != 0) s += "W";
+        if (string.IsNullOrEmpty(s)) s = "0";
+        return $"res://art/Grids/地形/{prefix}_{s}.png";
+    }
+
+    /// <summary>
+    /// ✅ 从邻格自动计算方向位掩码（同类地形才算连通）。
+    /// map: 全地图二维数组；map[x,y] 为 Grids 或 null。
+    /// </summary>
+    public static int ComputeDirectionFromNeighbors(Grids[,] map, int x, int y, GridType type)
+    {
+        int dir = 0;
+        int w = map.GetLength(0), h = map.GetLength(1);
+        // N
+        if (y > 0 && map[x, y - 1] != null && map[x, y - 1].gridType == type) dir |= 1;
+        // E
+        if (x < w - 1 && map[x + 1, y] != null && map[x + 1, y].gridType == type) dir |= 2;
+        // S
+        if (y < h - 1 && map[x, y + 1] != null && map[x, y + 1].gridType == type) dir |= 4;
+        // W
+        if (x > 0 && map[x - 1, y] != null && map[x - 1, y].gridType == type) dir |= 8;
+        return dir;
+    }
+
+    /// <summary>刷新方向并更新渲染（地图加载/编辑后调用）</summary>
+    public void RefreshDirectionFromNeighbors(Grids[,] map)
+    {
+        terrainDirection = ComputeDirectionFromNeighbors(map, GridIndex.X, GridIndex.Y, gridType);
     }
 
     public override void _Process(double delta)
     {
-        if (gridType != _lastGridType)
+        if (gridType != _lastGridType || terrainDirection != _lastTerrainDirection)
         {
             _lastGridType = gridType;
+            _lastTerrainDirection = terrainDirection;
             UpdateTerrainIcon();
             ApplyCustomTerrainVisual();
         }

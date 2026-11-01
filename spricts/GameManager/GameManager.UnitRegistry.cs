@@ -234,7 +234,7 @@ private void AutoCategorizeUnit(Infantry unit)
         }
     }
 
-    private UnitCategory InferCategory(Infantry unit)
+    public UnitCategory InferCategory(Infantry unit)
     {
         return unit switch
         {

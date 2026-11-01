@@ -194,6 +194,9 @@ private readonly List<UnitTemplate> weaponTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("⚙️ 管道接缝"), ScenePath = "res://Prefabs/PipeSeam.tscn", 
         Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.5f, 0.5f, 0.6f), 
         Description = TranslateGroup.T("Black Hole 管道动脉唯一可攻击部位：99HP，防御≈中型坦克（受击×0.45），摧毁后地形变管道废墟；管道构造者可临格修复") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🏭 超级兵工厂"), ScenePath = "res://Prefabs/SuperFactory.tscn", 
+        Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.6f, 0.5f, 0.4f), 
+        Description = TranslateGroup.T("AW2原作Black Hole Factory：3×4多格12格；三生产口免费即刻生产（每回合3个）；免疫一切伤害，摧毁联动管道接缝使其瘫痪变中立；Rig可建中转口接管；缴获红利3个免费即刻单位；可旋转90/180/270（带碰撞检查）") },
 };
 
 private readonly List<UnitTemplate> facilityTemplates = new()

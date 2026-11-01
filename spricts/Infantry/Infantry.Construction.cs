@@ -164,6 +164,9 @@ public partial class Infantry
     private void BuildTerrainOnGrid(GridType terrain, Grids target)
     {
         target.gridType = terrain;   // Grids._Process 检测变化后自动刷新地形图标/贴图
+        // ✅ 多方向地形：地形变化后刷新方向（本格+邻格）
+        var gmDir = GetTree()?.GetFirstNodeInGroup("grid_manager") as GridManager;
+        gmDir?.RefreshAllTerrainDirections();
 
         // 管道接缝：生成可被攻击的接缝兵器（99HP，防御≈中型坦克，摧毁后地形自动变 BROKENPIPE）
         if (terrain == GridType.PIPESEAM && target.weapon == null)
@@ -172,8 +175,9 @@ public partial class Infantry
             var scene = GD.Load<PackedScene>("res://Prefabs/PipeSeam.tscn");
             if (gm?.weaponManager != null && scene != null)
             {
-                var seam = gm.weaponManager.SpawnWeapon(scene, target.GridIndex, team);
-                seam.Name = $"{team}_PipeSeam_{target.GridIndex.X}_{target.GridIndex.Y}";
+                // 无队伍、不变色（原色调）——中转口才有队伍全变色
+                var seam = gm.weaponManager.SpawnWeapon(scene, target.GridIndex, TeamHelper.Player0);
+                seam.Name = $"{TeamHelper.Player0}_PipeSeam_{target.GridIndex.X}_{target.GridIndex.Y}";
             }
         }
     }

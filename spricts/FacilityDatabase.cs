@@ -17,6 +17,8 @@ public static class FacilityDatabase
         // DoR Rig 搭建的临时设施：可维修/补给，不能生产、无收入
         ["TempAirPort"] = "res://Prefabs/TempAirPort.tscn",
         ["TempPort"]    = "res://Prefabs/TempPort.tscn",
+        // ✅ 中转口：Rig 在原管道接缝（管道废墟）上建造的供能中继站，接管超级兵工厂
+        ["RelayJunction"] = "res://Prefabs/RelayJunction.tscn",
     };
 
     // ✅ 建筑地形要求（未登记=任意地形）：DoR 原作——临时机场只能建在平原，临时港口建在海滩
@@ -24,6 +26,8 @@ public static class FacilityDatabase
     {
         ["TempAirPort"] = new[] { GridType.GROUND },
         ["TempPort"]    = new[] { GridType.BEACH },
+        // ✅ 中转口只能建在管道废墟（原管道接缝位置）
+        ["RelayJunction"] = new[] { GridType.BROKENPIPE },
     };
 
     public static bool IsTerrainAllowed(string facilityType, GridType terrain)

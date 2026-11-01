@@ -71,6 +71,9 @@ public partial class ActionMenu
 
         SetupEmptyClickToCloseMenuOnly(weapon);
 
+        // ✅ 超级兵工厂：显示"生产"按钮
+        UpdateFactoryButtons();
+
         Position = weapon.GlobalPosition + new Vector2(-40, -100);
         Show();
     }

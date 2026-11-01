@@ -33,6 +33,7 @@ public partial class Infantry
     [Export] public bool canMoveWhileProducing = false;                             // ⑨ 内部生产时可否移动
     [Export] public bool productionAutomation = false;                               // ⑩ 自动化
     [Export] public int productionCooldownTurns = 0;                                 // ⑪ 冷却回合数
+    [Export] public bool productionFree = false;                                    // ⑫ 是否无消耗（原作兵工厂模式：不耗生产弹药）
 
     // ===== 运行时状态（不导出） =====
     public bool isProducing = false;                    // 生产中
@@ -82,7 +83,7 @@ public partial class Infantry
         var info = UnitProductionDatabase.GetInfo(unitId);
         if (string.IsNullOrEmpty(info.ScenePath)) return false;
 
-        if (!TryConsumeAmmo(AmmoKind.Production)) return false;  // 开工消耗 1 发生产弹药
+        if (!productionFree && !TryConsumeAmmo(AmmoKind.Production)) return false;  // 开工消耗 1 发生产弹药（无消耗模式跳过）
 
         productionTargetUnitId = unitId;
         productionInternal = internalMode;

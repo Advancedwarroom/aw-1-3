@@ -113,6 +113,19 @@ public partial class GridManager : Node
                 grid.GridIndex = new Vector2I(-1, -1);
             }
         }
+
+        // ✅ 多方向地形：自动计算方向位掩码（PIPE / ROAD / BRIDGE 等）
+        RefreshAllTerrainDirections();
+    }
+
+    /// <summary>刷新全地图多方向地形的方向位掩码（地图加载/地形变化后调用）</summary>
+    public void RefreshAllTerrainDirections()
+    {
+        if (map == null) return;
+        int w = map.GetLength(0), h = map.GetLength(1);
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+                map[x, y]?.RefreshDirectionFromNeighbors(map);
     }
 
     /// <summary>

@@ -22,6 +22,12 @@ public partial class PipeSeam : Weapon
         base._Ready();
     }
 
+    /// <summary>管道构造者建造的接缝兵器：无队伍、不变色（保持原色调）</summary>
+    protected override void ApplyPaletteMaterial()
+    {
+        // 不应用任何势力调色 → 原色调
+    }
+
     // 被毁时通知联动方（供能线断裂）
     public override void OnDestroyed()
     {

@@ -113,6 +113,9 @@ public static class UnitProductionDatabase
 
     public static bool HasUnit(string unitName) => Units.ContainsKey(unitName);
 
+    /// <summary>全部可生产单位名（超级兵工厂全列表模式）</summary>
+    public static System.Collections.Generic.IEnumerable<string> GetAllUnitNames() => Units.Keys;
+
     public static UnitInfo GetInfo(string unitName)
     {
         if (Units.TryGetValue(unitName, out var info))

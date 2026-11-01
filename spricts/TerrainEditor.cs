@@ -505,6 +505,8 @@ private void DeferredCheckVictoryOnExitEdit()
                         lastBatchGrid = grid;
                         var oldTerrain = grid.gridType;
                         grid.gridType = batchTerrainType;
+                        // ✅ 多方向地形：地形变化后刷新方向（本格+邻格）
+                        gridManager?.RefreshAllTerrainDirections();
                         UpdateGridVisual(grid);
                         PushEditorAction(EditorActionType.PlaceTerrain, grid, oldTerrain);
                     }
