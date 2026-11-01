@@ -35,6 +35,9 @@ public static class CoModuleSystem
         loaded = true;
         foreach (var p in CoProfile.LoadAll())
             Profiles[p.id] = p;
+        // ✅ 自定义 CO（user://co/*.json）：同 id 覆盖内置档案
+        foreach (var p in CoProfile.LoadAllCustom())
+            Profiles[p.id] = p;
         // ✅ 势力绑定：co/bindings.json（{"Player1":"andy"} 或 {"Player1":["andy","eagle"]} 后者=主CO+Tag搭档）
         var bf = FileAccess.Open("res://co/bindings.json", FileAccess.ModeFlags.Read);
         if (bf != null)
@@ -93,6 +96,23 @@ public static class CoModuleSystem
     {
         EnsureLoaded();
         return Profiles.Values.OrderBy(p => p.id).ToList();
+    }
+
+    /// <summary>编辑器保存后热应用：更新档案缓存，已绑定该 CO 的势力换新对象（立即生效）</summary>
+    public static void ApplyProfile(CoProfile p)
+    {
+        EnsureLoaded();
+        if (p == null || string.IsNullOrEmpty(p.id)) return;
+        Profiles[p.id] = p;
+        foreach (var kv in Teams)
+        {
+            if (kv.Value?.profile?.id == p.id)
+            {
+                var partners = kv.Value.partners;   // 搭档保留
+                kv.Value.profile = p;
+                kv.Value.partners = partners;
+            }
+        }
     }
 
     /// <summary>给势力绑定 CO（开局/选将时调用）</summary>

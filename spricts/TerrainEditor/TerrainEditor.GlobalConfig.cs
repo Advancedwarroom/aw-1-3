@@ -635,6 +635,26 @@ private void RefreshAllUnitVision()
                 durMinSpin.Value = WeatherSystem.RandomDurationMax;
         };
 
+        // ✅ CO 编辑器（自定义 CO + 头像上传，存 user://co/）
+        var coEditorSection = CreateConfigSectionTitle(TranslateGroup.T("🎖️ CO 系统"));
+        globalConfigContainer.AddChild(coEditorSection);
+
+        var coEditorBtn = new Button();
+        TranslateGroup.SetText(coEditorBtn, "🎖️ 打开 CO 编辑器（自定义CO/头像/30模块拼装）");
+        coEditorBtn.CustomMinimumSize = new Vector2(320, 40);
+        coEditorBtn.AddThemeFontSizeOverride("font_size", 13);
+        coEditorBtn.Pressed += () => {
+            var ui = GetTree()?.GetFirstNodeInGroup("co_editor_ui") as CoEditorUI;
+            if (ui == null)
+            {
+                ui = new CoEditorUI();
+                ui.Name = "CoEditorUI";
+                GetTree().Root.AddChild(ui);
+            }
+            ui.Open();
+        };
+        globalConfigContainer.AddChild(coEditorBtn);
+
         var unitSection = CreateConfigSectionTitle(TranslateGroup.T("👁️ 单位基础视野配置"));
         globalConfigContainer.AddChild(unitSection);
 

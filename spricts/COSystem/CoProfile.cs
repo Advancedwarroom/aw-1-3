@@ -176,4 +176,101 @@ public class CoProfile
         }
         return list;
     }
+
+    // ---------- ✅ 自定义 CO（编辑器产出，存 user://co/） ----------
+    public const string CustomDir = "user://co/";
+    public const string CustomAvatarDir = "user://co/avatars/";
+
+    /// <summary>加载玩家自定义 CO（user://co/*.json）</summary>
+    public static List<CoProfile> LoadAllCustom()
+    {
+        var list = new List<CoProfile>();
+        var dirAccess = DirAccess.Open(CustomDir);
+        if (dirAccess == null) return list;
+        foreach (string file in dirAccess.GetFiles())
+        {
+            if (!file.EndsWith(".json")) continue;
+            using var f = FileAccess.Open($"{CustomDir}/{file}", FileAccess.ModeFlags.Read);
+            if (f == null) continue;
+            var p = FromJson(f.GetAsText());
+            if (p != null && !string.IsNullOrEmpty(p.id)) list.Add(p);
+        }
+        return list;
+    }
+
+    /// <summary>序列化为 Godot 字典（保存自定义 CO 用）</summary>
+    public Godot.Collections.Dictionary ToDict()
+    {
+        var d = new Godot.Collections.Dictionary
+        {
+            ["id"] = id,
+            ["name"] = name,
+            ["avatar"] = avatar,
+            ["bio"] = bio,
+            ["army"] = army,
+            ["copName"] = copName,
+            ["scopName"] = scopName,
+            ["powerStars"] = powerStars,
+            ["superStars"] = superStars,
+            ["zoneRange"] = zoneRange,
+        };
+        var coUnitsArr = new Godot.Collections.Array();
+        foreach (var u in coUnits) coUnitsArr.Add(u);
+        d["coUnits"] = coUnitsArr;
+        var modulesArr = new Godot.Collections.Array();
+        foreach (var m in modules)
+        {
+            var md = new Godot.Collections.Dictionary
+            {
+                ["module"] = m.module,
+                ["name"] = m.name,
+                ["duration"] = m.duration,
+                ["durationTurns"] = m.durationTurns,
+                ["maxStacks"] = m.maxStacks,
+            };
+            var phase = new Godot.Collections.Dictionary();
+            foreach (var kv in m.GetPhaseValues(CoPowerMode.Cop)) phase[kv.Key] = kv.Value;
+            md["cop"] = phase;
+            var phase2 = new Godot.Collections.Dictionary();
+            foreach (var kv in m.GetPhaseValues(CoPowerMode.Scop)) phase2[kv.Key] = kv.Value;
+            md["scop"] = phase2;
+            var d2dD = new Godot.Collections.Dictionary();
+            foreach (var kv in m.d2d) d2dD[kv.Key] = kv.Value;
+            md["d2d"] = d2dD;
+            var zoneD = new Godot.Collections.Dictionary();
+            foreach (var kv in m.zone) zoneD[kv.Key] = kv.Value;
+            md["zone"] = zoneD;
+            if (m.unitTypes.Count > 0)
+            {
+                var arr = new Godot.Collections.Array();
+                foreach (var t in m.unitTypes) arr.Add(t);
+                md["unitTypes"] = arr;
+            }
+            if (m.minCoLevel > 0) md["minCoLevel"] = m.minCoLevel;
+            if (m.maxCoLevel < 99) md["maxCoLevel"] = m.maxCoLevel;
+            if (m.directOnly) md["directOnly"] = true;
+            if (m.indirectOnly) md["indirectOnly"] = true;
+            modulesArr.Add(md);
+        }
+        d["modules"] = modulesArr;
+        return d;
+    }
+
+    /// <summary>保存到 user://co/<id>.json</summary>
+    public Error SaveCustom()
+    {
+        DirAccess.MakeDirRecursiveAbsolute(CustomDir);
+        using var f = FileAccess.Open($"{CustomDir}/{id}.json", FileAccess.ModeFlags.Write);
+        if (f == null) return Error.FileWriteError;
+        f.StoreString(Json.Stringify(ToDict(), "  "));
+        return Error.Ok;
+    }
+
+    /// <summary>加载头像贴图（支持 res:// 与 user:// 路径；空返回 null）</summary>
+    public ImageTexture GetAvatarTexture()
+    {
+        if (string.IsNullOrEmpty(avatar)) return null;
+        var tex = ImageTexture.LoadFromFile(avatar);
+        return tex;
+    }
 }
