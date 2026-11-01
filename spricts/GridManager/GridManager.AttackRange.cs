@@ -76,9 +76,9 @@ public partial class GridManager
         
         attackRange.Clear();
         
-        // ✅ CO 模块系统·模块3（攻击范围加成）：射程/最小射程增减同步到范围显示
+        // ✅ CO 模块系统·模块3（攻击范围加成）+ 天气系统·模块15（沙暴-1）：同步到范围显示
         int minRange = Mathf.Max(1, unit.minAttackRange + CoModuleSystem.GetMinFireRangeBonus(unit));
-        int maxRange = unit.maxAttackRange + CoModuleSystem.GetFireRangeBonus(unit);
+        int maxRange = unit.maxAttackRange + CoModuleSystem.GetFireRangeBonus(unit) + WeatherSystem.GetFireRangeModifier(unit);
         
         var allRangeGrids = FindRange(unit.grid, maxRange, false);
         var blindZoneGrids = new HashSet<Grids>();

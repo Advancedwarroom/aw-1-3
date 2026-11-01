@@ -29,8 +29,8 @@ public int ActualVisionRange
 {
     get 
     {
-        // ✅ CO 模块系统·模块4（视野加成）
-        int coBonus = CoModuleSystem.GetVisionBonus(this);
+        // ✅ CO 模块系统·模块4（视野加成）+ 天气系统（模块15：雨-1/雾-2）
+        int coBonus = CoModuleSystem.GetVisionBonus(this) + WeatherSystem.GetVisionModifier(this);
         if (!useConfigVision && visionRange >= 0) return Mathf.Max(0, visionRange + coBonus);
         return Mathf.Max(0, VisionConfig.GetUnitVisionRange(UnitTypeId, TemplateId) + coBonus);
     }

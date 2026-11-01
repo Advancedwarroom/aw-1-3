@@ -33,6 +33,20 @@
    "zone": {
     "defBonus": 10
    }
+  },
+  {
+   "module": 15,
+   "name": "天气/战争迷雾",
+   "duration": "turns",
+   "durationTurns": 1,
+   "cop": {
+    "setWeather": 3,
+    "weatherTurns": 1
+   },
+   "scop": {
+    "setWeather": 3,
+    "weatherTurns": 2
+   }
   }
  ],
  "charge": {

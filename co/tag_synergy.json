@@ -1,0 +1,1262 @@
+[
+ {
+  "a": "andy",
+  "b": "eagle",
+  "name": "Airlift",
+  "attack": 15,
+  "luck": 2
+ },
+ {
+  "a": "andy",
+  "b": "max",
+  "name": "Power Wrench",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "andy",
+  "b": "hawke",
+  "name": "Shaky Alliance",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "andy",
+  "b": "nell",
+  "name": "Power of Orange",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "andy",
+  "b": "sami",
+  "name": "Power of youth",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "andy",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "adder",
+  "b": "koal",
+  "name": "Creepy Crawly",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "adder",
+  "b": "lash",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "adder",
+  "b": "hawke",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "adder",
+  "b": "flak",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "colin",
+  "b": "sasha",
+  "name": "Trust Fund",
+  "attack": 30,
+  "luck": 3
+ },
+ {
+  "a": "colin",
+  "b": "olaf",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "colin",
+  "b": "grit",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "colin",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "colin",
+  "b": "lash",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "drake",
+  "b": "eagle",
+  "name": "Stormwatch",
+  "attack": 15,
+  "luck": 2
+ },
+ {
+  "a": "drake",
+  "b": "jess",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "drake",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "drake",
+  "b": "hawke",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "eagle",
+  "b": "sami",
+  "name": "Earth and Sky",
+  "attack": 20,
+  "luck": 3
+ },
+ {
+  "a": "eagle",
+  "b": "jess",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "eagle",
+  "b": "lash",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "eagle",
+  "b": "hawke",
+  "name": "Tagpower",
+  "attack": -30,
+  "luck": 0
+ },
+ {
+  "a": "flak",
+  "b": "lash",
+  "name": "Bruise Cruise",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "grimm",
+  "b": "sensei",
+  "name": "Rolling Thunder",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "grimm",
+  "b": "sasha",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "grimm",
+  "b": "javier",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "grimm",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "grit",
+  "b": "max",
+  "name": "Big Country",
+  "attack": 10,
+  "luck": 2
+ },
+ {
+  "a": "grit",
+  "b": "olaf",
+  "name": "Snow Patrol",
+  "attack": 15,
+  "luck": 1
+ },
+ {
+  "a": "grit",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "hachi",
+  "b": "sensei",
+  "name": "Grizzled Vets",
+  "attack": 0,
+  "luck": 2
+ },
+ {
+  "a": "hachi",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "hawke",
+  "b": "lash",
+  "name": "Rebel Yell",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "hawke",
+  "b": "jess",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "hawke",
+  "b": "kindle",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "jake",
+  "b": "rachel",
+  "name": "Orange Crush",
+  "attack": 20,
+  "luck": 2
+ },
+ {
+  "a": "jake",
+  "b": "jess",
+  "name": "Heavy Metal",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "jake",
+  "b": "sasha",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "jake",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "jake",
+  "b": "kindle",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "javier",
+  "b": "jess",
+  "name": "Green Flash",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "javier",
+  "b": "kanbei",
+  "name": "Code of Honor",
+  "attack": 10,
+  "luck": 0
+ },
+ {
+  "a": "javier",
+  "b": "sensei",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "javier",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "jugger",
+  "b": "koal",
+  "name": "Power Surge",
+  "attack": 10,
+  "luck": 2
+ },
+ {
+  "a": "jugger",
+  "b": "kindle",
+  "name": "Fireworks",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "kanbei",
+  "b": "sonja",
+  "name": "Battle Standard",
+  "attack": 30,
+  "luck": 3
+ },
+ {
+  "a": "kanbei",
+  "b": "sensei",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "kanbei",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "kindle",
+  "b": "koal",
+  "name": "Flash Point",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "koal",
+  "b": "rachel",
+  "name": "Tagpower",
+  "attack": -35,
+  "luck": 0
+ },
+ {
+  "a": "lash",
+  "b": "sonja",
+  "name": "Brainstorm",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "lash",
+  "b": "olaf",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "max",
+  "b": "nell",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "max",
+  "b": "sami",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "max",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "nell",
+  "b": "rachel",
+  "name": "Windfall",
+  "attack": 30,
+  "luck": 3
+ },
+ {
+  "a": "nell",
+  "b": "sami",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "nell",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "olaf",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "rachel",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "rachel",
+  "b": "sasha",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "sami",
+  "b": "sonja",
+  "name": "Girl Power",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "sami",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "sasha",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "sensei",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "sensei",
+  "b": "sonja",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "sonja",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "epoch",
+  "b": "roboandy",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "napoleon",
+  "b": "roboandy",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "sabaki",
+  "b": "sonja",
+  "name": "Perception Path",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "kanbei",
+  "b": "sabaki",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "hachi",
+  "b": "sanjuro",
+  "name": "Risky Business",
+  "attack": 20,
+  "luck": 2
+ },
+ {
+  "a": "javier",
+  "b": "sanjuro",
+  "name": "Knights Errant",
+  "attack": 15,
+  "luck": 2
+ },
+ {
+  "a": "kanbei",
+  "b": "sanjuro",
+  "name": "Samurai Steel",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "sanjuro",
+  "b": "sasha",
+  "name": "Break the Bank",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "graves",
+  "b": "sanjuro",
+  "name": "Tagpower",
+  "attack": -15,
+  "luck": 0
+ },
+ {
+  "a": "eagle",
+  "b": "smitan",
+  "name": "Overkill",
+  "attack": 10,
+  "luck": 2
+ },
+ {
+  "a": "grimm",
+  "b": "smitan",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "flak",
+  "b": "smitan",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "peter",
+  "b": "smitan",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "max",
+  "b": "sophie",
+  "name": "Show of Strength",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "kanbei",
+  "b": "sophie",
+  "name": "Call of Duty",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "sami",
+  "b": "sophie",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "colin",
+  "b": "sophie",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "adder",
+  "b": "sophie",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "aira",
+  "b": "olaf",
+  "name": "Endless Storm",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "aira",
+  "b": "andy",
+  "name": "A is for Average",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "aira",
+  "b": "colin",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "aira",
+  "b": "sasha",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "aira",
+  "b": "grimm",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "aira",
+  "b": "drake",
+  "name": "Tagpower",
+  "attack": -30,
+  "luck": 0
+ },
+ {
+  "a": "ozzy",
+  "b": "rachel",
+  "name": "Eruption",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "ozzy",
+  "b": "sophie",
+  "name": "Tagpower",
+  "attack": 10,
+  "luck": 0
+ },
+ {
+  "a": "flak",
+  "b": "ozzy",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "epoch",
+  "b": "ozzy",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "peter",
+  "b": "sensei",
+  "name": "Senior Strike",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "eagle",
+  "b": "peter",
+  "name": "Sky Tactics",
+  "attack": 10,
+  "luck": 2
+ },
+ {
+  "a": "jess",
+  "b": "peter",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "adder",
+  "b": "peter",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "lash",
+  "b": "napoleon",
+  "name": "Brain and Brawn",
+  "attack": 0,
+  "luck": 2
+ },
+ {
+  "a": "napoleon",
+  "b": "robosturm",
+  "name": "Robot Power",
+  "attack": 15,
+  "luck": 2
+ },
+ {
+  "a": "kindle",
+  "b": "napoleon",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "mina",
+  "b": "nana",
+  "name": "Pretty Power",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "hachi",
+  "b": "nana",
+  "name": "Loving Granddaddy",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "koal",
+  "b": "nana",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "adder",
+  "b": "nana",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "nana",
+  "b": "rachel",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "kanbei",
+  "b": "minamoto",
+  "name": "Rising Sun",
+  "attack": 20,
+  "luck": 2
+ },
+ {
+  "a": "minamoto",
+  "b": "sensei",
+  "name": "Eastern Gale",
+  "attack": 15,
+  "luck": 1
+ },
+ {
+  "a": "javier",
+  "b": "minamoto",
+  "name": "Sword and Shield",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "minamoto",
+  "b": "sabaki",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "minamoto",
+  "b": "ozzy",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "minamoto",
+  "b": "zandra",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "mary",
+  "b": "minamoto",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "graves",
+  "b": "mina",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "julia",
+  "b": "mina",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "mina",
+  "b": "sophie",
+  "name": "Tagpower",
+  "attack": -15,
+  "luck": 0
+ },
+ {
+  "a": "lash",
+  "b": "melanthe",
+  "name": "Earthly Delight",
+  "attack": 20,
+  "luck": 2
+ },
+ {
+  "a": "jugger",
+  "b": "melanthe",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "melanthe",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "koal",
+  "b": "melanthe",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "kindle",
+  "b": "melanthe",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "hawke",
+  "b": "julia",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "julia",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "julia",
+  "b": "kindle",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "graves",
+  "b": "hawke",
+  "name": "Antagonistic Desire",
+  "attack": 20,
+  "luck": 2
+ },
+ {
+  "a": "eagle",
+  "b": "graves",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "adder",
+  "b": "graves",
+  "name": "Tagpower",
+  "attack": -15,
+  "luck": 0
+ },
+ {
+  "a": "graves",
+  "b": "rachel",
+  "name": "Tagpower",
+  "attack": -15,
+  "luck": 0
+ },
+ {
+  "a": "graves",
+  "b": "nell",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "alexander",
+  "b": "olaf",
+  "name": "Iron Fist",
+  "attack": 20,
+  "luck": 2
+ },
+ {
+  "a": "alexander",
+  "b": "sasha",
+  "name": "Perestroika",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "alexander",
+  "b": "hachi",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "alexander",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "hachi",
+  "b": "zandra",
+  "name": "Trade Partners",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "koal",
+  "b": "mary",
+  "name": "Path of Blood",
+  "attack": 15,
+  "luck": 2
+ },
+ {
+  "a": "mary",
+  "b": "sabaki",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "mary",
+  "b": "ozzy",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "mary",
+  "b": "nell",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "andy",
+  "b": "mary",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "alexis",
+  "b": "ozzy",
+  "name": "Whole Lotta Love",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "alexis",
+  "b": "mina",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "alexis",
+  "b": "lash",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "grimm",
+  "b": "rattigan",
+  "name": "Cleaning House",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "kanbei",
+  "b": "rattigan",
+  "name": "Former Glory",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "olaf",
+  "b": "rattigan",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "rattigan",
+  "b": "sensei",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "rattigan",
+  "b": "von_bolt",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "cassidy",
+  "b": "kindle",
+  "name": "Firestarters",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "cassidy",
+  "b": "koal",
+  "name": "Road Rage",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "cassidy",
+  "b": "flak",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "cassidy",
+  "b": "mina",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "cassidy",
+  "b": "graves",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "joey",
+  "b": "sasha",
+  "name": "Confident Abilities",
+  "attack": 15,
+  "luck": 2
+ },
+ {
+  "a": "grimm",
+  "b": "joey",
+  "name": "Daredevil Business",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "colin",
+  "b": "joey",
+  "name": "Tagpower",
+  "attack": -10,
+  "luck": 0
+ },
+ {
+  "a": "ik",
+  "b": "napoleon",
+  "name": "Machine Invasion",
+  "attack": 15,
+  "luck": 2
+ },
+ {
+  "a": "epoch",
+  "b": "ik",
+  "name": "Beta-Version",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "ik",
+  "b": "lash",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "adam",
+  "b": "conrad",
+  "name": "Science Power",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "penny",
+  "b": "tabitha",
+  "name": "Evil Sisters",
+  "attack": 10,
+  "luck": 2
+ },
+ {
+  "a": "greyfield",
+  "b": "waylon",
+  "name": "Free Sea and Air",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "brenner",
+  "b": "lin",
+  "name": "Loyalty of Amber Corona",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "brenner",
+  "b": "will",
+  "name": "The Helpers",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "isabella",
+  "b": "will",
+  "name": "Friendship",
+  "attack": 15,
+  "luck": 2
+ },
+ {
+  "a": "lin",
+  "b": "will",
+  "name": "Tagpower",
+  "attack": 5,
+  "luck": 0
+ },
+ {
+  "a": "tasha",
+  "b": "will",
+  "name": "Brother and Sister?",
+  "attack": 10,
+  "luck": 2
+ },
+ {
+  "a": "gage",
+  "b": "tasha",
+  "name": "New Leaders",
+  "attack": 5,
+  "luck": 1
+ },
+ {
+  "a": "forsythe",
+  "b": "gage",
+  "name": "Noble Shot",
+  "attack": 10,
+  "luck": 1
+ },
+ {
+  "a": "caulder",
+  "b": "forsythe",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "brenner",
+  "b": "caulder",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "caulder",
+  "b": "will",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "caulder",
+  "b": "lin",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "caulder",
+  "b": "isabella",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "caulder",
+  "b": "tasha",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "caulder",
+  "b": "gage",
+  "name": "Tagpower",
+  "attack": -20,
+  "luck": 0
+ },
+ {
+  "a": "amy",
+  "b": "drake",
+  "name": "Unwavering Debt",
+  "attack": 15,
+  "luck": 2
+ },
+ {
+  "a": "amy",
+  "b": "hawke",
+  "name": "Tagpower",
+  "attack": -30,
+  "luck": 0
+ }
+]

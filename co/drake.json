@@ -20,6 +20,23 @@
    "cop": {
     "defBonus": 10
    }
+  },
+  {
+   "module": 15,
+   "name": "天气/战争迷雾",
+   "duration": "turns",
+   "durationTurns": 1,
+   "d2d": {
+    "weatherImmune": 1
+   },
+   "cop": {
+    "setWeather": 1,
+    "weatherTurns": 1
+   },
+   "scop": {
+    "setWeather": 1,
+    "weatherTurns": 2
+   }
   }
  ],
  "charge": {

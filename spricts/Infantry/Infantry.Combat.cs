@@ -48,8 +48,8 @@ public virtual int CalculateFinalDamage(Infantry target, WeaponType weaponType, 
     float attackerHealthPercent = (float)health / GetEffectiveMaxHealth();
     float actualAttack = baseDamage * attackerHealthPercent;
 
-    // ✅ CO 模块系统·模块1（伤害加成）：攻击方 CO 攻击力百分比
-    float coOffBonus = CoModuleSystem.GetOffenseBonusPercent(this);
+    // ✅ CO 模块系统·模块1（伤害加成）+ 天气系统·模块15（沙暴-15%）
+    float coOffBonus = CoModuleSystem.GetOffenseBonusPercent(this) + WeatherSystem.GetOffenseModifierPercent(this);
     actualAttack *= Mathf.Max(0f, 100f + coOffBonus) / 100f;
 
     // 地形
@@ -508,8 +508,8 @@ public virtual bool IsTargetInCounterRange(Infantry attacker)
         int distance = Mathf.Abs(target.grid.GridIndex.X - this.grid.GridIndex.X) 
                      + Mathf.Abs(target.grid.GridIndex.Y - this.grid.GridIndex.Y);
 
-        // ✅ CO 模块系统·模块3（攻击范围加成）：射程/最小射程增减
-        int coRangeBonus = CoModuleSystem.GetFireRangeBonus(this);
+        // ✅ CO 模块系统·模块3（攻击范围加成）+ 天气系统·模块15（沙暴-1）：射程/最小射程增减
+        int coRangeBonus = CoModuleSystem.GetFireRangeBonus(this) + WeatherSystem.GetFireRangeModifier(this);
         int coMinBonus = CoModuleSystem.GetMinFireRangeBonus(this);
         if (useMinMaxAttackRange)
             return distance >= Mathf.Max(1, minAttackRange + coMinBonus) && distance <= maxAttackRange + coRangeBonus;

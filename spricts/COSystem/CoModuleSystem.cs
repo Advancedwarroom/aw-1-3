@@ -22,6 +22,8 @@ public static class CoModuleSystem
     static readonly Dictionary<string, CoTeamState> Teams = new();
     // 档案缓存（id → profile），供选 CO 界面/注册用
     static readonly Dictionary<string, CoProfile> Profiles = new();
+    // ✅ Tag 搭配加成表（CoW Tagpower.js 搬运：co/tag_synergy.json，180 组）
+    static readonly Dictionary<(string, string), (float attack, float luck)> TagSynergy = new();
     static bool loaded = false;
 
     // ---------- 初始化 ----------
@@ -62,6 +64,25 @@ public static class CoModuleSystem
                     }
                 }
             GD.Print("[CO] bindings.json 已绑定势力");
+        }
+        // ✅ Tag 搭配加成表（无上限：任意数量 CO 两两组合求和）
+        var sf = FileAccess.Open("res://co/tag_synergy.json", FileAccess.ModeFlags.Read);
+        if (sf != null)
+        {
+            var sv = Json.ParseString(sf.GetAsText());
+            if (sv.VariantType == Variant.Type.Array)
+                foreach (var e in sv.AsGodotArray())
+                {
+                    if (e.VariantType != Variant.Type.Dictionary) continue;
+                    var d = e.AsGodotDictionary();
+                    if (!d.ContainsKey("a") || !d.ContainsKey("b")) continue;
+                    string a = d["a"].AsString(), b = d["b"].AsString();
+                    float atk = d.ContainsKey("attack") ? d["attack"].AsSingle() : 0;
+                    float lk = d.ContainsKey("luck") ? d["luck"].AsSingle() : 0;
+                    TagSynergy[(a, b)] = (atk, lk);   // 已按 id 排序存储
+                    TagSynergy[(b, a)] = (atk, lk);
+                }
+            GD.Print($"[CO] tag_synergy.json 加载：{TagSynergy.Count / 2} 组搭配");
         }
         GD.Print($"[CO] 档案加载完成：{Profiles.Count} 个，已绑定势力：{Teams.Count} 个");
     }
@@ -188,7 +209,14 @@ public static class CoModuleSystem
 
     // ---------- 对外查询（模块 1/2/3/4/5/13/18） ----------
     public static float GetOffenseBonusPercent(Infantry attacker)
-        => attacker == null ? 0 : Sum(attacker.team, 1, "offBonus", attacker);
+    {
+        if (attacker == null) return 0;
+        float bonus = Sum(attacker.team, 1, "offBonus", attacker);
+        // ✅ Tag 搭配加成（合体技期间）
+        if (GetState(attacker.team)?.powerMode == CoPowerMode.Tag)
+            bonus += GetTagSynergyBonus(attacker.team).attack;
+        return bonus;
+    }
 
     public static float GetDefenseBonusPercent(Infantry defender)
         => defender == null ? 0 : Sum(defender.team, 2, "defBonus", defender);
@@ -214,12 +242,17 @@ public static class CoModuleSystem
     public static int GetCaptureBonus(Infantry unit)
         => unit == null ? 0 : Mathf.RoundToInt(Sum(unit.team, 18, "captureBonus", unit));
 
-    /// <summary>模块13 运气：本攻击的运气浮动（±luckMax）</summary>
+    /// <summary>模块13 运气：本攻击的运气浮动（±luckMax，Tag 合体技期间叠加搭配运气加成）</summary>
     public static int GetLuckRoll(Infantry attacker, System.Random rng = null)
     {
         rng ??= new System.Random();
         float max = Sum(attacker?.team, 13, "luckMax", attacker);
         float min = Sum(attacker?.team, 13, "luckMin", attacker);
+        if (GetState(attacker?.team)?.powerMode == CoPowerMode.Tag)
+        {
+            var syn = GetTagSynergyBonus(attacker.team);
+            max += syn.luck;   // 搭配运气加成只抬上限（CoW 同款）
+        }
         return rng.Next(Mathf.RoundToInt(Mathf.Min(min, max)), Mathf.RoundToInt(Mathf.Max(min, max)) + 1);
     }
 
@@ -250,6 +283,43 @@ public static class CoModuleSystem
     /// <summary>模块19：某单位是否为该势力 CO 的专属单位（生产时用于 isCoUnit 标记）</summary>
     public static bool IsExclusiveUnit(string team, string unitTypeId)
         => GetExclusiveUnits(team).Contains(unitTypeId);
+
+    /// <summary>模块15（天气/战争迷雾）：该单位是否免疫天气惩罚（weatherImmune）</summary>
+    public static bool GetWeatherImmune(Infantry unit)
+        => unit != null && Sum(unit.team, 15, "weatherImmune", unit) > 0f;
+
+    // ---------- 发动时效果（COP/SCOP/Tag 统一入口） ----------
+    /// <summary>
+    /// 大招发动时的即时效果：模块8（healHp 全军回血）、模块15（setWeather/weatherTurns 改变天气）。
+    /// 后续模块 7 生成单位、9 区域导弹、24 建筑状态、25 状态效果也在此扩展。
+    /// </summary>
+    static void ExecuteActivationEffects(string team)
+    {
+        var st = GetState(team);
+        if (st?.profile == null) return;
+
+        // ✅ 模块8：全军回血
+        int healHp = GetHealHp(team);
+        if (healHp != 0)
+        {
+            var tree = Engine.GetMainLoop() as SceneTree;
+            if (tree != null)
+                foreach (var n in tree.GetNodesInGroup("infantry"))
+                {
+                    if (n is not Infantry i || i.team != team) continue;
+                    i.health = Mathf.Clamp(i.health + healHp, 1, i.GetEffectiveMaxHealth());
+                    i.UpdateHpLabel();
+                }
+        }
+
+        // ✅ 模块15：改变天气（0=晴 1=雨 2=雪 3=沙暴 4=雾）
+        int weather = Mathf.RoundToInt(Sum(team, 15, "setWeather"));
+        if (weather is >= 1 and <= 4)
+        {
+            int wDays = Mathf.RoundToInt(Sum(team, 15, "weatherTurns"));
+            WeatherSystem.SetWeather((WeatherType)weather, Mathf.Max(1, wDays));
+        }
+    }
 
     // ---------- 能量条（模块 27 附属） ----------
     public static float GetCharge(string team) => GetState(team)?.charge ?? 0f;
@@ -314,6 +384,7 @@ public static class CoModuleSystem
         st.powerTurnsLeft = PowerDuration(st, CoPowerMode.Cop);
         st.powerUsedThisTurn = true;
         st.charge = 0f;
+        ExecuteActivationEffects(team);   // ✅ 发动时效果（模块8回血/模块15天气……）
         GD.Print($"[CO] {team} 发动 COP：{st.profile.copName}");
         return true;
     }
@@ -326,17 +397,38 @@ public static class CoModuleSystem
         st.powerTurnsLeft = PowerDuration(st, CoPowerMode.Scop);
         st.powerUsedThisTurn = true;
         st.charge = 0f;
+        ExecuteActivationEffects(team);   // ✅ 发动时效果（模块8回血/模块15天气……）
         GD.Print($"[CO] {team} 发动 SCOP：{st.profile.scopName}");
         return true;
     }
 
-    // ---------- 配合模块：Tag Power（多 CO 合体技） ----------
-    /// <summary>Tag 所需星数 = 主 CO SCOP★ + 全部搭档 COP★（合体消耗）</summary>
+    // ---------- 配合模块：Tag Power（多 CO 合体技，无上限） ----------
+    /// <summary>Tag 所需星数 = 主 CO SCOP★ + 全部搭档 COP★（合体消耗，搭档数量不限）</summary>
     public static float GetTagPowerNeeded(string team)
     {
         var st = GetState(team);
         if (st?.profile == null || st.partners.Count == 0) return float.MaxValue;
         return st.profile.superStars + st.partners.Sum(p => p.powerStars);
+    }
+
+    /// <summary>
+    /// ✅ Tag 搭配加成（CoW Tagpower.js 搬运）：主 CO + 全部搭档两两组合，攻击%与运气加成求和。
+    /// 搭档数量无上限——3 个 CO 就吃 3 对组合加成，4 个吃 6 对，以此类推。
+    /// </summary>
+    public static (float attack, float luck) GetTagSynergyBonus(string team)
+    {
+        var st = GetState(team);
+        if (st?.profile == null || st.partners.Count == 0) return (0, 0);
+        float atk = 0, luck = 0;
+        var all = new[] { st.profile }.Concat(st.partners).Select(p => p.id).ToList();
+        for (int i = 0; i < all.Count; i++)
+            for (int j = i + 1; j < all.Count; j++)
+                if (TagSynergy.TryGetValue((all[i], all[j]), out var s))
+                {
+                    atk += s.attack;
+                    luck += s.luck;
+                }
+        return (atk, luck);
     }
 
     public static bool CanUseTagPower(string team) => GetState(team) is { } s && s.profile != null
@@ -355,6 +447,7 @@ public static class CoModuleSystem
         st.tagExtraTurnUsed = false;
         GrantTeamExtraTurn(team);   // ✅ 模块6（多次移动）：合体技全军再动
         st.tagExtraTurnUsed = true;
+        ExecuteActivationEffects(team);   // ✅ 发动时效果（模块8回血/模块15天气……）
         GD.Print($"[CO] {team} 发动 Tag Power：{st.profile.scopName} × {st.partners.Count + 1} CO 合体");
         return true;
     }

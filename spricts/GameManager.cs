@@ -93,6 +93,9 @@ public partial class GameManager : Node
 
         // ✅ CO 三十模块体系：加载 co/*.json 档案 + bindings.json 势力绑定
         CoModuleSystem.EnsureLoaded();
+
+        // ✅ 天气系统（模块15）：创建天气指示 UI
+        InitWeatherUI();
         
         RequestStoragePermissionsIfNeeded();
         CallDeferred(nameof(DeferredInit));

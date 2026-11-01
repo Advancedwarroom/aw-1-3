@@ -500,8 +500,10 @@ public partial class GridManager
     private int GetActualMoveCost(Infantry infantry, Grids g)
     {
         int cost = infantry.GetMoveCostOnGrid(g);
-        // ✅ CO 模块系统·模块5（移动模块：移动消耗减少，下限1）
-        if (cost < 999) cost = Mathf.Max(1, cost - CoModuleSystem.GetMovementCostReduction(infantry, g));
+        // ✅ CO 模块系统·模块5（移动模块：移动消耗减少，下限1）+ 天气系统（模块15：雪+1，道路/桥/建筑格/空军除外）
+        if (cost < 999)
+            cost = Mathf.Max(1, cost - CoModuleSystem.GetMovementCostReduction(infantry, g)
+                                  + WeatherSystem.GetMovementCostModifier(infantry, g));
         return cost >= 999 ? 999 : cost;
     }
 

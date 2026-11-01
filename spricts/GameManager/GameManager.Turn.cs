@@ -113,6 +113,8 @@ public partial class GameManager
         // ========== ✅ 刷新战争迷雾 ==========
         fogOfWarManager?.OnTurnChanged();
         bool isNewTurn = (turns > previousTurn);
+        if (isNewTurn)
+            WeatherSystem.AdvanceDay();   // ✅ 天气系统（模块15）：新一天按出现率轮换天气
         selectedInfantry = null;
                         if (turnPhase == 1)
 

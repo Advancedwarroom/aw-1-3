@@ -79,18 +79,7 @@ public partial class ActionMenu
         if (unit == null || !IsInstanceValid(unit)) return;
         string team = unit.team;
         if (!CoModuleSystem.ActivateTagPower(team)) return;
-
-        // ✅ 模块8（healHp）：合体技时主 CO + 搭档 CO 的回血模块一并结算
-        int healHp = CoModuleSystem.GetHealHp(team);
-        if (healHp != 0)
-        {
-            foreach (var n in GetTree().GetNodesInGroup("infantry"))
-            {
-                if (n is not Infantry i || i.team != team) continue;
-                i.health = Mathf.Clamp(i.health + healHp, 1, i.GetEffectiveMaxHealth());
-                i.UpdateHpLabel();
-            }
-        }
+        // ✅ 回血/天气等发动时效果已统一在 CoModuleSystem.ExecuteActivationEffects 结算
 
         Hide();
         ShowMenu(unit, false);
@@ -105,18 +94,7 @@ public partial class ActionMenu
         bool ok = scop ? CoModuleSystem.ActivateSuperPower(team) : CoModuleSystem.ActivatePower(team);
         if (!ok) return;
 
-        // ✅ 模块8（血量变更·healHp）：发动大招时全军回血（Andy 系）
-        int healHp = CoModuleSystem.GetHealHp(team);
-        if (healHp != 0)
-        {
-            foreach (var n in GetTree().GetNodesInGroup("infantry"))
-            {
-                if (n is not Infantry i || i.team != team) continue;
-                i.health = Mathf.Clamp(i.health + healHp, 1, i.GetEffectiveMaxHealth());
-                i.UpdateHpLabel();
-            }
-        }
-
+        // ✅ 回血/天气等发动时效果已统一在 CoModuleSystem.ExecuteActivationEffects 结算
         Hide();
         // 发动后重新弹菜单（大招一般还允许本回合继续行动该单位）
         ShowMenu(unit, false);

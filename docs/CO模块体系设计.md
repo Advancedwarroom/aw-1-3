@@ -281,3 +281,14 @@ CoW 中 DoR 系 CO（Brenner/Lin/Will/Isabella/Gage/Tasha/Tabitha/Penny/Caulder 
 - **模块27 补充**：消耗资金打点（`OnFundsSpent`）接入生产扣费处
 
 搬运优先级建议：先做 1/2/5/13/18/19 号模块（原作 CO 90% 的机制都靠它们），再做能量条与 COP/SCOP，最后做 Zone 与配合/多屏规则。
+
+**第三轮落地（天气系统 + Tag 搭配加成 + 无上限合体）：**
+- **模块15 天气/战争迷雾**：新建 `spricts/COSystem/WeatherSystem.cs`——天气类型（晴/雨/雪/沙暴/雾）、出现率权重（晴70%）、随机天数轮换（`AdvanceDay`）、雨/雾强制开雾+到期恢复、视野/移动/攻击/射程修正查询、雪免地形（道路/桥/轨道/建筑/空军）
+  - 数值照搬 CoW `weather.js`：雨视野-1+强制雾、雪移动+1（免地形除外）、沙暴攻-15%+射程-1、雾视野-2+强制雾
+  - 接线点：`ActualVisionRange`（视野）、`GetActualMoveCost`（移动消耗）、`CalculateFinalDamage`（沙暴攻减）、`IsTargetInAttackRange`+`ShowMinMaxAttackRange`（射程）
+  - UI：`GameManager.WeatherUI.cs`（左上角天气标签+剩余天数+全屏色调，`WeatherSystem.OnWeatherChanged` 订阅）；新一天 `NextPhase` 调 `AdvanceDay`
+- **发动时效果统一入口**：`ExecuteActivationEffects`——模块8 全军回血 + 模块15 改变天气，COP/SCOP/Tag 三条发动路径统一调用（替代原按钮内联回血）
+- **CO 数据**：Olaf（COP/SCOP 降雪+雪免疫）、Drake（降雨+雨免疫）、Zandra（沙暴）已写入模块15
+- **Tag Power 无上限**：`List<CoProfile> partners` 结构本身不限数量；合体星数=主 SCOP★+全部搭档 COP★；Tag 模式合并所有 CO 的 SCOP 模块
+- **模块15 天气技能**：`setWeather`（0晴/1雨/2雪/3沙暴/4雾）+ `weatherTurns`（持续天数）+ `weatherImmune`（常态免疫）
+- **Tag 搭配加成（CoW Tagpower.js 全量搬运）**：`co/tag_synergy.json` 收录 CoW 的 180 组 CO 搭配；`GetTagSynergyBonus` 对主+全部搭档**两两组合求和**（3 个 CO 吃 3 对、4 个吃 6 对，无上限）；攻击% 加进 `GetOffenseBonusPercent`、运气加成抬 `GetLuckRoll` 上限——**对比 CoW：原作每玩家固定 2 个 CO 槽位（`getCO(0)/getCO(1)`），aw-1-3 无上限**
