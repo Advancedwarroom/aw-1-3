@@ -132,10 +132,10 @@ public partial class TerrainEditor
         bar.Position = new Vector2(-260, 6);
         bar.AddThemeConstantOverride("separation", 8);
         var hint = new Label { Text = TranslateGroup.T("🔗 传送编辑：①点源格 ②点目标格") };
-        var mutual = new CheckBox { Text = TranslateGroup.T("⇄ 互传"), ButtonPressed = creatingMutualLink };
-        mutual.Toggled += on => creatingMutualLink = on;
+        var mutual = new CheckBox { Text = TranslateGroup.T("⇄ 互传"), ButtonPressed = teleportMutualDefault };
+        mutual.Toggled += on => teleportMutualDefault = on;
         var done = new Button { Text = TranslateGroup.T("✅ 完成") };
-        done.Pressed += () => { CancelTeleportLinkMode(); RestoreGlobalConfigPanel(); };
+        done.Pressed += () => { CancelTeleportLinkMode(); if (globalConfigPanel != null) globalConfigPanel.Visible = true; };
         var cancel = new Button { Text = TranslateGroup.T("↩ 取消") };
         cancel.Pressed += CancelTeleportLinkMode;
         bar.AddChild(hint); bar.AddChild(mutual); bar.AddChild(done); bar.AddChild(cancel);

@@ -149,6 +149,9 @@ public override void _Ready()
 }
 
 // ========== 修改 _Input 添加 ESC 关闭生成菜单 ==========
+[Export] public bool continuousPlacement = true;   // ✅ 连续放置：开=拖拽连刷；关=拖拽平移相机、单击才放置
+private bool _tapPending;
+
 public override void _Input(InputEvent @event)
 {
         // ✅ ESC 退出传送编辑模式（修复：进入后无有效退出路径）
