@@ -54,6 +54,7 @@ public partial class Infantry
     [Export] public bool spaceStrikeAffectsFacilities = false;   // 是否影响设施
     [Export] public int spaceStrikeMaxUses = 1;                   // 每回合次数
     [Export] public int spaceStrikeUsesThisTurn = 0;
+    [Export] public string spaceStrikeBlacklist = "ForceSatellite,AttackSatellite";  // 打击黑名单：类名逗号分隔（默认双卫星——打不着）
 
     private static bool FsFriendly(string a, string b)
     {
@@ -282,6 +283,16 @@ public partial class Infantry
         }
     }
 
+    // 打击黑名单：类名逗号分隔，空串=不屏蔽
+    private bool SsBlacklisted(Node n)
+    {
+        if (string.IsNullOrEmpty(spaceStrikeBlacklist) || n == null) return false;
+        var nm = n.GetType().Name;
+        foreach (var item in spaceStrikeBlacklist.Split(','))
+            if (item.Trim() == nm) return true;
+        return false;
+    }
+
     private bool SsTargetTeamOk(string targetTeam)
     {
         bool friendly = FsFriendly(team, targetTeam);
@@ -294,6 +305,7 @@ public partial class Infantry
         foreach (var u in (g.infantries ?? new List<Infantry>()).ToList())
         {
             if (u == null || !IsInstanceValid(u) || u == this) continue;
+            if (SsBlacklisted(u)) continue; // 打击黑名单
             if (!SsTargetTeamOk(u.team)) continue;
             int dmg = Mathf.RoundToInt(u.maxHealth * spaceStrikeDamagePercent);
             u.health = Mathf.Max(1, u.health - dmg);
@@ -305,6 +317,7 @@ public partial class Infantry
             foreach (var w in (g.weapons ?? new List<Weapon>()).ToList())
             {
                 if (w == null || !IsInstanceValid(w) || w.isDestroyed) continue;
+                if (SsBlacklisted(w)) continue; // 打击黑名单
                 if (!SsTargetTeamOk(w.team)) continue;
                 int dmg = Mathf.RoundToInt(w.maxHealth * spaceStrikeDamagePercent);
                 w.health = Mathf.Max(0, w.health - dmg);
