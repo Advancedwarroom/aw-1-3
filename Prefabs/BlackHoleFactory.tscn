@@ -21,7 +21,7 @@ animSprite = NodePath("AnimatedSprite2D")
 position = Vector2(48, 64)
 scale = Vector2(2, 2)
 sprite_frames = ExtResource("2_anim")
-animation = &"BlackHoleFactory"
+animation = &"Neutral"
 
 [node name="YellowDots" type="AnimatedSprite2D" parent="."]
 position = Vector2(48, 64)
