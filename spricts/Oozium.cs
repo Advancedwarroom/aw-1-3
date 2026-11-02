@@ -21,7 +21,7 @@ public partial class Oozium : Infantry
         {
             "Player1" => "oozium2",
             "Player2" => "oozium3",
-            _ => "oozium1"
+            _ => "oozium2"   // 红模板兜底：任意势力由LUT染成本色（原"oozium1"中立图导致永灰）
         };
         if (animSprite.SpriteFrames.HasAnimation(animName))
             animSprite.Play(animName);
