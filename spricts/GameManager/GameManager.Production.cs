@@ -6,6 +6,8 @@ using System.Linq;
 
 // GameManager · Production（由 GameManager.cs 按模块拆分；partial class，Export 分组已显式标注）
 public partial class GameManager
+    public bool dualInstant = false;   // ✅ 双生产菜单：即时出厂即动（默认关=生产后待机，与其修复一致）
+
 {
 
     public bool IsProductionMenuOpen()
