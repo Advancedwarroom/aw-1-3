@@ -85,12 +85,29 @@ public partial class BlackHoleFactory : Weapon
         return null;
     }
 
+    // 影子设施：设施生产线的复用载体（prefab 挂 ShadowFactory 子节点后即通；未挂时给出明确提示）
+    private Facility shadowFactory = null;
+    private Facility GetShadowFactory()
+    {
+        if (shadowFactory != null && IsInstanceValid(shadowFactory)) return shadowFactory;
+        shadowFactory = GetNodeOrNull<Facility>("ShadowFactory");
+        return shadowFactory;
+    }
+
     public void OpenProductionPorts()
     {
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm == null || bhfMenuCd > 0 || !CanUsePortNow()) return;
+        if (gm == null || bhfMenuCd > 0) return;
         bhfMenuCd = 0.5;
-        gm.ShowProductionMenu(this, grid);
+        var shadow = GetShadowFactory();
+        if (shadow == null)
+        {
+            GD.PrintErr("[黑洞工厂] 未找到 ShadowFactory 子节点——三生产口待接线（影子设施方案，见提交记录）");
+            return;
+        }
+        var door = GetFreeDoorGrid();
+        if (door == null) return;
+        gm.ShowProductionMenu(shadow, door);
     }
 
     private List<Vector2I> GetDoorIndices()
