@@ -22,7 +22,7 @@ public partial class AI_Manager : Node
 
     public bool p1AIEnabled = false;
     public bool p2AIEnabled = false;
-    public bool autoEndTurn = false;
+    [Export] public bool autoEndTurn = true; // 默认开启：AI打完自动切回合；仍可在AI设置面板勾选框关闭
 
     // ==================== 检查器参数（默认即可） ====================
     [ExportGroup("AI 参数")]
