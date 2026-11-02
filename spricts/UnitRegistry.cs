@@ -50,6 +50,7 @@ public class UnitConfig
     public int DailyFuelConsumption = 0;
     public bool DestroyOnOutOfFuel = false;
     public int LowFuelThreshold = 15;
+    public int LowAmmoThreshold = -1;   // ✅ 缺弹警告阈值：-1=自动(弹药上限/3,最少1)
 
     // 防御
     public int BaseDefense = 0;
