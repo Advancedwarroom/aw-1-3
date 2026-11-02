@@ -448,7 +448,7 @@ private Button CreateTemplateButton(UnitTemplate template)
         spawnHintLabel.AddThemeColorOverride("font_color", new Color(0.4f, 1f, 0.4f));
 
         // ✅ 黑炮/大型黑炮：显示方向选择器
-        bool isCannon = template.ScenePath.Contains("black_cannon") || template.ScenePath.Contains("large_cannon") || template.ScenePath.Contains("death_ray");
+        bool isCannon = template.ScenePath.Contains("black_cannon") || template.ScenePath.Contains("large_cannon") || template.ScenePath.Contains("death_ray") || template.ScenePath.Contains("SuperFactory");
         if (directionSelector != null)
         {
             directionSelector.Visible = isCannon;
@@ -679,6 +679,11 @@ private void CloseSpawnMenu()
                         {
                             temp.isMultiTile = true;
                             temp.size = bo.multiTileSize;
+                        }
+                        else if (temp is SuperFactory sf0 && !temp.isMultiTile)
+                        {
+                            temp.isMultiTile = true;
+                            temp.size = sf0.factorySize;
                         }
 
                         bool isMulti = temp.isMultiTile;
