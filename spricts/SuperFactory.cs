@@ -64,6 +64,8 @@ public partial class SuperFactory : Weapon
         direction = CannonDirection.Down;  // 生产口默认朝南（贴图门在底部）
 
         base._Ready();
+        var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
+        if (dots != null && dots.SpriteFrames != null && dots.SpriteFrames.HasAnimation("Blink")) dots.Play("Blink"); // 黄灯闪烁（独立节点不吃调色板）
         UpdateMultiTileVisual();
     }
 
@@ -495,12 +497,9 @@ public partial class SuperFactory : Weapon
     {
         return team switch
         {
-            TeamHelper.Player1 => "OrangeSuperFactory",
-            TeamHelper.Player2 => "BlueSuperFactory",
-            TeamHelper.Player3 => "GreenSuperFactory",
-            TeamHelper.Player4 => "YellowSuperFactory",
-            TeamHelper.Player0 => "NeturalSuperFactory",
-            _ => "BlackHoleSuperFactory"
+            TeamHelper.Player1 => "OrangeStar",   // 开创人规矩：P1=橙星兵工厂
+            TeamHelper.Player2 => "BlueMoon",     // P2=蓝月兵工厂
+            _ => "Neutral"                          // 其余含中立=中立灰模走LUT换色（黄灯层不换色）
         };
     }
 
