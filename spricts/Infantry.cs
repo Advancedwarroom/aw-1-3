@@ -372,7 +372,6 @@ public override void _Process(double delta)
             noFuelIcon.Visible = false;
     }
 
-    public int lowAmmoThreshold = -1;   // ✅ 缺弹警告阈值：-1=自动(弹药上限/3,最少1)；0=永不警告；>0=固定值
 
     // noAmmoIcon 闪烁
     if (noAmmoIcon != null)

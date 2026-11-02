@@ -89,7 +89,8 @@ public List<Infantry> transportedUnits = new List<Infantry>();
     [Export] public int maxFuel = 99;
     [Export] public int fuel = 99;
     [Export] public bool consumeFuel = false;
-    [Export] public int lowFuelThreshold = 15;               // 低燃料阈值，低于此值闪烁 NoFuelIcon
+    [Export] public int lowFuelThreshold = 15;
+    [Export] public int lowAmmoThreshold = -1;               // ✅ 缺弹警告阈值：-1=自动(弹药上限/3,最少1)；0=永不警告；>0=固定值               // 低燃料阈值，低于此值闪烁 NoFuelIcon
     [Export] public int dailyFuelConsumption = 0;          // 每回合开始自动消耗的燃料
     [Export] public bool destroyOnOutOfFuel = false;       // 燃料耗尽后是否自毁
 
