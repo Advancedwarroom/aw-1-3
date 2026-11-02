@@ -19,18 +19,14 @@ public partial class SuperFactory : Weapon
     [Export] public CannonDirection direction = CannonDirection.Down;  // 生产口朝向（默认朝南=贴图门在底）
 
     [ExportGroup("超级兵工厂 - 生产（原作模式）")]
-    [Export] public bool productionEnabled = true;             // 是否开启生产
-    [Export] public bool productionFree = true;                // 是否无消耗（原作：免费生产）
+    [Export] public bool productionEnabled = true;             // 是否开启生产                // 是否无消耗（原作：免费生产）
     [Export] public bool instantMoveAfterProduction = true;    // 生产后即可移动（原作：出场即可行动）
     [Export] public int maxProductionsPerTurn = 3;             // 每回合最多生产数（原作：3）
     [Export] public Godot.Collections.Array<string> producibleUnitNames = new();  // 生产列表（空=全列表）
 
     [ExportGroup("超级兵工厂 - 双生产菜单（自创模式：是否新玩法）")]
     /// <summary>✅ 是否更新：填"是"则本建筑的生产受全局"可生成单位白名单"限制（需Lab解锁）。</summary>
-    [Export] public bool isUpdatable = true;
-    [Export] public bool dualProductionMode = false;           // 是否新玩法：开启后即时/待机两种生产
-    [Export] public float instantCostMultiplier = 1.2f;       // 即时单位资金倍率（生产出来就能动）
-    [Export] public float standbyCostMultiplier = 0.8f;       // 待机单位资金倍率（正常生产，下回合才能动）
+    [Export] public bool isUpdatable = true;           // 是否新玩法：开启后即时/待机两种生产       // 即时单位资金倍率（生产出来就能动）       // 待机单位资金倍率（正常生产，下回合才能动）
     /// <summary>待机单位上限（规格：0.8倍资金生产待机单位，最大三个）</summary>
     [Export] public int maxStandbyUnits = 3;
     /// <summary>当前待机单位列表（运行时，双生产菜单模式）</summary>
