@@ -226,6 +226,17 @@ public partial class SuperFactory : Weapon
     /// 旋转90°（顺时针）。先检查旋转后目标位置是否被单位/兵器/建筑阻挡；
     /// 被阻挡则旋转失败并给出提醒。
     /// </summary>
+    // 编辑器放置用：直接设定方向+贴图旋转（不做占位检查——占位检查属于游戏中旋转）
+    public void SetDirection(CannonDirection dir)
+    {
+        direction = dir;
+        if (animSprite != null)
+        {
+            animSprite.RotationDegrees = (((int)dir - 2 + 4) % 4) * 90;   // 原画朝下(2)=0°
+            UpdateMultiTileVisual();
+        }
+    }
+
     public bool RotateFactoryClockwise()
     {
         if (!factoryCanRotate) return false;
