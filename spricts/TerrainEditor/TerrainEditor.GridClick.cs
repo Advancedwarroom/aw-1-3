@@ -19,6 +19,13 @@ public void OnGridClickedForEdit(Grids grid)
             if (!_tapPending) return;
             _tapPending = false;
         }
+
+        // ✅ 虚空区域（矮屏下方填充）不可放置/选源/任何操作
+        if (grid.screenId < 0)
+        {
+            ShowImportHint(TranslateGroup.T("🕳️ 虚空区域不可操作"));
+            return;
+        }
     if (!IsEditMode || grid == null) return;
 
     var mapHelper = GetTree()?.GetFirstNodeInGroup("map_editor_helper") as MapEditorHelper;

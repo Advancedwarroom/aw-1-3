@@ -59,17 +59,6 @@ public partial class CoEditorUI : CanvasLayer
         "spawnCount", "xpPerKill",
     };
 
-    private ColorRect _dragTitleBar;
-    private bool _dragging;
-
-    private void OnTitleBarGuiInput(InputEvent e)
-    {
-        if (e is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left)
-            _dragging = mb.Pressed;
-        else if (e is InputEventMouseMotion mm && _dragging && panel != null)
-            panel.Position += mm.Relative;
-    }
-
     public override void _Ready()
     {
         Layer = 1200;
@@ -90,18 +79,7 @@ public partial class CoEditorUI : CanvasLayer
     // ================= UI 构建 =================
     private void BuildUI()
     {
-        // ===== 可拖动标题栏（修复：编辑器窗口无法拖动）=====
-        var titleBar = new ColorRect
-        {
-            CustomMinimumSize = new Vector2(0, 30),
-            Color = new Color(0f, 0f, 0f, 0.3f),
-            MouseFilter = Control.MouseFilterEnum.Stop,
-        };
-        var titleLabel = new Label { Text = TranslateGroup.T("☰ CO 自定义编辑器（按住本栏拖动）") };
-        titleBar.AddChild(titleLabel);
-        titleBar.GuiInput += OnTitleBarGuiInput;
-        _dragTitleBar = titleBar;
-        panel.CustomMinimumSize = new Vector2(560, 660);
+panel.CustomMinimumSize = new Vector2(560, 660);
         panel.SetAnchorsPreset(Control.LayoutPreset.Center);
         panel.ZIndex = 100;
 
@@ -111,7 +89,6 @@ public partial class CoEditorUI : CanvasLayer
         panelStyle.SetBorderWidthAll(3);
         panelStyle.BorderColor = new Color(0.9f, 0.7f, 0.3f);
         panel.AddThemeStyleboxOverride("panel", panelStyle);
-        panel.AddChild(_dragTitleBar);
         AddChild(panel);
 
         var title = new Label();

@@ -1051,11 +1051,62 @@ private void RefreshAllUnitVision()
         var screensSpin = new SpinBox();
         screensSpin.Name = "MapScreensSpin";
         screensSpin.MinValue = 1;
-        screensSpin.MaxValue = 8;
+        screensSpin.MaxValue = 100;
         screensSpin.Value = gridManager?.GetScreenCount() ?? 1;
         screensSpin.CustomMinimumSize = new Vector2(60, 28);
         screensSpin.AddThemeFontSizeOverride("font_size", 12);
         mapGenHBox.AddChild(screensSpin);
+
+        // ✅ 每屏独立宽（容器先声明，生成按钮的回调要用）
+        var perScreenWidthBox = new VBoxContainer();
+        var screenPreviewStrip = new HBoxContainer();
+        void RebuildScreenPreview()
+        {
+            foreach (var c in screenPreviewStrip.GetChildren()) c.QueueFree();
+            int n = (int)screensSpin.Value;
+            if (n <= 1) return;
+            int total = 0; var ws = new int[n];
+            for (int i = 0; i < n; i++)
+            {
+                var sp = perScreenWidthBox.GetNodeOrNull<SpinBox>($"ScreenW{i}");
+                ws[i] = sp != null ? (int)sp.Value : (int)widthSpin.Value;
+                total += ws[i];
+            }
+            for (int i = 0; i < n; i++)
+            {
+                var pv = new ColorRect
+                {
+                    CustomMinimumSize = new Vector2(Math.Max(10, 340 * ws[i] / total), 20),
+                    Color = new Color(0.25f + 0.18f * (i % 4), 0.55f, 0.9f - 0.12f * (i % 3), 0.9f),
+                    TooltipText = $"屏{i + 1}: {ws[i]}列",
+                };
+                screenPreviewStrip.AddChild(pv);
+            }
+        }
+        void RebuildPerScreenWidthUI()
+        {
+            foreach (var c in perScreenWidthBox.GetChildren()) c.QueueFree();
+            int n = (int)screensSpin.Value;
+            if (n <= 1) { RebuildScreenPreview(); return; }
+            for (int i = 0; i < n; i++)
+            {
+                var r = new HBoxContainer();
+                var lb = new Label(); TranslateGroup.SetText(lb, $"屏{i + 1} 宽:"); lb.CustomMinimumSize = new Vector2(56, 24);
+                r.AddChild(lb);
+                var sp = new SpinBox { MinValue = 5, MaxValue = 300, Value = widthSpin.Value, CustomMinimumSize = new Vector2(90, 26) };
+                sp.Name = $"ScreenW{i}";
+                sp.ValueChanged += (v) => RebuildScreenPreview();
+                r.AddChild(sp);
+                var sph = new SpinBox { MinValue = 5, MaxValue = 300, Value = heightSpin.Value, CustomMinimumSize = new Vector2(90, 26) };
+                sph.Name = $"ScreenH{i}";
+                r.AddChild(new Label { Text = TranslateGroup.T("高:") });
+                r.AddChild(sph);
+                perScreenWidthBox.AddChild(r);
+            }
+            RebuildScreenPreview();
+        }
+        screensSpin.ValueChanged += (v) => RebuildPerScreenWidthUI();
+        widthSpin.ValueChanged += (v) => RebuildScreenPreview();
 
         var genMapBtn = new Button();
         TranslateGroup.SetText(genMapBtn, "🗺️ 生成新地图");
@@ -1069,11 +1120,26 @@ private void RefreshAllUnitVision()
             int w = (int)widthSpin.Value;
             int h = (int)heightSpin.Value;
             int sc = (int)screensSpin.Value;
-            GenerateNewMap(w, h, sc);
+            int[] ws = null; int[] hs = null;
+            if (sc > 0)
+            {
+                ws = new int[sc]; hs = new int[sc];
+                for (int k = 0; k < sc; k++)
+                {
+                    var sp = perScreenWidthBox.GetNodeOrNull<SpinBox>($"ScreenW{k}");
+                    var sh = perScreenWidthBox.GetNodeOrNull<SpinBox>($"ScreenH{k}");
+                    ws[k] = sp != null ? (int)sp.Value : w;
+                    hs[k] = sh != null ? (int)sh.Value : h;
+                }
+            }
+            GenerateNewMap(w, h, sc, ws, hs);
         };
         mapGenHBox.AddChild(genMapBtn);
 
         globalConfigContainer.AddChild(mapGenHBox);
+        globalConfigContainer.AddChild(perScreenWidthBox);
+        globalConfigContainer.AddChild(screenPreviewStrip);
+        RebuildPerScreenWidthUI();
 
         // ✅ N屏地图：屏数与传送管理
         var nscreensSection = CreateConfigSectionTitle(TranslateGroup.T("🖥️ N屏与传送"));
@@ -1091,7 +1157,7 @@ private void RefreshAllUnitVision()
         var curScreensSpin = new SpinBox();
         curScreensSpin.Name = "CurrentScreensSpin";
         curScreensSpin.MinValue = 1;
-        curScreensSpin.MaxValue = 8;
+        curScreensSpin.MaxValue = 100;
         curScreensSpin.Value = gridManager?.GetScreenCount() ?? 1;
         curScreensSpin.CustomMinimumSize = new Vector2(60, 28);
         curScreensSpin.AddThemeFontSizeOverride("font_size", 12);

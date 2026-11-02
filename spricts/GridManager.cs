@@ -72,13 +72,56 @@ public partial class GridManager : Node
     }
 
     // ✅ N屏工具：屏号（横向条带均分；余数归入靠前的屏）
+    [Export] public int[] screenWidths = new int[0];   // ✅ 每屏宽(列数)，空数组=均分
+    [Export] public int[] screenHeights = new int[0];  // ✅ 每屏高(行数)，空数组=全局高
+
+    public int GetScreenStartX(int screen)
+    {
+        int w = map != null ? map.GetLength(0) : 0;
+        if (screenWidths == null || screenWidths.Length != screenCount || screenCount <= 1)
+        {
+            int per = screenCount > 0 ? w / screenCount : w; if (per <= 0) per = 1;
+            return per * screen;
+        }
+        int sum = 0;
+        for (int i = 0; i < screen && i < screenWidths.Length; i++) sum += Math.Max(1, screenWidths[i]);
+        return sum;
+    }
+
     public int GetScreenId(Vector2I pos)
     {
-        if (screenCount <= 1 || map == null) return 0;
-        int w = map.GetLength(0);
-        if (w <= 0) return 0;
-        int id = (int)((long)pos.X * screenCount / w);
-        return Math.Min(screenCount - 1, Math.Max(0, id));
+        // ✅ 每屏独立高：单屏也生效
+        if (screenCount <= 1)
+        {
+            if (screenHeights != null && screenHeights.Length == 1 && pos.Y >= Math.Max(1, screenHeights[0])) return -1;
+            return 0;
+        }
+        int sid;
+        if (screenWidths != null && screenWidths.Length == screenCount)
+        {
+            int acc = 0; sid = screenCount - 1;
+            for (int s = 0; s < screenCount; s++)
+            {
+                acc += Math.Max(1, screenWidths[s]);
+                if (pos.X < acc) { sid = s; break; }
+            }
+        }
+        else
+        {
+            int w2 = map.GetLength(0);
+            int per2 = w2 / screenCount; if (per2 <= 0) per2 = 1;
+            sid = pos.X / per2; if (sid >= screenCount) sid = screenCount - 1;
+        }
+        // ✅ 超出该屏高度=不属于任何屏(-1)：地图生成时填海+禁行
+        if (screenHeights != null && screenHeights.Length == screenCount && pos.Y >= Math.Max(1, screenHeights[sid])) return -1;
+        return sid;
+    }
+            return screenCount - 1;
+        }
+        int w2 = map.GetLength(0);
+        int per2 = w2 / screenCount; if (per2 <= 0) per2 = 1;
+        int sid = pos.X / per2; if (sid >= screenCount) sid = screenCount - 1;
+        return sid;
     }
 
     public int GetScreenCount() => screenCount <= 0 ? 1 : screenCount;
@@ -104,7 +147,7 @@ public partial class GridManager : Node
      float totalH = h * gridSize.Y;
      for (int i = 1; i < screenCount; i++)
      {
-         float x = startPos.X + (float)w * i / screenCount * gridSize.X;
+         float x = startPos.X + GetScreenStartX(i) * gridSize.X;
          var band = new ColorRect
          {
              Position = new Vector2(x - 12, startPos.Y),

@@ -11,7 +11,7 @@ public partial class TerrainEditor
 {
 
     // ✅ 新增：生成新地图
-    private void GenerateNewMap(int width, int height, int screens = 1)
+    private void GenerateNewMap(int width, int height, int screens = 1, int[] screenWidths = null, int[] screenHeights = null)
     {
         if (gridManager == null)
         {
@@ -26,14 +26,14 @@ public partial class TerrainEditor
         confirm.Size = new Vector2I(400, 200);
         confirm.Confirmed += () => {
             confirm.QueueFree();
-            ExecuteGenerateMap(width, height, screens);
+            ExecuteGenerateMap(width, height, screens, screenWidths, screenHeights);
         };
         confirm.Canceled += () => confirm.QueueFree();
         AddChild(confirm);
         confirm.PopupCentered();
     }
 
-    private void ExecuteGenerateMap(int width, int height, int screens = 1)
+    private void ExecuteGenerateMap(int width, int height, int screens = 1, int[] screenWidths = null, int[] screenHeights = null)
     {
         try
         {
@@ -42,19 +42,36 @@ public partial class TerrainEditor
 
             // ✅ N屏：先设屏数再建图（横向条带均分）
             gridManager.screenCount = screens <= 0 ? 1 : screens;
-            int totalWidth = width * gridManager.screenCount;
+            // ✅ 每屏独立宽：总宽=各屏宽之和；空数组=均分(旧行为)
+            gridManager.screenWidths = (screenWidths != null && screenWidths.Length == gridManager.screenCount) ? screenWidths : new int[0];
+            gridManager.screenHeights = (screenHeights != null && screenHeights.Length == gridManager.screenCount) ? screenHeights : new int[0];
+            int totalWidth = 0;
+            if (gridManager.screenWidths.Length > 0) { foreach (var sw in gridManager.screenWidths) totalWidth += Math.Max(1, sw); }
+            else totalWidth = width * gridManager.screenCount;
+            int totalHeight = height;
+            if (gridManager.screenHeights.Length > 0) { totalHeight = 1; foreach (var sh in gridManager.screenHeights) totalHeight = Math.Max(totalHeight, sh); }
 
             // 调整地图大小
-            gridManager.ResizeMap(totalWidth, height);
+            gridManager.ResizeMap(totalWidth, totalHeight);
             gridManager.Init();
+            gridManager.RefreshScreenIds();   // ✅ 生成后立即画屏间鸿沟
 
             // 所有格子默认设为平原
             foreach (var grid in gridManager.grids)
             {
                 if (grid != null)
                 {
-                    grid.gridType = GridType.GROUND;
-                    UpdateGridVisual(grid);
+                    if (grid.screenId < 0)
+                    {
+                        // ✅ 矮屏下方=虚空：透明露出背景，禁放置由GridClick拦截，通行由IsSameScreen隔离
+                        var vsp = grid.GetNodeOrNull<Sprite2D>("Sprite2D");
+                        if (vsp != null) vsp.Modulate = new Color(1, 1, 1, 0f);
+                    }
+                    else
+                    {
+                        grid.gridType = GridType.GROUND;
+                        UpdateGridVisual(grid);
+                    }
                 }
             }
 
