@@ -30,7 +30,7 @@ forceSupportToUnits = false
 forceSupportToWeapons = true
 forceSupportLockHP = true
 forceSupportTeamPolicy = 0
-forceSupportMaxRange = 2
+forceSupportMaxRange = 1
 
 [node name="Area2D" type="Area2D" parent="."]
 
