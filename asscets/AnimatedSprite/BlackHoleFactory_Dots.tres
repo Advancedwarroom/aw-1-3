@@ -1,0 +1,7 @@
+[gd_resource type="SpriteFrames" load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/dots_f1.png" id="d1"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/dots_f2.png" id="d2"]
+
+[resource]
+animations = [{"frames": [{"duration": 1.0, "texture": ExtResource("d1")}, {"duration": 1.0, "texture": ExtResource("d2")}], "loop": true, "name": &"Blink", "speed": 2.0}]
