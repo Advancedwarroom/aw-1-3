@@ -65,12 +65,12 @@ text = "10"
 
 [node name="Md2D" type="AnimatedSprite2D" parent="." unique_id=161931243]
 position = Vector2(16, 16)
-scale = Vector2(3, 3)
+scale = Vector2(4, 4)
 sprite_frames = ExtResource("4_d2xp7")
 animation = &"Md1"
 
 [node name="MdSprite" type="Sprite2D" parent="." unique_id=867258053]
 visible = false
 position = Vector2(16, 16)
-scale = Vector2(3, 3)
+scale = Vector2(4, 4)
 texture = ExtResource("6_166eq")
