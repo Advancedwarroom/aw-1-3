@@ -36,7 +36,9 @@ public partial class Infantry
     [Export] public bool canMoveWhileProducing = false;                             // ⑨ 内部生产时可否移动
     [Export] public bool productionAutomation = false;                               // ⑩ 自动化
     [Export] public int productionCooldownTurns = 0;                                 // ⑪ 冷却回合数
-    [Export] public bool productionFree = false;                                    // ⑫ 是否无消耗（原作兵工厂模式：不耗生产弹药）
+    [Export] public bool productionFree = false;                                    // ⑫ 是否无消耗（原作兵工厂模式
+    [Export] public bool productionFullList = false;                                    // ⑬ 全生产列表（跳过白名单与全局生产限制）
+    [Export] public bool productionInstantMove = false;                                 // ⑭ 产出单位立即可动（常规=本回合不可动）：不耗生产弹药）
 
     // ===== 运行时状态（不导出） =====
     public bool isProducing = false;                    // 生产中
@@ -51,12 +53,12 @@ public partial class Infantry
     public bool ProductionAllowsExternal => productionLocationMode == 2 || productionLocationMode == 3;
 
     /// <summary>能否开始一次生产（按钮显示条件）</summary>
-    public bool CanStartProduction(bool internalMode)
+    virtual public bool CanStartProduction(bool internalMode)
     {
         if (!canProduceUnits) return false;
         if (isProducing) return false;
         if (productionCooldownRemaining > 0) return false;
-        if (productionWhitelist == null || productionWhitelist.Count == 0) return false;
+        if (!productionFullList && (productionWhitelist == null || productionWhitelist.Count == 0)) return false;
         if (currentProductionAmmo <= 0) return false;                    // ⑥ 生产弹药决定能否生产
         if (internalMode && !ProductionAllowsInternal) return false;
         if (!internalMode && !ProductionAllowsExternal) return false;
@@ -80,14 +82,14 @@ public partial class Infantry
     /// 开始生产。返回 false=条件不满足。
     /// 非自动化模式下，开工即消耗本回合行动；自动化模式下不消耗。
     /// </summary>
-    public bool StartProduction(string unitId, bool internalMode, Grids externalTargetGrid = null)
+    virtual public bool StartProduction(string unitId, bool internalMode, Grids externalTargetGrid = null)
     {
         if (!CanStartProduction(internalMode)) return false;
         var info = UnitProductionDatabase.GetInfo(unitId);
         if (string.IsNullOrEmpty(info.ScenePath)) return false;
 
         // ✅ Lab白名单：仅当本[生产者]isUpdatable=true时，生产受全局白名单限制
-        if (isUpdatable && !UnitProductionWhitelist.CanProduce(unitId)) return false;
+        if (isUpdatable && !productionFullList && !UnitProductionWhitelist.CanProduce(unitId)) return false;
 
         if (!productionFree && !TryConsumeAmmo(AmmoKind.Production)) return false;  // 开工消耗 1 发生产弹药（无消耗模式跳过）
 
@@ -190,6 +192,7 @@ public partial class Infantry
             if (!target.infantries.Contains(unit)) target.infantries.Add(unit);
             if (target.infantry == null) target.infantry = unit;
             gm.unitManager.BindUnitToGrid(unit, true);
+            if (productionInstantMove) unit.hasActed = false;   // ⑭ 立即可动：显式重置行动标记
         }
     }
 
@@ -205,7 +208,7 @@ public partial class Infantry
     }
 
     /// <summary>外部生产有效目标格：范围内 + 空位 + 产出单位可通行</summary>
-    public List<Grids> GetValidExternalProductionGrids(Infantry producedUnit)
+    virtual public List<Grids> GetValidExternalProductionGrids(Infantry producedUnit)
     {
         var result = new List<Grids>();
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
