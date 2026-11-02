@@ -1,6 +1,11 @@
-[gd_resource type="SpriteFrames" load_steps=2 format=3]
+[gd_resource type="SpriteFrames" load_steps=7 format=3]
 
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/CoW/blackhole_factory_gray.png" id="f1"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/os_f1.png" id="1a"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/os_f2.png" id="1b"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/bm_f1.png" id="2a"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/bm_f2.png" id="2b"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/neutral_f1.png" id="3a"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/neutral_f2.png" id="3b"]
 
 [resource]
-animations = [{"frames": [{"duration": 1.0, "texture": ExtResource("f1")}], "loop": true, "name": &"BlackHoleFactory", "speed": 1.0}]
+animations = [{"frames": [{"duration": 1.0, "texture": ExtResource("1a")}, {"duration": 1.0, "texture": ExtResource("1b")}], "loop": true, "name": &"OrangeStar", "speed": 2.0}, {"frames": [{"duration": 1.0, "texture": ExtResource("2a")}, {"duration": 1.0, "texture": ExtResource("2b")}], "loop": true, "name": &"BlueMoon", "speed": 2.0}, {"frames": [{"duration": 1.0, "texture": ExtResource("3a")}, {"duration": 1.0, "texture": ExtResource("3b")}], "loop": true, "name": &"Neutral", "speed": 2.0}]
