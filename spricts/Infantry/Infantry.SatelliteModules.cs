@@ -36,6 +36,8 @@ public partial class Infantry
     private readonly Dictionary<Weapon, int> fsLockedWeaponHp = new();
     private readonly Dictionary<Weapon, int> fsLockedWeaponAmmo = new();
     private float fsTimer = 0f;
+    [Export] public bool forceSupportManualMode = true;     // 手动模式：点按钮→支援环内选一格→效果以该格为心（false=旧自动光环）
+    private Grids fsChosenTarget = null;
 
     // ========== 天基打击模块（自爆模块扩展）==========
     [ExportGroup("天基打击模块")]
@@ -108,13 +110,25 @@ public partial class Infantry
         var mapGrids = gm.gridManager.grids.Where(g => g != null).ToList();
 
         // 计算效果覆盖的所有格子（支持圈x1-y1 + 每个目标格的效果圈x2-y2）
-        var covered = new HashSet<Grids>();
-        var centerGrids = mapGrids.Where(FsInRange).ToList();
-        foreach (var cg in centerGrids)
+        HashSet<Grids> covered;
+        if (forceSupportManualMode)
         {
-            if (forceSupportEffectMaxRadius <= 0) { covered.Add(cg); continue; }
-            foreach (var g in mapGrids)
-                if (FsEffectCovers(cg, g)) covered.Add(g);
+            if (fsChosenTarget == null || !GodotObject.IsInstanceValid(fsChosenTarget)) return;   // 手动模式未选目标→不生效
+            covered = new HashSet<Grids> { fsChosenTarget };
+            if (forceSupportEffectMaxRadius > 0)
+                foreach (var g in mapGrids)
+                    if (FsEffectCovers(fsChosenTarget, g)) covered.Add(g);
+        }
+        else
+        {
+            covered = new HashSet<Grids>();
+            foreach (var cg in mapGrids.Where(FsInRange).ToList())
+            {
+                if (forceSupportEffectMaxRadius <= 0) { covered.Add(cg); continue; }
+                foreach (var g in mapGrids)
+                    if (FsEffectCovers(cg, g)) covered.Add(g);
+            }
+        }
         }
 
         // 单位
@@ -311,4 +325,50 @@ public partial class Infantry
     }
 
     public void ResetSpaceStrikeUses() => spaceStrikeUsesThisTurn = 0;
+
+    // —— 力场支援·手动选目标（照导弹井 BeginTargetSelection 流程）——
+    public void BeginForceSupportSelection(Infantry activator)
+    {
+        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager == null || grid == null) return;
+        gm.gridManager.ClearWeaponRange();
+        Grids.IsForceActionMode = true;
+        bool any = false;
+        foreach (var node in GetTree().GetNodesInGroup("grids"))
+        {
+            if (node is not Grids g) continue;
+            if (FsInRange(g))
+            {
+                any = true;
+                g.Modulate = new Color(0.3f, 0.9f, 1f, 0.85f);   // 支援色：青
+                g.IsInWeaponRange = true;
+                gm.gridManager.OverrideUnitInput(g, true);
+                g.OnClickGrid = (to) => { ConfirmForceSupport(to); };
+            }
+            else
+            {
+                gm.gridManager.OverrideUnitInput(g, true);
+                g.OnClickEmpty = () => CancelForceSupportSelection(gm);
+            }
+        }
+        if (!any) CancelForceSupportSelection(gm);
+    }
+
+    public void CancelForceSupportSelection(GameManager gm)
+    {
+        gm.gridManager.ClearWeaponRange();
+        Grids.IsForceActionMode = false;
+        foreach (var node in GetTree().GetNodesInGroup("grids"))
+            if (node is Grids g) { gm.gridManager.OverrideUnitInput(g, false); g.OnClickGrid = null; g.OnClickEmpty = null; }
+    }
+
+    public void ConfirmForceSupport(Grids target)
+    {
+        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm == null || target == null) return;
+        CancelForceSupportSelection(gm);
+        if (!FsInRange(target)) return;          // 环外点击无效
+        fsChosenTarget = target;                  // 再选新格=以新格为心，旧目标脱离覆盖恢复自然值
+        GD.Print($"[力场支援] {Name} 支援目标格 {target.GridIndex}");
+    }
 }
