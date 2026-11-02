@@ -84,15 +84,15 @@ public partial class GridManager : Node
     public int GetScreenCount() => screenCount <= 0 ? 1 : screenCount;
 
     // ✅ 重新计算所有格子的屏归属（改屏数后调用）
-    public private readonly System.Collections.Generic.List<Control> _screenDividers = new();
+    private readonly System.Collections.Generic.List<Control> _screenDividers = new();
 
- public void RefreshScreenIds()
- {
-     if (map == null) return;
-     foreach (var g in grids)
-         if (g != null) g.screenId = GetScreenId(g.GridIndex);
-     RedrawScreenDividers();   // ✅ 多屏视觉鸿沟
- }
+    public void RefreshScreenIds()
+    {
+        if (map == null) return;
+        foreach (var g in grids)
+            if (g != null) g.screenId = GetScreenId(g.GridIndex);
+        RedrawScreenDividers();   // ✅ 多屏视觉鸿沟
+    }
 
  // ✅ N屏视觉隔离带：屏间半透明鸿沟+屏号标签（纯视觉：不挡输入、不改寻路，逻辑隔离由 IsSameScreen 保证）
  private void RedrawScreenDividers()
