@@ -18,6 +18,16 @@ public partial class BlackHoleFactory : Weapon
     {
         isMultiTile = true;   // 多格兵器
         base._Ready();
+        var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
+        if (dots != null && dots.SpriteFrames != null && dots.SpriteFrames.HasAnimation("Blink")) dots.Play("Blink"); // 黄灯闪烁（独立节点不吃调色板）
+    }
+
+    // 贴图规矩：P1=橙兵工厂双帧 / P2=蓝月兵工厂双帧 / 其余=中立双帧走LUT换色（黄灯层不参与）
+    public override string GetIdleAnimName()
+    {
+        if (team == TeamHelper.Player1) return "OrangeStar";
+        if (team == TeamHelper.Player2) return "BlueMoon";
+        return "Neutral";
     }
 
     public override List<Vector2I> GetOccupiedIndices(Vector2I anchorIndex)
