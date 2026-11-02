@@ -265,6 +265,7 @@ public partial class GameManager
                 u.ConsumeDailyFuel();
                 u.ProcessInternalServices();      // ✅ 内部补给/内部回血（舱内单位）
                 u.ProcessTurnProduction();        // ✅ 生产模块：进度推进/完工/冷却
+        u.ProcessTurnSupport();             // ✅ 力场支援模块：每回合扫描上锁
                 u.ProcessTurnConstruction();      // ✅ 建造模块：进度推进/完工/冷却
             }
         }
