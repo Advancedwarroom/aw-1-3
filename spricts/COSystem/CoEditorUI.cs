@@ -75,7 +75,7 @@ public partial class CoEditorUI : CanvasLayer
         {
             if (opt == null) continue;
             var popup = opt.GetPopup();
-            popup.Layer = 1300;
+            popup.ZIndex = 1300;   // PopupMenu无Layer属性；CanvasItem.ZIndex在同CanvasLayer内抬升绘制序
             popup.AllowSearch = true;
         }
         Layer = 1200;
