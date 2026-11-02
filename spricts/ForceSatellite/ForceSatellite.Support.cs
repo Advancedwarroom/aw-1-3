@@ -1,6 +1,6 @@
 // ForceSatellite.Support.cs —— 力场支援模块（Black Onyx / 力场卫星）
-// 规矩：支援环 x1-y1 选目标 → 对每个目标以 x2-y2 菱形扩散锁效果（老规矩，同导弹井 范围/伤害面）
-// 多格兵器：效果必须覆盖其弱点格才生效（GrandBolt.IsWeakPointGrid），没盖弱点格一律不管
+// 规矩：支援环 x1-y1 选目标 → 对每个目标以 x2-y2 菱形扩散锁效果（同导弹井 范围/伤害面 老规矩）
+// 多格兵器：效果面必须覆盖其弱点格才生效；只盖到非弱点格一律不管
 using Godot;
 using System.Collections.Generic;
 
@@ -24,9 +24,8 @@ public partial class ForceSatellite
 
     private readonly List<Node> lockedTargets = new();
 
-    public override void ProcessTurn()
+    public override void ProcessTurnSupport()
     {
-        base.ProcessTurn();
         if (!forceSupportEnabled) return;
         ClearAllLocks();
         ScanAndLock();
@@ -78,7 +77,7 @@ public partial class ForceSatellite
 
         int Dist(Vector2I a) => Mathf.Abs(a.X - myIndex.X) + Mathf.Abs(a.Y - myIndex.Y);
 
-        // 阶段A：支援环内选目标
+        // 阶段A：支援环 x1-y1 内选目标
         var selected = new List<Vector2I>();
         if (supportTargetWeapons)
             foreach (var kv in gridMap)
@@ -96,18 +95,23 @@ public partial class ForceSatellite
                     selected.Add(kv.Key);
             }
 
-        // 阶段B：对每个目标按 x2-y2 菱形扩散锁效果
+        // 阶段B：对每个目标按 x2-y2 菱形扩散锁效果；多格兵器要求效果面覆盖弱点格
         foreach (var pos in selected)
+        {
+            var cells = new List<Vector2I>();
             for (int dx = -effectMaxRadius; dx <= effectMaxRadius; dx++)
                 for (int dy = -effectMaxRadius; dy <= effectMaxRadius; dy++)
                 {
                     int dd = Mathf.Abs(dx) + Mathf.Abs(dy);
-                    if (dd < effectMinRadius || dd > effectMaxRadius) continue;
-                    var cell = new Vector2I(pos.X + dx, pos.Y + dy);
-                    if (!gridMap.TryGetValue(cell, out var g)) continue;
-                    TryLockInfantry(unitAt.TryGetValue(cell, out var u) ? u : null);
-                    TryLockWeapon(g.weapon, cell);
+                    if (dd >= effectMinRadius && dd <= effectMaxRadius) cells.Add(new Vector2I(pos.X + dx, pos.Y + dy));
                 }
+            foreach (var cell in cells)
+            {
+                if (!gridMap.TryGetValue(cell, out var g)) continue;
+                if (unitAt.TryGetValue(cell, out var u)) TryLockInfantry(u);
+                TryLockWeapon(g.weapon, cells, gridMap);
+            }
+        }
     }
 
     private void TryLockInfantry(Infantry u)
@@ -119,30 +123,21 @@ public partial class ForceSatellite
         lockedTargets.Add(u);
     }
 
-    private void TryLockWeapon(Weapon w, Vector2I cell)
+    private void TryLockWeapon(Weapon w, List<Vector2I> effectCells, Dictionary<Vector2I, Grids> gridMap)
     {
         if (w == null || !supportTargetWeapons || !PolicyOk(w.team) || SupportBlacklisted(w) || lockedTargets.Contains(w)) return;
-        // 多格兵器弱点格规矩：效果覆盖到的格子中必须存在该兵器的弱点格
-        if (w.HasMethod("IsWeakPointGrid") && !IsWeakPointCovered(w)) return;
+        // 多格兵器弱点格规矩：效果面覆盖格中，必须存在"该兵器占据且为其弱点"的格子；无弱点概念(单格)恒真
+        if (w.HasMethod("IsWeakPointGrid"))
+        {
+            bool covered = false;
+            foreach (var c in effectCells)
+                if (gridMap.TryGetValue(c, out var g2) && g2.weapon == w && (bool)w.Call("IsWeakPointGrid", g2)) { covered = true; break; }
+            if (!covered) return;
+        }
         if (lockHealth) w.healthLocked = true;
         if (w.ammoLocked != null)
             for (int t = 0; t < 8 && t < lockAmmoTypes.Length; t++)
                 if (lockAmmoTypes[t]) w.ammoLocked[t] = true;
         lockedTargets.Add(w);
-    }
-
-    private bool IsWeakPointCovered(Weapon w)
-    {
-        // 由 TryLockWeapon 的调用上下文保证：当前效果格 cell 属于覆盖集；单格兵器恒真
-        if (!w.HasMethod("IsWeakPointGrid")) return true;
-        var myIndex = grid.GridIndex;
-        for (int dx = -effectMaxRadius; dx <= effectMaxRadius; dx++)
-            for (int dy = -effectMaxRadius; dy <= effectMaxRadius; dy++)
-            {
-                int dd = Mathf.Abs(dx) + Mathf.Abs(dy);
-                if (dd < effectMinRadius || dd > effectMaxRadius) continue;
-                // 仅检查与目标相关的覆盖由调用方逐格触发；这里保守判定为真，弱点格逐格校验在逐格调用中生效
-            }
-        return true;
     }
 }
