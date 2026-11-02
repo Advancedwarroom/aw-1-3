@@ -59,6 +59,15 @@ public partial class CoEditorUI : CanvasLayer
         "spawnCount", "xpPerKill",
     };
 
+    private bool _dragging;
+    private void OnTitleBarGuiInput(InputEvent e)
+    {
+        if (e is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left)
+            _dragging = mb.Pressed;
+        else if (e is InputEventMouseMotion mm && _dragging && panel != null)
+            panel.Position += mm.Relative;
+    }
+
     public override void _Ready()
     {
         Layer = 1200;
@@ -79,7 +88,8 @@ public partial class CoEditorUI : CanvasLayer
     // ================= UI 构建 =================
     private void BuildUI()
     {
-panel.CustomMinimumSize = new Vector2(560, 660);
+        panel = new Panel();
+        panel.CustomMinimumSize = new Vector2(560, 660);
         panel.SetAnchorsPreset(Control.LayoutPreset.Center);
         panel.ZIndex = 100;
 
@@ -100,6 +110,11 @@ panel.CustomMinimumSize = new Vector2(560, 660);
         panel.AddChild(title);
         title.Position = new Vector2(0, 12);
         title.Size = new Vector2(560, 38);
+
+        // ✅ 标题栏拖动（按住标题移动窗口）
+        title.MouseFilter = Control.MouseFilterEnum.Stop;
+        title.MouseDefaultCursorShape = Control.CursorShape.Move;
+        title.GuiInput += OnTitleBarGuiInput;
 
         var closeBtn = new Button();
         closeBtn.Text = "✕";
