@@ -12,7 +12,9 @@ public partial class TerrainEditor
     private Vector2I? pendingTeleportSource = null; // 已选源格
     private bool teleportMutualDefault = false;   // 互传模式（默认单向）
 
-    /// <summary>进入传送链编辑模式（关闭配置面板以便点格子）</summary>
+        private Control _tpModeBar;
+
+/// <summary>进入传送链编辑模式（关闭配置面板以便点格子）</summary>
     public void EnterTeleportLinkMode()
     {
         if (gridManager == null)
@@ -21,6 +23,7 @@ public partial class TerrainEditor
             return;
         }
         isTeleportLinkMode = true;
+        BuildTpModeBar();   // ✅ 常驻控制条（步骤提示+互传+完成/取消）
         pendingTeleportSource = null;
         if (globalConfigPanel != null && globalConfigPanel.Visible) globalConfigPanel.Visible = false;
         ShowImportHint($"🔗 {TranslateGroup.T("传送编辑模式：先点源格，再点目标格成链（ESC退出）")}");
@@ -31,6 +34,10 @@ public partial class TerrainEditor
     {
         isTeleportLinkMode = false;
         pendingTeleportSource = null;
+        // ✅ 退出彻底清理（修复：残留状态卡死生成菜单/无法再次进入）
+        pendingTeleportSource = null;
+        isTeleportLinkMode = false;
+        FreeTpModeBar();
     }
 
     public bool IsTeleportLinkMode => isTeleportLinkMode;
@@ -116,3 +123,28 @@ public partial class TerrainEditor
         container.AddChild(clearBtn);
     }
 }
+
+    // ✅ 传送模式常驻控制条：步骤提示 + 互传开关 + 完成/取消
+    private void BuildTpModeBar()
+    {
+        if (_tpModeBar != null) return;
+        var bar = new HBoxContainer();
+        bar.SetAnchorsPreset(Control.LayoutPreset.CenterTop);
+        bar.Position = new Vector2(-260, 6);
+        bar.AddThemeConstantOverride("separation", 8);
+        var hint = new Label { Text = TranslateGroup.T("🔗 传送编辑：①点源格 ②点目标格") };
+        var mutual = new CheckBox { Text = TranslateGroup.T("⇄ 互传"), ButtonPressed = creatingMutualLink };
+        mutual.Toggled += on => creatingMutualLink = on;
+        var done = new Button { Text = TranslateGroup.T("✅ 完成") };
+        done.Pressed += () => { CancelTeleportLinkMode(); RestoreGlobalConfigPanel(); };
+        var cancel = new Button { Text = TranslateGroup.T("↩ 取消") };
+        cancel.Pressed += CancelTeleportLinkMode;
+        bar.AddChild(hint); bar.AddChild(mutual); bar.AddChild(done); bar.AddChild(cancel);
+        AddChild(bar);
+        _tpModeBar = bar;
+    }
+
+    private void FreeTpModeBar()
+    {
+        if (_tpModeBar != null) { _tpModeBar.QueueFree(); _tpModeBar = null; }
+    }

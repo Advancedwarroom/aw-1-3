@@ -84,12 +84,45 @@ public partial class GridManager : Node
     public int GetScreenCount() => screenCount <= 0 ? 1 : screenCount;
 
     // ✅ 重新计算所有格子的屏归属（改屏数后调用）
-    public void RefreshScreenIds()
-    {
-        if (map == null) return;
-        foreach (var g in grids)
-            if (g != null) g.screenId = GetScreenId(g.GridIndex);
-    }
+    public private readonly System.Collections.Generic.List<Control> _screenDividers = new();
+
+ public void RefreshScreenIds()
+ {
+     if (map == null) return;
+     foreach (var g in grids)
+         if (g != null) g.screenId = GetScreenId(g.GridIndex);
+     RedrawScreenDividers();   // ✅ 多屏视觉鸿沟
+ }
+
+ // ✅ N屏视觉隔离带：屏间半透明鸿沟+屏号标签（纯视觉：不挡输入、不改寻路，逻辑隔离由 IsSameScreen 保证）
+ private void RedrawScreenDividers()
+ {
+     foreach (var d in _screenDividers) if (IsInstanceValid(d)) d.QueueFree();
+     _screenDividers.Clear();
+     if (screenCount <= 1 || map == null) return;
+     int w = map.GetLength(0), h = map.GetLength(1);
+     float totalH = h * gridSize.Y;
+     for (int i = 1; i < screenCount; i++)
+     {
+         float x = startPos.X + (float)w * i / screenCount * gridSize.X;
+         var band = new ColorRect
+         {
+             Position = new Vector2(x - 12, startPos.Y),
+             Size = new Vector2(24, totalH),
+             Color = new Color(0f, 0f, 0f, 0.65f),
+             MouseFilter = Control.MouseFilterEnum.Ignore,
+             ZIndex = 500,
+         };
+         band.AddChild(new Label
+         {
+             Text = $"屏{i} ⇄ 屏{i + 1}",
+             Position = new Vector2(-28, 8),
+             Modulate = new Color(1, 1, 1, 0.85f),
+         });
+         AddChild(band);
+         _screenDividers.Add(band);
+     }
+ }
 
     // ✅ N屏隔离核心：是否同一屏
     public bool IsSameScreen(Vector2I a, Vector2I b) => GetScreenId(a) == GetScreenId(b);

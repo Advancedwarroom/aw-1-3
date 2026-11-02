@@ -1117,7 +1117,10 @@ private void RefreshAllUnitVision()
         tpEditBtn.CustomMinimumSize = new Vector2(300, 36);
         tpEditBtn.AddThemeFontSizeOverride("font_size", 13);
         tpEditBtn.Pressed += () => {
-            EnterTeleportLinkMode();
+            // ✅ 拨动式（修复：再按无法退出→卡死生成菜单）
+            if (isTeleportLinkMode) CancelTeleportLinkMode();
+            else EnterTeleportLinkMode();
+            TranslateGroup.SetText(tpEditBtn, isTeleportLinkMode ? "⏹ 退出传送编辑模式" : "🔗 进入传送编辑模式");
         };
         globalConfigContainer.AddChild(tpEditBtn);
 

@@ -381,7 +381,8 @@ private Button CreateTemplateButton(UnitTemplate template)
     btn.CustomMinimumSize = new Vector2(270, 50);
     btn.SizeFlagsHorizontal = SizeFlags.ExpandFill;
 
-    btn.Text = $"{template.DisplayName}\n{template.Description}";
+    btn.Text = template.DisplayName;   // ✅ 修复：长介绍不再撑爆按钮挡放置
+        btn.TooltipText = template.Description;   // 悬停小卡看全文
     btn.AddThemeFontSizeOverride("font_size", 12);
     btn.AddThemeColorOverride("font_color", Colors.White);
     btn.Alignment = HorizontalAlignment.Left;

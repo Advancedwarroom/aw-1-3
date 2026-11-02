@@ -151,6 +151,15 @@ public override void _Ready()
 // ========== 修改 _Input 添加 ESC 关闭生成菜单 ==========
 public override void _Input(InputEvent @event)
 {
+        // ✅ ESC 退出传送编辑模式（修复：进入后无有效退出路径）
+        if (@event is InputEventKey ek && ek.Pressed && !ek.Echo && ek.Keycode == Key.Escape && isTeleportLinkMode)
+        {
+            CancelTeleportLinkMode();
+            return;
+        }
+        // ✅ 单击记账：区分"真实按下"与"拖拽掠过"（连续放置开关用）
+        if (@event is InputEventMouseButton emb && emb.ButtonIndex == MouseButton.Left)
+            _tapPending = emb.Pressed;
     if (@event is InputEventKey keyEvent && keyEvent.Pressed && keyEvent.Keycode == Key.Escape)
     {
         if (globalConfigPanel?.Visible == true)

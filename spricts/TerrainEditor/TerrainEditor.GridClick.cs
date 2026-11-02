@@ -13,6 +13,12 @@ public partial class TerrainEditor
 // ========== 修改后的格子点击处理（整合生成系统）=========
 public void OnGridClickedForEdit(Grids grid)
 {
+        // ✅ 连续放置开关：关=只有真实单击才放置（拖拽掠过的一律忽略→可拖屏）；开=维持旧行为
+        if (!continuousPlacement)
+        {
+            if (!_tapPending) return;
+            _tapPending = false;
+        }
     if (!IsEditMode || grid == null) return;
 
     var mapHelper = GetTree()?.GetFirstNodeInGroup("map_editor_helper") as MapEditorHelper;
