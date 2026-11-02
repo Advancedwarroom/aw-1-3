@@ -55,6 +55,12 @@ public partial class Facility : Node2D
     [ExportGroup("生产模块")]
     [Export] public bool canProduce = false;
     [Export] public Godot.Collections.Array<string> producibleUnitNames = new();
+    [ExportGroup("生产模块扩展")]
+    [Export] public bool productionFree = false;                 // ⑫ 是否无消耗
+    [Export] public bool dualProductionMode = false;             // 双生产菜单（每单位 立即/待机 两按钮）
+    [Export] public float instantCostMultiplier = 1.2f;          // 立即单位资金倍率
+    [Export] public float standbyCostMultiplier = 0.8f;          // 待机单位资金倍率
+
     [Export] public bool instantMoveAfterProduction = false;
     [Export] public int maxProductionsPerTurn = 1;
     [Export] public int productionsThisTurn = 0;
