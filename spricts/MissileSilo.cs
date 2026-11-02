@@ -43,6 +43,9 @@ public partial class MissileSilo : Weapon
     // ========== 12. 打击伤害面（以目标点为新圆心）==========
     [Export] public int blastMinRadius = 0;                     // 12.伤害面最小半径（盲区）
     [Export] public int blastMaxRadius = 2;                    // 12.伤害面最大半径（原作5×5菱形=2）
+    [Export] public string effectBlacklist = "";                        // 打击效果黑名单（类名逗号分隔；空=不屏蔽，导弹井沿用原作留空）
+    [Export] public int[] effectAmmoDeltaPct = new int[8];              // 按弹药类型0-7：该弹药现有量百分比增减（可负）
+    [Export] public int[] effectAmmoMaxPct = new int[8];                // 按弹药类型0-7：该弹药上限百分比增减（可负）
 
     // ========== 13. 打击效果（范围内所有单位/兵器）==========
     [ExportGroup("打击效果（正=增加 负=减少）")]
@@ -220,6 +223,16 @@ public partial class MissileSilo : Weapon
     }
 
     // ---------- 13. 打击效果 ----------
+    // 打击效果黑名单：类名逗号分隔（如 "ForceSatellite,AttackSatellite"），空串=不屏蔽
+    private bool IsBlacklisted(Node n)
+    {
+        if (string.IsNullOrEmpty(effectBlacklist) || n == null) return false;
+        var name = n.GetType().Name;
+        foreach (var item in effectBlacklist.Split(','))
+            if (item.Trim() == name) return true;
+        return false;
+    }
+
     private void ApplyStrikeEffects(Grids g, GameManager gm)
     {
         // 单位
@@ -250,32 +263,33 @@ public partial class MissileSilo : Weapon
     private void ApplyEffectToUnit(Infantry unit)
     {
         if (effectHealthDelta != 0)
+            if (unit != null && IsBlacklisted(unit)) unit = null;
         {
             int old = unit.health;
-            unit.health = Mathf.Max(1, unit.health + effectHealthDelta);
+            unit.health = Mathf.Max(1, unit.health + unit.maxHealth * effectHealthDelta / 100);  // 百分比语义：-30=减目标30%上限值(=原作3HP/10HP)
             ShowDeltaLabel(unit, unit.health - old, effectHealthDelta < 0 ? new Color(1f, 0.35f, 0.25f) : new Color(0.3f, 0.9f, 0.4f));
         }
         if (effectMaxHealthDelta != 0)
         {
-            unit.maxHealth = Mathf.Max(1, unit.maxHealth + effectMaxHealthDelta);
+            unit.maxHealth = Mathf.Max(1, unit.maxHealth + unit.maxHealth * effectMaxHealthDelta / 100);
             unit.health = Mathf.Clamp(unit.health, 1, unit.maxHealth);
         }
         if (effectPrimaryAmmoDelta != 0 && unit.hasPrimaryWeapon && unit.primaryHasLimitedAmmo)
-            unit.currentPrimaryAmmo = Mathf.Clamp(unit.currentPrimaryAmmo + effectPrimaryAmmoDelta, 0, unit.maxPrimaryAmmo);
+            unit.currentPrimaryAmmo = Mathf.Clamp(unit.currentPrimaryAmmo + unit.maxPrimaryAmmo * effectPrimaryAmmoDelta / 100, 0, unit.maxPrimaryAmmo);
         if (effectMaxAmmoDelta != 0 && unit.hasPrimaryWeapon)
         {
-            unit.maxPrimaryAmmo = Mathf.Max(0, unit.maxPrimaryAmmo + effectMaxAmmoDelta);
+            unit.maxPrimaryAmmo = Mathf.Max(0, unit.maxPrimaryAmmo + unit.maxPrimaryAmmo * effectMaxAmmoDelta / 100);
             unit.currentPrimaryAmmo = Mathf.Min(unit.currentPrimaryAmmo, unit.maxPrimaryAmmo);
         }
         if (effectFuelDelta != 0 && unit.consumeFuel)
         {
             int old = unit.fuel;
-            unit.fuel = Mathf.Clamp(unit.fuel + effectFuelDelta, 0, unit.maxFuel);
+            unit.fuel = Mathf.Clamp(unit.fuel + unit.maxFuel * effectFuelDelta / 100, 0, unit.maxFuel);
             if (unit.fuel != old) ShowDeltaLabel(unit, 0, new Color(0.9f, 0.7f, 0.2f), "Fuel");
         }
         if (effectMaxFuelDelta != 0)
         {
-            unit.maxFuel = Mathf.Max(1, unit.maxFuel + effectMaxFuelDelta);
+            unit.maxFuel = Mathf.Max(1, unit.maxFuel + unit.maxFuel * effectMaxFuelDelta / 100);
             unit.fuel = Mathf.Min(unit.fuel, unit.maxFuel);
         }
         unit.UpdateHpLabel();
@@ -283,10 +297,18 @@ public partial class MissileSilo : Weapon
 
     private void ApplyEffectToWeapon(Weapon w)
     {
+            if (w != null && IsBlacklisted(w)) w = null; // 黑名单命中→本目标全部效果跳过
+            if (effectAmmoDeltaPct != null)
+                for (int t = 0; t < 8 && t < effectAmmoDeltaPct.Length; t++)
+                    if (effectAmmoDeltaPct[t] != 0)
+                    {
+                        int maxA = w.GetAmmoMaxByType(t);
+                        w.SetAmmoByType(t, Mathf.Clamp(w.GetAmmoByType(t) + maxA * effectAmmoDeltaPct[t] / 100, 0, maxA));
+                    }
         if (effectHealthDelta != 0)
         {
             int old = w.health;
-            w.health = Mathf.Max(0, w.health + effectHealthDelta);
+            w.health = Mathf.Max(0, w.health + w.maxHealth * effectHealthDelta / 100);
             ShowDeltaLabel(w, w.health - old, effectHealthDelta < 0 ? new Color(1f, 0.35f, 0.25f) : new Color(0.3f, 0.9f, 0.4f));
             w.UpdateHpLabel();
             if (w.health <= 0)
@@ -297,7 +319,7 @@ public partial class MissileSilo : Weapon
         }
         if (effectMaxHealthDelta != 0)
         {
-            w.maxHealth = Mathf.Max(1, w.maxHealth + effectMaxHealthDelta);
+            w.maxHealth = Mathf.Max(1, w.maxHealth + w.maxHealth * effectMaxHealthDelta / 100);
             w.health = Mathf.Clamp(w.health, 0, w.maxHealth);
             w.UpdateHpLabel();
         }
