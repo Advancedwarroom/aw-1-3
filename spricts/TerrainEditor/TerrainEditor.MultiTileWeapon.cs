@@ -56,6 +56,11 @@ public partial class TerrainEditor
             tempWeapon.isMultiTile = true;
             tempWeapon.size = bo.multiTileSize;
         }
+        if (tempWeapon is SuperFactory sfw && !tempWeapon.isMultiTile)
+        {
+            tempWeapon.isMultiTile = true;
+            tempWeapon.size = sfw.factorySize;
+        }
         // ✅ 门模块：gateSize 宽×高全自由度（1×1 单格门直接生成；>1 走多格预览）
         if (tempWeapon is Gate gt && !tempWeapon.isMultiTile && gt.gateSize.X * gt.gateSize.Y > 1)
         {
@@ -242,6 +247,10 @@ public partial class TerrainEditor
             bo2.direction = BlackCannon.CannonDirection.Up; // 黑尖塔固定朝向
             bo2.UpdateDirectionVisual();
             bo2.UpdateMultiTileVisual();
+        }
+        if (weapon is SuperFactory sf)
+        {
+            sf.SetDirection(pendingCannonDirection);   // BHF四向可选（开创人规矩）
         }
 
         gameManager.UpdateUnitLists();
