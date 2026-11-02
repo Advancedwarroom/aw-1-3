@@ -73,94 +73,60 @@ public partial class GridManager : Node
 
     // ✅ N屏工具：屏号（横向条带均分；余数归入靠前的屏）
     [Export] public int[] screenWidths = new int[0];   // ✅ 每屏宽(列数)，空数组=均分
-    [Export] public int[] screenHeights = new int[0];  // ✅ 每屏高(行数)，空数组=全局高
+    [Export] public int[] screenHeights = new int[0];
+    [Export] public int screenGap = 3;   // ✅ 屏间间隔（格）：间隔带与矮屏下方不生成格子（真物理分离）
+
+    public bool IsInsideAnyScreen(int x, int y)
+    {
+        if (screenCount <= 1) return true;
+        int sid = GetScreenId(new Vector2I(x, y));
+        if (sid < 0) return false;
+        if (screenHeights != null && screenHeights.Length == screenCount)
+            return y < Math.Max(1, screenHeights[sid]);
+        return true;
+    }  // ✅ 每屏高(行数)，空数组=全局高
 
     public int GetScreenStartX(int screen)
+{
+    int gap = screenGap;
+    if (screenWidths != null && screenWidths.Length == screenCount && screenCount > 1)
     {
-        int w = map != null ? map.GetLength(0) : 0;
-        if (screenWidths == null || screenWidths.Length != screenCount || screenCount <= 1)
-        {
-            int per = screenCount > 0 ? w / screenCount : w; if (per <= 0) per = 1;
-            return per * screen;
-        }
-        int sum = 0;
+        int sum = gap * screen;
         for (int i = 0; i < screen && i < screenWidths.Length; i++) sum += Math.Max(1, screenWidths[i]);
         return sum;
     }
+    int w = map != null ? map.GetLength(0) : 0;
+    int per = screenCount > 0 ? (w - gap * (screenCount - 1)) / screenCount : w;
+    if (per <= 0) per = 1;
+    return per * screen + gap * screen;
+}
 
     public int GetScreenId(Vector2I pos)
+{
+    if (screenCount <= 1) return 0;
+    for (int s = 0; s < screenCount; s++)
     {
-        // ✅ 每屏独立高：单屏也生效
-        if (screenCount <= 1)
-        {
-            if (screenHeights != null && screenHeights.Length == 1 && pos.Y >= Math.Max(1, screenHeights[0])) return -1;
-            return 0;
-        }
-        int sid;
-        if (screenWidths != null && screenWidths.Length == screenCount)
-        {
-            int acc = 0; sid = screenCount - 1;
-            for (int s = 0; s < screenCount; s++)
-            {
-                acc += Math.Max(1, screenWidths[s]);
-                if (pos.X < acc) { sid = s; break; }
-            }
-        }
-        else
-        {
-            int w2 = map.GetLength(0);
-            int per2 = w2 / screenCount; if (per2 <= 0) per2 = 1;
-            sid = pos.X / per2; if (sid >= screenCount) sid = screenCount - 1;
-        }
-        // ✅ 超出该屏高度=不属于任何屏(-1)：地图生成时填海+禁行
-        if (screenHeights != null && screenHeights.Length == screenCount && pos.Y >= Math.Max(1, screenHeights[sid])) return -1;
-        return sid;
+        int start = GetScreenStartX(s);
+        int w = (screenWidths != null && screenWidths.Length == screenCount)
+            ? Math.Max(1, screenWidths[s])
+            : Math.Max(1, GetScreenStartX(1) - screenGap - start);
+        if (pos.X >= start && pos.X < start + w) return s;
     }
+    return -1;   // 屏间间隔带（无格子）
+}
 
     public int GetScreenCount() => screenCount <= 0 ? 1 : screenCount;
 
     // ✅ 重新计算所有格子的屏归属（改屏数后调用）
-    private readonly System.Collections.Generic.List<Control> _screenDividers = new();
 
     public void RefreshScreenIds()
     {
         if (map == null) return;
         foreach (var g in grids)
             if (g != null) g.screenId = GetScreenId(g.GridIndex);
-        RedrawScreenDividers();   // ✅ 多屏视觉鸿沟
     }
 
- // ✅ N屏视觉隔离带：屏间半透明鸿沟+屏号标签（纯视觉：不挡输入、不改寻路，逻辑隔离由 IsSameScreen 保证）
- private void RedrawScreenDividers()
- {
-     foreach (var d in _screenDividers) if (IsInstanceValid(d)) d.QueueFree();
-     _screenDividers.Clear();
-     if (screenCount <= 1 || map == null) return;
-     int w = map.GetLength(0), h = map.GetLength(1);
-     float totalH = h * gridSize.Y;
-     for (int i = 1; i < screenCount; i++)
-     {
-         float x = startPos.X + GetScreenStartX(i) * gridSize.X;
-         var band = new ColorRect
-         {
-             Position = new Vector2(x - 12, startPos.Y),
-             Size = new Vector2(24, totalH),
-             Color = new Color(0f, 0f, 0f, 0.65f),
-             MouseFilter = Control.MouseFilterEnum.Ignore,
-             ZIndex = 500,
-         };
-         band.AddChild(new Label
-         {
-             Text = $"屏{i} ⇄ 屏{i + 1}",
-             Position = new Vector2(-28, 8),
-             Modulate = new Color(1, 1, 1, 0.85f),
-         });
-         AddChild(band);
-         _screenDividers.Add(band);
-     }
- }
-
-    // ✅ N屏隔离核心：是否同一屏
+ // ✅ N屏隔离核心：是否同一屏
     public bool IsSameScreen(Vector2I a, Vector2I b) => GetScreenId(a) == GetScreenId(b);
 
     // ✅ 按索引取格（越界安全）
@@ -294,6 +260,7 @@ public partial class GridManager : Node
         {
             for (int x = 0; x < newWidth; x++)
             {
+                if (!IsInsideAnyScreen(x, y)) continue;   // ✅ 间隔带/矮屏下方=真空（无格子节点）
                 var grid = gridScene.Instantiate<Grids>();
                 grid.Name = $"Grid_{x}_{y}";
                 grid.Position = new Godot.Vector2(startPos.X + x * gridSize.X, startPos.Y + y * gridSize.Y);

@@ -70,6 +70,14 @@ public partial class CoEditorUI : CanvasLayer
 
     public override void _Ready()
     {
+        // ✅ 下拉修复：Popup 提到编辑器面板(1200)之上，防止被面板盖住/显示不全；长列表可搜索
+        foreach (var opt in new OptionButton[] { coSelect, addModuleOpt, addSlotOpt, addDurationOpt })
+        {
+            if (opt == null) continue;
+            var popup = opt.GetPopup();
+            popup.Layer = 1300;
+            popup.AllowSearch = true;
+        }
         Layer = 1200;
         AddToGroup("co_editor_ui");
         BuildUI();

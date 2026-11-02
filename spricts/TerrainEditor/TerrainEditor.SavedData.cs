@@ -45,33 +45,26 @@ public partial class TerrainEditor
             // ✅ 每屏独立宽：总宽=各屏宽之和；空数组=均分(旧行为)
             gridManager.screenWidths = (screenWidths != null && screenWidths.Length == gridManager.screenCount) ? screenWidths : new int[0];
             gridManager.screenHeights = (screenHeights != null && screenHeights.Length == gridManager.screenCount) ? screenHeights : new int[0];
+            int gap = gridManager.screenGap;
             int totalWidth = 0;
             if (gridManager.screenWidths.Length > 0) { foreach (var sw in gridManager.screenWidths) totalWidth += Math.Max(1, sw); }
             else totalWidth = width * gridManager.screenCount;
+            totalWidth += gap * (gridManager.screenCount - 1);   // ✅ 屏间间隔带宽度（真分离）
             int totalHeight = height;
             if (gridManager.screenHeights.Length > 0) { totalHeight = 1; foreach (var sh in gridManager.screenHeights) totalHeight = Math.Max(totalHeight, sh); }
 
             // 调整地图大小
             gridManager.ResizeMap(totalWidth, totalHeight);
             gridManager.Init();
-            gridManager.RefreshScreenIds();   // ✅ 生成后立即画屏间鸿沟
+            gridManager.RefreshScreenIds();   // ✅ 生成后立即刷新屏归属（间隔带无格子）
 
-            // 所有格子默认设为平原
+            // 所有格子默认设为平原（间隔带与矮屏下方天然无格子=真空）
             foreach (var grid in gridManager.grids)
             {
                 if (grid != null)
                 {
-                    if (grid.screenId < 0)
-                    {
-                        // ✅ 矮屏下方=虚空：透明露出背景，禁放置由GridClick拦截，通行由IsSameScreen隔离
-                        var vsp = grid.GetNodeOrNull<Sprite2D>("Sprite2D");
-                        if (vsp != null) vsp.Modulate = new Color(1, 1, 1, 0f);
-                    }
-                    else
-                    {
-                        grid.gridType = GridType.GROUND;
-                        UpdateGridVisual(grid);
-                    }
+                    grid.gridType = GridType.GROUND;
+                    UpdateGridVisual(grid);
                 }
             }
 
