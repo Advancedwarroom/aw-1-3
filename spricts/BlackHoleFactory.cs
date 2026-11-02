@@ -14,7 +14,6 @@ public partial class BlackHoleFactory : Weapon
     [Export] public Vector2I supplySeamOffset = new Vector2I(0, 1); // 供能接缝相对锚点偏移（默认下方）
     [Export] public bool supplyLinkEnabled = true;                  // 供能联动开关
     [ExportGroup("生产口模块")]
-    [Export] public bool productionPortsEnabled = true;      // 三生产口（复用生产模块）
     [Export] public int productionPortUsesPerTurn = 3;       // 三口=每回合3次（CoW DOOR1/2/3）
     [Export] public bool productionPortInstantMove = true;   // 生产后立即移动（原作模式）
     [Export] public bool productionPortFullList = true;      // 全生产列表（跳过白名单）
@@ -24,16 +23,6 @@ public partial class BlackHoleFactory : Weapon
     {
         isMultiTile = true;   // 多格兵器
         base._Ready();
-        // 生产口规格同步进生产模块（原作原汁原味模式：免费/外部/当回合完成/全列表/立即可动）
-        if (productionPortsEnabled)
-        {
-            canProduceUnits = true;
-            productionFree = true;                 // ⑫ 无消耗
-            productionLocationMode = 2;            // 外部放置
-            productionTotalProgress = 0;           // 当回合完成
-            productionInstantMove = productionPortInstantMove;
-            productionFullList = productionPortFullList;
-        }
         var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
         if (dots != null && dots.SpriteFrames != null && dots.SpriteFrames.HasAnimation("Blink")) dots.Play("Blink"); // 黄灯闪烁（独立节点不吃调色板）
     }
@@ -59,42 +48,49 @@ public partial class BlackHoleFactory : Weapon
         return list;
     }
 
-    // —— 三生产口：每回合充能，产一次扣一口；出生排=朝向正面边外3格（随旋转）——
-    public override void ProcessTurnProduction()
+    // —— 三生产口：走 GameManager.ShowProductionMenu 的设施生产管线（真正的复用生产模块）
+    //       规格=原作原汁原味：免费/立即移动/全列表；每回合3口，产一次扣一口；出生格=朝向正面边外3格
+    [Export] public int productionMaxRange = 1;   // 出生格搜索距离（曼哈顿）
+
+    private double bhfMenuCd = 0;
+
+    public override void _Process(double delta)
     {
-        base.ProcessTurnProduction();
-        if (productionPortsEnabled) portUsesLeft = productionPortUsesPerTurn;
+        base._Process(delta);
+        if (bhfMenuCd > 0) bhfMenuCd -= delta;
     }
 
-    public override bool CanStartProduction(bool internalMode)
+    // 每回合开始充能三口（挂进新回合循环，见 GameManager.Turn.cs）
+    public void ResetPortUses() { portUsesLeft = productionPortUsesPerTurn; }
+
+    public bool CanUsePortNow()
     {
-        if (!base.CanStartProduction(internalMode)) return false;
-        if (productionPortsEnabled && portUsesLeft <= 0) return false;   // 三口用完
-        return true;
+        return portUsesLeft > 0 && !isDestroyed && team != TeamHelper.Player0 && grid != null && GetFreeDoorGrid() != null;
     }
 
-    public override bool StartProduction(string unitId, bool internalMode, Grids externalTargetGrid = null)
+    private Grids GetFreeDoorGrid()
     {
-        bool ok = base.StartProduction(unitId, internalMode, externalTargetGrid);
-        if (ok && productionPortsEnabled) portUsesLeft--;
-        return ok;
-    }
-
-    public override List<Grids> GetValidExternalProductionGrids(Infantry producedUnit)
-    {
-        var result = new List<Grids>();
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm?.gridManager?.map == null || grid == null) return result;
+        if (gm?.gridManager?.map == null || grid == null) return null;
         foreach (var idx in GetDoorIndices())
         {
             if (idx.X < 0 || idx.Y < 0 || idx.X >= gm.gridManager.searchRange.X || idx.Y >= gm.gridManager.searchRange.Y) continue;
             var g = gm.gridManager.map[idx.X, idx.Y];
             if (g == null) continue;
             if (g.infantries.Any(u => u != null && IsInstanceValid(u))) continue;
-            if (producedUnit != null && producedUnit.GetMoveCostOnGrid(g) >= 999) continue;
-            result.Add(g);
+            if (g.weapon != null && g.weapon != this) continue;
+            if (g.city != null) continue;
+            return g;
         }
-        return result;
+        return null;
+    }
+
+    public void OpenProductionPorts()
+    {
+        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm == null || bhfMenuCd > 0 || !CanUsePortNow()) return;
+        bhfMenuCd = 0.5;
+        gm.ShowProductionMenu(this, grid);
     }
 
     private List<Vector2I> GetDoorIndices()
