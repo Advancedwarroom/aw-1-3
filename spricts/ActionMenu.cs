@@ -314,7 +314,6 @@ private List<Grids> GetAdjacentGrids(Grids center)
 
         // ✅ 导弹井发射 / 天基打击按钮
         UpdateSiloStrikeButtons();
-        UpdateForceSupportButtons();
 
         // ✅ N屏地图：传送按钮（站在有出链的格子上时显示）
         UpdateTeleportButtonVisibility(unit);
