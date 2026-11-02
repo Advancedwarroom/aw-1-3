@@ -54,12 +54,6 @@ public partial class BlackHoleFactory : Weapon
 
     private double bhfMenuCd = 0;
 
-    public override void _Process(double delta)
-    {
-        base._Process(delta);
-        if (bhfMenuCd > 0) bhfMenuCd -= delta;
-    }
-
     // 每回合开始充能三口（挂进新回合循环，见 GameManager.Turn.cs）
     public void ResetPortUses() { portUsesLeft = productionPortUsesPerTurn; }
 
@@ -179,6 +173,7 @@ public partial class BlackHoleFactory : Weapon
     public override void _Process(double delta)
     {
         base._Process(delta);
+        if (bhfMenuCd > 0) bhfMenuCd -= delta;        // 生产菜单冷却
         if (!supplyLinkEnabled) return;
         bhfLinkTimer += (float)delta;
         if (bhfLinkTimer < 1.0f) return;
