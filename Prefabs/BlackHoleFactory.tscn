@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://spricts/BlackHoleFactory.cs" id="1_bhf"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/BlackHoleFactory.tres" id="2_anim"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/BlackHoleFactory_Dots.tres" id="3_dots"]
 
 [sub_resource type="RectangleShape2D" id="Shape"]
 size = Vector2(96, 128)
@@ -21,6 +22,12 @@ position = Vector2(48, 64)
 scale = Vector2(2, 2)
 sprite_frames = ExtResource("2_anim")
 animation = &"BlackHoleFactory"
+
+[node name="YellowDots" type="AnimatedSprite2D" parent="."]
+position = Vector2(48, 64)
+scale = Vector2(2, 2)
+sprite_frames = ExtResource("3_dots")
+animation = &"Blink"
 
 [node name="Area2D" type="Area2D" parent="."]
 
