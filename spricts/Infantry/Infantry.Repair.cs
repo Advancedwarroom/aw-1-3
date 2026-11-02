@@ -86,7 +86,7 @@ public partial class Infantry
         {
             int oldHealth = target.health;
             int healCap = canExceedMaxHealth ? exceededMaxHealth : target.maxHealth;
-            int newHealth = Mathf.Min(healCap, target.health + actualRepair);
+            int newHealth = target.healthLocked ? target.health : Mathf.Min(healCap, target.health + actualRepair); // 力场锁血
             int actualHealed = newHealth - oldHealth;
             if (actualHealed <= 0) return false;
             if (repairCostsFunds && gm != null)
