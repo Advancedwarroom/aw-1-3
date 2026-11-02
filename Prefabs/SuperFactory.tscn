@@ -1,5 +1,7 @@
 [gd_scene format=3]
 
+
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/BlackHoleFactory_Dots.tres" id="9_dots"]
 [ext_resource type="Script" path="res://spricts/SuperFactory.cs" id="1_factory"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/SuperFactory.tres" id="2_factory"]
 
@@ -36,6 +38,12 @@ position = Vector2(64, 80)
 sprite_frames = ExtResource("2_factory")
 animation = &"NeturalSuperFactory"
 autoplay = "NeturalSuperFactory"
+
+[node name="YellowDots" type="AnimatedSprite2D" parent="."]
+position = Vector2(64, 80)
+scale = Vector2(1, 1)
+sprite_frames = ExtResource("9_dots")
+animation = &"Blink"
 
 [node name="Area2D" type="Area2D" parent="."]
 
