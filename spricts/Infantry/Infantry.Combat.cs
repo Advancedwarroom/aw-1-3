@@ -405,7 +405,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     {
         WeaponType fsWeapon = target.SelectWeaponByMatrix(this);
         counterDamage = target.CalculateFinalDamage(this, fsWeapon, isCounter: true);
-        this.health -= counterDamage;
+        if (!healthLocked) this.health -= counterDamage; // 力场锁血
         if (counterDamage > 0)
         {
             // ✅ 模块27：先制反击造成/受到伤害打点
@@ -448,7 +448,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     }
     
     // 应用伤害
-    target.health -= attackDamage;
+    if (!target.healthLocked) target.health -= attackDamage; // 力场锁血
         // ✅ CO 模块系统·模块27（能量条积累）：造成/受到伤害打点
         CoModuleSystem.OnDamageDealt(team, attackDamage);
         CoModuleSystem.OnDamageTaken(target.team, attackDamage);
@@ -464,7 +464,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     }
         if (stealthRevealOnAttack) RevealStealth();   // ✅ 攻击后现形（先于反击结算：现形即暴露给反击）
         if (!allowCounter || !CanTargetStealth(target, this) || target.health <= 0) counterDamage = 0;   // ✅ 反击门+死亡消除(AW原教旨)：单向打击/打不了隐身者/被秒者→不还手
-    this.health -= counterDamage;
+    if (!healthLocked) this.health -= counterDamage; // 力场锁血
         if (counterDamage > 0)
         {
             // ✅ 模块27：反击造成/受到伤害打点
