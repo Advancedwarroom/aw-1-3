@@ -50,7 +50,8 @@ public static class FactionPaletteManager
             "Player6" => new Color(1.0f, 0.4f, 0.7f),   // 粉
             "Player7" => new Color(0.2f, 0.9f, 0.9f),   // 青
             "Player8" => new Color(0.6f, 0.4f, 0.2f),   // 棕
-            _ => new Color(0.5f, 0.5f, 0.5f)             // 其他：灰
+            "Player" => new Color(0.7f, 0.4f, 0.9f),   // Player 兜底紫（与注册表一致）
+            _ => HashColor(factionId)                        // 其他：按ID确定性着色，杜绝灰
         };
         
         faction = new FactionConfig
@@ -64,6 +65,14 @@ public static class FactionPaletteManager
         };
         TeamHelper.RegisterFaction(faction);
         return faction;
+    }
+
+    // 按势力ID生成确定性颜色（色相散列），保证任何势力都不会落到灰色
+    private static Color HashColor(string id)
+    {
+        int h = 0;
+        foreach (char c in id) h = (h * 31 + c) & 0x7fffffff;
+        return Color.FromHsv((h % 360) / 360.0f, 0.65f, 0.9f);
     }
     
     private static int ExtractSortOrder(string factionId)
