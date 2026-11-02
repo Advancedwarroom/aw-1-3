@@ -60,6 +60,7 @@ public partial class GameManager
         sep.CustomMinimumSize = new Godot.Vector2(0, 8);
         productionMenuContainer.AddChild(sep);
 
+        bool dualMode = productionTargetFacility.dualProductionMode;
         foreach (string unitName in unitList)
         {
             if (!UnitProductionDatabase.HasUnit(unitName)) continue;
@@ -68,8 +69,9 @@ public partial class GameManager
             // ✅ CO 模块系统·模块12（生产模块）：生产价格百分比增减（与实际扣费一致）
             int prodCost = Mathf.Max(1, Mathf.RoundToInt(productionTargetFacility.GetProductionCost(info.Cost)
                 * (100f + CoModuleSystem.GetCostModifierPercent(currentTeam)) / 100f));
+            if (productionTargetFacility.productionFree) prodCost = 0;
             bool isCoUnit = CoModuleSystem.IsExclusiveUnit(currentTeam, unitName);
-            bool canAfford = currentFunds >= prodCost;
+            bool canAfford = productionTargetFacility.productionFree || currentFunds >= prodCost;
             bool gridEmpty = grid.infantries.Count == 0 && grid.weapons.Count == 0;
             bool productionAvailable = facility.CanProduceNow();
 
@@ -122,10 +124,32 @@ public partial class GameManager
                 btn.AddThemeStyleboxOverride("hover", hoverStyle);
 
                 string capturedUnitName = unitName;
-                btn.Pressed += () => OnProduceUnitClicked(capturedUnitName);
+                btn.Pressed += () => OnProduceUnitClicked(capturedUnitName, false);
             }
 
             productionMenuContainer.AddChild(btn);
+            if (dualMode)
+            {
+                int instantCost = productionTargetFacility.productionFree ? 0 : Mathf.Max(1, Mathf.RoundToInt(prodCost * productionTargetFacility.instantCostMultiplier));
+                int standbyCost = productionTargetFacility.productionFree ? 0 : Mathf.Max(1, Mathf.RoundToInt(prodCost * productionTargetFacility.standbyCostMultiplier));
+                var btnInstant = new Button();
+                btnInstant.CustomMinimumSize = new Godot.Vector2(300, 42);
+                btnInstant.AddThemeFontSizeOverride("font_size", 12);
+                btnInstant.Text = $"⚡ {info.DisplayName} 立即\n💰 {instantCost} G";
+                var btnStandby = new Button();
+                btnStandby.CustomMinimumSize = new Godot.Vector2(300, 42);
+                btnStandby.AddThemeFontSizeOverride("font_size", 12);
+                btnStandby.Text = $"😴 {info.DisplayName} 待机\n💰 {standbyCost} G";
+                bool avail2 = facility.CanProduceNow() && gridEmpty;
+                btnInstant.Disabled = !(avail2 && (productionTargetFacility.productionFree || currentFunds >= instantCost));
+                btnStandby.Disabled = !(avail2 && (productionTargetFacility.productionFree || currentFunds >= standbyCost));
+                string cap = unitName;
+                btnInstant.Pressed += () => OnProduceUnitClicked(cap, true);
+                btnStandby.Pressed += () => OnProduceUnitClicked(cap, false, true);
+                productionMenuContainer.AddChild(btnInstant);
+                productionMenuContainer.AddChild(btnStandby);
+                btn.Visible = false;
+            }
         }
 
         var closeBtn = new Button();
@@ -153,6 +177,7 @@ public partial class GameManager
         productionMenuPanel.SetAnchorsPreset(Control.LayoutPreset.Center);
         productionMenuPanel.Visible = false;
         productionMenuPanel.ZIndex = 1200;
+        productionMenuPanel.TopLevel = true;   // 置顶：不被地图盖住
 
         var panelStyle = new StyleBoxFlat();
         panelStyle.BgColor = new Color(0.1f, 0.12f, 0.18f, 0.97f);
@@ -239,7 +264,7 @@ public partial class GameManager
         productionTargetFacility = null;
     }
 
-    private void OnProduceUnitClicked(string unitName)
+    private void OnProduceUnitClicked(string unitName, bool dualInstant = false, bool dualStandby = false)
     {
         if (productionTargetGrid == null || productionTargetFacility == null) return;
         if (!UnitProductionDatabase.HasUnit(unitName)) return;
@@ -257,11 +282,12 @@ public partial class GameManager
             // ✅ CO 模块系统·模块12（生产模块）：价格增减与菜单显示/扣费一致
             int prodCostUI = Mathf.Max(1, Mathf.RoundToInt(productionTargetFacility.GetProductionCost(info.Cost)
                 * (100f + CoModuleSystem.GetCostModifierPercent(currentTeam)) / 100f));
-            if (currentFunds < prodCostUI)
+            if (productionTargetFacility.productionFree) prodCostUI = 0;
+            if (!productionTargetFacility.productionFree && currentFunds < prodCostUI)
             {
                 return;
             }
-            SetTeamFunds(currentTeam, currentFunds - prodCostUI);
+            if (!productionTargetFacility.productionFree) SetTeamFunds(currentTeam, currentFunds - prodCostUI);
             // ✅ 模块27（能量条）：消耗资金打点
             CoModuleSystem.OnFundsSpent(currentTeam, prodCostUI);
         }
@@ -341,10 +367,11 @@ public partial class GameManager
         // ✅ CO 模块系统·模块12：AI 生产同样吃价格增减
         int prodCostAI = Mathf.Max(1, Mathf.RoundToInt(facility.GetProductionCost(info.Cost)
             * (100f + CoModuleSystem.GetCostModifierPercent(team)) / 100f));
-        if (currentFunds < prodCostAI) return false;
+        if (facility.productionFree) prodCostAI = 0;
+        if (!facility.productionFree && currentFunds < prodCostAI) return false;
 
         // 扣除资金
-        SetTeamFunds(team, currentFunds - prodCostAI);
+        if (!facility.productionFree) SetTeamFunds(team, currentFunds - prodCostAI);
         CoModuleSystem.OnFundsSpent(team, prodCostAI);
 
         // 生成单位
@@ -387,7 +414,8 @@ public partial class GameManager
         unit.SetWaitVisual(false);
 
         // ✅ 修复：与玩家生产一致——不支持生产后立即移动时，单位生产出来直接待机（下回合才能行动）
-        if (!facility.instantMoveAfterProduction)
+        bool instantNow = facility.dualProductionMode ? dualInstant : facility.instantMoveAfterProduction;
+        if (!instantNow)
         {
             unit.isMoved = true;
             unit.isAttacked = true;
