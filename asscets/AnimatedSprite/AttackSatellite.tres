@@ -1,22 +1,11 @@
-[gd_resource type="SpriteFrames" format=3]
+[gd_resource type="SpriteFrames" load_steps=7 format=3]
 
-[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/攻击卫星.png" id="1_t0_0"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/攻击卫星.png" id="1_t1_0"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f1.png" id="f1"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f2.png" id="f2"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f3.png" id="f3"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f4.png" id="f4"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f5.png" id="f5"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f6.png" id="f6"]
 
-[sub_resource type="Animation" id="Animation_0"]
-length = 0.001
-loop_mode = 1
-
-[sub_resource type="Animation" id="Animation_1"]
-length = 0.001
-loop_mode = 1
-
-[sub_resource type="AtlasTexture" id="Atlas_0_0"]
-atlas = ExtResource("1_t0_0")
-region = Rect2(0, 0, 64, 64)
-
-[sub_resource type="AtlasTexture" id="Atlas_1_0"]
-atlas = ExtResource("1_t1_0")
-region = Rect2(0, 0, 64, 64)
 [resource]
-animations = [{"frames": [{"duration": 1.0, "texture": SubResource("Atlas_0_0")}], "loop": true, "name": &"AttackSatellite1", "speed": 2.0}, {"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_0")}], "loop": true, "name": &"AttackSatellite2", "speed": 2.0}]
+animations = [{"frames": [{"duration": 1.0, "texture": ExtResource("f1")}, {"duration": 1.0, "texture": ExtResource("f2")}, {"duration": 1.0, "texture": ExtResource("f3")}, {"duration": 1.0, "texture": ExtResource("f4")}, {"duration": 1.0, "texture": ExtResource("f5")}, {"duration": 1.0, "texture": ExtResource("f6")}], "loop": true, "name": &"AttackSatellite1", "speed": 6.0}, {"frames": [{"duration": 1.0, "texture": ExtResource("f1")}, {"duration": 1.0, "texture": ExtResource("f2")}, {"duration": 1.0, "texture": ExtResource("f3")}, {"duration": 1.0, "texture": ExtResource("f4")}, {"duration": 1.0, "texture": ExtResource("f5")}, {"duration": 1.0, "texture": ExtResource("f6")}], "loop": true, "name": &"AttackSatellite2", "speed": 6.0}]
