@@ -994,7 +994,7 @@ public virtual int GetMoveCost(GridType gridType)
             GridType.METEORITE => 1,
             GridType.PIPE => 1,
             GridType.PIPESEAM => 1,    // 战舰可通过管道接缝
-            GridType.PLASMA => 999,   // 等离子：完全不可通行（含空军，能量墙）
+            GridType.PLASMA => 1,   // 等离子：天军可穿（开创人裁决：宇宙军/天军穿一切，能量墙拦不住天基单位）
             GridType.CREEPER => 999,  // 蔓生藤蔓：不可通行
             GridType.GATE => 1,       // 门地形可通行（通行由Gate兵器白名单控制）
             // ✅ CW墙系+三气候皮肤组（消耗镜像基础地形）
