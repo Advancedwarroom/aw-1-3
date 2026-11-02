@@ -1,38 +1,23 @@
-[gd_resource type="SpriteFrames" load_steps=13 format=3]
+[gd_resource type="SpriteFrames" load_steps=7 format=3]
 
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/BlackHoleFactory1.png" id="1"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/BlackHoleFactory2.png" id="2"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/BlueSuperFactory1.png" id="3"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/BlueSuperFactory2.png" id="4"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/GreenSuperFactory1.png" id="5"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/GreenSuperFactory2.png" id="6"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/NeturalSuperFactory1.png" id="7"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/NeturalSuperFactory2.png" id="8"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/OrangeSuperFactory1.png" id="9"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/OrangeSuperFactory2.png" id="10"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/YellowSuperFactory1.png" id="11"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/SuperFactory/YellowSuperFactory2.png" id="12"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/os_f1.png" id="1"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/os_f2.png" id="2"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/bm_f1.png" id="3"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/bm_f2.png" id="4"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/neutral_f1.png" id="5"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/neutral_f2.png" id="6"]
 
 [resource]
 animations = [{
 "frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 1.0, "texture": ExtResource("2")}],
-"loop": true, "name": &"BlackHoleFactory", "speed": 2.0
+"loop": true, "name": &"OrangeStar", "speed": 2.0
 }, {
 "frames": [{"duration": 1.0, "texture": ExtResource("3")}, {"duration": 1.0, "texture": ExtResource("4")}],
-"loop": true, "name": &"BlueSuperFactory", "speed": 2.0
+"loop": true, "name": &"BlueMoon", "speed": 2.0
 }, {
 "frames": [{"duration": 1.0, "texture": ExtResource("5")}, {"duration": 1.0, "texture": ExtResource("6")}],
-"loop": true, "name": &"GreenSuperFactory", "speed": 2.0
+"loop": true, "name": &"Neutral", "speed": 2.0
 }, {
-"frames": [{"duration": 1.0, "texture": ExtResource("7")}, {"duration": 1.0, "texture": ExtResource("8")}],
-"loop": true, "name": &"NeturalSuperFactory", "speed": 2.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("9")}, {"duration": 1.0, "texture": ExtResource("10")}],
-"loop": true, "name": &"OrangeSuperFactory", "speed": 2.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("11")}, {"duration": 1.0, "texture": ExtResource("12")}],
-"loop": true, "name": &"YellowSuperFactory", "speed": 2.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("7")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("5")}],
 "loop": true, "name": &"SuperFactoryBroken", "speed": 1.0
 }]
