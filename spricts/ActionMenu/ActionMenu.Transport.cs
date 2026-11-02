@@ -262,6 +262,8 @@ public void ShowTransportUnitMenu(Infantry transport, bool afterMove = false)
         }
         else
         {
+            // ✅ 原作行为兜底：空舱且无可载对象时仍弹出标准菜单（移动/攻击/等待）
+            ShowMenu(transport, afterMove, onlyShowMenu: true);
         }
     }
 }

@@ -385,7 +385,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
     bool canMountAPC = CheckCanMountTransport(unit);
 
     // APC自身不显示装载按钮（保持不变）
-    if (isTransportUnit)
+    if (isTransportUnit && !onlyShowMenu)
 {
     ShowTransportMenu(unit, afterMove);
     return;

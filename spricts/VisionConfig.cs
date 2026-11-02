@@ -18,7 +18,7 @@ public static class VisionConfig
         ["Flare"] = 2, ["Bike"] = 2,["PipeRunner"] = 4,
         ["RepairBoat"] = 1,
         // ✅ 海军线（AW3 原作；炮艇 DoR）——原先漏登记，导致开启配置视野时一律回落为 2
-        ["Battleship"] = 2, ["Cruiser"] = 3, ["Submarine"] = 5, ["Lander"] = 1, ["Carrier"] = 4, ["Gunboat"] = 5,
+        ["Battleship"] = 2, ["Cruiser"] = 3, ["Submarine"] = 5, ["Lander"] = 1, ["Carrier"] = 4, ["Gunboat"] = 1,
         // ✅ 新增原版兵种（DS / DoR 原作视野）
         ["Neotank"] = 1, ["Megatank"] = 1, ["WarTank"] = 2, ["Rig"] = 1, ["PipeWorker"] = 1,
         ["Duster"] = 4, ["Seaplane"] = 4, ["ProducibleBoat"] = 4, ["KamikazeBoat"] = 3,
