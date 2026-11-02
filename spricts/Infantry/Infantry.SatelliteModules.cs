@@ -129,7 +129,6 @@ public partial class Infantry
                     if (FsEffectCovers(cg, g)) covered.Add(g);
             }
         }
-        }
 
         // 单位
         if (forceSupportToUnits)
