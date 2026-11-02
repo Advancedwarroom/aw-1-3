@@ -82,7 +82,7 @@ public static Dictionary<Infantry, int> unitsCannotMove = new Dictionary<Infantr
     public virtual void ConsumeFuel(int amount)
     {
         if (!consumeFuel) return;
-        fuel -= amount;
+        if (!fuelLocked) fuel -= amount; // 力场锁油
     }
 
     // ✅ 每日回合开始时自动消耗燃料
@@ -90,7 +90,7 @@ public static Dictionary<Infantry, int> unitsCannotMove = new Dictionary<Infantr
     {
         bool hasStealthCost = isStealthed && HasAnyStealthCost();
         if ((!consumeFuel || dailyFuelConsumption <= 0) && !hasStealthCost) return;
-        if (consumeFuel && dailyFuelConsumption > 0) fuel -= dailyFuelConsumption;
+        if (consumeFuel && dailyFuelConsumption > 0) if (!fuelLocked) fuel -= dailyFuelConsumption; // 力场锁油
 
         stealthFlareRevealed = false;   // 照明临时显形每回合刷新
         ApplyStealthDailyCost();   // ✅ 隐身日耗（独立于燃料开关）
