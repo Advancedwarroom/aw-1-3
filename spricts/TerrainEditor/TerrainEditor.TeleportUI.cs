@@ -122,7 +122,6 @@ public partial class TerrainEditor
         };
         container.AddChild(clearBtn);
     }
-}
 
     // ✅ 传送模式常驻控制条：步骤提示 + 互传开关 + 完成/取消
     private void BuildTpModeBar()
@@ -148,3 +147,5 @@ public partial class TerrainEditor
     {
         if (_tpModeBar != null) { _tpModeBar.QueueFree(); _tpModeBar = null; }
     }
+}
+
