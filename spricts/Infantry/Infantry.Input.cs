@@ -11,6 +11,7 @@ public partial class Infantry
         StopBreath();
         isMoved = true;
         isAttacked = true;
+        hasActed = true;   // 待机=行动完毕：回合系统/AI/再选择都认这个标志（缺了它=假待机）
         state = UnitState.Acted;
         movePoints = defaultMovePoints;
         FreezeToIdleDark();
