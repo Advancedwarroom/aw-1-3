@@ -333,7 +333,7 @@ public partial class Weapon : Node2D
         if (!useAmmoSystem) return false;
         if (!ResupplyAllowed("primary")) return false;
         if (currentAmmo >= maxAmmo) return false;
-        currentAmmo = maxAmmo;
+        if (!AmmoTypeLocked(1)) currentAmmo = maxAmmo; // 力场锁弹
         return true;
     }
 
@@ -387,7 +387,7 @@ public partial class Weapon : Node2D
         int type = fireConsumesAmmoType, amount = Mathf.Max(1, fireConsumesAmmoAmount);
         if (type == 0) { if (!useAmmoSystem) return true; type = 1; amount = 1; }
         if (GetAmmoByType(type) < amount) return false;
-        SetAmmoByType(type, GetAmmoByType(type) - amount);
+        if (!AmmoTypeLocked(type)) SetAmmoByType(type, GetAmmoByType(type) - amount); // 力场锁弹
         return true;
     }
 
@@ -413,6 +413,7 @@ public partial class Weapon : Node2D
 
     public virtual void TakeDamage(int damage)
     {
+        if (healthLocked) return; // 力场锁血
         // ✅ 力场保护：被存活黑弧力场保护的地图目标物，攻击全部无效（坠落流程带bypass）
         if (!ignoreForceField && BlackArc.IsGridForceFieldProtected(grid)) return;
 
