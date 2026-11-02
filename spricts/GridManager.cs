@@ -116,13 +116,6 @@ public partial class GridManager : Node
         if (screenHeights != null && screenHeights.Length == screenCount && pos.Y >= Math.Max(1, screenHeights[sid])) return -1;
         return sid;
     }
-            return screenCount - 1;
-        }
-        int w2 = map.GetLength(0);
-        int per2 = w2 / screenCount; if (per2 <= 0) per2 = 1;
-        int sid = pos.X / per2; if (sid >= screenCount) sid = screenCount - 1;
-        return sid;
-    }
 
     public int GetScreenCount() => screenCount <= 0 ? 1 : screenCount;
 
