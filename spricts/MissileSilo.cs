@@ -266,7 +266,7 @@ public partial class MissileSilo : Weapon
             if (unit != null && IsBlacklisted(unit)) unit = null;
         {
             int old = unit.health;
-            unit.health = Mathf.Max(1, unit.health + unit.maxHealth * effectHealthDelta / 100);  // 百分比语义：-30=减目标30%上限值(=原作3HP/10HP)
+            unit.health = Mathf.Max(1, unit.health + effectHealthDelta);  // 固定伤害语义：-30=固定扣30HP(=原作3HP，开创人2026-11-03定：井伤固定不缩放)
             ShowDeltaLabel(unit, unit.health - old, effectHealthDelta < 0 ? new Color(1f, 0.35f, 0.25f) : new Color(0.3f, 0.9f, 0.4f));
         }
         if (effectMaxHealthDelta != 0)
@@ -308,7 +308,7 @@ public partial class MissileSilo : Weapon
         if (effectHealthDelta != 0)
         {
             int old = w.health;
-            w.health = Mathf.Max(0, w.health + w.maxHealth * effectHealthDelta / 100);
+            w.health = Mathf.Max(0, w.health + effectHealthDelta);  // 固定伤害（对兵器同理）
             ShowDeltaLabel(w, w.health - old, effectHealthDelta < 0 ? new Color(1f, 0.35f, 0.25f) : new Color(0.3f, 0.9f, 0.4f));
             w.UpdateHpLabel();
             if (w.health <= 0)
