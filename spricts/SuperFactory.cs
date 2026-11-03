@@ -249,13 +249,6 @@ public partial class SuperFactory : Weapon
     /// 旋转90°（顺时针）。先检查旋转后目标位置是否被单位/兵器/建筑阻挡；
     /// 被阻挡则旋转失败并给出提醒。
     /// </summary>
-    // 无血量=不可攻击（CoW原味 HP=-1）；开启血量才可被打
-    public override void TakeDamage(int damage)
-    {
-        if (!hasHealth) return;
-        base.TakeDamage(damage);
-    }
-
     // 编辑器放置用：直接设定方向+贴图旋转（不做占位检查——占位检查属于游戏中旋转）
     public void SetDirection(CannonDirection dir)
     {
@@ -516,8 +509,9 @@ public partial class SuperFactory : Weapon
     // ========== 免疫一切伤害（原作：包括导弹井和CO技能）==========
     public override void TakeDamage(int damage)
     {
-        // 原作 Factory 免疫一切伤害——失效只能靠摧毁管道接缝
-        return;
+        // 原作 Factory 免疫一切伤害——失效只能靠摧毁管道接缝；开启血量Export后才可被攻击（开创人规矩）
+        if (!hasHealth) return;
+        base.TakeDamage(damage);
     }
 
     // ========== 摧毁（编辑器删除/脚本）：通知 ==========
