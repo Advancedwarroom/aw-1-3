@@ -73,12 +73,15 @@ public partial class ActionMenu
 
         if (factoryChoiceContainer == null)
         {
+            var am = GetTree().GetFirstNodeInGroup("action_menu");
+            Node host = (am != null && am.GetParent() != null) ? am.GetParent() : gm;
+            var topLayer = new CanvasLayer { Layer = 1300, Name = "FactoryChoiceTopLayer" };   // 顶层：不被地图盖住
+            host.AddChild(topLayer);
             factoryChoiceContainer = new VBoxContainer();
             factoryChoiceContainer.Name = "FactoryChoiceContainer";
             factoryChoiceContainer.Position = new Vector2(40, 60);
             factoryChoiceContainer.Size = new Vector2(180, 300);
-            factoryChoiceContainer.TopLevel = true;   // 置顶：不被地图盖住
-            gm.AddChild(factoryChoiceContainer);
+            topLayer.AddChild(factoryChoiceContainer);
         }
 
         foreach (Node child in factoryChoiceContainer.GetChildren())
@@ -196,8 +199,11 @@ public partial class ActionMenu
         label.AddThemeConstantOverride("outline_size", 4);
         label.AddThemeColorOverride("font_outline_color", Colors.Black);
         label.AddThemeFontSizeOverride("font_size", 14);
-        label.TopLevel = true;
-        gm.AddChild(label);
+        var am2 = GetTree().GetFirstNodeInGroup("action_menu");
+        Node host2 = (am2 != null && am2.GetParent() != null) ? am2.GetParent() : gm;
+        var toastLayer = host2.GetNodeOrNull<CanvasLayer>("FactoryChoiceTopLayer");
+        if (toastLayer == null) { toastLayer = new CanvasLayer { Layer = 1300, Name = "FactoryChoiceTopLayer" }; host2.AddChild(toastLayer); }
+        toastLayer.AddChild(label);
         var tween = label.CreateTween();
         tween.TweenProperty(label, "position", label.Position + new Vector2(0, -30), 1.2f).SetTrans(Tween.TransitionType.Quad);
         tween.Parallel().TweenProperty(label, "modulate:a", 0f, 1.2f);
