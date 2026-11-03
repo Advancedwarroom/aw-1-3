@@ -47,7 +47,9 @@ public partial class ActionMenu
             {
                 factoryPortButtons[i].Visible = true;
                 bool occupied = exits[i].infantries.Count > 0 || exits[i].weapons.Count > 0;
-                factoryPortButtons[i].Disabled = occupied;   // 被占用的口置灰
+                bool used = i < f.portUsedThisTurn.Length && f.portUsedThisTurn[i];
+                factoryPortButtons[i].Disabled = occupied || used;   // 被占用或本回合已用→置灰
+                TranslateGroup.SetText(factoryPortButtons[i], used ? $"生产口{i + 1} ✓" : $"生产口{i + 1}");
             }
         }
     }
