@@ -69,6 +69,8 @@ public partial class SuperFactory : Weapon
         base._Ready();
         var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
         if (dots != null && dots.SpriteFrames != null && dots.SpriteFrames.HasAnimation("Blink")) dots.Play("Blink"); // 黄灯闪烁（独立节点不吃调色板）
+        if (animSprite != null && animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(GetFactoryAnimName()))
+            animSprite.Play(GetFactoryAnimName());   // 按势力播皮（橙星/蓝月/中立LUT）——修"不随势力换色"
         UpdateMultiTileVisual();
     }
 
@@ -237,6 +239,8 @@ public partial class SuperFactory : Weapon
         if (animSprite != null)
         {
             animSprite.RotationDegrees = (((int)dir - 2 + 4) % 4) * 90;   // 原画朝下(2)=0°
+            var dots2 = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
+            if (dots2 != null) dots2.RotationDegrees = animSprite.RotationDegrees; // 黄灯随方向
             UpdateMultiTileVisual();
         }
     }
@@ -319,6 +323,8 @@ public partial class SuperFactory : Weapon
         if (animSprite != null)
         {
             animSprite.RotationDegrees += 90;
+            var dots2 = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
+            if (dots2 != null) dots2.RotationDegrees = animSprite.RotationDegrees; // 黄灯随方向
             // 重新居中
             UpdateMultiTileVisual();
         }
@@ -449,7 +455,7 @@ public partial class SuperFactory : Weapon
         if (unit.sprite != null) unit.StartBreath();
 
         // 即时/待机
-        bool instant = instantMode || instantMoveAfterProduction;
+        bool instant = dualProductionMode ? instantMode : (instantMode || instantMoveAfterProduction);   // 双菜单：待机档真待机
         if (!instant)
         {
             unit.isMoved = true;
@@ -513,6 +519,14 @@ public partial class SuperFactory : Weapon
     public override string GetBrokenAnimName() => "SuperFactoryBroken";
 
     public override string GetAnimName() => GetFactoryAnimName();
+
+    // 势力变更/接管时重选贴图动画（供能联动切中立、中转口接管都走这里）
+    public override void RefreshTeamVisual()
+    {
+        base.RefreshTeamVisual();
+        if (animSprite != null && animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(GetFactoryAnimName()))
+            animSprite.Play(GetFactoryAnimName());
+    }
 
     /// <summary>按队伍选贴图动画（橙/蓝/绿/黄/中立/黑洞六套原版色，无需 Shader 染色）</summary>
     public string GetFactoryAnimName()
