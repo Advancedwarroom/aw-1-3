@@ -22,7 +22,17 @@ public partial class SuperFactory : Weapon
     [Export] public float instantCostMultiplier = 1.2f;
     [Export] public float standbyCostMultiplier = 0.8f;
 
-    [Export] public CannonDirection direction = CannonDirection.Down;  // 生产口朝向（默认朝南=贴图门在底）
+    private CannonDirection _direction = CannonDirection.Down;
+    [Export]
+    public CannonDirection direction
+    {
+        get => _direction;
+        set
+        {
+            _direction = value;
+            if (animSprite != null) SetDirection(value);   // 编辑器/运行时改向立即转贴图，不重进场景（开创人规矩）
+        }
+    }
 
     [ExportGroup("超级兵工厂 - 生产（原作模式）")]
     [Export] public bool productionEnabled = true;             // 是否开启生产                // 是否无消耗（原作：免费生产）
