@@ -52,7 +52,8 @@ public partial class SuperFactory : Weapon
     [Export] public bool factoryCanRotate = true;             // 是否可旋转（90/180/270）
 
     // 运行时状态
-    public int productionsThisTurn = 0;                       // 本回合已生产数
+    public int productionsThisTurn = 0;
+    public bool[] portUsedThisTurn = new bool[8];   // 每口一记：旋转不重置，仅新回合重置（开创人规矩）                       // 本回合已生产数
     public int dividendRemainingTurns = 0;                    // 红利剩余回合
     public int dividendUnitsRemaining = 0;                   // 红利期剩余免费单位
     public string dividendTeam = "";                          // 红利归属势力
@@ -146,6 +147,7 @@ public partial class SuperFactory : Weapon
         if (currentTurnTeam == team)
         {
             productionsThisTurn = 0;
+            portUsedThisTurn = new bool[8];
         }
 
         // 缴获红利倒计时（按回合递减）
@@ -388,6 +390,10 @@ public partial class SuperFactory : Weapon
     public string ProduceUnitAt(string unitName, Grids exitGrid, bool instantMode, string payingTeam)
     {
         if (!CanProduceNow()) return TranslateGroup.T("本回合生产次数已用完");
+        var exitsCheck = GetProductionExitGrids();
+        int portIdx = exitsCheck.IndexOf(exitGrid);
+        if (portIdx >= 0 && portIdx < portUsedThisTurn.Length && portUsedThisTurn[portIdx])
+            return TranslateGroup.T("该生产口本回合已用");
         if (exitGrid == null || !IsInstanceValid(exitGrid)) return TranslateGroup.T("无效出口格");
         if (exitGrid.infantries.Count > 0 || exitGrid.weapons.Count > 0) return TranslateGroup.T("出口格被占用");
 
@@ -456,6 +462,9 @@ public partial class SuperFactory : Weapon
         }
 
         productionsThisTurn++;
+        var exitsNow = GetProductionExitGrids();
+        int usedPort = exitsNow.IndexOf(exitGrid);
+        if (usedPort >= 0 && usedPort < portUsedThisTurn.Length) portUsedThisTurn[usedPort] = true;   // 记口账（旋转后按索引存续）
 
         // 红利消耗
         if (IsInDividend(payingTeam) && dividendUnitsRemaining > 0)
