@@ -258,13 +258,33 @@ public partial class SuperFactory : Weapon
     public void SetDirection(CannonDirection dir)
     {
         direction = dir;
+        // 足印随朝向：右/左=横向(宽4高3)，上/下=竖向(宽3高4)——幂等转置
+        bool wantLandscape = (dir == CannonDirection.Right || dir == CannonDirection.Left);
+        bool isLandscape = factorySize.X > factorySize.Y;
+        if (wantLandscape != isLandscape)
+        {
+            footprintMask = RotateMask(footprintMask);
+            factorySize = new Vector2I(factorySize.Y, factorySize.X);
+            size = factorySize;
+        }
         if (animSprite != null)
         {
+            // 精灵对中到当前足印中心（size×16 px）+ 按朝向转图
+            var center = new Vector2(factorySize.X * 16, factorySize.Y * 16);
+            animSprite.Position = center;
             animSprite.RotationDegrees = (((int)dir - 2 + 4) % 4) * 90;   // 原画朝下(2)=0°
-            var dots2 = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
-            if (dots2 != null) dots2.RotationDegrees = animSprite.RotationDegrees; // 黄灯随方向
-            UpdateMultiTileVisual();
+            var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
+            if (dots != null) { dots.Position = center; dots.RotationDegrees = animSprite.RotationDegrees; }
+            if (IsInsideTree()) UpdateMultiTileVisual();
         }
+    }
+
+    // 编辑器专用：只换皮播放，不碰调色板（编辑器无palette环境，防卡退）
+    public void EditorRefreshSkin()
+    {
+        var anim = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        if (anim != null && anim.SpriteFrames != null && anim.SpriteFrames.HasAnimation(GetFactoryAnimName()))
+            anim.Play(GetFactoryAnimName());
     }
 
     public bool RotateFactoryClockwise()
@@ -323,6 +343,15 @@ public partial class SuperFactory : Weapon
         factorySize = new Vector2I(newW, newH);
         size = factorySize;
         direction = (CannonDirection)(((int)direction + 1) % 4);
+
+        // 精灵重新对中到新足印中心（防旋转后贴图与格子错位）
+        if (animSprite != null)
+        {
+            var center = new Vector2(newW * 16, newH * 16);
+            animSprite.Position = center;
+            var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
+            if (dots != null) dots.Position = center;
+        }
 
         // 重新绑定新区域
         var newGrids = new List<Grids>();
