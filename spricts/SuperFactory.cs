@@ -16,6 +16,12 @@ public partial class SuperFactory : Weapon
 {
         [ExportGroup("超级兵工厂 - 多格配置")]
     [Export] public Vector2I factorySize = new Vector2I(3, 4);   // 3宽×4高=12格
+    [ExportGroup("生产模块扩展")]
+    [Export] public bool productionFree = true;                 // ⑫ 无消耗（SuperFactory是Weapon不继承Facility，字段必须本类持有）
+    [Export] public bool dualProductionMode = false;            // 双生产菜单（立即1.2×/待机0.8×）
+    [Export] public float instantCostMultiplier = 1.2f;
+    [Export] public float standbyCostMultiplier = 0.8f;
+
     [Export] public CannonDirection direction = CannonDirection.Down;  // 生产口朝向（默认朝南=贴图门在底）
 
     [ExportGroup("超级兵工厂 - 生产（原作模式）")]
