@@ -8,6 +8,7 @@ using System.Collections.Generic;
 public partial class ActionMenu
 {
     private readonly Button[] factoryPortButtons = new Button[3];
+    private Button factoryRotateButton;
     private VBoxContainer factoryChoiceContainer;
     private SuperFactory factoryTarget;
     private string factoryChosenUnit;
@@ -37,11 +38,30 @@ public partial class ActionMenu
     public void UpdateFactoryButtons()
     {
         EnsureFactoryButtons();
+        if (factoryRotateButton == null)
+        {
+            factoryRotateButton = new Button();
+            TranslateGroup.SetText(factoryRotateButton, "旋转");
+            factoryRotateButton.Name = "FactoryRotateButton";
+            factoryRotateButton.Pressed += () =>
+            {
+                if (factoryTarget != null && IsInstanceValid(factoryTarget)) factoryTarget.RotateFactoryClockwise();
+            };
+            var parent = (waitButton != null && waitButton.GetParent() != null) ? waitButton.GetParent() : GetParent();
+            if (parent != null)
+            {
+                parent.AddChild(factoryRotateButton);
+                int idx2 = (waitButton != null) ? parent.GetChildren().IndexOf(waitButton) : parent.GetChildCount() - 1;
+                if (idx2 >= 0) parent.MoveChild(factoryRotateButton, idx2 + 4);
+            }
+        }
+        if (factoryRotateButton != null) factoryRotateButton.Visible = false;
         foreach (var b in factoryPortButtons) if (b != null) b.Visible = false;
         if (currentWeapon == null || !IsInstanceValid(currentWeapon)) return;
         if (currentWeapon is SuperFactory f && f.CanProduceNow() && !Grids.IsForceActionMode)
         {
             factoryTarget = f;
+            if (factoryRotateButton != null) factoryRotateButton.Visible = f.factoryCanRotate;
             var exits = f.GetProductionExitGrids();
             for (int i = 0; i < 3 && i < exits.Count; i++)
             {
