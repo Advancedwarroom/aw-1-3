@@ -35,11 +35,13 @@ factoryCanRotate = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(64, 80)
+scale = Vector2(1.12, 1.08)   # 86×118→96×128 铺满3×4足印，旋转与格对齐
 sprite_frames = ExtResource("2_factory")
 animation = &"Neutral"
 
 [node name="YellowDots" type="AnimatedSprite2D" parent="."]
 position = Vector2(64, 80)
+scale = Vector2(1.12, 1.08)   # 与本体同变换
 scale = Vector2(1, 1)
 sprite_frames = ExtResource("9_dots")
 animation = &"Blink"
