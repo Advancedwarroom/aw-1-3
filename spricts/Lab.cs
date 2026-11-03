@@ -38,8 +38,10 @@ public partial class Lab : Facility
     [Export] public Godot.Collections.Array<string> labUnitBlacklist = new();
 
     // ========== 运行时 ==========
-    /// <summary>全局已占领Lab总数（用于分层判定）</summary>
-    public static int TotalLabsCaptured = 0;
+    /// <summary>各势力当前持有Lab数（动态：夺回即减，层数按实时持有数判定——开创人2026-11-03修正）</summary>
+    public static readonly System.Collections.Generic.Dictionary<string, int> TeamLabCounts = new();
+
+    static int LabCountOf(string t) => TeamLabCounts.TryGetValue(t ?? "", out var c) ? c : 0;
 
     // 本Lab做过的解锁/移除记录（被夺走时按此反转）
     private readonly System.Collections.Generic.List<string> grantedUnits = new();
@@ -75,11 +77,13 @@ public partial class Lab : Facility
             }
         }
 
-        // ✅ 递增全局Lab占领计数
-        TotalLabsCaptured++;
+        // ✅ 动态层数：原主减一、新主加一，按新主当前持有数判定层级（夺回掉层、再占回重新爬层）
+        if (!string.IsNullOrEmpty(prevTeam) && prevTeam != TeamHelper.Player0)
+            TeamLabCounts[prevTeam] = System.Math.Max(0, LabCountOf(prevTeam) - 1);
+        TeamLabCounts[facilityTeam] = LabCountOf(facilityTeam) + 1;
 
-        // ✅ 2. 应用分层占领规则（当前计数对应的层）
-        ApplyTieredRules(TotalLabsCaptured);
+        // ✅ 2. 应用分层占领规则（当前持有数对应的层）
+        ApplyTieredRules(LabCountOf(facilityTeam));
 
         // ✅ 3. 应用本Lab专属白名单（新增/减少）
         ApplyPerLabWhitelist();
@@ -148,9 +152,10 @@ public partial class Lab : Facility
         return result;
     }
 
-    /// <summary>重置全局Lab计数（新对局）</summary>
+    /// <summary>重置全局Lab状态（新对局）：计数清零+解锁名单清空（修跨局泄漏）</summary>
     public static void ResetGlobalCount()
     {
-        TotalLabsCaptured = 0;
+        TeamLabCounts.Clear();
+        UnitProductionWhitelist.UnlockedUnits.Clear();
     }
 }
