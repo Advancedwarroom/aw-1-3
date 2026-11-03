@@ -56,22 +56,22 @@ public partial class Lab : Facility
     /// <summary>占领后：递增全局计数 + 应用分层规则 + 应用本Lab专属白名单</summary>
     public override void OnCaptureCompleted(Infantry unit)
     {
-        var prevTeam = team;   // base调用前：原主（空/中立=无主，不触发夺回）
+        var prevTeam = facilityTeam;   // base调用前：原主（空/中立=无主，不触发夺回）
         base.OnCaptureCompleted(unit);
         if (!labEnabled) return;
 
         // ✅ 4. 被夺走：开启时反转本Lab做过的全部解锁/移除（中立化不触发）
-        if (relLockOnLost && !string.IsNullOrEmpty(prevTeam) && prevTeam != TeamHelper.Player0 && prevTeam != team)
+        if (relLockOnLost && !string.IsNullOrEmpty(prevTeam) && prevTeam != TeamHelper.Player0 && prevTeam != facilityTeam)
         {
             if (grantedUnits.Count > 0)
             {
                 UnitProductionWhitelist.LockUnits(grantedUnits);
-                GD.Print($"[Lab] 被{team}夺走：收回 {string.Join(", ", grantedUnits)}");
+                GD.Print($"[Lab] 被{facilityTeam}夺走：收回 {string.Join(", ", grantedUnits)}");
             }
             if (removedUnits.Count > 0)
             {
                 UnitProductionWhitelist.UnlockUnits(removedUnits);
-                GD.Print($"[Lab] 被{team}夺走：恢复 {string.Join(", ", removedUnits)}");
+                GD.Print($"[Lab] 被{facilityTeam}夺走：恢复 {string.Join(", ", removedUnits)}");
             }
         }
 
