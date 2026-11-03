@@ -61,6 +61,7 @@ public partial class TerrainEditor
             tempWeapon.isMultiTile = true;
             tempWeapon.size = sfw.factorySize;
         }
+        if (tempWeapon is SuperFactory sfx) sfx.SetDirection(pendingCannonDirection);   // 预览跟随所选方向转置（开创人：别放完了才变）
         // ✅ 门模块：gateSize 宽×高全自由度（1×1 单格门直接生成；>1 走多格预览）
         if (tempWeapon is Gate gt && !tempWeapon.isMultiTile && gt.gateSize.X * gt.gateSize.Y > 1)
         {
