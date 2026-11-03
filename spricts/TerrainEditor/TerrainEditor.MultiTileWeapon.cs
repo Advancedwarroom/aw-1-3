@@ -251,6 +251,7 @@ public partial class TerrainEditor
         if (weapon is SuperFactory sf)
         {
             sf.SetDirection(pendingCannonDirection);   // BHF四向可选（开创人规矩）
+            sf.RefreshTeamVisual();                    // 编辑器不跑_Ready：当场刷势力皮+LUT染色
         }
 
         gameManager.UpdateUnitLists();
