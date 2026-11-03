@@ -10,9 +10,13 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_yv6tl"]
 size = Vector2(32, 32)
 
-[node name="MdTank" type="Node2D" unique_id=1148536001 node_paths=PackedStringArray("MdSprite")]
+[node name="MdTank" type="Node2D" unique_id=1148536001 node_paths=PackedStringArray("animSprite", "idleSprite", "loadedIcon", "noFuelIcon", "noAmmoIcon")]
 script = ExtResource("1_uexuy")
-MdSprite = NodePath("Md2D")
+animSprite = NodePath("Md2D")
+idleSprite = NodePath("MdSprite")
+loadedIcon = NodePath("loaded")
+noFuelIcon = NodePath("NoFuelIcno")
+noAmmoIcon = NodePath("NoAmmoIcon")
 useDefaultConfig = false
 movePoints = 5
 baseAttack = 450
