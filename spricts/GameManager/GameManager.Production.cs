@@ -66,6 +66,7 @@ public partial class GameManager
         foreach (string unitName in unitList)
         {
             if (!UnitProductionDatabase.HasUnit(unitName)) continue;
+            if (productionTargetFacility.isUpdatable && !UnitProductionWhitelist.CanProduce(unitName)) continue;   // 不能产的就不显示
 
             var info = UnitProductionDatabase.GetInfo(unitName);
             // ✅ CO 模块系统·模块12（生产模块）：生产价格百分比增减（与实际扣费一致）
