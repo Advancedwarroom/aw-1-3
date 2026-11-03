@@ -263,8 +263,7 @@ public partial class SuperFactory : Weapon
         bool isLandscape = factorySize.X > factorySize.Y;
         if (wantLandscape != isLandscape)
         {
-            footprintMask = RotateMask(footprintMask);
-            factorySize = new Vector2I(factorySize.Y, factorySize.X);
+            factorySize = new Vector2I(factorySize.Y, factorySize.X);   // 实心矩形无需掩码，宽高调换即转置
             size = factorySize;
         }
         if (animSprite != null)
