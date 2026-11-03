@@ -250,6 +250,9 @@ public partial class GameManager
         scroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
 
         productionMenuContainer = new VBoxContainer();
+        var prodScroll = new ScrollContainer();
+        prodScroll.CustomMinimumSize = new Godot.Vector2(540, 420);
+        productionMenuPanel.AddChild(prodScroll);
         productionMenuContainer.AddThemeConstantOverride("separation", 6);
         productionMenuContainer.Size = new Godot.Vector2(330, 0);
 
