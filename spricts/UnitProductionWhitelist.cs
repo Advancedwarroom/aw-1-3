@@ -12,6 +12,9 @@ public static class UnitProductionWhitelist
     /// <summary>已解锁的可生成单位（Lab占领后加入）</summary>
     public static HashSet<string> UnlockedUnits = new HashSet<string>();
 
+    /// <summary>需实验室解锁的圈定单位（开创人圈定，见下；常规单位不在此列=默认可产）</summary>
+    public static HashSet<string> LabLockedUnits = new HashSet<string> { "Neotank" };   // ←开创人圈定后改这里
+
     /// <summary>清空（新对局重置）</summary>
     public static void Reset()
     {
@@ -22,7 +25,8 @@ public static class UnitProductionWhitelist
     public static bool CanProduce(string unitName)
     {
         if (string.IsNullOrEmpty(unitName)) return true;
-        return UnlockedUnits.Contains(unitName);
+        if (!LabLockedUnits.Contains(unitName)) return true;   // 常规单位默认可产，与实验室解绑
+        return UnlockedUnits.Contains(unitName);               // 圈定单位需占领实验室解锁
     }
 
     /// <summary>解锁单位（Lab占领时调用）</summary>
