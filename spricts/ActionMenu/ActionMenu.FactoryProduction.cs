@@ -77,11 +77,14 @@ public partial class ActionMenu
             Node host = (am != null && am.GetParent() != null) ? am.GetParent() : gm;
             var topLayer = new CanvasLayer { Layer = 1300, Name = "FactoryChoiceTopLayer" };   // 顶层：不被地图盖住
             host.AddChild(topLayer);
+            var scroll = new ScrollContainer();   // 可滚动：再长的兵种表也拖得到底
+            scroll.CustomMinimumSize = new Vector2(220, 420);
+            scroll.Position = new Vector2(40, 60);
+            topLayer.AddChild(scroll);
             factoryChoiceContainer = new VBoxContainer();
             factoryChoiceContainer.Name = "FactoryChoiceContainer";
-            factoryChoiceContainer.Position = new Vector2(40, 60);
-            factoryChoiceContainer.Size = new Vector2(180, 300);
-            topLayer.AddChild(factoryChoiceContainer);
+            factoryChoiceContainer.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            scroll.AddChild(factoryChoiceContainer);
         }
 
         foreach (Node child in factoryChoiceContainer.GetChildren())
