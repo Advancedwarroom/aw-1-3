@@ -2434,7 +2434,7 @@ text = "当前回合： - 阶段："
 
 [node name="ActionMenu" parent="." unique_id=507695071 node_paths=PackedStringArray("closeInfoButton", "unitInfoLabel", "rotateButton") groups=["action_menu"] instance=ExtResource("9_tqoya")]
 visible = false
-z_index = 50
+z_index = 300   # 高于信息面板(200)：按钮不再被盖住
 offset_right = 48.0
 offset_bottom = 72.0
 closeInfoButton = NodePath("../CloseInfoButton")
