@@ -14,13 +14,7 @@ using System.Linq;
 
 public partial class SuperFactory : Weapon
 {
-        [ExportGroup("双生产菜单模式（参谋生产四修缺失字段补回）")]
-    [Export] public bool productionFree = true;          // 原作模式：生产免费
-    [Export] public bool dualProductionMode = false;     // 双生产菜单：原作免费 + 玩家自制付费
-    [Export] public float instantCostMultiplier = 1.0f;  // 即时出厂价格倍率
-    [Export] public float standbyCostMultiplier = 0.5f;  // 待命生产价格倍率
-
-[ExportGroup("超级兵工厂 - 多格配置")]
+        [ExportGroup("超级兵工厂 - 多格配置")]
     [Export] public Vector2I factorySize = new Vector2I(3, 4);   // 3宽×4高=12格
     [Export] public CannonDirection direction = CannonDirection.Down;  // 生产口朝向（默认朝南=贴图门在底）
 
