@@ -50,6 +50,7 @@ public partial class SuperFactory : Weapon
 
     [ExportGroup("超级兵工厂 - 旋转")]
     [Export] public bool factoryCanRotate = true;             // 是否可旋转（90/180/270）
+    [Export] public bool hasHealth = false;                          // 开启血量显示并可被攻击（默认关=CoW原味无敌，开创人规矩）
 
     // 运行时状态
     public int productionsThisTurn = 0;
@@ -64,6 +65,12 @@ public partial class SuperFactory : Weapon
         isMultiTile = true;
         size = factorySize;
         canRotate = factoryCanRotate;
+        SetDirection(direction);   // 贴图对齐Export方向（编辑器改方向/初始朝向都生效）
+        if (!hasHealth)
+        {
+            var hl = GetNodeOrNull<Label>("HpLabel");
+            if (hl != null) hl.Visible = false;   // 无血量=不显示
+        }
         direction = CannonDirection.Down;  // 生产口默认朝南（贴图门在底部）
 
         base._Ready();
@@ -232,6 +239,13 @@ public partial class SuperFactory : Weapon
     /// 旋转90°（顺时针）。先检查旋转后目标位置是否被单位/兵器/建筑阻挡；
     /// 被阻挡则旋转失败并给出提醒。
     /// </summary>
+    // 无血量=不可攻击（CoW原味 HP=-1）；开启血量才可被打
+    public override void TakeDamage(int damage)
+    {
+        if (!hasHealth) return;
+        base.TakeDamage(damage);
+    }
+
     // 编辑器放置用：直接设定方向+贴图旋转（不做占位检查——占位检查属于游戏中旋转）
     public void SetDirection(CannonDirection dir)
     {
