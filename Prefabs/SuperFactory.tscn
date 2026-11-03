@@ -37,7 +37,6 @@ factoryCanRotate = true
 position = Vector2(64, 80)
 sprite_frames = ExtResource("2_factory")
 animation = &"Neutral"
-autoplay = "NeturalSuperFactory"
 
 [node name="YellowDots" type="AnimatedSprite2D" parent="."]
 position = Vector2(64, 80)
