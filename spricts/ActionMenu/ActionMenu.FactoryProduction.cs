@@ -92,9 +92,18 @@ public partial class ActionMenu
         TranslateGroup.SetText(title, "选择生产单位");
         factoryChoiceContainer.AddChild(title);
 
-        var units = factoryTarget.producibleUnitNames.Count > 0
-            ? factoryTarget.producibleUnitNames.Where(u => UnitProductionDatabase.HasUnit(u)).ToList()
-            : UnitProductionDatabase.GetAllUnitNames().ToList();
+        bool updatable = true; // SuperFactory 默认受白名单限制
+        var units = (factoryTarget.producibleUnitNames.Count > 0
+            ? factoryTarget.producibleUnitNames.Where(u => UnitProductionDatabase.HasUnit(u))
+            : UnitProductionDatabase.GetAllUnitNames())
+            .Where(u => !updatable || UnitProductionWhitelist.CanProduce(u))   // 不能产的就不显示（开创人规矩）
+            .ToList();
+        if (units.Count == 0)
+        {
+            var emptyTip = new Label();
+            TranslateGroup.SetText(emptyTip, "（无可生产单位——需占领实验室解锁）");
+            factoryChoiceContainer.AddChild(emptyTip);
+        }
 
         factoryInstantMode = factoryTarget.instantMoveAfterProduction || factoryTarget.IsInDividend(team);
 
