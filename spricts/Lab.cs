@@ -26,6 +26,10 @@ public partial class Lab : Facility
     /// <summary>各层减少（移除）的单位（逗号分隔，与tieredCaptureCounts平行。如 ["", "OldTank", ""]）</summary>
     [Export] public Godot.Collections.Array<string> tieredRemoveUnitStrings = new();
 
+    // ========== 4. 被夺走时重新锁上（开创人规矩：攻防拉锯） ==========
+    /// <summary>被敌方夺走时：收回本Lab解锁的单位、恢复本Lab移除的单位</summary>
+    [Export] public bool relLockOnLost = false;
+
     // ========== 3. 占领仅限这个建筑新增/减少的单位白名单 ==========
     [ExportGroup("实验室 - 本建筑专属白名单")]
     /// <summary>占领本Lab后新增（解锁）的单位</summary>
@@ -36,6 +40,10 @@ public partial class Lab : Facility
     // ========== 运行时 ==========
     /// <summary>全局已占领Lab总数（用于分层判定）</summary>
     public static int TotalLabsCaptured = 0;
+
+    // 本Lab做过的解锁/移除记录（被夺走时按此反转）
+    private readonly System.Collections.Generic.List<string> grantedUnits = new();
+    private readonly System.Collections.Generic.List<string> removedUnits = new();
 
     protected override (string neutral, string red, string blue)? GetTeamAnimNames()
         => ("P0Lab", "labteam1", "labteam2");
@@ -48,8 +56,24 @@ public partial class Lab : Facility
     /// <summary>占领后：递增全局计数 + 应用分层规则 + 应用本Lab专属白名单</summary>
     public override void OnCaptureCompleted(Infantry unit)
     {
+        var prevTeam = team;   // base调用前：原主（空/中立=无主，不触发夺回）
         base.OnCaptureCompleted(unit);
         if (!labEnabled) return;
+
+        // ✅ 4. 被夺走：开启时反转本Lab做过的全部解锁/移除（中立化不触发）
+        if (relLockOnLost && !string.IsNullOrEmpty(prevTeam) && prevTeam != TeamHelper.Player0 && prevTeam != team)
+        {
+            if (grantedUnits.Count > 0)
+            {
+                UnitProductionWhitelist.LockUnits(grantedUnits);
+                GD.Print($"[Lab] 被{team}夺走：收回 {string.Join(", ", grantedUnits)}");
+            }
+            if (removedUnits.Count > 0)
+            {
+                UnitProductionWhitelist.UnlockUnits(removedUnits);
+                GD.Print($"[Lab] 被{team}夺走：恢复 {string.Join(", ", removedUnits)}");
+            }
+        }
 
         // ✅ 递增全局Lab占领计数
         TotalLabsCaptured++;
@@ -76,6 +100,7 @@ public partial class Lab : Facility
                 if (add.Count > 0)
                 {
                     UnitProductionWhitelist.UnlockUnits(add);
+                    grantedUnits.AddRange(add);   // 记账：夺回时收回
                     GD.Print($"[Lab] 占领{capturedCount}个后 解锁: {string.Join(", ", add)}");
                 }
             }
@@ -86,6 +111,7 @@ public partial class Lab : Facility
                 if (remove.Count > 0)
                 {
                     UnitProductionWhitelist.LockUnits(remove);
+                    removedUnits.AddRange(remove);   // 记账：夺回时恢复
                     GD.Print($"[Lab] 占领{capturedCount}个后 移除: {string.Join(", ", remove)}");
                 }
             }
@@ -98,11 +124,13 @@ public partial class Lab : Facility
         if (labUnitWhitelist != null && labUnitWhitelist.Count > 0)
         {
             UnitProductionWhitelist.UnlockUnits(labUnitWhitelist.ToList());
+            grantedUnits.AddRange(labUnitWhitelist);   // 记账
             GD.Print($"[Lab] 本Lab解锁: {string.Join(", ", labUnitWhitelist)}");
         }
         if (labUnitBlacklist != null && labUnitBlacklist.Count > 0)
         {
             UnitProductionWhitelist.LockUnits(labUnitBlacklist.ToList());
+            removedUnits.AddRange(labUnitBlacklist);   // 记账
             GD.Print($"[Lab] 本Lab移除: {string.Join(", ", labUnitBlacklist)}");
         }
     }
