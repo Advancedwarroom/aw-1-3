@@ -91,6 +91,7 @@ public void InitializeDefaultMatrix()
 ["PipeRunner_APC"] = 80,        ["PipeRunner_AntiAir"] = 85,
 ["PipeRunner_Artillery"] = 80,  ["PipeRunner_FlyBomb"] = 120,
             ["Fighter_FlyBomb"] = 100,
+            ["Dog_PipeRunner"] = 18,
             ["PipeRunner_Battleship"] = 55,
             ["PipeRunner_Carrier"] = 55,
             ["PipeRunner_Cruiser"] = 60,
