@@ -91,6 +91,13 @@ public void InitializeDefaultMatrix()
 ["PipeRunner_APC"] = 80,        ["PipeRunner_AntiAir"] = 85,
 ["PipeRunner_Artillery"] = 80,  ["PipeRunner_FlyBomb"] = 120,
             ["Fighter_FlyBomb"] = 100,
+            ["PipeRunner_Battleship"] = 55,
+            ["PipeRunner_Carrier"] = 55,
+            ["PipeRunner_Cruiser"] = 60,
+            ["PipeRunner_Gunboat"] = 60,
+            ["PipeRunner_Lander"] = 60,
+            ["PipeRunner_Submarine"] = 60,
+            ["PipeRunner_Bomber"] = 75,
             // ==== AWDS 官方值补录：机枪可对直升机（2026-11-03）====
             ["LightTank_BCopter"] = 10,
             ["LightTank_TCopter"] = 40,
