@@ -85,7 +85,12 @@ public partial class SuperFactory : Weapon
 
         base._Ready();
         var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
-        if (dots != null && dots.SpriteFrames != null && dots.SpriteFrames.HasAnimation("Blink")) dots.Play("Blink"); // 黄灯闪烁（独立节点不吃调色板）
+        if (dots != null)
+        {
+            // 黄灯层只对中立皮生效：P1橙星/P2蓝月的灯是烘焙原画自带的（叠加会出第二条错位高亮）
+            dots.Visible = GetFactoryAnimName() == "Neutral";
+            if (dots.Visible && dots.SpriteFrames != null && dots.SpriteFrames.HasAnimation("Blink")) dots.Play("Blink");
+        }
         if (animSprite != null && animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(GetFactoryAnimName()))
             animSprite.Play(GetFactoryAnimName());   // 按势力播皮（橙星/蓝月/中立LUT）——修"不随势力换色"
         UpdateMultiTileVisual();
@@ -544,6 +549,8 @@ public partial class SuperFactory : Weapon
         base.RefreshTeamVisual();
         if (animSprite != null && animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(GetFactoryAnimName()))
             animSprite.Play(GetFactoryAnimName());
+        var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
+        if (dots != null) dots.Visible = GetFactoryAnimName() == "Neutral";   // 换势力时同步黄灯层显隐
     }
 
     /// <summary>按队伍选贴图动画（橙/蓝/绿/黄/中立/黑洞六套原版色，无需 Shader 染色）</summary>
