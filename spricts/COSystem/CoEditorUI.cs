@@ -70,12 +70,14 @@ public partial class CoEditorUI : CanvasLayer
 
     public override void _Ready()
     {
-        // ✅ 下拉修复：Popup 提到编辑器面板(1200)之上，防止被面板盖住/显示不全；长列表可搜索
-        foreach (var opt in new OptionButton[] { coSelect, addModuleOpt, addSlotOpt, addDurationOpt })
+        // ✅ 下拉修复：PopupMenu继承Window（Layer/ZIndex均不存在），唯一正解=把弹窗移到更高CanvasLayer
+        var popupTopLayer = new CanvasLayer { Layer = 1300, Name = "COEditorPopupTop" };
+        AddChild(popupTopLayer);
+        foreach (var opt in new OptionButton[] { coSelect, addModuleOpt, addSlotOpt, addKeyOpt, addDurationOpt, bindTeamOpt })
         {
             if (opt == null) continue;
             var popup = opt.GetPopup();
-            // popup层级：PopupMenu继承Window，Layer/ZIndex均不存在；层级问题由面板CanvasLayer方案另解
+            if (popup.GetParent() != popupTopLayer) popup.Reparent(popupTopLayer);   // 弹窗置顶：不再被面板盖住
             popup.AllowSearch = true;
         }
         Layer = 1200;
