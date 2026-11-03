@@ -1,12 +1,51 @@
-[gd_resource type="SpriteFrames" load_steps=5 format=3]
+[gd_resource type="SpriteFrames" load_steps=9 format=3]
 
-[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworker1.png" id="1"]
-[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworker2.png" id="2"]
-[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworker3.png" id="3"]
-[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworker4.png" id="4"]
+[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworkerRed1.png" id="1"]
+[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworkerRed2.png" id="2"]
+[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworkerRed3.png" id="3"]
+[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworkerRed4.png" id="4"]
+[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworkerBlue1.png" id="5"]
+[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworkerBlue2.png" id="6"]
+[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworkerBlue3.png" id="7"]
+[ext_resource type="Texture2D" path="res://asscets/units/PipeWorker/pipeworkerBlue4.png" id="8"]
 
 [resource]
 animations = [{
-"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 1.0, "texture": ExtResource("2")}, {"duration": 2.0, "texture": ExtResource("3")}, {"duration": 1.0, "texture": ExtResource("4")}],
-"loop": true, "name": &"PipeWorker1", "speed": 6.25
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1") }, {
+"duration": 1.0,
+"texture": ExtResource("1")
+ }, {
+"duration": 1.0,
+"texture": ExtResource("2")
+ }, {
+"duration": 1.0,
+"texture": ExtResource("3")
+ }, {
+"duration": 1.0,
+"texture": ExtResource("4")
+ }],
+"loop": true,
+"name": &"PipeWorker1",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5") }, {
+"duration": 1.0,
+"texture": ExtResource("5")
+ }, {
+"duration": 1.0,
+"texture": ExtResource("6")
+ }, {
+"duration": 1.0,
+"texture": ExtResource("7")
+ }, {
+"duration": 1.0,
+"texture": ExtResource("8")
+ }],
+"loop": true,
+"name": &"PipeWorker2",
+"speed": 5.0
 }]

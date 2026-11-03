@@ -17,7 +17,7 @@ public partial class PipeWorker : Infantry
     /// <summary>本回合已产出的免费即刻单位数（运行时，每回合重置）</summary>
     public int freeUnitsProducedThisTurn = 0;
 
-    public override string GetIdleAnimName() => "PipeWorker1";
+    public override string GetIdleAnimName() => team == "Player2" ? "PipeWorker2" : "PipeWorker1";
 
     public override void _Ready()
     {
