@@ -265,7 +265,7 @@ public partial class SuperFactory : Weapon
 
     public void SetDirection(CannonDirection dir)
     {
-        direction = dir;
+        _direction = dir;   // 必须写后备字段——写direction会触发setter回调SetDirection=无限递归栈溢出（放完即闪退的根）
         // 足印随朝向：右/左=横向(宽4高3)，上/下=竖向(宽3高4)——幂等转置
         bool wantLandscape = (dir == CannonDirection.Right || dir == CannonDirection.Left);
         bool isLandscape = factorySize.X > factorySize.Y;
