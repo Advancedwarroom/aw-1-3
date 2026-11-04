@@ -246,4 +246,71 @@ public partial class Infantry
         AddChild(effect);
         // 完成特效不记录引用，让它自己消失
     }
+
+    // ==================== 舱内占领（内部单位操作 · 统一进度池）====================
+    // 开创人规格 20/5：占领力 × loadedOperationFactor；进度池挂运输车（车毁人亡池亡，下车无缝续占）
+
+    [ExportGroup("内部单位操作 · 占领进度池")]
+    [Export] public int loadedCaptureProgress = 0;                 // 舱内占领统一进度池
+    public Grids loadedCapturingGrid = null;
+
+    /// <summary>舱内第一个可占领单位（步兵/机甲等）</summary>
+    public virtual Infantry GetFirstCapturableLoadedUnit()
+        => transportedUnits?.FirstOrDefault(u => u != null && IsInstanceValid(u)
+             && u.captureAbility != CaptureAbility.CannotCapture);
+
+    /// <summary>选中运输车时占领按钮亮起条件（条款1/2/3/4 + 撕旗冻结）</summary>
+    public virtual bool CanPerformLoadedCapture()
+    {
+        if (!canOperateLoadedUnits) return false;
+        if (IsActionBlacklisted("Capture")) return false;
+        if (GetRemainingLoadedOperations() <= 0) return false;
+        var loaded = GetFirstCapturableLoadedUnit();
+        if (loaded == null || loaded.isAttacked) return false;
+        if (grid == null || grid.city == null) return false;
+        if (grid.city.facilityTeam == team) return false;
+        if (grid.infantries != null && grid.infantries.Any(u => u != null && IsInstanceValid(u)
+            && u.team != team && u.tearingGrid == grid && u.currentTearProgress > 0)) return false;
+        return true;
+    }
+
+    /// <summary>执行舱内占领：进度写入统一池（多个步兵合并到同一进度），完成归属运输车势力</summary>
+    public virtual void PerformLoadedCapture()
+    {
+        var loaded = GetFirstCapturableLoadedUnit();
+        if (!CanPerformLoadedCapture()) return;
+        if (grid == null || grid.city == null) return;
+
+        int power = ApplyLoadedFactor(loaded.GetCapturePower());   // 条款4：10 → 5（20点建筑4回合）
+
+        if (loadedCapturingGrid != grid)                            // 统一池换建筑清零重记
+        {
+            loadedCaptureProgress = 0;
+            loadedCapturingGrid = grid;
+            grid.city?.OnCaptureStarted(loaded);
+        }
+
+        var contest = grid.infantries.Where(u => u != null && IsInstanceValid(u)
+            && u.currentCaptureProgress > 0 && u.capturingGrid == grid && u.team != team).ToList();
+        if (contest.Count > 0)
+        {
+            loadedCaptureProgress = 0;
+            foreach (var enemy in contest) enemy.currentCaptureProgress = 0;
+            grid.city?.ShowCaptureContestVisual();
+        }
+
+        loadedCaptureProgress += power;
+        bool completed = loadedCaptureProgress >= (grid.city?.capturePointsRequired ?? 20);
+
+        // 借道原生完成/特效逻辑：池子临时灌进运输车字段（归属=运输车势力）
+        int keepP = currentCaptureProgress; var keepG = capturingGrid;
+        currentCaptureProgress = loadedCaptureProgress; capturingGrid = grid;
+        if (completed) CompleteCapture(); else ShowCaptureEffect();
+        currentCaptureProgress = keepP; capturingGrid = keepG;
+
+        if (completed) { loadedCaptureProgress = 0; loadedCapturingGrid = null; }
+
+        loaded.MarkAsCapturing();
+        ConsumeLoadedOperation();
+    }
 }

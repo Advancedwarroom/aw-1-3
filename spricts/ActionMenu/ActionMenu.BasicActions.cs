@@ -24,8 +24,10 @@ public partial class ActionMenu
             // 拆旗分流：可拆旗且本格不可占领且无占领进度时，执行拆旗
             if (currentUnit.canTearFlag && !currentUnit.CanCaptureCurrentGrid() && currentUnit.currentCaptureProgress <= 0)
                 currentUnit.PerformTearFlag();
-            else
-                currentUnit.PerformCapture();
+            else if (currentUnit.CanPerformLoadedCapture())
+                    currentUnit.PerformLoadedCapture();   // ✅ 舱内占领
+                else
+                    currentUnit.PerformCapture();
             Hide();
 
             var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;

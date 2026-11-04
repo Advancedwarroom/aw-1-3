@@ -165,7 +165,11 @@ public List<Infantry> transportedUnits = new List<Infantry>();
     // ========== ✅ 舰载起飞：记录“本回合才进舱”的单位（它们本回合不能起飞） ==========
     private readonly System.Collections.Generic.HashSet<Infantry> cargoBoardedThisTurn = new();
     public void MarkCargoBoardedThisTurn(Infantry u) { if (u != null) cargoBoardedThisTurn.Add(u); }
-    public void ResetCargoBoardTracking() => cargoBoardedThisTurn.Clear();   // 回合开始时调用
+    public void ResetCargoBoardTracking()
+    {
+        cargoBoardedThisTurn.Clear();
+        ResetLoadedOperationTracking();   // ✅ 内部单位操作：操作数每回合重置
+    }   // 回合开始时调用
     /// <summary>此舱内单位当前能否起飞（载具开启舰载起飞、本回合未移动、单位不是本回合才进舱的）</summary>
     public bool CanLaunchCargoUnit(Infantry u)
         => canLaunchCargo && u != null && transportedUnits.Contains(u) && !isMoved && !cargoBoardedThisTurn.Contains(u);
@@ -319,6 +323,16 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
     
     unit.Position = targetGrid.Position;
     unit.grid = targetGrid;
+
+        // ✅ 内部单位操作：车上统一占领进度池转移给下车单位（无缝续占）
+        if (loadedCaptureProgress > 0 && loadedCapturingGrid != null
+            && unit.captureAbility != CaptureAbility.CannotCapture)
+        {
+            unit.currentCaptureProgress = loadedCaptureProgress;
+            unit.capturingGrid = loadedCapturingGrid;
+            loadedCaptureProgress = 0;
+            loadedCapturingGrid = null;
+        }
     
     if (!targetGrid.infantries.Contains(unit))
         targetGrid.infantries.Add(unit);

@@ -296,7 +296,8 @@ private List<Grids> GetAdjacentGrids(Grids center)
         moveButton.Visible = !afterMove && !unit.isMoved && unit.CanMove();
         bool canTear = unit.CanTearCurrentGrid();
         bool isTearing = unit.currentTearProgress > 0 && unit.tearingGrid == unit.grid;
-        captureButton.Visible = (canCapture || isCapturing || canTear || isTearing) && !unit.isAttacked && (!unit.isMoved || allowCaptureAfterMove);
+        bool canLoadedCapture = unit.CanPerformLoadedCapture();   // ✅ 内部单位操作：舱内占领
+        captureButton.Visible = (canCapture || isCapturing || canTear || isTearing || canLoadedCapture) && !unit.isAttacked && (!unit.isMoved || allowCaptureAfterMove);
         rotateButton?.Hide();
 
         waitButton.Visible = true;
