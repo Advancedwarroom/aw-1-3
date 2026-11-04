@@ -846,6 +846,14 @@ public partial class Grids : Node2D
     }
 
     // ========== ✅ CoW 地形风格渲染(调色板查表) ==========
+    /// <summary>✅ 全图换风格: 强制覆盖本格烘焙风格并重渲染(游戏内全局功能, 非编辑器画笔)</summary>
+    public void RebakeCowStyle(int biome, int style)
+    {
+        cowBakedBiome = biome;
+        cowBakedStyle = style;
+        UpdateCowTerrainIcon();
+    }
+
     private Sprite2D _cowTerrainSprite = null;
 
     /// <summary>CoW 风格开启且该地形有映射时, 用编码贴图+调色板材质渲染并压住旧贴图</summary>

@@ -114,6 +114,7 @@ public partial class GameManager : Node
 
         // ✅ 创建统计切换按钮
         CreateStatsToggleButtons();
+        CreateTerrainStyleUI();   // ✅ 游戏内"全图换风格"按钮/面板
         SetProcessInput(true);
             if (restartButton != null)
     {

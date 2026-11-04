@@ -14,4 +14,15 @@ public partial class GameManager
         TerrainStyleManager.CurrentBiome = terrainBiome;
         TerrainStyleManager.CurrentStyle = terrainStyle;
     }
+
+    /// <summary>✅ 游戏内全图换风格: 覆盖所有已放地块的烘焙风格(与编辑器画笔语义互不影响)</summary>
+    public void ApplyGlobalTerrainStyle(int biome, int style)
+    {
+        terrainBiome = (TerrainStyleManager.Biome)biome;
+        terrainStyle = (TerrainStyleManager.Style)style;
+        ApplyTerrainStyleConfig();
+        if (gridManager?.map == null) return;
+        foreach (var g in gridManager.map)
+            g?.RebakeCowStyle(biome, style);
+    }
 }
