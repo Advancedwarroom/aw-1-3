@@ -64,6 +64,7 @@ public partial class SuperFactory : Weapon
 
     // 运行时状态
     public int productionsThisTurn = 0;
+    private bool _directionVisualApplied = false;
     public bool[] portUsedThisTurn = new bool[8];   // 每口一记：旋转不重置，仅新回合重置（开创人规矩）                       // 本回合已生产数
     public int dividendRemainingTurns = 0;                    // 红利剩余回合
     public int dividendUnitsRemaining = 0;                   // 红利期剩余免费单位
@@ -75,7 +76,7 @@ public partial class SuperFactory : Weapon
         isMultiTile = true;
         size = factorySize;
         canRotate = factoryCanRotate;
-        SetDirection(direction);   // 贴图对齐Export方向（编辑器改方向/初始朝向都生效）
+        CallDeferred(nameof(ApplyDirectionVisualDeferred));   // 贴图对齐延后一帧：_Ready早期UpdateMultiTileVisual NRE=进场闪退根
         if (!hasHealth)
         {
             var hl = GetNodeOrNull<Label>("HpLabel");
@@ -255,6 +256,14 @@ public partial class SuperFactory : Weapon
     /// 被阻挡则旋转失败并给出提醒。
     /// </summary>
     // 编辑器放置用：直接设定方向+贴图旋转（不做占位检查——占位检查属于游戏中旋转）
+    // 首帧 deferred 对齐方向（全部件就绪，避开_Ready早期的UpdateMultiTileVisual空引用）
+    private void ApplyDirectionVisualDeferred()
+    {
+        if (_directionVisualApplied) return;
+        _directionVisualApplied = true;
+        SetDirection(direction);
+    }
+
     public void SetDirection(CannonDirection dir)
     {
         direction = dir;
