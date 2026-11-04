@@ -318,8 +318,10 @@ public virtual bool ConsumePrimaryAmmo()
 
             // ✅ 修复3：使用攻防表计算伤害（兵器没有对应条目，需要处理）
                         if (!CanTargetWeapon(weapon)) return;   // ✅ 准入拒绝
+            var __theater = BattleTheater.TryCapture(this, weapon);   // 剧场动画：开演前快照（null=未启用）
             int damage = CalculateDamageAgainstWeapon(weapon, selectedWeapon);
             weapon.TakeDamage(damage);
+            __theater?.AddVolley(true, damage, Math.Max(0, weapon.health), BattleAnimCatalog.GetFireClass(this, selectedWeapon, null));
 
             state = UnitState.Acted;
             FreezeToIdleDark();
@@ -328,6 +330,8 @@ public virtual bool ConsumePrimaryAmmo()
             var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
             gm?.gridManager?.HideAttackRange();
             gm?.ClearSelectedInfantry();
+
+            BattleTheater.Play(__theater, this);   // 战斗结算完成后开演
         }
     }
 

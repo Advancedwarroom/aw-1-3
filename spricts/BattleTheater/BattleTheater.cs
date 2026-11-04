@@ -34,6 +34,8 @@ public class BattleTheaterSide
     public int ForceCount = -1;    // >=0 时强制分身数量
     public float ScaleMul = 1f;    // 额外缩放（卫星等放大）
     public float SpreadMul = 1f;   // 阵型分散倍数（机械狗）
+    public bool IsWeapon;          // 兵器/设施：复用地图显示贴图，单个大图，不随血掉
+    public Texture2D MapTexture;   // 兵器地图贴图
 }
 
 public class BattleTheaterData
@@ -119,6 +121,41 @@ public static class BattleAnimCatalog
             side.ScaleMul = 1.35f;
         }
         return side;
+    }
+
+    // ===== 兵器/设施防御方：复用地图显示贴图（黑炮/大型黑炮等新贴图就位后自动生效） =====
+    public static BattleTheaterSide BuildSide(Weapon w)
+    {
+        var side = new BattleTheaterSide
+        {
+            DisplayName = w.GetType().Name,
+            Team = w.team,
+            HpBefore = w.health,
+            MaxHealth = Math.Max(1, w.maxHealth),
+            IsWeapon = true,
+            ForceCount = 1,              // 单个大图
+            MapTexture = CaptureWeaponTexture(w),
+        };
+        return side;
+    }
+
+    // 抓取兵器当前地图显示帧：animSprite 当前帧 → normal/base 静态贴图依次回退
+    private static Texture2D CaptureWeaponTexture(Weapon w)
+    {
+        if (w.animSprite != null && GodotObject.IsInstanceValid(w.animSprite) && w.animSprite.SpriteFrames != null)
+        {
+            var sf = w.animSprite.SpriteFrames;
+            string anim = sf.HasAnimation(w.animSprite.Animation) ? w.animSprite.Animation : (sf.GetAnimationCount() > 0 ? sf.GetAnimationNames()[0] : "");
+            if (!string.IsNullOrEmpty(anim) && sf.GetFrameCount(anim) > 0)
+            {
+                int frame = Mathf.Clamp(w.animSprite.Frame, 0, sf.GetFrameCount(anim) - 1);
+                var tex = sf.GetFrameTexture(anim, frame);
+                if (tex != null) return tex;
+            }
+        }
+        if (w.normalSprite != null && GodotObject.IsInstanceValid(w.normalSprite) && w.normalSprite.Texture != null) return w.normalSprite.Texture;
+        if (w.baseSprite != null && GodotObject.IsInstanceValid(w.baseSprite) && w.baseSprite.Texture != null) return w.baseSprite.Texture;
+        return null;
     }
 
     // 武器表现类别：决定枪口闪光/开火音效/命中特效
@@ -323,6 +360,23 @@ public partial class BattleTheater : CanvasLayer
         };
     }
 
+    // 兵器/设施防御方入口（单位打兵器：攻击方照常 CoW 大图，防御方复用地图贴图）
+    public static BattleTheaterData TryCapture(Infantry attacker, Weapon defender)
+    {
+        if (attacker?.GetTree() == null || defender == null) return null;
+        var gm = attacker.GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm == null || !gm.enableBattleTheater) return null;
+        var ai = attacker.GetTree().GetFirstNodeInGroup("ai_manager") as AI_Manager;
+        if (ai != null && ai.IsAiControlling(attacker.team) && !gm.battleTheaterForAI) return null;
+        var defSide = BattleAnimCatalog.BuildSide(defender);
+        if (defSide.MapTexture == null) return null;   // 拿不到贴图就不开剧场
+        return new BattleTheaterData
+        {
+            Attacker = BattleAnimCatalog.BuildSide(attacker),
+            Defender = defSide,
+        };
+    }
+
     public static void Play(BattleTheaterData data, Infantry context)
     {
         if (data == null || data.Volleys.Count == 0 || context?.GetTree() == null) return;
@@ -430,23 +484,40 @@ public partial class BattleTheater : CanvasLayer
         }
 
         // 分身
-        var frames = BattleAnimCatalog.BuildUnitFrames(side.CowFolder, out bool hasFire, out bool hasMove);
-        var mat = BattleAnimCatalog.GetRecolorMaterial(TableForTeam(side.Team));
         int hpDisp = BattleAnimCatalog.HpBars(side.HpBefore, side.MaxHealth);
         int count = side.ForceCount >= 0 ? side.ForceCount : Mathf.Clamp((hpDisp + 1) / 2, 1, 5);
         sn.MaxReps = count;
-        for (int i = 0; i < count; i++)
+        if (side.IsWeapon && side.MapTexture != null)
         {
-            var rep = new AnimatedSprite2D { SpriteFrames = frames, Material = mat, FlipH = !isAttacker };
-            int fi = i % Formation.Length;
-            Vector2 off = Formation[fi] * side.SpreadMul;
-            off.X *= -facing; // 防守方镜像（后排向外）
-            rep.Position = off;
-            if (frames != null && frames.HasAnimation("idle")) rep.Play("idle");
+            // 兵器：单帧 AnimatedSprite2D 复用地图贴图（不翻转、不染色），按目标高度自适应放大
+            var sf = new SpriteFrames();
+            sf.RemoveAnimation("default");
+            sf.AddAnimation("idle");
+            sf.AddFrame("idle", side.MapTexture);
+            var rep = new AnimatedSprite2D { SpriteFrames = sf };
+            float texH = Mathf.Max(1f, side.MapTexture.GetHeight());
+            rep.Scale = Vector2.One * (96f / texH);   // 根节点还会乘 _unitScale
+            rep.Play("idle");
             sn.Root.AddChild(rep);
             sn.Alive.Add(rep);
         }
-        _ = hasFire; _ = hasMove;
+        else
+        {
+            var frames = BattleAnimCatalog.BuildUnitFrames(side.CowFolder, out bool hasFire, out bool hasMove);
+            var mat = BattleAnimCatalog.GetRecolorMaterial(TableForTeam(side.Team));
+            for (int i = 0; i < count; i++)
+            {
+                var rep = new AnimatedSprite2D { SpriteFrames = frames, Material = mat, FlipH = !isAttacker };
+                int fi = i % Formation.Length;
+                Vector2 off = Formation[fi] * side.SpreadMul;
+                off.X *= -facing; // 防守方镜像（后排向外）
+                rep.Position = off;
+                if (frames != null && frames.HasAnimation("idle")) rep.Play("idle");
+                sn.Root.AddChild(rep);
+                sn.Alive.Add(rep);
+            }
+            _ = hasFire; _ = hasMove;
+        }
 
         var stage = root.GetNode<Node2D>("Stage");
         stage.AddChild(sn.Root);
