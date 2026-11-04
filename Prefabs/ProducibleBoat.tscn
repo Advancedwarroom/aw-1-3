@@ -12,7 +12,6 @@ size = Vector2(32, 32)
 [node name="ProducibleBoat" type="Node2D" unique_id=1701774054 node_paths=PackedStringArray("loadedIcon", "noFuelIcon", "noAmmoIcon", "animSprite", "baseAnimSprite")]
 script = ExtResource("1_ship")
 useDefaultConfig = false
-canOperateLoadedUsers = true
 templateType = "Carrier"
 canCapture = false
 unitCategory = 36

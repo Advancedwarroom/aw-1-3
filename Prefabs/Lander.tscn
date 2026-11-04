@@ -12,7 +12,6 @@ size = Vector2(32, 32)
 [node name="Lander" type="Node2D" unique_id=4527404797 node_paths=PackedStringArray("loadedIcon", "noFuelIcon", "noAmmoIcon", "animSprite", "baseAnimSprite")]
 script = ExtResource("1_ship")
 useDefaultConfig = false
-canOperateLoadedUsers = true
 canCapture = false
 unitCategory = 27
 visionRange = 1

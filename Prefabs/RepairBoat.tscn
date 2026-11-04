@@ -12,7 +12,6 @@ size = Vector2(32, 32)
 [node name="RepairBoat" type="Node2D" unique_id=1148536001 node_paths=PackedStringArray("loadedIcon", "noFuelIcon", "noAmmoIcon", "animSprite")]
 z_index = 10
 script = ExtResource("1_4jajq")
-canOperateLoadedUsers = true
 canRepair = true
 repairAmountPerAction = 10
 canCapture = false

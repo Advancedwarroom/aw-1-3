@@ -12,7 +12,6 @@ size = Vector2(32, 32)
 [node name="Carrier" type="Node2D" unique_id=5638425586 node_paths=PackedStringArray("loadedIcon", "noFuelIcon", "noAmmoIcon", "animSprite", "baseAnimSprite")]
 script = ExtResource("1_ship")
 useDefaultConfig = false
-canOperateLoadedUsers = true
 canCapture = false
 unitCategory = 28
 visionRange = 4

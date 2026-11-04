@@ -12,7 +12,6 @@ size = Vector2(32, 32)
 [node name="Rig" type="Node2D" unique_id=1481716197 node_paths=PackedStringArray("loadedIcon", "noFuelIcon", "noAmmoIcon", "animSprite", "baseAnimSprite")]
 script = ExtResource("1_ship")
 useDefaultConfig = false
-canOperateLoadedUsers = true
 templateType = "APC"
 canCapture = false
 unitCategory = 33
