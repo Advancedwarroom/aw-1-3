@@ -202,7 +202,9 @@ public static class BattleAnimCatalog
         sf.RemoveAnimation("default");
         sf.AddAnimation("play");
         sf.SetAnimationSpeed("play", fps);
-        sf.SetAnimationLoopMode("play", loop ? SpriteFrames.LoopMode.Enabled : SpriteFrames.LoopMode.Disabled);
+#pragma warning disable CS0618 // Godot 4.7 标记过时但功能正常；新API枚举名跨版本不稳定
+        sf.SetAnimationLoop("play", loop);
+#pragma warning restore CS0618
         for (int i = 0; i < cols; i++)
         {
             var at = new AtlasTexture { Atlas = tex, Region = new Rect2(i * fw, 0, fw, fh) };
@@ -242,7 +244,9 @@ public static class BattleAnimCatalog
         int fh = tex.GetHeight();
         if (!sf.HasAnimation(anim)) sf.AddAnimation(anim);
         sf.SetAnimationSpeed(anim, fps);
-        sf.SetAnimationLoopMode(anim, loop ? SpriteFrames.LoopMode.Enabled : SpriteFrames.LoopMode.Disabled);
+#pragma warning disable CS0618 // Godot 4.7 标记过时但功能正常；新API枚举名跨版本不稳定
+        sf.SetAnimationLoop(anim, loop);
+#pragma warning restore CS0618
         for (int i = 0; i < cols; i++)
             sf.AddFrame(anim, new AtlasTexture { Atlas = tex, Region = new Rect2(i * fw, 0, fw, fh) });
     }
