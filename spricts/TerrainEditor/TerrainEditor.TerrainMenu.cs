@@ -44,20 +44,48 @@ public partial class TerrainEditor
         closeButton.Pressed += CloseTerrainMenu;
         terrainMenuPanel.AddChild(closeButton);
 
+        // ========== ✅ CoW 整体风格选择条(气候x风格, 全局即时生效) ==========
+        var styleBar = new HBoxContainer();
+        styleBar.Position = new Vector2(10, 42);
+        styleBar.Size = new Vector2(260, 32);
+        styleBar.AddThemeConstantOverride("separation", 4);
+
+        var biomeLabel = new Label();
+        TranslateGroup.SetText(biomeLabel, "气候");
+        biomeLabel.AddThemeFontSizeOverride("font_size", 12);
+        styleBar.AddChild(biomeLabel);
+
+        cowBiomeOption = new OptionButton();
+        cowBiomeOption.CustomMinimumSize = new Vector2(100, 30);
+        string[] biomeNames = { "常规", "雪", "雨", "废土", "沙漠" };
+        for (int i = 0; i < biomeNames.Length; i++) cowBiomeOption.AddItem(TranslateGroup.T(biomeNames[i]), i);
+        cowBiomeOption.ItemSelected += OnCowBiomeSelected;
+        styleBar.AddChild(cowBiomeOption);
+
+        var styleLabel = new Label();
+        TranslateGroup.SetText(styleLabel, "风格");
+        styleLabel.AddThemeFontSizeOverride("font_size", 12);
+        styleBar.AddChild(styleLabel);
+
+        cowStyleOption = new OptionButton();
+        cowStyleOption.CustomMinimumSize = new Vector2(105, 30);
+        string[] styleNames = { "AW1", "SFC", "AW2", "DS", "DoR" };
+        for (int i = 0; i < styleNames.Length; i++) cowStyleOption.AddItem(styleNames[i], i);
+        cowStyleOption.ItemSelected += OnCowStyleSelected;
+        styleBar.AddChild(cowStyleOption);
+
+        terrainMenuPanel.AddChild(styleBar);
+
         terrainScrollContainer = new ScrollContainer();
-        terrainScrollContainer.Position = new Vector2(10, 45);
-        terrainScrollContainer.Size = new Vector2(260, 240);
+        terrainScrollContainer.Position = new Vector2(10, 78);
+        terrainScrollContainer.Size = new Vector2(260, 207);
         terrainScrollContainer.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
 
         terrainButtonContainer = new VBoxContainer();
         terrainButtonContainer.AddThemeConstantOverride("separation", 4);
         terrainButtonContainer.Size = new Vector2(260, 0);
 
-        foreach (var terrainType in availableTerrainTypes)
-        {
-            var btn = CreateTerrainButton(terrainType);
-            terrainButtonContainer.AddChild(btn);
-        }
+        CreateTerrainButtons();
 
         terrainScrollContainer.AddChild(terrainButtonContainer);
         terrainMenuPanel.AddChild(terrainScrollContainer);
@@ -178,7 +206,13 @@ private void OpenTerrainMenu(Grids grid)
 {
     CloseSelectionMenu();
     selectedGrid = grid;
-    
+
+    // ✅ CoW 风格条回显 + 重置方向选择器并重建分组列表
+    SyncCowStyleOptions();
+    dirAutoMode = true;
+    manualDirMask = 0;
+    expandedTerrainGroup = null;
+    CreateTerrainButtons();
 
     terrainTitleLabel.Text = $"{TranslateGroup.T("选择地形类型")} ({TranslateGroup.T("当前")}: {GetTerrainDisplayName(grid.gridType)})";
     LoadCustomDamageValues(grid);
@@ -229,6 +263,211 @@ private void CloseTerrainMenu()
             }
         }
         return _terrainMenuIconCache.TryGetValue(type, out var tex) ? tex : null;
+    }
+
+    // ========== ✅ CoW 风格选择 + 分组地形列表 ==========
+    private OptionButton cowBiomeOption;
+    private OptionButton cowStyleOption;
+    private readonly Dictionary<string, List<GridType>> terrainGroups = new();
+    private readonly List<string> terrainGroupOrder = new();
+    private string expandedTerrainGroup = null;
+    private int manualDirMask = 0;          // 手动方向掩码(仅方向型地形)
+    private bool dirAutoMode = true;
+    private Label dirHintLabel = null;
+    private readonly Dictionary<int, Button> dirToggleBtns = new();
+    private readonly Dictionary<GridType, Button> terrainButtonMap = new();
+
+    private void OnCowBiomeSelected(long index)
+    {
+        TerrainStyleManager.CurrentBiome = (TerrainStyleManager.Biome)(int)index;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm != null) gm.terrainBiome = TerrainStyleManager.CurrentBiome;
+        RefreshMapCowTerrains();
+    }
+
+    private void OnCowStyleSelected(long index)
+    {
+        TerrainStyleManager.CurrentStyle = (TerrainStyleManager.Style)(int)index;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm != null) gm.terrainStyle = TerrainStyleManager.CurrentStyle;
+        RefreshMapCowTerrains();
+    }
+
+    /// <summary>风格切换后刷新全图 CoW 地形(材质按调色板缓存, 重取即可)</summary>
+    private void RefreshMapCowTerrains()
+    {
+        if (gridManager?.map == null) return;
+        foreach (var g in gridManager.map)
+            g?.UpdateCowTerrainIcon();
+    }
+
+    /// <summary>把管理器状态回显到两个下拉框</summary>
+    private void SyncCowStyleOptions()
+    {
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm != null) TerrainStyleManager.ApplyFromGameManager(gm);
+        if (cowBiomeOption != null) cowBiomeOption.Selected = (int)TerrainStyleManager.CurrentBiome;
+        if (cowStyleOption != null) cowStyleOption.Selected = (int)TerrainStyleManager.CurrentStyle;
+    }
+
+    /// <summary>按 CoW 目录把地形分组成"一个地形名"; 未映射的各自单列</summary>
+    private void BuildTerrainGroups()
+    {
+        terrainGroups.Clear();
+        terrainGroupOrder.Clear();
+        foreach (var t in availableTerrainTypes)
+        {
+            string key = TerrainStyleManager.TryGetCowMapping(t, out string dir, out _)
+                ? $"cow:{dir}"
+                : $"other:{t}";
+            if (!terrainGroups.ContainsKey(key))
+            {
+                terrainGroups[key] = new List<GridType>();
+                terrainGroupOrder.Add(key);
+            }
+            terrainGroups[key].Add(t);
+        }
+    }
+
+    private string GetTerrainGroupLabel(string key, List<GridType> types)
+    {
+        if (key.StartsWith("other:"))
+        {
+            return GetTerrainDisplayName(types[0]);
+        }
+        string dir = key.Substring(4);
+        string cn = dir switch
+        {
+            "plains" => "平原", "forest" => "森林", "mountain" => "山脉", "sea" => "海洋",
+            "street" => "道路", "river" => "河流", "beach" => "海滩", "wasteland" => "荒地",
+            "ruins" => "废墟", "reaf" => "珊瑚礁", "teleporttile" => "传送点", "pipeline" => "管道",
+            "bridge" => "桥梁", "plasma" => "等离子", "meteor" => "陨石", "creeper" => "蔓藤",
+            "wall" => "墙体", "fog" => "雾", "desert" => "沙漠", "desert_forest" => "沙漠森林",
+            "desert_path" => "沙漠道路", "desert_pipeline" => "沙漠管道", "desert_try_river" => "干涸河",
+            "snow" => "雪原", "snow_forest" => "雪原森林", "snow_street" => "雪原道路",
+            "snow_Pipeline" => "雪原管道", "waste" => "废土", "waste_forest" => "废土森林",
+            "waste_path" => "废土道路", "waste_Pipeline" => "废土管道",
+            _ => dir,
+        };
+        return TranslateGroup.T(cn);
+    }
+
+    private void CreateTerrainButtons()
+    {
+        foreach (var child in terrainButtonContainer.GetChildren())
+            child.QueueFree();
+        terrainButtonMap.Clear();
+
+        BuildTerrainGroups();
+        var currentTerrain = selectedGrid?.gridType ?? GridType.GROUND;
+        if (expandedTerrainGroup == null)
+        {
+            foreach (var key in terrainGroupOrder)
+                if (terrainGroups[key].Contains(currentTerrain)) { expandedTerrainGroup = key; break; }
+            expandedTerrainGroup ??= terrainGroupOrder.Count > 0 ? terrainGroupOrder[0] : null;
+        }
+
+        foreach (var key in terrainGroupOrder)
+        {
+            var types = terrainGroups[key];
+            bool expanded = key == expandedTerrainGroup;
+            bool containsSelected = types.Contains(currentTerrain);
+
+            var header = new Button();
+            header.Text = $"{(expanded ? "▼" : "▶")} {GetTerrainGroupLabel(key, types)}  ({types.Count})";
+            header.CustomMinimumSize = new Vector2(260, 38);
+            header.AddThemeFontSizeOverride("font_size", 14);
+            header.AddThemeColorOverride("font_color", containsSelected ? Colors.LimeGreen : Colors.Gold);
+            string capturedKey = key;
+            header.Pressed += () =>
+            {
+                expandedTerrainGroup = expandedTerrainGroup == capturedKey ? null : capturedKey;
+                CreateTerrainButtons();
+            };
+            terrainButtonContainer.AddChild(header);
+
+            if (!expanded) continue;
+            foreach (var t in types)
+            {
+                var btn = CreateTerrainButton(t);
+                btn.Text = $"   └ {btn.Text}";
+                terrainButtonContainer.AddChild(btn);
+                terrainButtonMap[t] = btn;
+            }
+            if (types.Contains(currentTerrain) && IsCowDirectional(currentTerrain))
+                CreateDirectionPickerRow();
+        }
+    }
+
+    /// <summary>该地形在 CoW 映射里属于方向型(有 N/E/S/W 变体)</summary>
+    private bool IsCowDirectional(GridType t)
+    {
+        if (!TerrainStyleManager.TryGetCowMapping(t, out string dir, out _)) return false;
+        return dir is "street" or "bridge" or "pipeline" or "plasma" or "wall" or "creeper"
+            or "sea" or "river" or "reaf" or "teleporttile" or "meteor"
+            or "snow_Pipeline" or "waste_Pipeline" or "desert_pipeline"
+            or "snow_street" or "waste_path" or "desert_path";
+    }
+
+    /// <summary>方向变体选择行: 自动/手动四向开关, 手动即时预览到选中格</summary>
+    private void CreateDirectionPickerRow()
+    {
+        dirToggleBtns.Clear();
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", 3);
+        row.CustomMinimumSize = new Vector2(260, 30);
+
+        var autoBtn = new Button();
+        TranslateGroup.SetText(autoBtn, "自动");
+        autoBtn.CustomMinimumSize = new Vector2(52, 28);
+        autoBtn.ToggleMode = true;
+        autoBtn.ButtonPressed = dirAutoMode;
+        autoBtn.Pressed += () =>
+        {
+            dirAutoMode = true;
+            manualDirMask = 0;
+            autoBtn.ButtonPressed = true;
+            foreach (var kv in dirToggleBtns) kv.Value.ButtonPressed = false;
+            ApplyManualDirectionIfAny();
+        };
+        row.AddChild(autoBtn);
+
+        (int bit, string label)[] dirs = { (1, "N"), (2, "E"), (4, "S"), (8, "W") };
+        foreach (var (bit, label) in dirs)
+        {
+            var tb = new Button();
+            tb.Text = label;
+            tb.CustomMinimumSize = new Vector2(44, 28);
+            tb.ToggleMode = true;
+            tb.ButtonPressed = !dirAutoMode && (manualDirMask & bit) != 0;
+            int captured = bit;
+            tb.Pressed += () =>
+            {
+                dirAutoMode = false;
+                if (tb.ButtonPressed) manualDirMask |= captured; else manualDirMask &= ~captured;
+                ApplyManualDirectionIfAny();
+                if (dirHintLabel != null) dirHintLabel.Text = $"{TranslateGroup.T("手动")}= {manualDirMask}";
+            };
+            dirToggleBtns[bit] = tb;
+            row.AddChild(tb);
+        }
+
+        dirHintLabel = new Label();
+        dirHintLabel.AddThemeFontSizeOverride("font_size", 10);
+        dirHintLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.8f, 0.9f));
+        dirHintLabel.Text = dirAutoMode ? TranslateGroup.T("按邻格自动") : $"{TranslateGroup.T("手动")}= {manualDirMask}";
+        row.AddChild(dirHintLabel);
+
+        terrainButtonContainer.AddChild(row);
+    }
+
+    /// <summary>手动模式下把方向掩码写到目标格并即时重绘</summary>
+    private void ApplyManualDirectionIfAny()
+    {
+        if (dirAutoMode || selectedGrid == null) return;
+        selectedGrid.terrainDirection = manualDirMask;
+        selectedGrid.UpdateCowTerrainIcon();
+        selectedGrid.UpdateDirectionVariant();
     }
 
     private Button CreateTerrainButton(GridType terrainType)
@@ -430,7 +669,7 @@ private void CloseTerrainMenu()
 private void OnTerrainSelected(GridType newTerrain)
 {
     if (selectedGrid == null) return;
-    
+
     SaveCustomDamageValues(selectedGrid);
     SaveAmmoFuelValues(selectedGrid);
 
@@ -438,13 +677,18 @@ private void OnTerrainSelected(GridType newTerrain)
     selectedGrid.gridType = newTerrain;
 
     UpdateGridVisual(selectedGrid);
-    
+
+    // ✅ 换地形后方向选择器回到自动, 并重建分组列表(刷新方向行)
+    dirAutoMode = true;
+    manualDirMask = 0;
+    CreateTerrainButtons();
+
     // ✅ 新增：刷新属性编辑器标题
     if (propertyEditorPanel.Visible && currentEditingTarget == selectedGrid)
     {
         propertyEditorTitle.Text = $"{TranslateGroup.T("编辑格子")}: {selectedGrid.GridIndex} ({selectedGrid.gridType})";
     }
-    
+
 
 }
     public void UpdateGridVisual(Grids grid)

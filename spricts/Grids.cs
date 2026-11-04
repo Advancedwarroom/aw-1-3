@@ -903,7 +903,7 @@ public partial class Grids : Node2D
     /// ✅ 多方向地形：根据 terrainDirection 位掩码加载方向变体贴图。
     /// 支持 PIPE / ROAD / BRIDGE；其它地形不显示变体。
     /// </summary>
-    private void UpdateDirectionVariant()
+    public void UpdateDirectionVariant()
     {
         string texPath = GetDirectionVariantPath();
         if (texPath == null)
