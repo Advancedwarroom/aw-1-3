@@ -192,11 +192,12 @@ public partial class GridManager
         ClearPathPreview();
     }
 
-    // 清除轨迹预览（紫色格 + 黄色线），恢复移动范围基础颜色
+    // 清除轨迹预览（紫色格 + 黄色线 + 方向箭头），恢复移动范围基础颜色
     public void ClearPathPreview()
     {
         previewPath.Clear();
         pathLine?.ClearPoints();
+        ClearMoveArrows();   // ✅ CoW 方向箭头同步清除
         ResetMoveRangeIconColors();
     }
 
@@ -228,6 +229,8 @@ public partial class GridManager
         int count = pointCount < 0 ? previewPath.Count : Mathf.Min(pointCount, previewPath.Count);
         for (int i = 0; i < count; i++)
             pathLine.AddPoint(previewPath[i].Position + new Godot.Vector2(16, 16));
+        pathLine.Visible = !moveArrowsReplaceLine;   // ✅ CoW 箭头模式下可隐藏黄线
+        UpdateMoveArrows(pointCount);                // ✅ CoW 式路径方向箭头
     }
 
     public List<Grids> FindRange(Grids grid, int distance, bool walk = false)
@@ -726,6 +729,7 @@ public void CloseRange()
     // ✅ 清理轨迹预览与触摸状态，恢复格子拾取
     previewPath.Clear();
     pathLine?.ClearPoints();
+    ClearMoveArrows();   // ✅ CoW 方向箭头同步清除
     touchPathActive = false;
     touchHoverGrid = null;
     if (isMobilePlatform)

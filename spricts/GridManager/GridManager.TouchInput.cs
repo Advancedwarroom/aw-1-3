@@ -135,6 +135,8 @@ public partial class GridManager
         if (pathLine != null)
             foreach (var g in path)
                 if (g != null) pathLine.AddPoint(g.Position + new Vector2(20, 20));
+        if (pathLine != null) pathLine.Visible = !moveArrowsReplaceLine;   // ✅ CoW 箭头模式下可隐藏黄线
+        UpdateMoveArrows();   // ✅ CoW 式路径方向箭头（手画路径同步）
         for (int i = 0; i < path.Count; i++)
         {
             var g = path[i];

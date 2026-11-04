@@ -19,6 +19,12 @@ public partial class GridManager
             return;
         }
 
+        // ✅ 行走动画播放期间锁定点击（CoW 手感：走完再操作，防连点错位）
+        if (IsWalkAnimPlaying)
+        {
+            return;
+        }
+
         // ✅ 究极自由：检查任何可搭载单位
         var transport = to.infantries.FirstOrDefault(u => 
             u.canTransportUnits 
@@ -322,8 +328,6 @@ public partial class GridManager
         if (infantry.consumeFuel)
             infantry.ConsumeFuel(totalFuelCost);
 
-        infantry.Position = to.Position;
-
         var fromGrid = infantry.grid;
         if (fromGrid != null)
         {
@@ -351,18 +355,21 @@ public partial class GridManager
         CloseRange();
         HideAttackRange();
 
-   var transport = to.infantries.FirstOrDefault(u => 
-        u.canTransportUnits 
-        && u.maxTransportCapacity > 0 
-        && u.team == infantry.team 
+        // ✅ 移动后结算（运输/合流/行动菜单）：行走动画播完才执行（CoW 手感）
+        void PostMoveActions()
+        {
+       var transport = to.infantries.FirstOrDefault(u =>
+        u.canTransportUnits
+        && u.maxTransportCapacity > 0
+        && u.team == infantry.team
         && u != infantry) as Infantry;
     // ✅ P-1 公共运输单位可以搭载任何势力
     if (transport == null)
     {
-        transport = to.infantries.FirstOrDefault(u => 
-            u.canTransportUnits 
-            && u.maxTransportCapacity > 0 
-            && u.team == TeamHelper.Player 
+        transport = to.infantries.FirstOrDefault(u =>
+            u.canTransportUnits
+            && u.maxTransportCapacity > 0
+            && u.team == TeamHelper.Player
             && u != infantry) as Infantry;
     }
     bool hasMountedToTransport = false;
@@ -408,6 +415,19 @@ public partial class GridManager
         infantry.originalGrid = null;
         gm?.ClearSelectedInfantry();
     }
+        }
+
+        // ✅ CoW 式行走动画：沿路径逐格走完再结算（enableWalkAnim 关闭=旧瞬移行为）
+        if (enableWalkAnim && path.Count > 1)
+        {
+            infantry.Position = path[0].Position;
+            StartWalkAlongPath(infantry, path, PostMoveActions);
+        }
+        else
+        {
+            infantry.Position = to.Position;
+            PostMoveActions();
+        }
     }
 
     // ========== ✅ 新增：移动截断辅助方法 ==========
