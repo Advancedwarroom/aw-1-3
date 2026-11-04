@@ -25,7 +25,7 @@ public static class FacilityDatabase
         ["Radar"] = "res://Prefabs/Radar.tscn",
         // ✅ 通信塔：占领后给己方单位加成/减成
         ["ComTower"] = "res://Prefabs/ComTower.tscn",
-        // ✅ 秘密实验室：占领后解锁单位生产白名单
+        // ✅ 实验室：占领后解锁单位生产白名单
         ["Lab"] = "res://Prefabs/Lab.tscn",
     };
 

@@ -1,4 +1,4 @@
-// Lab.cs - 秘密实验室（Research Laboratory）
+// Lab.cs - 实验室（Research Laboratory）
 // 原作AW2：占领解锁新型坦克(Neotank)科技。
 // 本作规格（实验室模块）：
 //   1. Export 是否开启

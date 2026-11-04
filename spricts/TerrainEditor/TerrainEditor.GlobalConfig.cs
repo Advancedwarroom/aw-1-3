@@ -255,7 +255,7 @@ private readonly List<UnitTemplate> facilityTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("🏳️ 大本营 HQ"), ScenePath = "res://Prefabs/HQ.tscn",
         Category = TranslateGroup.T("设施"), Team = "Player0", DisplayColor = new Color(0.9f, 0.75f, 0.2f),
         Description = TranslateGroup.T("总部（Headquarters）：占领敌方HQ即获胜；被占领时原归属队伍直接判负（GameManager.Victory 处理）；Export 可配置改变team则Lose") },
-    new UnitTemplate { DisplayName = TranslateGroup.T("🔬 秘密实验室 Lab"), ScenePath = "res://Prefabs/Lab.tscn",
+    new UnitTemplate { DisplayName = TranslateGroup.T("🔬 实验室 Lab"), ScenePath = "res://Prefabs/Lab.tscn",
         Category = TranslateGroup.T("设施"), Team = "Player0", DisplayColor = new Color(0.7f, 0.7f, 0.8f),
         Description = TranslateGroup.T("AW2原作：占领解锁新型坦克(Neotank)科技；实验室模块Export：是否开启/占领n个后新增或减少全局白名单（1个后、2个后…无数种组合）") },
     new UnitTemplate { DisplayName = TranslateGroup.T("📡 雷达 Radar"), ScenePath = "res://Prefabs/Radar.tscn",
