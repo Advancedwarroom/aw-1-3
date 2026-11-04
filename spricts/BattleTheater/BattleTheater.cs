@@ -202,7 +202,7 @@ public static class BattleAnimCatalog
         sf.RemoveAnimation("default");
         sf.AddAnimation("play");
         sf.SetAnimationSpeed("play", fps);
-        sf.SetAnimationLoop("play", loop);
+        sf.SetAnimationLoopMode("play", loop ? SpriteFrames.LoopMode.Enabled : SpriteFrames.LoopMode.Disabled);
         for (int i = 0; i < cols; i++)
         {
             var at = new AtlasTexture { Atlas = tex, Region = new Rect2(i * fw, 0, fw, fh) };
@@ -242,7 +242,7 @@ public static class BattleAnimCatalog
         int fh = tex.GetHeight();
         if (!sf.HasAnimation(anim)) sf.AddAnimation(anim);
         sf.SetAnimationSpeed(anim, fps);
-        sf.SetAnimationLoop(anim, loop);
+        sf.SetAnimationLoopMode(anim, loop ? SpriteFrames.LoopMode.Enabled : SpriteFrames.LoopMode.Disabled);
         for (int i = 0; i < cols; i++)
             sf.AddFrame(anim, new AtlasTexture { Atlas = tex, Region = new Rect2(i * fw, 0, fw, fh) });
     }
@@ -509,7 +509,7 @@ public partial class BattleTheater : CanvasLayer
         d.Root.Position = d.BasePos + new Vector2(vp.X * 0.35f, 0);
         PlayMoveAnim(a); PlayMoveAnim(d);
         var tw = CreateTween().SetParallel();
-        float dur = _ff ? 0.03f : 0.45 / _speed;
+        float dur = _ff ? 0.03f : 0.45f / _speed;
         tw.TweenProperty(a.Root, "position", a.BasePos, dur).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
         tw.TweenProperty(d.Root, "position", d.BasePos, dur).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
         await ToSignal(tw, Tween.SignalName.Finished);
