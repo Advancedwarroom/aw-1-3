@@ -179,6 +179,7 @@ private void ToggleDestroyMode()
         spawnHintLabel.AddThemeColorOverride("font_color", new Color(1f, 0.3f, 0.3f));
         currentSpawnMode = SpawnMode.None;
         selectedTemplatePath = "";
+        DestroySpawnGhost();   // ✅ 进入销毁模式即取消选择，销毁幽灵预览
         if (directionSelector != null) directionSelector.Visible = false;
         UpdateModeButtonStyles();
     }
@@ -324,6 +325,7 @@ private void RefreshSpawnButtons()
 
     selectedTemplatePath = "";
     selectedTemplateCategory = "";
+    DestroySpawnGhost();   // ✅ 刷新列表即清空选择，销毁幽灵预览
     if (directionSelector != null) directionSelector.Visible = false;
 
     if (currentSpawnMode == SpawnMode.None) return;
@@ -400,10 +402,32 @@ private Button CreateTemplateButton(UnitTemplate template)
     btn.AddThemeStyleboxOverride("hover", hoverStyle);
 
     var pressedStyle = new StyleBoxFlat();
-    pressedStyle.BgColor = new Color(template.DisplayColor.R * 0.7f, template.DisplayColor.G * 0.7f, 
+    pressedStyle.BgColor = new Color(template.DisplayColor.R * 0.7f, template.DisplayColor.G * 0.7f,
         template.DisplayColor.B * 0.7f, 1.0f);
     pressedStyle.SetCornerRadiusAll(8);
     btn.AddThemeStyleboxOverride("pressed", pressedStyle);
+
+    // ✅ 模板图标：实例化场景取 AnimatedSprite2D/Sprite2D 首帧（带静态缓存），取不到则不加图标保持纯文字
+    var iconInfo = GetSceneIconInfo(template.ScenePath);
+    if (iconInfo?.Texture != null)
+    {
+        var iconRect = new TextureRect();
+        iconRect.Name = "TemplateIcon";
+        iconRect.Texture = iconInfo.Texture;
+        iconRect.Position = new Vector2(5, (50 - templateIconSize) / 2f);
+        iconRect.Size = new Vector2(templateIconSize, templateIconSize);
+        iconRect.CustomMinimumSize = new Vector2(templateIconSize, templateIconSize);
+        iconRect.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+        iconRect.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+        iconRect.MouseFilter = MouseFilterEnum.Ignore;
+        btn.AddChild(iconRect);
+
+        // ✅ 文字右移避开图标（保留 emoji 文字，图标是"加"不是"换"）
+        float textMargin = 5 + templateIconSize + 6;
+        normalStyle.ContentMarginLeft = textMargin;
+        hoverStyle.ContentMarginLeft = textMargin;
+        pressedStyle.ContentMarginLeft = textMargin;
+    }
 
     // ✅ 可滚动的势力选择区
     var teamScroll = new ScrollContainer();
@@ -465,6 +489,8 @@ private Button CreateTemplateButton(UnitTemplate template)
                 ResetTemplateButtonStyle(b);
         }
         HighlightTemplateButton(btn, template.DisplayColor);
+
+        ShowSpawnGhost(template.ScenePath);   // ✅ 选中模板后显示光标幽灵预览
     };
 
     return btn;
@@ -484,6 +510,11 @@ private void UpdateTemplateTeamIndicator(Button btn, string team)
     }
     teamLabel.Text = TeamHelper.GetTeamShortName(team);
     teamLabel.AddThemeColorOverride("font_color", TeamHelper.GetTeamColor(team));
+
+    // ✅ 队伍染色：图标随队伍提亮变色（未换队伍时保持默认白）
+    var iconRect = btn.GetNodeOrNull<TextureRect>("TemplateIcon");
+    if (iconRect != null)
+        iconRect.Modulate = TeamHelper.GetTeamColor(team).Lightened(teamIconTintLighten);
 }
 
 private void ResetTemplateButtonStyle(Button btn)
@@ -491,6 +522,9 @@ private void ResetTemplateButtonStyle(Button btn)
     var style = new StyleBoxFlat();
     style.BgColor = new Color(0.25f, 0.25f, 0.3f, 0.6f);
     style.SetCornerRadiusAll(8);
+    // ✅ 有图标的按钮保持文字右移，避免选中态切换时文字压图标
+    if (btn.GetNodeOrNull<TextureRect>("TemplateIcon") != null)
+        style.ContentMarginLeft = 5 + templateIconSize + 6;
     btn.AddThemeStyleboxOverride("normal", style);
 }
 
@@ -501,6 +535,9 @@ private void HighlightTemplateButton(Button btn, Color color)
     style.SetCornerRadiusAll(8);
     style.SetBorderWidthAll(2);
     style.BorderColor = Colors.Yellow;
+    // ✅ 有图标的按钮保持文字右移
+    if (btn.GetNodeOrNull<TextureRect>("TemplateIcon") != null)
+        style.ContentMarginLeft = 5 + templateIconSize + 6;
     btn.AddThemeStyleboxOverride("normal", style);
 }
 // ========== 菜单控制 ==========
@@ -512,6 +549,7 @@ private void OpenSpawnMenu()
     currentSpawnMode = SpawnMode.None;
     isDestroyMode = false;
     selectedTemplatePath = "";
+    DestroySpawnGhost();   // ✅ 打开菜单重置选择，销毁幽灵预览
     UpdateModeButtonStyles();
 
     foreach (var child in spawnButtonContainer.GetChildren())
@@ -526,6 +564,7 @@ private void CloseSpawnMenu()
     currentSpawnMode = SpawnMode.None;
     isDestroyMode = false;
     selectedTemplatePath = "";
+    DestroySpawnGhost();   // ✅ 关闭菜单（含ESC）时销毁幽灵预览
     if (directionSelector != null) directionSelector.Visible = false;
     isMenuOpen = false;
 }
@@ -716,4 +755,197 @@ private void CloseSpawnMenu()
 
         return true;
     }
+
+// ========== ✅ 场景图标提取（生成菜单/幽灵预览共用，带静态缓存） ==========
+private class SceneIconInfo
+{
+    public Texture2D Texture;
+    public Vector2 Scale = Vector2.One;
+}
+private static readonly Dictionary<string, SceneIconInfo> _sceneIconCache = new();
+
+// ✅ 取场景首帧贴图：实例化一次取 AnimatedSprite2D/Sprite2D 首帧后立即释放；结果（含失败null）进缓存避免重复实例化
+private SceneIconInfo GetSceneIconInfo(string scenePath)
+{
+    if (string.IsNullOrEmpty(scenePath)) return null;
+    if (_sceneIconCache.TryGetValue(scenePath, out var cached)) return cached;
+
+    SceneIconInfo info = null;
+    var scene = GD.Load<PackedScene>(scenePath);
+    if (scene != null)
+    {
+        Node inst = null;
+        try
+        {
+            inst = scene.Instantiate();   // ✅ 不入树，_Ready 不会执行，只读场景自带视觉
+            info = ExtractIconFromInstance(inst);
+        }
+        catch (Exception) { info = null; }
+        inst?.QueueFree();   // ✅ 取完立即释放临时实例
+    }
+    _sceneIconCache[scenePath] = info;
+    return info;
+}
+
+// ✅ 优先 AnimatedSprite2D（"AnimatedSprite2D"/"Base2D"）默认动画第0帧；否则第一个非空贴图的 Sprite2D
+private SceneIconInfo ExtractIconFromInstance(Node inst)
+{
+    if (inst == null) return null;
+
+    var anim = inst.GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D")
+        ?? inst.GetNodeOrNull<AnimatedSprite2D>("Base2D")
+        ?? FindFirstAnimSprite(inst);
+    if (anim != null)
+    {
+        var tex = GetAnimFirstFrame(anim);
+        if (tex != null) return new SceneIconInfo { Texture = tex, Scale = anim.Scale };
+    }
+
+    var sprite = inst.GetNodeOrNull<Sprite2D>("Sprite2D");
+    if (sprite?.Texture == null) sprite = inst.GetNodeOrNull<Sprite2D>("BaseSprite");
+    if (sprite?.Texture == null) sprite = FindFirstTexturedSprite(inst);
+    if (sprite?.Texture != null)
+        return new SceneIconInfo { Texture = sprite.Texture, Scale = sprite.Scale };
+    return null;
+}
+
+// ✅ 取 AnimatedSprite2D 当前/默认/首个动画的第 0 帧
+private Texture2D GetAnimFirstFrame(AnimatedSprite2D anim)
+{
+    var frames = anim?.SpriteFrames;
+    if (frames == null) return null;
+    StringName animName = anim.Animation;
+    if (frames.HasAnimation(animName) && frames.GetFrameCount(animName) > 0)
+        return frames.GetFrameTexture(animName, 0);
+    if (frames.HasAnimation("default") && frames.GetFrameCount("default") > 0)
+        return frames.GetFrameTexture("default", 0);
+    var names = frames.GetAnimationNames();
+    if (names.Length > 0 && frames.GetFrameCount(names[0]) > 0)
+        return frames.GetFrameTexture(names[0], 0);
+    return null;
+}
+
+private AnimatedSprite2D FindFirstAnimSprite(Node node)
+{
+    foreach (var child in node.GetChildren())
+    {
+        if (child is AnimatedSprite2D a) return a;
+        var found = FindFirstAnimSprite(child);
+        if (found != null) return found;
+    }
+    return null;
+}
+
+private Sprite2D FindFirstTexturedSprite(Node node)
+{
+    foreach (var child in node.GetChildren())
+    {
+        if (child is Sprite2D s && s.Texture != null) return s;
+        var found = FindFirstTexturedSprite(child);
+        if (found != null) return found;
+    }
+    return null;
+}
+
+// ========== ✅ 光标幽灵预览（选中模板后跟随鼠标、吸附最近格子） ==========
+private Sprite2D spawnGhost = null;
+
+// ✅ 幽灵加在 GridsNode（世界坐标系）下，避免加在 UI 层导致坐标错乱
+private void ShowSpawnGhost(string scenePath)
+{
+    DestroySpawnGhost();
+    if (!enableGhostPreview || string.IsNullOrEmpty(scenePath)) return;
+    var info = GetSceneIconInfo(scenePath);
+    if (info?.Texture == null) return;
+    if (gridManager?.GridsNode == null) return;
+
+    spawnGhost = new Sprite2D();
+    spawnGhost.Name = "SpawnGhostPreview";
+    spawnGhost.Texture = info.Texture;
+    spawnGhost.Scale = info.Scale;
+    spawnGhost.Centered = true;
+    spawnGhost.ZIndex = 500;
+    spawnGhost.Modulate = new Color(1f, 1f, 1f, ghostPreviewAlpha);
+    gridManager.GridsNode.AddChild(spawnGhost);
+    UpdateSpawnGhostPosition();
+}
+
+private void DestroySpawnGhost()
+{
+    if (spawnGhost != null && IsInstanceValid(spawnGhost))
+        spawnGhost.QueueFree();
+    spawnGhost = null;
+}
+
+// ✅ 每帧由 _Process 调用：视口鼠标坐标→世界坐标→吸附最近格子（与批量地形同一套坐标换算）
+private void UpdateSpawnGhostPosition()
+{
+    if (spawnGhost == null || !IsInstanceValid(spawnGhost)) { spawnGhost = null; return; }
+    if (gridManager?.map == null) { spawnGhost.Visible = false; return; }
+
+    Vector2 viewportPos = GetViewport().GetMousePosition();
+    Transform2D canvasTransform = GetViewport().GetCanvasTransform();
+    Vector2 worldPos = canvasTransform.AffineInverse() * viewportPos;
+
+    int x = Mathf.FloorToInt((worldPos.X - gridManager.startPos.X) / gridManager.gridSize.X);
+    int y = Mathf.FloorToInt((worldPos.Y - gridManager.startPos.Y) / gridManager.gridSize.Y);
+
+    if (x >= 0 && x < gridManager.map.GetLength(0) && y >= 0 && y < gridManager.map.GetLength(1))
+    {
+        var grid = gridManager.map[x, y];
+        if (grid != null)
+        {
+            // ✅ 与真实放置逻辑一致（unit.Position = grid.Position），幽灵是 GridsNode 子节点故用局部坐标
+            spawnGhost.Position = grid.Position;
+            spawnGhost.Visible = true;
+            return;
+        }
+    }
+    spawnGhost.Visible = false;   // ✅ 鼠标在地图外时隐藏
+}
+
+// ========== ✅ 选择/销毁菜单对象图标 ==========
+// ✅ 给按钮文字前加对象实际 sprite 首帧小图标（对象是地图上的活体实例，直接读其视觉节点）
+private void AddLiveObjectIcon(Button btn, object target)
+{
+    if (btn == null || target == null) return;
+    Texture2D tex = null;
+
+    if (target is Infantry unit)
+    {
+        tex = GetAnimFirstFrame(unit.animSprite);
+        if (tex == null && unit.sprite?.Texture != null) tex = unit.sprite.Texture;
+        if (tex == null) tex = FindFirstTexturedSprite(unit)?.Texture;
+    }
+    else if (target is Weapon weapon)
+    {
+        tex = GetAnimFirstFrame(weapon.animSprite);
+        if (tex == null) tex = weapon.GetNodeOrNull<Sprite2D>("Sprite2D")?.Texture;
+        if (tex == null) tex = FindFirstTexturedSprite(weapon)?.Texture;
+    }
+    else if (target is Facility facility)
+    {
+        tex = GetAnimFirstFrame(facility.animSprite);
+        if (tex == null) tex = facility.GetNodeOrNull<Sprite2D>("Sprite2D")?.Texture;
+        if (tex == null) tex = FindFirstTexturedSprite(facility)?.Texture;
+    }
+    if (tex == null) return;   // ✅ 取不到就保持纯文字现状，不留占位图
+
+    var icon = new TextureRect();
+    icon.Name = "ObjectIcon";
+    icon.Texture = tex;
+    icon.Position = new Vector2(4, (45 - selectionIconSize) / 2f);   // ✅ 选择按钮高45（CreateSelectionButton）
+    icon.Size = new Vector2(selectionIconSize, selectionIconSize);
+    icon.CustomMinimumSize = new Vector2(selectionIconSize, selectionIconSize);
+    icon.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+    icon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+    icon.MouseFilter = MouseFilterEnum.Ignore;
+    btn.AddChild(icon);
+
+    // ✅ 文字右移避开图标（只改本按钮自己的 StyleBox 实例，不影响其他按钮）
+    float margin = 4 + selectionIconSize + 6;
+    if (btn.GetThemeStylebox("normal") is StyleBoxFlat normalSb) normalSb.ContentMarginLeft = margin;
+    if (btn.GetThemeStylebox("hover") is StyleBoxFlat hoverSb) hoverSb.ContentMarginLeft = margin;
+    if (btn.GetThemeStylebox("pressed") is StyleBoxFlat pressedSb) pressedSb.ContentMarginLeft = margin;
+}
 }

@@ -208,6 +208,29 @@ private void CloseTerrainMenu()
     selectedGrid = null;
 }
 
+    // ✅ 地形图标缓存：惰性从 grid.tscn 实例化一个格子读取现成的 GridType→贴图映射，读完即释放
+    private static Dictionary<GridType, Texture2D> _terrainMenuIconCache = null;
+
+    private Texture2D GetTerrainIconTexture(GridType type)
+    {
+        if (_terrainMenuIconCache == null)
+        {
+            _terrainMenuIconCache = new Dictionary<GridType, Texture2D>();
+            var gridScene = GD.Load<PackedScene>("res://Prefabs/grid.tscn");
+            if (gridScene != null)
+            {
+                var probe = gridScene.Instantiate<Grids>();   // ✅ 不入树，_Ready 不会执行，只读导出映射
+                if (probe != null)
+                {
+                    foreach (var kvp in probe.terrainIconTextures)
+                        _terrainMenuIconCache[kvp.Key] = kvp.Value;
+                    probe.QueueFree();   // ✅ 取完立即释放临时格子
+                }
+            }
+        }
+        return _terrainMenuIconCache.TryGetValue(type, out var tex) ? tex : null;
+    }
+
     private Button CreateTerrainButton(GridType terrainType)
     {
         var btn = new Button();
@@ -239,6 +262,28 @@ private void CloseTerrainMenu()
         colorRect.CustomMinimumSize = new Vector2(6, 28);
         colorRect.Position = new Vector2(4, 4);
         btn.AddChild(colorRect);
+
+        // ✅ 地形贴图预览图标：复用 grid.tscn 的 terrainIconTextures 映射（与地图实际显示一致），取不到则保持纯文字
+        var terrainTex = GetTerrainIconTexture(terrainType);
+        if (terrainTex != null)
+        {
+            var iconRect = new TextureRect();
+            iconRect.Name = "TerrainIcon";
+            iconRect.Texture = terrainTex;
+            iconRect.Position = new Vector2(14, (36 - terrainIconPreviewSize) / 2f);
+            iconRect.Size = new Vector2(terrainIconPreviewSize, terrainIconPreviewSize);
+            iconRect.CustomMinimumSize = new Vector2(terrainIconPreviewSize, terrainIconPreviewSize);
+            iconRect.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+            iconRect.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+            iconRect.MouseFilter = MouseFilterEnum.Ignore;
+            btn.AddChild(iconRect);
+
+            // ✅ 文字右移避开图标（保留 emoji 文字，图标是"加"不是"换"）
+            float textMargin = 14 + terrainIconPreviewSize + 6;
+            normalStyle.ContentMarginLeft = textMargin;
+            hoverStyle.ContentMarginLeft = textMargin;
+            pressedStyle.ContentMarginLeft = textMargin;
+        }
 
         btn.AddThemeFontSizeOverride("font_size", 13);
         btn.AddThemeColorOverride("font_color", Colors.White);

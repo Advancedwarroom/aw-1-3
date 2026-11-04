@@ -14,6 +14,15 @@ public partial class TerrainEditor : Control
     [Export] public GridManager gridManager;
     [Export] public CustomConfigUI customConfigUI; // ✅ Extra配置界面
 
+    // ========== ✅ 编辑器图标预览（生成菜单/地形菜单/选择菜单/幽灵光标） ==========
+    [ExportGroup("编辑器图标预览")]
+    [Export] public float templateIconSize = 40f;       // ✅ 生成菜单模板图标边长（像素）
+    [Export] public float terrainIconPreviewSize = 32f; // ✅ 地形菜单图标边长（像素）
+    [Export] public float selectionIconSize = 32f;      // ✅ 选择/销毁菜单对象图标边长（像素）
+    [Export] public bool enableGhostPreview = true;     // ✅ 是否启用光标幽灵预览
+    [Export] public float ghostPreviewAlpha = 0.6f;     // ✅ 幽灵预览透明度（0~1）
+    [Export] public float teamIconTintLighten = 0.3f;   // ✅ 队伍图标染色提亮幅度
+
     // ========== UI 组件 ==========
     private Button modeToggleButton;
 
@@ -466,6 +475,7 @@ private void DeferredCheckVictoryOnExitEdit()
         currentSpawnMode = SpawnMode.None;
         isDestroyMode = false;
         selectedTemplatePath = "";
+        DestroySpawnGhost();   // ✅ 关闭所有菜单时销毁幽灵预览
     }
 
     public bool ShouldBlockUnitOperations()
@@ -540,6 +550,10 @@ private void DeferredCheckVictoryOnExitEdit()
                 }
             }
         }
+
+        // ✅ 光标幽灵预览：跟随鼠标并吸附最近格子
+        if (spawnGhost != null)
+            UpdateSpawnGhostPosition();
     }
 
 
