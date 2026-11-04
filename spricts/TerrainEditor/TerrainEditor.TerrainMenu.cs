@@ -279,10 +279,10 @@ private void CloseTerrainMenu()
 
     private void OnCowBiomeSelected(long index)
     {
+        // ✅ 画笔语义: 只影响之后放置的地形, 不动已放好的地块(对齐 CoW 预备栏)
         TerrainStyleManager.CurrentBiome = (TerrainStyleManager.Biome)(int)index;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm != null) gm.terrainBiome = TerrainStyleManager.CurrentBiome;
-        RefreshMapCowTerrains();
     }
 
     private void OnCowStyleSelected(long index)
@@ -290,15 +290,6 @@ private void CloseTerrainMenu()
         TerrainStyleManager.CurrentStyle = (TerrainStyleManager.Style)(int)index;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm != null) gm.terrainStyle = TerrainStyleManager.CurrentStyle;
-        RefreshMapCowTerrains();
-    }
-
-    /// <summary>风格切换后刷新全图 CoW 地形(材质按调色板缓存, 重取即可)</summary>
-    private void RefreshMapCowTerrains()
-    {
-        if (gridManager?.map == null) return;
-        foreach (var g in gridManager.map)
-            g?.UpdateCowTerrainIcon();
     }
 
     /// <summary>把管理器状态回显到两个下拉框</summary>
@@ -675,6 +666,10 @@ private void OnTerrainSelected(GridType newTerrain)
 
     GridType oldTerrain = selectedGrid.gridType;
     selectedGrid.gridType = newTerrain;
+
+    // ✅ 放置即烘焙当前画笔风格, 之后切换风格不影响本地块
+    selectedGrid.cowBakedBiome = (int)TerrainStyleManager.CurrentBiome;
+    selectedGrid.cowBakedStyle = (int)TerrainStyleManager.CurrentStyle;
 
     UpdateGridVisual(selectedGrid);
 

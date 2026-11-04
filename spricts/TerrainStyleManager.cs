@@ -75,6 +75,14 @@ public static class TerrainStyleManager
     /// <summary>普通地形用的当前全局材质</summary>
     public static ShaderMaterial CurrentMaterial => GetMaterial(_biome, _style);
 
+    /// <summary>按 GridType 取材质: 气候专属地形(沙漠/雪/废土系)强制固定气候调色板, 其余用传入的气候/风格</summary>
+    public static ShaderMaterial GetMaterialFor(GridType type, Biome biome, Style style)
+    {
+        if (_cowMap.TryGetValue(type, out var m) && m.fixedBiome.HasValue)
+            biome = m.fixedBiome.Value;
+        return GetMaterial(biome, style);
+    }
+
     /// <summary>从 GameManager 的 [Export] 配置同步静态状态(gm=null 时保持现状)</summary>
     public static void ApplyFromGameManager(GameManager gm)
     {

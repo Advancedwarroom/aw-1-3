@@ -103,6 +103,14 @@ public partial class Grids : Node2D
     private int _lastTerrainDirection = -1;
     private Sprite2D _directionVariantSprite = null;
 
+    /// <summary>
+    /// ✅ CoW 风格烘焙：放置时冻结本格的气候/风格（-1=未烘焙）。
+    /// 编辑器风格条只是"画笔"，切换后不得改变已放好的地块——首渲染即冻结。
+    /// </summary>
+    [ExportGroup("CoW风格烘焙")]
+    [Export] public int cowBakedBiome = -1;
+    [Export] public int cowBakedStyle = -1;
+
     [Export] public int gridVisionRange = 1;
     [Export] public TowerDirection towerDirection = TowerDirection.Up;
     [Export] public bool towerCanRotate = false;
@@ -166,20 +174,6 @@ public partial class Grids : Node2D
         InitializeTerrainIcons();
         _lastGridType = gridType;
         UpdateTerrainIcon();
-
-        // ✅ CoW 风格切换时重渲染本格
-        TerrainStyleManager.StyleChanged += OnCowTerrainStyleChanged;
-    }
-
-    public override void _ExitTree()
-    {
-        TerrainStyleManager.StyleChanged -= OnCowTerrainStyleChanged;
-        base._ExitTree();
-    }
-
-    private void OnCowTerrainStyleChanged()
-    {
-        if (IsInsideTree()) CallDeferred(nameof(UpdateCowTerrainIcon));
     }
 
     // ✅ 通用悬停回调（移动轨迹预览用，不受攻击模式门控）
@@ -861,15 +855,21 @@ public partial class Grids : Node2D
         bool cowOn = gm == null || gm.enableCowTerrainStyle; // 取不到gm(孤立预览)时默认开
         if (cowOn) TerrainStyleManager.ApplyFromGameManager(gm);
 
-        if (!cowOn || !TerrainStyleManager.TryGetCowMapping(gridType, out _, out var biome))
+        if (!cowOn || !TerrainStyleManager.TryGetCowMapping(gridType, out _, out _))
         {
             if (_cowTerrainSprite != null && IsInstanceValid(_cowTerrainSprite))
                 _cowTerrainSprite.Visible = false;
             return;
         }
 
+        // ✅ 烘焙冻结：已放地块保持放置时的风格；未烘焙(旧地图)用当前画笔并即刻冻结
+        if (cowBakedBiome < 0) cowBakedBiome = (int)TerrainStyleManager.CurrentBiome;
+        if (cowBakedStyle < 0) cowBakedStyle = (int)TerrainStyleManager.CurrentStyle;
+
         string texPath = TerrainStyleManager.ResolveCowTexturePath(gridType, terrainDirection);
-        var mat = TerrainStyleManager.GetMaterial(biome, TerrainStyleManager.CurrentStyle);
+        var mat = TerrainStyleManager.GetMaterialFor(gridType,
+            (TerrainStyleManager.Biome)cowBakedBiome,
+            (TerrainStyleManager.Style)cowBakedStyle);
         var tex = texPath != null ? ResourceLoader.Load<Texture2D>(texPath) : null;
         if (tex == null || mat == null)
         {
