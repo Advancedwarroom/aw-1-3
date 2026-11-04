@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://spricts/BlackObelisk.cs" id="1_obelisk"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/BlackObelisk.tres" id="2_obelisk"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/BlackObeliskGlow.tres" id="3_glow"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_obelisk"]
 size = Vector2(33, 33)
@@ -22,6 +23,12 @@ position = Vector2(48, 52)
 sprite_frames = ExtResource("2_obelisk")
 animation = &"BlackObelisk"
 autoplay = "BlackObelisk"
+
+[node name="GlowSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(48, 52)
+sprite_frames = ExtResource("3_glow")
+animation = &"GlowIdle"
+autoplay = "GlowIdle"
 
 [node name="Area2D" type="Area2D" parent="."]
 

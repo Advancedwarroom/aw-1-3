@@ -395,6 +395,9 @@ public partial class BlackObelisk : BlackCannon
                 if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(brokenAnim))
                     animSprite.Play(brokenAnim);
             }
+            // ✅ 破碎后熄灭符文发光层
+            var glow = GetNodeOrNull<AnimatedSprite2D>("GlowSprite");
+            if (glow != null) glow.Hide();
         }
 
         // 胜利判定检查（黑尖塔常作为过关目标）
