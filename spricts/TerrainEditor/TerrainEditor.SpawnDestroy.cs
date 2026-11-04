@@ -635,6 +635,7 @@ private void ShowDestroySelectionMenu(Grids grid, List<object> targets)
         }
 
         var btn = CreateSelectionButton(displayName, color, onClick);
+        AddLiveObjectIcon(btn, target);   // ✅ 销毁候选按钮文字前加对象实际 sprite 首帧小图标
         selectionButtonContainer.AddChild(btn);
     }
 

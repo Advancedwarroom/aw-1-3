@@ -160,6 +160,7 @@ public partial class ActionMenu
         unit.hasTeleportedThisTurn = true; // 双保险：即使后续改为"传送后可继续行动"，本回合也绝不能第二次传送（不能直接传回）
         unit.OnWaitSelected();             // 内部：isMoved/isAttacked/state=Acted + FreezeToIdleDark 待机灰显 + 清除选中
         gm.gridManager.pathLine?.Hide();
+        gm.gridManager.ClearMoveArrows();   // ✅ CoW 方向箭头同步清除
 
         // 4. 镜头跟随 + 雾/视野刷新
         var cam = GetTree().GetFirstNodeInGroup("main_camera") as Camera2D;

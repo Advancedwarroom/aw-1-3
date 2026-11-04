@@ -95,17 +95,20 @@ public void OnGridClickedForEdit(Grids grid)
         {
             SpawnUnitAtGrid(grid, selectedTemplatePath, unitTemplates.First(t => t.ScenePath == selectedTemplatePath).Team);
             TrySpawnSymmetric(grid, selectedTemplatePath, unitTemplates.First(t => t.ScenePath == selectedTemplatePath).Team, SpawnMode.Unit);
+            DestroySpawnGhost();   // ✅ 实际放置后销毁幽灵预览
         }
         else if (currentSpawnMode == SpawnMode.Weapon)
         {
             // 多格兵器走预览（确认逻辑在最前面统一处理）
             TryPreviewMultiTileWeapon(grid, selectedTemplatePath, weaponTemplates.First(t => t.ScenePath == selectedTemplatePath).Team);
+            DestroySpawnGhost();   // ✅ 进入多格预览/实际放置后销毁幽灵预览（蓝色范围预览接管）
             return;
         }
         else if (currentSpawnMode == SpawnMode.Facility)
         {
             SpawnFacilityAtGrid(grid, selectedTemplatePath, facilityTemplates.First(t => t.ScenePath == selectedTemplatePath).Team);
             TrySpawnSymmetric(grid, selectedTemplatePath, facilityTemplates.First(t => t.ScenePath == selectedTemplatePath).Team, SpawnMode.Facility);
+            DestroySpawnGhost();   // ✅ 实际放置后销毁幽灵预览
         }
         return;
     }
@@ -302,6 +305,8 @@ private void ShowMultiSelectMenu(List<EditTarget> targets)
             default:
                 continue;
         }
+        // ✅ 对象类选项（单位/兵器/设施）在文字前加实际 sprite 首帧小图标；grid/spawn 无对象自动跳过
+        AddLiveObjectIcon(btn, target.TargetObject);
         selectionButtonContainer.AddChild(btn);
     }
 

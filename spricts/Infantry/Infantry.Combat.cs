@@ -325,8 +325,10 @@ public virtual bool ConsumePrimaryAmmo()
 
             // ✅ 修复3：使用攻防表计算伤害（兵器没有对应条目，需要处理）
                         if (!CanTargetWeapon(weapon)) return;   // ✅ 准入拒绝
+            var __theater = BattleTheater.TryCapture(this, weapon);   // 剧场动画：开演前快照（null=未启用）
             int damage = CalculateDamageAgainstWeapon(weapon, selectedWeapon);
             weapon.TakeDamage(damage);
+            __theater?.AddVolley(true, damage, Math.Max(0, weapon.health), BattleAnimCatalog.GetFireClass(this, selectedWeapon, null));
 
             state = UnitState.Acted;
             FreezeToIdleDark();
@@ -335,6 +337,8 @@ public virtual bool ConsumePrimaryAmmo()
             var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
             gm?.gridManager?.HideAttackRange();
             gm?.ClearSelectedInfantry();
+
+            BattleTheater.Play(__theater, this);   // 战斗结算完成后开演
         }
     }
 
@@ -388,6 +392,10 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     WeaponType weapon = SelectWeaponByMatrix(target);
     if (weapon == WeaponType.None) return;
     
+    // ✅ 剧场式战斗动画：战前快照（仅记录表现数据，伤害逻辑零改动）
+    var __theater = BattleTheater.TryCapture(this, target);
+    WeaponType __counterWt = WeaponType.None;
+    
     // 消耗弹药（仅限主武器）
     if (weapon == WeaponType.Primary)
         ConsumePrimaryAmmo();
@@ -413,6 +421,8 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
         WeaponType fsWeapon = target.SelectWeaponByMatrix(this);
         counterDamage = target.CalculateFinalDamage(this, fsWeapon, isCounter: true);
         if (!healthLocked) this.health -= counterDamage; // 力场锁血
+        __counterWt = fsWeapon;
+        __theater?.AddVolley(false, counterDamage, this.health, BattleAnimCatalog.GetFireClass(target, fsWeapon, this));   // ✅ 剧场：先制反击记录
         if (counterDamage > 0)
         {
             // ✅ 模块27：先制反击造成/受到伤害打点
@@ -439,6 +449,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
             this.CallDeferred("queue_free");
             var gmFs = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
             gmFs?.RemovePiece(this);
+            BattleTheater.Play(__theater, this);   // ✅ 剧场：先制反击击杀攻击方
             return;
         }
         canTargetCounter = false;   // 先制反击已结算，后续不再反击
@@ -451,11 +462,13 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     if (canTargetCounter && target.counterUsePreDamageHp)
     {
         WeaponType counterWeapon = target.SelectWeaponByMatrix(this);
+        __counterWt = counterWeapon;
         counterDamage = target.CalculateFinalDamage(this, counterWeapon, isCounter: true);
     }
     
     // 应用伤害
     if (!target.healthLocked) target.health -= attackDamage; // 力场锁血
+    __theater?.AddVolley(true, attackDamage, target.health, BattleAnimCatalog.GetFireClass(this, weapon, target));   // ✅ 剧场：主攻记录
         // ✅ CO 模块系统·模块27（能量条积累）：造成/受到伤害打点
         CoModuleSystem.OnDamageDealt(team, attackDamage);
         CoModuleSystem.OnDamageTaken(target.team, attackDamage);
@@ -467,6 +480,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     if (canTargetCounter && !target.counterUsePreDamageHp)
     {
         WeaponType counterWeapon = target.SelectWeaponByMatrix(this);
+        __counterWt = counterWeapon;
         counterDamage = target.CalculateFinalDamage(this, counterWeapon, isCounter: true);
     }
         if (stealthRevealOnAttack) RevealStealth();   // ✅ 攻击后现形（先于反击结算：现形即暴露给反击）
@@ -474,6 +488,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     if (!healthLocked) this.health -= counterDamage; // 力场锁血
         if (counterDamage > 0)
         {
+            __theater?.AddVolley(false, counterDamage, this.health, BattleAnimCatalog.GetFireClass(target, __counterWt, this));   // ✅ 剧场：反击记录
             // ✅ 模块27：反击造成/受到伤害打点
             CoModuleSystem.OnDamageDealt(target.team, counterDamage);
             CoModuleSystem.OnDamageTaken(team, counterDamage);
@@ -524,11 +539,13 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
         this.CallDeferred("queue_free");
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         gm?.RemovePiece(this);
+        BattleTheater.Play(__theater, this);   // ✅ 剧场：反击同归于尽
         return;
     }
     
     state = UnitState.Acted;
     FreezeToIdleDark();
+    BattleTheater.Play(__theater, this);   // ✅ 剧场：常规收尾播放
 }
 
 
