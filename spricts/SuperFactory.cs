@@ -167,8 +167,10 @@ public partial class SuperFactory : Weapon
 
         // 每方回合开始都重置生产次数？不——原作是每回合（任意势力）开始时工厂重置。
         // 这里按当前行动方重置（工厂属于当前方时才重置，避免中立工厂被刷）
-        string currentTurnTeam = TeamHelper.GetPhaseTeamName((GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager)?.turnPhase ?? 1);
-        if (currentTurnTeam == team)
+        var gm0 = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        string currentTurnTeam = TeamHelper.GetPhaseTeamName(gm0?.turnPhase ?? 1);
+        // 己方行动相位重置，或每天第一相位（新的一天开始全部充能——P-1/P0等非交战归属旧门控永不触发，开创人实测抓到）
+        if (currentTurnTeam == team || (gm0?.turnPhase ?? 1) == 1)
         {
             productionsThisTurn = 0;
             portUsedThisTurn = new bool[8];
