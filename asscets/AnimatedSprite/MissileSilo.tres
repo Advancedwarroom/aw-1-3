@@ -13,10 +13,10 @@ loop_mode = 1
 
 [sub_resource type="AtlasTexture" id="Atlas_0_0"]
 atlas = ExtResource("1_t0_0")
-region = Rect2(0, 0, 34, 56)
+region = Rect2(0, 0, 30, 48)
 
 [sub_resource type="AtlasTexture" id="Atlas_1_0"]
 atlas = ExtResource("1_t1_0")
-region = Rect2(0, 0, 28, 30)
+region = Rect2(0, 0, 30, 30)
 [resource]
 animations = [{"frames": [{"duration": 1.0, "texture": SubResource("Atlas_0_0")}], "loop": true, "name": &"MissileSilo", "speed": 2.0}, {"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_0")}], "loop": true, "name": &"MissileSiloEmpty", "speed": 2.0}]
