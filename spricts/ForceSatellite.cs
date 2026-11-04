@@ -17,6 +17,9 @@ public partial class ForceSatellite : Infantry
             forceSupportToUnits = false;
             forceSupportToWeapons = true;
             forceSupportLockHP = true;
+        forceSupportCanDispel = true;     // ✅ 模板：黑玛瑙可解除力场
+        forceSupportDispelScope = 1;      // ✅ 模板：可解任何人施加的力场（含现成）
+        forceSupportPermanentTurns = 10;  // ✅ 模板：力场 10 个完整回合后永久化
         }
     }
 }

@@ -37,6 +37,11 @@ public partial class Infantry
     private readonly Dictionary<Weapon, int> fsLockedWeaponAmmo = new();
     private float fsTimer = 0f;
     [Export] public bool forceSupportManualMode = true;     // 手动模式：点按钮→支援环内选一格→效果以该格为心（false=旧自动光环）
+
+    [ExportGroup("力场支援模块：永久化与解除")]
+    [Export] public int forceSupportPermanentTurns = 10;   // ✅ 力场持续 N 个完整回合后永久化（0=永不永久）
+    [Export] public bool forceSupportCanDispel = false;    // ✅ 是否能解除力场
+    [Export] public int forceSupportDispelScope = 0;       // ✅ 解除范围：0=仅自己施加 1=任何人施加（含现成力场）
     private Grids fsChosenTarget = null;
 
     // ========== 天基打击模块（自爆模块扩展）==========
@@ -209,6 +214,10 @@ public partial class Infantry
             else u.fuel = fsLockedFuel[u];
         }
         u.UpdateHpLabel();
+        var fsRec = FindOrCreateFsRecord(u);
+        if (forceSupportLockHP && fsRec.LockedHp < 0) fsRec.LockedHp = u.health;
+        if (forceSupportLockAmmoType > 0 && fsRec.LockedAmmo < 0) { fsRec.LockedAmmoType = forceSupportLockAmmoType; fsRec.LockedAmmo = u.GetAmmoValueByType(forceSupportLockAmmoType); }
+        if (forceSupportLockFuel && fsRec.LockedFuel < 0) fsRec.LockedFuel = u.fuel;
     }
 
     private void LockWeaponValues(Weapon w)
@@ -225,6 +234,9 @@ public partial class Infantry
             if (!fsLockedWeaponAmmo.ContainsKey(w)) fsLockedWeaponAmmo[w] = cur;
             else w.SetAmmoByType(forceSupportLockAmmoType, fsLockedWeaponAmmo[w]);
         }
+        var fsRecW = FindOrCreateFsRecord(w);
+        if (forceSupportLockHP && fsRecW.LockedHp < 0) fsRecW.LockedHp = w.health;
+        if (forceSupportLockAmmoType > 0 && fsRecW.LockedAmmo < 0) { fsRecW.LockedAmmoType = forceSupportLockAmmoType; fsRecW.LockedAmmo = w.GetAmmoByType(forceSupportLockAmmoType); }
     }
 
     private void LockFacilityValues(Facility f)
@@ -232,6 +244,150 @@ public partial class Infantry
         // 设施锁血：保持所属队伍不变（势力锁定）
         // 占领进度等动态值不锁，仅锁 facilityTeam 的"血量"等价物
     }
+
+    // ==================== 力场登记 / 永久化 / 解除（v2）====================
+    public class FsFieldRecord
+    {
+        public Node Target;                 // Infantry / Weapon
+        public int LockedHp = -1;           // -1 = 该项未锁
+        public int LockedAmmo = -1;
+        public int LockedFuel = -1;
+        public int LockedAmmoType;          // 锁弹药时的弹药类型
+        public Infantry Source;             // 施加者卫星
+        public int TurnsApplied;            // 已持续完整回合数
+        public bool IsPermanent;            // 永久化后卫星死亡仍生效
+    }
+
+    public static readonly System.Collections.Generic.List<FsFieldRecord> GlobalForceFields = new();
+
+    private FsFieldRecord FindOrCreateFsRecord(Node t)
+    {
+        foreach (var r in GlobalForceFields)
+            if (ReferenceEquals(r.Target, t) && ReferenceEquals(r.Source, this)) return r;
+        var rec = new FsFieldRecord { Target = t, Source = this };
+        GlobalForceFields.Add(rec);
+        return rec;
+    }
+
+    // ✅ 每完整回合：推进本卫星全部力场计数，到达 N 回合永久化
+    public void TickForceFieldTurns()
+    {
+        if (!forceSupportEnabled || forceSupportPermanentTurns <= 0) return;
+        foreach (var r in GlobalForceFields)
+        {
+            if (r == null || r.IsPermanent || !ReferenceEquals(r.Source, this)) continue;
+            if (r.Target == null || !GodotObject.IsInstanceValid(r.Target)) continue;
+            r.TurnsApplied++;
+            if (r.TurnsApplied >= forceSupportPermanentTurns)
+            {
+                r.IsPermanent = true;
+                GD.Print($"[力场支援] {Name} 的力场已永久化（持续 {r.TurnsApplied} 回合）：{(r.Target is Node n ? n.Name : "?")}");
+            }
+        }
+    }
+
+    // ✅ 全局执行：永久力场在卫星死亡/离场后依然回写锁死值；顺带清理失效记录
+    public static void EnforcePermanentForceFields()
+    {
+        for (int i = GlobalForceFields.Count - 1; i >= 0; i--)
+        {
+            var r = GlobalForceFields[i];
+            if (r == null || r.Target == null || !GodotObject.IsInstanceValid(r.Target)) { GlobalForceFields.RemoveAt(i); continue; }
+            if (!r.IsPermanent)
+            {
+                if (r.Source == null || !GodotObject.IsInstanceValid(r.Source)) GlobalForceFields.RemoveAt(i);
+                continue;
+            }
+            if (r.Target is Infantry iu)
+            {
+                if (r.LockedHp >= 0) iu.health = r.LockedHp;
+                if (r.LockedAmmo >= 0) iu.SetAmmoValueByType(r.LockedAmmoType > 0 ? r.LockedAmmoType : 1, r.LockedAmmo);
+                if (r.LockedFuel >= 0) iu.fuel = r.LockedFuel;
+                iu.UpdateHpLabel();
+            }
+            else if (r.Target is Weapon wp)
+            {
+                if (r.LockedHp >= 0) wp.health = r.LockedHp;
+                if (r.LockedAmmo >= 0) wp.SetAmmoByType(r.LockedAmmoType > 0 ? r.LockedAmmoType : 1, r.LockedAmmo);
+                wp.UpdateHpLabel();
+            }
+        }
+    }
+
+    // ✅ 解除力场：清除目标格上所有力场记录（临时+永久一视同仁）
+    public void PerformDispelForceField(Grids cell)
+    {
+        int removed = 0;
+        for (int i = GlobalForceFields.Count - 1; i >= 0; i--)
+        {
+            var r = GlobalForceFields[i];
+            if (r == null || r.Target == null || !GodotObject.IsInstanceValid(r.Target)) { GlobalForceFields.RemoveAt(i); continue; }
+            bool onCell = (r.Target is Infantry u && u.grid == cell) || (r.Target is Weapon w && w.GetWeakPointGrid() == cell);
+            if (!onCell) continue;
+            if (forceSupportDispelScope == 0 && !ReferenceEquals(r.Source, this)) continue;
+            if (r.Source != null && GodotObject.IsInstanceValid(r.Source)) r.Source.RemoveFsLock(r.Target);
+            GlobalForceFields.RemoveAt(i);
+            removed++;
+        }
+        GD.Print($"[力场支援] {Name} 解除 {removed} 个力场（范围 {(forceSupportDispelScope == 0 ? "仅自己" : "全部")}）");
+        UpdateHpLabel();
+    }
+
+    // 从本卫星逐目标锁表移除（解除力场时由登记处调用）
+    public void RemoveFsLock(Node t)
+    {
+        if (t is Infantry iu)
+        {
+            fsLockedHp.Remove(iu);
+            fsLockedAmmo.Remove(iu);
+            fsLockedFuel.Remove(iu);
+        }
+        else if (t is Weapon wp)
+        {
+            fsLockedWeaponHp.Remove(wp);
+            fsLockedWeaponAmmo.Remove(wp);
+        }
+    }
+
+    // ✅ 手动解除力场：支援环内选一格（品红高亮）
+    public void BeginDispelForceFieldSelection(Infantry activator)
+    {
+        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager == null || grid == null) return;
+        if (!forceSupportCanDispel) return;
+        gm.gridManager.ClearWeaponRange();
+        Grids.IsForceActionMode = true;
+        bool any = false;
+        foreach (var node in GetTree().GetNodesInGroup("grids"))
+        {
+            if (node is not Grids g) continue;
+            if (FsInRange(g))
+            {
+                any = true;
+                g.Modulate = new Color(1f, 0.35f, 0.9f, 0.85f);
+                g.IsInWeaponRange = true;
+                gm.gridManager.OverrideUnitInput(g, true);
+                g.OnClickGrid = (to) => ConfirmDispelForceField(to);
+            }
+            else
+            {
+                gm.gridManager.OverrideUnitInput(g, true);
+                g.OnClickEmpty = () => CancelForceSupportSelection(gm);
+            }
+        }
+        if (!any) CancelForceSupportSelection(gm);
+    }
+
+    public void ConfirmDispelForceField(Grids target)
+    {
+        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm == null || target == null) return;
+        CancelForceSupportSelection(gm);
+        if (!FsInRange(target)) return;
+        PerformDispelForceField(target);
+    }
+
+
 
     // 单位弹药辅助（单位侧弹种：1=主武器 2=自爆 3=照明 4=隐身 5=显形 6=迷彩）
     public int GetAmmoValueByType(int type) => type switch

@@ -8,5 +8,5 @@ public partial class Infantry
     [Export] public bool primaryAmmoLocked = false;   // 锁主弹药
 
     // 力场支援模块每回合入口（GameManager 新回合循环调用；默认空实现，ForceSatellite 覆写）
-    public virtual void ProcessTurnSupport() { }
+    public virtual void ProcessTurnSupport() { TickForceFieldTurns(); }   // ✅ 通用：力场计数+永久化推进
 }

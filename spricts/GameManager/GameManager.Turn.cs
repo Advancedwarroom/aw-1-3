@@ -268,6 +268,7 @@ public partial class GameManager
         u.ProcessTurnSupport();             // ✅ 力场支援模块：每回合扫描上锁
                 u.ProcessTurnConstruction();      // ✅ 建造模块：进度推进/完工/冷却
             }
+            Infantry.EnforcePermanentForceFields();   // ✅ 永久力场：全局执行（卫星死亡后仍回写锁死值）
         }
 
         weaponManager?.OnPhaseStart();
