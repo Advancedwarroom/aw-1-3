@@ -145,7 +145,8 @@ public static class BattleAnimCatalog
         if (w.animSprite != null && GodotObject.IsInstanceValid(w.animSprite) && w.animSprite.SpriteFrames != null)
         {
             var sf = w.animSprite.SpriteFrames;
-            string anim = sf.HasAnimation(w.animSprite.Animation) ? w.animSprite.Animation : (sf.GetAnimationCount() > 0 ? sf.GetAnimationNames()[0] : "");
+            var names = sf.GetAnimationNames();
+            string anim = sf.HasAnimation(w.animSprite.Animation) ? w.animSprite.Animation : (names.Length > 0 ? names[0] : "");
             if (!string.IsNullOrEmpty(anim) && sf.GetFrameCount(anim) > 0)
             {
                 int frame = Mathf.Clamp(w.animSprite.Frame, 0, sf.GetFrameCount(anim) - 1);
