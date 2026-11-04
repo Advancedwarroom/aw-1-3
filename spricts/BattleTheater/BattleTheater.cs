@@ -142,6 +142,12 @@ public static class BattleAnimCatalog
     // 抓取兵器当前地图显示帧：animSprite 当前帧 → normal/base 静态贴图依次回退
     private static Texture2D CaptureWeaponTexture(Weapon w)
     {
+        // ✅ 黑炮/大型黑炮：战斗剧场固定用上传贴图（地图显示保持原贴图，二者解耦）
+        // 注意 LargeCannon 继承 BlackCannon，须先判子类；typeof 精确匹配不误伤 BlackObelisk/DeathRay
+        if (w is LargeCannon)
+            return ResourceLoader.Load<Texture2D>("res://asscets/Weapons/LargeCannon/large_cannon_statue.png");
+        if (w.GetType() == typeof(BlackCannon))
+            return ResourceLoader.Load<Texture2D>("res://asscets/Weapons/Cannons/cannon_statue.png");
         if (w.animSprite != null && GodotObject.IsInstanceValid(w.animSprite) && w.animSprite.SpriteFrames != null)
         {
             var sf = w.animSprite.SpriteFrames;
