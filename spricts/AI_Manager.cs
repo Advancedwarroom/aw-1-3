@@ -40,6 +40,9 @@ public partial class AI_Manager : Node
     private bool isRunningAI = false;
     private bool isBusy = false;
     private string aiTeam = "";
+
+    // ✅ 剧场式战斗动画用：该队伍当前是否正被 AI 操控
+    public bool IsAiControlling(string checkTeam) => isRunningAI && aiTeam == checkTeam;
     private int stage = 0;                       // 0=兵器 1=单位 2=生产 3=新兵 4=结束
     private Queue<Weapon> weaponQueue = new();
     private HashSet<Infantry> handled = new();
