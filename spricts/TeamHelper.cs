@@ -237,7 +237,7 @@ public static class FactionPaletteManager
     public static ShaderMaterial GetCowLutMaterial(string factionId)
     {
         string table = _cowLutTableByTeam.TryGetValue(factionId, out var t) ? t : "neutral";
-        return BattleTheater.GetRecolorMaterial(table);
+        return BattleTheaterData.GetRecolorMaterial(table);
     }
 
     /// <summary>

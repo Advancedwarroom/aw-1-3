@@ -910,7 +910,7 @@ public partial class Grids : Node2D
             AddChild(_cowTerrainSprite);
         }
         // ✅ 底部对齐: 山地等超格高贴图向上延伸(CoW惯例), 水平居中 —— 修山地严重偏移
-        _cowTerrainSprite.Position = new Vector2((32f - tex.GetWidth()) * 0.5f, 32f - tex.GetHeight());
+        _cowTerrainSprite.Position = new Godot.Vector2((32f - tex.GetWidth()) * 0.5f, 32f - tex.GetHeight());
         _cowTerrainSprite.Texture = tex;
         _cowTerrainSprite.Material = mat;
         _cowTerrainSprite.Visible = true;
