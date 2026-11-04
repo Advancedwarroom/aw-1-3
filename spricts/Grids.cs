@@ -855,6 +855,7 @@ public partial class Grids : Node2D
     }
 
     private Sprite2D _cowTerrainSprite = null;
+    private Sprite2D _cowBaseSprite = null;
 
     /// <summary>CoW 风格开启且该地形有映射时, 用编码贴图+调色板材质渲染并压住旧贴图</summary>
     public void UpdateCowTerrainIcon()
@@ -863,16 +864,22 @@ public partial class Grids : Node2D
         bool cowOn = gm == null || gm.enableCowTerrainStyle; // 取不到gm(孤立预览)时默认开
         if (cowOn) TerrainStyleManager.ApplyFromGameManager(gm);
 
+        // ✅ 烘焙冻结：已放地块保持放置时的风格；未烘焙(旧地图)用当前画笔并即刻冻结
+        if (cowOn)
+        {
+            if (cowBakedBiome < 0) cowBakedBiome = (int)TerrainStyleManager.CurrentBiome;
+            if (cowBakedStyle < 0) cowBakedStyle = (int)TerrainStyleManager.CurrentStyle;
+        }
+
+        // ✅ 基底层(不空底): 特征地形下垫基础地形; 无论主层是否走CoW(漩涡等旧贴图也垫)
+        UpdateCowBaseLayer(cowOn);
+
         if (!cowOn || !TerrainStyleManager.TryGetCowMapping(gridType, out _, out _))
         {
             if (_cowTerrainSprite != null && IsInstanceValid(_cowTerrainSprite))
                 _cowTerrainSprite.Visible = false;
             return;
         }
-
-        // ✅ 烘焙冻结：已放地块保持放置时的风格；未烘焙(旧地图)用当前画笔并即刻冻结
-        if (cowBakedBiome < 0) cowBakedBiome = (int)TerrainStyleManager.CurrentBiome;
-        if (cowBakedStyle < 0) cowBakedStyle = (int)TerrainStyleManager.CurrentStyle;
 
         string texPath = TerrainStyleManager.ResolveCowTexturePath(gridType, terrainDirection);
         var mat = TerrainStyleManager.GetMaterialFor(gridType,
@@ -902,9 +909,56 @@ public partial class Grids : Node2D
             };
             AddChild(_cowTerrainSprite);
         }
+        // ✅ 底部对齐: 山地等超格高贴图向上延伸(CoW惯例), 水平居中 —— 修山地严重偏移
+        _cowTerrainSprite.Position = new Vector2((32f - tex.GetWidth()) * 0.5f, 32f - tex.GetHeight());
         _cowTerrainSprite.Texture = tex;
         _cowTerrainSprite.Material = mat;
         _cowTerrainSprite.Visible = true;
+    }
+
+    /// <summary>✅ 编辑器放置/修改地形时调用: 把当前画笔风格烘焙进本格(覆盖旧烘焙)</summary>
+    public void BakeCowBrush()
+    {
+        cowBakedBiome = (int)TerrainStyleManager.CurrentBiome;
+        cowBakedStyle = (int)TerrainStyleManager.CurrentStyle;
+    }
+
+    /// <summary>基底层: 管道/树林/山地垫草地, 海滩/漩涡/陨石垫海洋(对齐CoW loadBaseTerrain)</summary>
+    private void UpdateCowBaseLayer(bool cowOn)
+    {
+        var baseType = cowOn ? TerrainStyleManager.GetCowBaseTerrain(gridType) : null;
+        if (baseType == null)
+        {
+            if (_cowBaseSprite != null && IsInstanceValid(_cowBaseSprite))
+                _cowBaseSprite.Visible = false;
+            return;
+        }
+        // 海基底用"开阔海"变体(邻接掩码全陆地→land=0)
+        int baseDir = baseType == GridType.SEA ? 0b1111 : 0;
+        string texPath = TerrainStyleManager.ResolveCowTexturePath(baseType.Value, baseDir);
+        var mat = TerrainStyleManager.GetMaterialFor(gridType,
+            (TerrainStyleManager.Biome)cowBakedBiome,
+            (TerrainStyleManager.Style)cowBakedStyle);
+        var tex = texPath != null ? ResourceLoader.Load<Texture2D>(texPath) : null;
+        if (tex == null || mat == null)
+        {
+            if (_cowBaseSprite != null && IsInstanceValid(_cowBaseSprite))
+                _cowBaseSprite.Visible = false;
+            return;
+        }
+        if (_cowBaseSprite == null || !IsInstanceValid(_cowBaseSprite))
+        {
+            _cowBaseSprite = new Sprite2D
+            {
+                Name = "CowBaseSprite",
+                Centered = false,
+                ZIndex = terrainIconZIndex - 1, // 垫在主层/旧贴图之下
+            };
+            AddChild(_cowBaseSprite);
+        }
+        _cowBaseSprite.Texture = tex;
+        _cowBaseSprite.Material = mat;
+        _cowBaseSprite.Visible = true;
     }
 
     /// <summary>

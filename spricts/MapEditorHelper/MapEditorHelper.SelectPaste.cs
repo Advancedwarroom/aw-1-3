@@ -354,6 +354,7 @@ public partial class MapEditorHelper
             batchRecord.subActions.Add(sub);
 
             g.gridType = cell.gridType;
+            g.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
             g.UpdateTerrainIcon();
 
             if (cell.gridProperties.TryGetValue("canDestroyUnit", out string cdu))

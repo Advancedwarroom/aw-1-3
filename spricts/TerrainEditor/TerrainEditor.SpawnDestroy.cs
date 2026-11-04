@@ -293,6 +293,17 @@ private void SpawnWeaponAtGrid(Grids grid, string scenePath, string team)
             cannon.UpdateDirectionVisual();
             cannon.UpdateAmmoVisual();
         }
+        if (weapon is GhostCannon gc)   // ✅ 幽灵炮: 方向选择器四向
+        {
+            gc.direction = pendingCannonDirection switch
+            {
+                BlackCannon.CannonDirection.Right => GhostCannon.GhostDirection.Right,
+                BlackCannon.CannonDirection.Down  => GhostCannon.GhostDirection.Down,
+                BlackCannon.CannonDirection.Left  => GhostCannon.GhostDirection.Left,
+                _                                  => GhostCannon.GhostDirection.Up,
+            };
+            gc.UpdateDirectionVisual();
+        }
         ApplySavedWeaponData(weapon);
         gameManager.UpdateUnitLists();
 

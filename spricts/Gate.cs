@@ -30,14 +30,39 @@ public partial class Gate : Weapon
     [Export] public GatePassPolicy passPolicy = GatePassPolicy.Ally; // 4.白名单：0=友 1=敌 2=全
 
     // ========== 高度全自由度 ==========
-    [Export] public Vector2I gateSize = new Vector2I(1, 3); // 宽×高任意（1×N=竖墙门[南北走向]；N×1=横墙门[东西走向]）
+    [Export] public Vector2I gateSize = new Vector2I(1, 1); // 宽×高任意（默认1×1单格；1×N=竖墙门[南北走向]；N×1=横墙门[东西走向]）
+    [Export] public bool gateHorizontal = false; // 横墙门(东西走向); 多格时由 gateSize 自动推导, 1×1 时可手动/旋转切换
 
     public override void _Ready()
     {
         // ✅ 尺寸动态决定多格属性与贴图方向
-        if (gateSize.X * gateSize.Y > 1) isMultiTile = true;
+        if (gateSize.X * gateSize.Y > 1)
+        {
+            isMultiTile = true;
+            gateHorizontal = gateSize.X > gateSize.Y; // 多格门方向由尺寸推导
+        }
         UpdateGateAnim();
         base._Ready();
+    }
+
+    // ========== 方向切换(1×1门纯视觉切换; 多格门同步交换尺寸) ==========
+    public override void RotateDirection()
+    {
+        if (!canRotate || isDestroyed) return;
+        gateHorizontal = !gateHorizontal;
+        if (gateSize.X * gateSize.Y > 1)
+            gateSize = new Vector2I(gateSize.Y, gateSize.X);
+        UpdateGateAnim();
+    }
+
+    // ========== ✅ CoW (R,G)编码贴图 → LUT解码(随势力换色) ==========
+    protected override void ApplyPaletteMaterial()
+    {
+        if (animSprite == null || !IsInstanceValid(animSprite)) return;
+        var lut = FactionPaletteManager.GetCowLutMaterial(team);
+        if (lut == null) return;
+        // 独立副本: 避免待机变暗 tone 污染共享缓存材质
+        animSprite.Material = (ShaderMaterial)lut.Duplicate();
     }
 
     /// <summary>通行判定：被毁/血尽→全通行；关闭→封死；否则按白名单</summary>
@@ -74,15 +99,15 @@ public partial class Gate : Weapon
         return result;
     }
 
-    // ========== 贴图方向：宽>高=横墙门(gate+e+w)，否则竖墙门(gate+n+s) ==========
+    // ========== 贴图方向：gateHorizontal=横墙门(gate+e+w)，否则竖墙门(gate+n+s) ==========
     public override string GetIdleAnimName()
     {
-        return gateSize.X > gateSize.Y ? "GateH" : "Gate";
+        return gateHorizontal ? "GateH" : "Gate";
     }
 
     public override string GetBrokenAnimName()
     {
-        return gateSize.X > gateSize.Y ? "GateHBroken" : "GateBroken";
+        return gateHorizontal ? "GateDestroyedH" : "GateDestroyed"; // 对齐 Gate.tres 动画名
     }
 
     /// <summary>按尺寸刷新贴图动画（尺寸/方向变更后可调用）</summary>

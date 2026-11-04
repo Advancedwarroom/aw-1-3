@@ -20,6 +20,15 @@ public partial class GhostCannon : Weapon
     [Export] public bool ghostAllowNaval = false;            // 海军不可伤害
     [Export] public bool ghostAllowAntiAir = true;          // 防空/反空中可伤害
 
+    // ========== ✅ CoW (R,G)编码贴图 → LUT解码(随势力换色) ==========
+    protected override void ApplyPaletteMaterial()
+    {
+        if (animSprite == null || !IsInstanceValid(animSprite)) return;
+        var lut = FactionPaletteManager.GetCowLutMaterial(team);
+        if (lut == null) return;
+        animSprite.Material = (ShaderMaterial)lut.Duplicate(); // 独立副本防 tone 污染共享缓存
+    }
+
     // ========== 4. 朝向（决定显示哪张方向贴图，编辑器可设，运行时可转）==========
     public enum GhostDirection { Up, Right, Down, Left }
     [Export] public GhostDirection direction = GhostDirection.Up;

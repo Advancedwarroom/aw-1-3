@@ -173,6 +173,28 @@ public static class TerrainStyleManager
         return false;
     }
 
+    // ============ 基底地形(不空底): 特征地形下面垫基础地形, 对齐 CoW loadBaseTerrain ============
+    /// <summary>返回该地形应垫在底下的基础地形; null=贴图自含地面无需基底</summary>
+    public static GridType? GetCowBaseTerrain(GridType t) => t switch
+    {
+        // 海洋系: 海滩/礁石/漩涡/陨石/海雾 → 垫开阔海(CoW: SEA)
+        GridType.BEACH or GridType.REEF or GridType.WHIRLPOOL
+        or GridType.METEORITE or GridType.SEAFOG => GridType.SEA,
+        // 气候特征 → 垫对应气候地面(CoW: SNOW/DESERT/WASTE)
+        GridType.DESERT_FOREST or GridType.DESERT_HILL or GridType.DESERT_RUINS
+        or GridType.DESERT_PIPE or GridType.DESERT_PIPESEAM or GridType.DESERT_BROKENPIPE => GridType.DESERT_GROUND,
+        GridType.SNOW_FOREST or GridType.SNOW_HILL or GridType.SNOW_RUINS
+        or GridType.SNOW_PIPE or GridType.SNOW_PIPESEAM or GridType.SNOW_BROKENPIPE => GridType.SNOW_GROUND,
+        GridType.WASTE_FOREST or GridType.WASTE_HILL or GridType.WASTE_RUINS
+        or GridType.WASTE_PIPE or GridType.WASTE_PIPESEAM or GridType.WASTE_BROKENPIPE => GridType.WASTE_GROUND,
+        // 陆地特征: 树林/山地/管道/墙/藤蔓/等离子/废墟/传送台/陆雾 → 垫草地(CoW: PLAINS)
+        GridType.FOREST or GridType.HILL or GridType.PIPE or GridType.PASSABLEPIPE
+        or GridType.BROKENPIPE or GridType.PIPESEAM or GridType.WALL or GridType.WEAK_WALL
+        or GridType.CREEPER or GridType.PLASMA or GridType.RUINS or GridType.RUINS2
+        or GridType.RUINS3 or GridType.TP or GridType.LANDFOG => GridType.GROUND,
+        _ => null,
+    };
+
     // ============ 变体贴图解析(候选链, 兼容 CoW 各类命名) ============
     // CoW 命名不统一: street+style0+N+E.png / creeper+NE.png / sea+N+mask.png / plains+0.png ...
     // 统一用候选链尝试, 命中即缓存

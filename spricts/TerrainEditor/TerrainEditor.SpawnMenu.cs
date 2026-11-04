@@ -471,8 +471,8 @@ private Button CreateTemplateButton(UnitTemplate template)
         spawnHintLabel.Text = $"✅ {TranslateGroup.T("已选择")}: {template.DisplayName} ({template.Team})\n{TranslateGroup.T("点击地图格子生成")}...";
         spawnHintLabel.AddThemeColorOverride("font_color", new Color(0.4f, 1f, 0.4f));
 
-        // ✅ 黑炮/大型黑炮：显示方向选择器
-        bool isCannon = template.ScenePath.Contains("black_cannon") || template.ScenePath.Contains("large_cannon") || template.ScenePath.Contains("death_ray") || template.ScenePath.Contains("SuperFactory");
+        // ✅ 黑炮/大型黑炮/幽灵炮/Gate门：显示方向选择器
+        bool isCannon = template.ScenePath.Contains("black_cannon") || template.ScenePath.Contains("large_cannon") || template.ScenePath.Contains("death_ray") || template.ScenePath.Contains("SuperFactory") || template.ScenePath.Contains("ghost_cannon") || template.ScenePath.Contains("Gate.tscn");
         if (directionSelector != null)
         {
             directionSelector.Visible = isCannon;

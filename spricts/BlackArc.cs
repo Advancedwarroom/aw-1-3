@@ -9,6 +9,15 @@ using System.Linq;
 
 public partial class BlackArc : Weapon
 {
+    // ========== ✅ CoW (R,G)编码贴图 → LUT解码(随势力换色) ==========
+    protected override void ApplyPaletteMaterial()
+    {
+        if (animSprite == null || !IsInstanceValid(animSprite)) return;
+        var lut = FactionPaletteManager.GetCowLutMaterial(team);
+        if (lut == null) return;
+        animSprite.Material = (ShaderMaterial)lut.Duplicate(); // 独立副本防 tone 污染共享缓存
+    }
+
     // ========== 1. 是否开启天基打击 ==========
     [ExportGroup("天基打击模块")]
     [Export] public bool arcStrikeEnabled = true;             // 1.Export是否开启天基打击

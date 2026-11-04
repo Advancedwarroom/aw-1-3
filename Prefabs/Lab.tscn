@@ -17,7 +17,7 @@ position = Vector2(16.5, 16.5)
 shape = SubResource("RectangleShape2D_lab")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-position = Vector2(16, 4)
+position = Vector2(16, 0)
 scale = Vector2(1.0, 1.12)
 sprite_frames = ExtResource("2_lab")
 animation = &"P0Lab"

@@ -428,16 +428,16 @@ public partial class MissileSilo : Weapon
         UpdateSiloVisual();
     }
 
-    // ---------- 势力配色（灰度重着色 Shader 模式3）----------
-    // 导弹井贴图为纯中性灰，模板色表/红蓝兼容模式都染不上色；
-    // 这里整体按亮度映射为「暗部→势力主色→高光」，颜色全随势力改，P0 保持中立灰。
+    // ---------- 势力配色（CoW LUT 解码）----------
+    // 导弹井贴图为 CoW (R,G)编码 mask（b4a2764 起纯LUT）；灰度模式(mode3)解不了编码会显示成 mask 原图。
+    // 改用剧场同款 battle_recolor LUT 解码：像素(R,G)查 256×256 colortable，颜色全随势力换。
     protected override void ApplyPaletteMaterial()
     {
         if (animSprite == null || !IsInstanceValid(animSprite)) return;
-        var grayMat = FactionPaletteManager.GetGrayscaleMaterial(team);
-        if (grayMat == null) return;
+        var lut = FactionPaletteManager.GetCowLutMaterial(team);
+        if (lut == null) return;
         // 每实例独立副本：避免待机变暗 tone 污染共享缓存
-        animSprite.Material = (ShaderMaterial)grayMat.Duplicate();
+        animSprite.Material = (ShaderMaterial)lut.Duplicate();
     }
 
     public string GetSiloInfo()

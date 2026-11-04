@@ -12,11 +12,11 @@ script = ExtResource("1_ghost")
 team = "Player1"
 maxHealth = 990
 health = 990
-canRotate = false
+canRotate = true
 maxAttacksPerTurn = 0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-position = Vector2(16, 16)
+position = Vector2(16, 12)
 sprite_frames = ExtResource("2_ghost")
 animation = &"GhostCannon"
 autoplay = "GhostCannon"

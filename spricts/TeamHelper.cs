@@ -221,6 +221,25 @@ public static class FactionPaletteManager
         return mat;
     }
 
+    // 队伍 → CoW colortable(asscets/BattleAnim/colortables/*.png), 与战斗剧场同套映射
+    private static readonly Dictionary<string, string> _cowLutTableByTeam = new()
+    {
+        { TeamHelper.Player0, "neutral" }, { TeamHelper.Player1, "red" },
+        { TeamHelper.Player2, "blue_moon" }, { TeamHelper.Player3, "yellow_comet" },
+        { TeamHelper.Player4, "green_earth" }, { TeamHelper.Player5, "purple" },
+        { TeamHelper.Player, "neutral" },
+    };
+
+    /// <summary>
+    /// CoW (R,G)编码 mask 贴图的 LUT 解码材质（复用剧场 battle_recolor.gdshader + colortable，随势力换色）。
+    /// 适用: Gate/导弹井/黑弧/幽灵炮等编码贴图。返回共享缓存材质, 调用方须 Duplicate 再改参数。
+    /// </summary>
+    public static ShaderMaterial GetCowLutMaterial(string factionId)
+    {
+        string table = _cowLutTableByTeam.TryGetValue(factionId, out var t) ? t : "neutral";
+        return BattleTheater.GetRecolorMaterial(table);
+    }
+
     /// <summary>
     /// 获取势力的灰度重着色材质（模式3）：中性灰贴图（导弹井/无势力原版贴图）整体按亮度
     /// 映射为「暗部→势力主色→高光」。P0 中立返回 enabled=false 的材质（保持原灰）。

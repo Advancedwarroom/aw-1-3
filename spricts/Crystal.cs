@@ -648,15 +648,22 @@ public partial class Crystal : Weapon
     private void UpdateCrystalVisual()
     {
         if (animSprite == null) return;
-        // P0=无色基础（染灰）；P2=蓝晶；其余（P1、P-1、P3…）=橙晶为模板，由 Shader 染成势力主色
-        string animName = TeamHelper.PickTeamArt(team, "Crystal", "OrangeCrystal", "BlueCrystal");
+        // ✅ 黑水晶固定黑色(AWDS原作); P2=蓝晶; P0=无色基础
+        string animName = TeamHelper.PickTeamArt(team, "Crystal", "BlackCrystal", "BlueCrystal");
         if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(animName))
             animSprite.Animation = animName;
-        else if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation("Crystal"))
-            animSprite.Animation = "Crystal";
+        else if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation("BlackCrystal"))
+            animSprite.Animation = "BlackCrystal";
 
-        TuneCrystalMaterial();
         SetVisualNormal();
+    }
+
+    // ✅ 水晶贴图为固定色(黑/白/橙/蓝成品图), 不走势力调色Shader ——
+    //    模板识别(mode2)会把水晶粉橙色误判为模板色染花(用户报"mask图")
+    protected override void ApplyPaletteMaterial()
+    {
+        if (animSprite != null && IsInstanceValid(animSprite))
+            animSprite.Material = null;
     }
 
     public override void RefreshTeamVisual()

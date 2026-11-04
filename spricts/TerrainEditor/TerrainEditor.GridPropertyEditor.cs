@@ -22,7 +22,7 @@ private void BuildGridPropertyEditor(Grids grid)
     propertyContainer.AddChild(basicLabel);
 
     CreateMemberControl(grid, "gridType", typeof(GridType), 
-        () => grid.gridType, (v) => { grid.gridType = (GridType)v; });
+        () => grid.gridType, (v) => { grid.gridType = (GridType)v; grid.BakeCowBrush(); grid.UpdateTerrainIcon(); }); // ✅ 修改地形属性时烘焙当前画笔风格
 
     if (grid.city != null)
     {

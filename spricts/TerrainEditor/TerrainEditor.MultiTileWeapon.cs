@@ -68,6 +68,12 @@ public partial class TerrainEditor
             tempWeapon.isMultiTile = true;
             tempWeapon.size = gt.gateSize;
         }
+        // ✅ Gate门预览跟随所选方向（左/右=横墙门）
+        if (tempWeapon is Gate gtp)
+        {
+            gtp.gateHorizontal = pendingCannonDirection is BlackCannon.CannonDirection.Left or BlackCannon.CannonDirection.Right;
+            gtp.UpdateGateAnim();
+        }
 
         // 如果不是多格兵器，直接生成（不走预览流程）
         if (!tempWeapon.isMultiTile)
@@ -242,6 +248,11 @@ public partial class TerrainEditor
             lc.UpdateDirectionVisual();
             lc.UpdateAmmoVisual();
             lc.UpdateMultiTileVisual();
+        }
+        if (weapon is Gate gate)   // ✅ Gate门: 方向选择器左右=横墙门
+        {
+            gate.gateHorizontal = pendingCannonDirection is BlackCannon.CannonDirection.Left or BlackCannon.CannonDirection.Right;
+            gate.UpdateGateAnim();
         }
         if (weapon is BlackObelisk bo2)
         {

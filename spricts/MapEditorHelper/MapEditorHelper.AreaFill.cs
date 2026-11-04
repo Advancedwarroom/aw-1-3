@@ -94,6 +94,7 @@ public partial class MapEditorHelper
                 newTerrain = areaFillNewTerrain
             });
             g.gridType = areaFillNewTerrain;
+            g.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
             g.UpdateTerrainIcon();
         }
         PushAction(batchRecord);

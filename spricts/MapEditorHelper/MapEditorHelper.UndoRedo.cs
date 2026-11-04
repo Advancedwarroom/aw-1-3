@@ -89,6 +89,7 @@ public partial class MapEditorHelper
         if (g == null) return;
 
         g.gridType = record.oldTerrain;
+        g.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
         g.UpdateTerrainIcon();
 
         // ✅ 安全清理当前格子上的所有单位/兵器/设施（多格兵器特殊处理）
@@ -110,6 +111,7 @@ public partial class MapEditorHelper
         if (g == null) return;
 
         g.gridType = record.newTerrain;
+        g.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
         g.UpdateTerrainIcon();
 
         // ✅ 安全清理当前格子上的所有单位/兵器/设施（多格兵器特殊处理）

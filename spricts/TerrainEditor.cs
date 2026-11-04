@@ -542,6 +542,7 @@ private void DeferredCheckVictoryOnExitEdit()
                         lastBatchGrid = grid;
                         var oldTerrain = grid.gridType;
                         grid.gridType = batchTerrainType;
+                        grid.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
                         // ✅ 多方向地形：地形变化后刷新方向（本格+邻格）
                         gridManager?.RefreshAllTerrainDirections();
                         UpdateGridVisual(grid);
