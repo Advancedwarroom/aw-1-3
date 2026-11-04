@@ -287,6 +287,9 @@ private List<Grids> GetAdjacentGrids(Grids center)
 
         // ✅ 统一判定：可攻击类型 + 未攻击 + 移动后允许 + 有弹药 + 射程内有可伤害目标
         attackButton.Visible = CanShowAttackButton(unit);
+        // ✅ 舱内攻击
+        if (!attackButton.Visible)
+            attackButton.Visible = unit.HasLoadedAttackOption();
 
         bool canCapture = unit.CanCaptureCurrentGrid();
         bool isCapturing = unit.currentCaptureProgress > 0 && unit.capturingGrid == unit.grid;
@@ -296,8 +299,9 @@ private List<Grids> GetAdjacentGrids(Grids center)
         moveButton.Visible = !afterMove && !unit.isMoved && unit.CanMove();
         bool canTear = unit.CanTearCurrentGrid();
         bool isTearing = unit.currentTearProgress > 0 && unit.tearingGrid == unit.grid;
-        bool canLoadedCapture = unit.CanPerformLoadedCapture();   // ✅ 内部单位操作：舱内占领
-        captureButton.Visible = (canCapture || isCapturing || canTear || isTearing || canLoadedCapture) && !unit.isAttacked && (!unit.isMoved || allowCaptureAfterMove);
+        bool canLoadedCapture = unit.CanPerformLoadedCapture();
+        bool canLoadedTear = unit.CanPerformLoadedTearFlag();      // ✅ 舱内撕旗   // ✅ 内部单位操作：舱内占领
+        captureButton.Visible = (canCapture || isCapturing || canTear || isTearing || canLoadedCapture || canLoadedTear) && !unit.isAttacked && (!unit.isMoved || allowCaptureAfterMove);
         rotateButton?.Hide();
 
         waitButton.Visible = true;
@@ -364,7 +368,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
         {
             bool canToggleStealth = unit.canStealth && !unit.IsStealthFormLocked
                 && (!unit.stealthToggleCostsAction || (!unit.hasActed && unit.state != UnitState.Acted));
-            stealthButton.Visible = canToggleStealth;
+            stealthButton.Visible = canToggleStealth || unit.CanPerformLoadedStealth();
             TranslateGroup.SetText(stealthButton, unit.isStealthed ? unit.GetStealthShowButtonText() : unit.GetStealthHideButtonText());
         }
         if (scentButton != null)

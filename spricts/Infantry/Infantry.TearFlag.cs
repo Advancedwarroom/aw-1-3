@@ -110,4 +110,56 @@ public partial class Infantry
         tw2.TweenInterval(1.25f);
         tw2.TweenCallback(Callable.From(() => flag.QueueFree()));
     }
+
+    // ==================== 舱内撕旗（遥控搭载模块 · 镜像原生）====================
+    public virtual Infantry GetFirstTearCapableLoadedUnit()
+        => transportedUnits?.FirstOrDefault(u => u != null && IsInstanceValid(u) && u.canTearFlag);
+
+    public virtual bool CanPerformLoadedTearFlag()
+    {
+        if (!canOperateLoadedUnits) return false;
+        if (IsActionBlacklisted("TearFlag")) return false;
+        if (GetRemainingLoadedOperations() <= 0) return false;
+        var loaded = GetFirstTearCapableLoadedUnit();
+        if (loaded == null || loaded.isAttacked) return false;
+        if (grid == null || grid.city == null || grid.city.facilityTeam == team) return false;
+        return true;
+    }
+
+    public virtual void PerformLoadedTearFlag()
+    {
+        var loaded = GetFirstTearCapableLoadedUnit();
+        if (!CanPerformLoadedTearFlag()) return;
+        if (grid == null || grid.city == null) return;
+        if (loaded.isStealthed && !loaded.canCaptureWhileStealthed) return;
+        if (isTearingInProgress) return;
+
+        int power = ApplyLoadedFactor(tearFlagPower);
+        if (tearingGrid != grid)
+        {
+            if (tearingGrid != null) tearingGrid.city?.OnCaptureInterrupted(loaded);
+            currentTearProgress = 0;
+            tearingGrid = grid;
+            grid.city?.OnCaptureStarted(loaded);
+        }
+        var contestUnits = grid.infantries
+            .Where(u => u != null && IsInstanceValid(u) && u.team != team
+                && u.currentCaptureProgress > 0 && u.capturingGrid == grid).ToList();
+        if (contestUnits.Count > 0)
+        {
+            grid.city?.ShowCaptureContestVisual();
+            currentTearProgress = 0;
+            foreach (var enemy in contestUnits) enemy.currentCaptureProgress = 0;
+            loaded.MarkAsCapturing();
+            ConsumeLoadedOperation();
+            return;
+        }
+        currentTearProgress += power;
+        ShowCaptureEffect();
+        if (currentTearProgress >= (grid.city?.capturePointsRequired ?? 20))
+            CompleteTearFlag();
+        else
+            loaded.MarkAsCapturing();
+        ConsumeLoadedOperation();
+    }
 }

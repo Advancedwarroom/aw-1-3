@@ -20,6 +20,13 @@ public partial class ActionMenu
     {
         GetViewport().SetInputAsHandled();
         if (currentUnit == null || currentWeapon != null) return;
+        // ✅ 遥控搭载模块：舱内隐身（条款5可同步到运输车）
+        if (currentUnit.CanPerformLoadedStealth())
+        {
+            currentUnit.PerformLoadedStealth();
+            Hide();
+            return;
+        }
         currentUnit.ToggleStealth();   // 无弹/锁定时内部静默拒绝
         TranslateGroup.SetText(stealthButton, currentUnit.isStealthed ? currentUnit.GetStealthShowButtonText() : currentUnit.GetStealthHideButtonText());
         if (currentUnit.stealthToggleCostsAction || currentUnit.state == UnitState.Acted)

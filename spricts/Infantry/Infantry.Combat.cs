@@ -285,6 +285,13 @@ public virtual bool ConsumePrimaryAmmo()
 
     public void AttackTarget(Node target)
     {
+        // ✅ 遥控搭载模块：舱内攻击分流（开创人裁决：射程从车格算，反击打车）
+        if (loadedAttackMode && target is Infantry loadedTarget)
+        {
+            loadedAttackMode = false;
+            PerformLoadedAttack(loadedTarget);
+            return;
+        }
         if (target is Infantry infantry)
         {
             Attack(infantry);
@@ -581,4 +588,82 @@ public virtual void ReloadAmmo()
         currentPrimaryAmmo = maxPrimaryAmmo;
     }
 }
+
+    // ==================== 舱内攻击（遥控搭载模块 · 迭代二）====================
+    [ExportGroup("内部单位操作 · 攻击")]
+    public bool loadedAttackMode = false;
+
+    public virtual Infantry GetFirstAttackCapableLoadedUnit()
+        => transportedUnits?.FirstOrDefault(u => u != null && IsInstanceValid(u)
+             && u.attackType != AttackType.NoAttack
+             && (u.CanUsePrimaryWeapon() || u.CanUseSecondaryWeapon()));
+
+    public virtual bool HasLoadedAttackOption()
+    {
+        if (!canOperateLoadedUnits) return false;
+        if (IsActionBlacklisted("Attack")) return false;
+        if (GetRemainingLoadedOperations() <= 0) return false;
+        var loaded = GetFirstAttackCapableLoadedUnit();
+        return loaded != null && !loaded.isAttacked;
+    }
+
+    public virtual bool CanPerformLoadedAttack(Infantry target)
+    {
+        if (target == null || !IsInstanceValid(target)) return false;
+        if (!HasLoadedAttackOption()) return false;
+        var loaded = GetFirstAttackCapableLoadedUnit();
+        if (loaded == null) return false;
+        var keep = loaded.grid;
+        loaded.grid = grid;
+        bool ok = loaded.SelectWeaponByMatrix(target) != WeaponType.None;   // 武器对目标有伤害即算可打
+        loaded.grid = keep;
+        return ok;
+    }
+
+    public virtual void OnLoadedAttackSelected()
+    {
+        var loaded = GetFirstAttackCapableLoadedUnit();
+        if (loaded == null || !HasLoadedAttackOption()) return;
+        ShowAnimState("attack");
+        StopBreath();
+        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        var keep = loaded.grid;
+        loaded.grid = grid;
+        gm?.gridManager.ShowAttackRange(loaded);
+        loaded.grid = keep;
+        loadedAttackMode = true;
+    }
+
+    public virtual void PerformLoadedAttack(Infantry target)
+    {
+        var loaded = GetFirstAttackCapableLoadedUnit();
+        if (loaded == null || !CanPerformLoadedAttack(target)) return;
+        var keepGrid = loaded.grid;
+        int keepHealth = loaded.health;
+        loaded.grid = grid;
+        loaded.health = Mathf.Max(1, loaded.health / 2);
+        loaded.Attack(target, allowCounter: false);
+        loaded.grid = keepGrid;
+        loaded.health = keepHealth;
+
+        if (IsInstanceValid(target) && target.health > 0 && target.attackType != AttackType.NoAttack
+            && target.IsTargetInCounterRange(this) && TeamHelper.CanCounterAttack(target.team))
+        {
+            int cd = target.CalculateCounterDamage(this);
+            if (cd > 0 && !healthLocked)
+            {
+                health -= cd;
+                CoModuleSystem.OnDamageDealt(target.team, cd);
+                CoModuleSystem.OnDamageTaken(team, cd);
+                ApplyStealthRevealOnDamage(this);
+                if (health <= 0)
+                {
+                    health = 0;
+                    CoModuleSystem.OnUnitLost(team);
+                    OnDestroyed();
+                }
+            }
+        }
+        ConsumeLoadedOperation();
+    }
 }

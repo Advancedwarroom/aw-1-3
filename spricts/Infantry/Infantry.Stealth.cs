@@ -338,4 +338,30 @@ public partial class Infantry
         if (!damaged.stealthRevealOnDamageUseThreshold || damaged.health <= damaged.stealthRevealOnDamageHpThreshold)
             damaged.RevealStealth();
     }
+
+    // ==================== 舱内隐身（遥控搭载模块 · 条款5同步）====================
+    public virtual Infantry GetFirstStealthCapableLoadedUnit()
+        => transportedUnits?.FirstOrDefault(u => u != null && IsInstanceValid(u) && u.canStealth);
+
+    public virtual bool CanPerformLoadedStealth()
+    {
+        if (!canOperateLoadedUnits) return false;
+        if (IsActionBlacklisted("Stealth")) return false;
+        if (GetRemainingLoadedOperations() <= 0) return false;
+        var loaded = GetFirstStealthCapableLoadedUnit();
+        return loaded != null && !loaded.isAttacked;
+    }
+
+    public virtual void PerformLoadedStealth()
+    {
+        if (!CanPerformLoadedStealth()) return;
+        var loaded = GetFirstStealthCapableLoadedUnit();
+        loaded.ToggleStealth();
+        if (stealthSyncsToTransport)
+        {
+            isStealthed = loaded.isStealthed;
+            Modulate = loaded.Modulate;
+        }
+        ConsumeLoadedOperation();
+    }
 }

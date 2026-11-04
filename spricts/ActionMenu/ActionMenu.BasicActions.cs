@@ -24,6 +24,8 @@ public partial class ActionMenu
             // 拆旗分流：可拆旗且本格不可占领且无占领进度时，执行拆旗
             if (currentUnit.canTearFlag && !currentUnit.CanCaptureCurrentGrid() && currentUnit.currentCaptureProgress <= 0)
                 currentUnit.PerformTearFlag();
+            else if (currentUnit.CanPerformLoadedTearFlag())
+                currentUnit.PerformLoadedTearFlag();   // ✅ 舱内撕旗
             else if (currentUnit.CanPerformLoadedCapture())
                     currentUnit.PerformLoadedCapture();   // ✅ 舱内占领
                 else
@@ -107,7 +109,10 @@ public partial class ActionMenu
         }
         else if (currentUnit != null && currentWeapon == null)
         {
-            currentUnit.OnAttackSelected();
+            if (currentUnit.HasLoadedAttackOption())
+                currentUnit.OnLoadedAttackSelected();   // ✅ 舱内攻击
+            else
+                currentUnit.OnAttackSelected();
         }
         Hide();
     }
