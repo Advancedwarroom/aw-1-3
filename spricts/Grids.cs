@@ -166,6 +166,20 @@ public partial class Grids : Node2D
         InitializeTerrainIcons();
         _lastGridType = gridType;
         UpdateTerrainIcon();
+
+        // ✅ CoW 风格切换时重渲染本格
+        TerrainStyleManager.StyleChanged += OnCowTerrainStyleChanged;
+    }
+
+    public override void _ExitTree()
+    {
+        TerrainStyleManager.StyleChanged -= OnCowTerrainStyleChanged;
+        base._ExitTree();
+    }
+
+    private void OnCowTerrainStyleChanged()
+    {
+        if (IsInsideTree()) CallDeferred(nameof(UpdateCowTerrainIcon));
     }
 
     // ✅ 通用悬停回调（移动轨迹预览用，不受攻击模式门控）
@@ -834,6 +848,55 @@ public partial class Grids : Node2D
                 kvp.Value.Visible = (kvp.Key == gridType);
         }
         UpdateDirectionVariant();
+        UpdateCowTerrainIcon();
+    }
+
+    // ========== ✅ CoW 地形风格渲染(调色板查表) ==========
+    private Sprite2D _cowTerrainSprite = null;
+
+    /// <summary>CoW 风格开启且该地形有映射时, 用编码贴图+调色板材质渲染并压住旧贴图</summary>
+    public void UpdateCowTerrainIcon()
+    {
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        bool cowOn = gm == null || gm.enableCowTerrainStyle; // 取不到gm(孤立预览)时默认开
+        if (cowOn) TerrainStyleManager.ApplyFromGameManager(gm);
+
+        if (!cowOn || !TerrainStyleManager.TryGetCowMapping(gridType, out _, out var biome))
+        {
+            if (_cowTerrainSprite != null && IsInstanceValid(_cowTerrainSprite))
+                _cowTerrainSprite.Visible = false;
+            return;
+        }
+
+        string texPath = TerrainStyleManager.ResolveCowTexturePath(gridType, terrainDirection);
+        var mat = TerrainStyleManager.GetMaterial(biome, TerrainStyleManager.CurrentStyle);
+        var tex = texPath != null ? ResourceLoader.Load<Texture2D>(texPath) : null;
+        if (tex == null || mat == null)
+        {
+            if (_cowTerrainSprite != null && IsInstanceValid(_cowTerrainSprite))
+                _cowTerrainSprite.Visible = false;
+            return; // 解析失败: 保持旧贴图兜底
+        }
+
+        // 隐藏旧渲染(基础图标+旧方向变体)
+        foreach (var kvp in terrainIconSprites)
+            if (IsInstanceValid(kvp.Value)) kvp.Value.Visible = false;
+        if (_directionVariantSprite != null && IsInstanceValid(_directionVariantSprite))
+            _directionVariantSprite.Visible = false;
+
+        if (_cowTerrainSprite == null || !IsInstanceValid(_cowTerrainSprite))
+        {
+            _cowTerrainSprite = new Sprite2D
+            {
+                Name = "CowTerrainSprite",
+                Centered = false,
+                ZIndex = terrainIconZIndex,
+            };
+            AddChild(_cowTerrainSprite);
+        }
+        _cowTerrainSprite.Texture = tex;
+        _cowTerrainSprite.Material = mat;
+        _cowTerrainSprite.Visible = true;
     }
 
     /// <summary>
