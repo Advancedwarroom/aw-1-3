@@ -115,7 +115,7 @@ public partial class ActionMenu
         TranslateGroup.SetText(title, "选择生产单位");
         factoryChoiceContainer.AddChild(title);
 
-        bool updatable = true; // SuperFactory 默认受白名单限制
+        bool updatable = factoryTarget.isUpdatable;   // 与ProduceUnitAt的白名单闸门同一字段
         var units = (factoryTarget.producibleUnitNames.Count > 0
             ? factoryTarget.producibleUnitNames.Where(u => UnitProductionDatabase.HasUnit(u))
             : UnitProductionDatabase.GetAllUnitNames())
@@ -146,11 +146,29 @@ public partial class ActionMenu
                 // 已选定生产口 → 直接出生；否则退回出口选择
                 if (factoryChosenExit != null && IsInstanceValid(factoryChosenExit)
                     && factoryChosenExit.infantries.Count == 0 && factoryChosenExit.weapons.Count == 0)
-                    ProduceFactoryUnit(factoryChosenExit);
+                    ProduceFactoryUnit(factoryChosenExit, true);
                 else
-                    ShowFactoryExitChoices();
+                    ShowFactoryExitChoices(true);
             };
             factoryChoiceContainer.AddChild(btn);
+            if (factoryTarget.dualProductionMode)
+            {
+                // 双菜单模式：⚡立即(1.2×) / 😴待机(0.8×) 两按钮（开创人规矩：想产出来就玩多花钱，等一回合便宜）
+                int instantCost = factoryTarget.GetProductionCost(Mathf.RoundToInt(info.Cost * factoryTarget.instantCostMultiplier), true);
+                int standbyCost = factoryTarget.GetProductionCost(Mathf.RoundToInt(info.Cost * factoryTarget.standbyCostMultiplier), false);
+                var btnI = new Button();
+                btnI.CustomMinimumSize = new Vector2(160, 30);
+                TranslateGroup.SetText(btnI, $"⚡{info.DisplayName} 立即 [{instantCost}G]");
+                var btnS = new Button();
+                btnS.CustomMinimumSize = new Vector2(160, 30);
+                TranslateGroup.SetText(btnS, $"😴{info.DisplayName} 待机 [{standbyCost}G]");
+                string cap = unitName;
+                btnI.Pressed += () => { factoryChosenUnit = cap; factoryChoiceContainer.Visible = false; ProduceFactoryUnit(factoryChosenExit, true); };
+                btnS.Pressed += () => { factoryChosenUnit = cap; factoryChoiceContainer.Visible = false; ProduceFactoryUnit(factoryChosenExit, false); };
+                factoryChoiceContainer.AddChild(btnI);
+                factoryChoiceContainer.AddChild(btnS);
+                btn.Visible = false;
+            }
         }
 
         var cancel = new Button();
@@ -160,7 +178,7 @@ public partial class ActionMenu
     }
 
     /// <summary>出口选择（兜底：未预选生产口时使用）</summary>
-    private void ShowFactoryExitChoices()
+    private void ShowFactoryExitChoices(bool dualInstant = true)
     {
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm == null || factoryTarget == null) return;
@@ -174,7 +192,7 @@ public partial class ActionMenu
         }
         if (free.Count == 1)
         {
-            ProduceFactoryUnit(free[0]);
+            ProduceFactoryUnit(free[0], dualInstant);
             return;
         }
 
@@ -195,7 +213,7 @@ public partial class ActionMenu
             btn.Pressed += () =>
             {
                 factoryChoiceContainer.Visible = false;
-                ProduceFactoryUnit(captured);
+                ProduceFactoryUnit(captured, dualInstant);
             };
             factoryChoiceContainer.AddChild(btn);
         }
@@ -206,13 +224,16 @@ public partial class ActionMenu
         factoryChoiceContainer.AddChild(cancel);
     }
 
-    private void ProduceFactoryUnit(Grids exit)
+    private void ProduceFactoryUnit(Grids exit, bool dualInstant = true)
     {
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm == null || factoryTarget == null) return;
         string team = TeamHelper.GetPhaseTeamName(gm.turnPhase);
 
-        bool instant = factoryInstantMode || factoryTarget.IsInDividend(team) || factoryTarget.instantMoveAfterProduction;
+        // 双菜单：严格按所点档位；非双菜单：维持旧语义
+        bool instant = factoryTarget.dualProductionMode
+            ? dualInstant
+            : (factoryInstantMode || factoryTarget.IsInDividend(team) || factoryTarget.instantMoveAfterProduction);
         string error = factoryTarget.ProduceUnitAt(factoryChosenUnit, exit, instant, team);
         if (!string.IsNullOrEmpty(error))
             ShowFactoryToast(error);
