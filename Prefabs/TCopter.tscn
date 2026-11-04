@@ -12,6 +12,7 @@ size = Vector2(32, 32)
 [node name="TCopter" type="Node2D" unique_id=1148536001 node_paths=PackedStringArray("loadedIcon", "noFuelIcon", "noAmmoIcon", "animSprite", "baseAnimSprite")]
 script = ExtResource("1_c8rcr")
 useDefaultConfig = false
+canOperateLoadedUsers = true
 canCapture = false
 unitCategory = 20
 visionRange = 2

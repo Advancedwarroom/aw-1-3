@@ -13,6 +13,7 @@ size = Vector2(34, 34)
 z_index = 10
 script = ExtResource("1_xci6q")
 useDefaultConfig = false
+canOperateLoadedUsers = true
 unitCategory = 9
 isArmoredUnit = true
 canTransportUnits = true
