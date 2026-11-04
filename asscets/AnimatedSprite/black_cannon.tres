@@ -1,19 +1,12 @@
 [gd_resource type="SpriteFrames" format=3 uid="uid://bk2tpwrcdh84l"]
 
-[ext_resource type="Texture2D" uid="uid://4xciwknjto2k" path="res://asscets/Weapons/Cannons/OsCannon1.png" id="1_8bc1l"]
-[ext_resource type="Texture2D" uid="uid://b1kjia63u0kb6" path="res://asscets/Weapons/Cannons/BmCannon1.png" id="2_fv2pl"]
-[ext_resource type="Texture2D" uid="uid://gkkyutsnjake" path="res://asscets/Weapons/Cannons/OsCannon3.png" id="2_qo4f5"]
-[ext_resource type="Texture2D" uid="uid://cwp6nosw3qg48" path="res://asscets/Weapons/Cannons/OsCannon2.png" id="3_4l1gk"]
-[ext_resource type="Texture2D" uid="uid://cupevtifodnn3" path="res://asscets/Weapons/Cannons/OsCannon4.png" id="4_ox5jl"]
-[ext_resource type="Texture2D" uid="uid://dt8wkfke6i" path="res://asscets/Weapons/Cannons/BmCannon2.png" id="6_axmwt"]
-[ext_resource type="Texture2D" uid="uid://nih13hfwvwwr" path="res://asscets/Weapons/Cannons/BmCannon3.png" id="7_ed2ob"]
-[ext_resource type="Texture2D" uid="uid://dx4qfhtslt2fd" path="res://asscets/Weapons/Cannons/BmCannon4.png" id="8_5arx5"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/Cannons/cannon_statue.png" id="statue"]
 
 [resource]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("1_8bc1l")
+"texture": ExtResource("statue")
 }],
 "loop": true,
 "name": &"cannon1_down",
@@ -21,7 +14,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_qo4f5")
+"texture": ExtResource("statue")
 }],
 "loop": true,
 "name": &"cannon1_left",
@@ -29,7 +22,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("3_4l1gk")
+"texture": ExtResource("statue")
 }],
 "loop": true,
 "name": &"cannon1_right",
@@ -37,7 +30,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("4_ox5jl")
+"texture": ExtResource("statue")
 }],
 "loop": true,
 "name": &"cannon1_up",
@@ -45,7 +38,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_fv2pl")
+"texture": ExtResource("statue")
 }],
 "loop": true,
 "name": &"cannon2_down",
@@ -53,7 +46,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("6_axmwt")
+"texture": ExtResource("statue")
 }],
 "loop": true,
 "name": &"cannon2_left",
@@ -61,7 +54,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("7_ed2ob")
+"texture": ExtResource("statue")
 }],
 "loop": true,
 "name": &"cannon2_right",
@@ -69,7 +62,7 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("8_5arx5")
+"texture": ExtResource("statue")
 }],
 "loop": true,
 "name": &"cannon2_up",

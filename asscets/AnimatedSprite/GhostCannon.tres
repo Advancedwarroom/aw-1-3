@@ -1,13 +1,16 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://asscets/Weapons/GhostCannon/GhostCannon1.png" id="1_ghost"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/GhostCannon/GhostCannonBroken.png" id="2_ghost"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/GhostCannon/GhostCannonN.png" id="n"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/GhostCannon/GhostCannonE.png" id="e"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/GhostCannon/GhostCannonS.png" id="s"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/GhostCannon/GhostCannonW.png" id="w"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/GhostCannon/GhostCannonBroken.png" id="broken"]
 
 [resource]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("1_ghost")
+"texture": ExtResource("n")
 }],
 "loop": true,
 "name": &"GhostCannon",
@@ -15,7 +18,39 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_ghost")
+"texture": ExtResource("n")
+}],
+"loop": true,
+"name": &"GhostCannonN",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("e")
+}],
+"loop": true,
+"name": &"GhostCannonE",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("s")
+}],
+"loop": true,
+"name": &"GhostCannonS",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("w")
+}],
+"loop": true,
+"name": &"GhostCannonW",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("broken")
 }],
 "loop": true,
 "name": &"GhostCannonBroken",

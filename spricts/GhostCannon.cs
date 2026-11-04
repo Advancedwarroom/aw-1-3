@@ -20,6 +20,10 @@ public partial class GhostCannon : Weapon
     [Export] public bool ghostAllowNaval = false;            // 海军不可伤害
     [Export] public bool ghostAllowAntiAir = true;          // 防空/反空中可伤害
 
+    // ========== 4. 朝向（决定显示哪张方向贴图，编辑器可设，运行时可转）==========
+    public enum GhostDirection { Up, Right, Down, Left }
+    [Export] public GhostDirection direction = GhostDirection.Up;
+
     // ========== 3. 血量（继承基类千分制 maxHealth/health）==========
     // maxHealth/health 继承 Weapon 基类
 
@@ -33,5 +37,41 @@ public partial class GhostCannon : Weapon
         allowAttackerAntiAirUnits = ghostAllowAntiAir;
 
         base._Ready();
+        UpdateDirectionVisual();
+    }
+
+    // 方向贴图动画名（GhostCannonN/E/S/W）
+    public override string GetAnimName()
+    {
+        string suffix = direction switch
+        {
+            GhostDirection.Up    => "N",
+            GhostDirection.Down  => "S",
+            GhostDirection.Left  => "W",
+            GhostDirection.Right => "E",
+            _ => "N"
+        };
+        return $"GhostCannon{suffix}";
+    }
+
+    public void UpdateDirectionVisual()
+    {
+        if (animSprite == null || animSprite.SpriteFrames == null) return;
+        string anim = GetAnimName();
+        if (animSprite.SpriteFrames.HasAnimation(anim))
+            animSprite.Play(anim);
+    }
+
+    public override void RotateDirection()
+    {
+        if (isDestroyed || !canRotate) return;
+        direction = (GhostDirection)(((int)direction + 1) % 4);
+        UpdateDirectionVisual();
+    }
+
+    public override void RefreshTeamVisual()
+    {
+        base.RefreshTeamVisual();
+        UpdateDirectionVisual();
     }
 }

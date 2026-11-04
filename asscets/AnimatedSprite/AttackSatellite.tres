@@ -1,11 +1,6 @@
-[gd_resource type="SpriteFrames" load_steps=7 format=3]
+[gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f1.png" id="f1"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f2.png" id="f2"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f3.png" id="f3"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f4.png" id="f4"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f5.png" id="f5"]
-[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/attack_sat_f6.png" id="f6"]
+[ext_resource type="Texture2D" path="res://asscets/Weapons/Satellites/satellite_blackonyx.png" id="sat"]
 
 [resource]
-animations = [{"frames": [{"duration": 1.0, "texture": ExtResource("f1")}, {"duration": 1.0, "texture": ExtResource("f2")}, {"duration": 1.0, "texture": ExtResource("f3")}], "loop": true, "name": &"AttackSatellite1", "speed": 6.0}, {"frames": [{"duration": 1.0, "texture": ExtResource("f4")}, {"duration": 1.0, "texture": ExtResource("f5")}, {"duration": 1.0, "texture": ExtResource("f6")}], "loop": true, "name": &"AttackSatellite2", "speed": 6.0}]
+animations = [{"frames": [{"duration": 1.0, "texture": ExtResource("sat")}], "loop": true, "name": &"AttackSatellite1", "speed": 6.0}, {"frames": [{"duration": 1.0, "texture": ExtResource("sat")}], "loop": true, "name": &"AttackSatellite2", "speed": 6.0}]
