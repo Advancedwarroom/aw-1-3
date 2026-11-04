@@ -82,7 +82,6 @@ public partial class SuperFactory : Weapon
             var hl = GetNodeOrNull<Label>("HpLabel");
             if (hl != null) hl.Visible = false;   // 无血量=不显示
         }
-        direction = CannonDirection.Down;  // 生产口默认朝南（贴图门在底部）
 
         base._Ready();
         var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
@@ -378,15 +377,8 @@ public partial class SuperFactory : Weapon
         }
         occupiedGrids.AddRange(newGrids);
 
-        // 旋转贴图
-        if (animSprite != null)
-        {
-            animSprite.RotationDegrees += 90;
-            var dots2 = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
-            if (dots2 != null) dots2.RotationDegrees = animSprite.RotationDegrees; // 黄灯随方向
-            // 重新居中
-            UpdateMultiTileVisual();
-        }
+        // 贴图朝向已由 direction 属性setter内的SetDirection设为绝对角度（此处再+=90会双重旋转——修）
+        if (animSprite != null) UpdateMultiTileVisual();
 
         ShowToast(TranslateGroup.T("旋转成功"));
         return true;
@@ -420,6 +412,11 @@ public partial class SuperFactory : Weapon
                 16 + (factorySize.Y - 1) * 16f
             );
         }
+        var dotsSync = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
+        if (dotsSync != null) dotsSync.Position = new Vector2(
+            16 + (factorySize.X - 1) * 16f,
+            16 + (factorySize.Y - 1) * 16f
+        );
     }
 
     // ========== 生产成本计算（双生产菜单模式） ==========
@@ -485,9 +482,6 @@ public partial class SuperFactory : Weapon
         int funds = gm.GetTeamFunds(payingTeam);
         if (cost > 0 && funds < cost) return TranslateGroup.T("资金不足");
 
-        // 扣费
-        if (cost > 0) gm.SetTeamFunds(payingTeam, funds - cost);
-
         // 生成
         var scene = GD.Load<PackedScene>(info.ScenePath);
         if (scene == null) return "scene null";
@@ -534,6 +528,9 @@ public partial class SuperFactory : Weapon
         // 红利消耗
         if (IsInDividend(payingTeam) && dividendUnitsRemaining > 0)
             dividendUnitsRemaining--;
+
+        // 扣费（绑定成功后才扣，失败不白扣钱）
+        if (cost > 0) gm.SetTeamFunds(payingTeam, gm.GetTeamFunds(payingTeam) - cost);
 
         gm.UpdateUnitLists();
         return "";
