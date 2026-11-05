@@ -21,6 +21,12 @@
 - **实验室系统**：常规单位默认可产；圈定8单位需实验室（UnitProductionWhitelist.LabLockedUnits，
   开创人2026-11-03圈定）；层数按势力实时持有数动态判定（夺回掉层）；relLockOnLost 开关默认关。
 
+## 血价教训（2026-11-06，$11 实损）
+- **逐文件分批提交 × 每推必跑 CI = 一晚 349 次 workflow**，烧穿 2000 分钟免费额度，
+  开创人账单扣款 $11。任何 AI 犯此错 = 浪费开创人的真钱。
+- **必须**：批量提交聚合成单笔 commit；每个 workflow 顶部必须有 concurrency 组
+  （cancel-in-progress: true）；改动 workflow 文件前先向开创人报备。
+
 ## 当前批次（按序执行，完成一项勾一项）
 - [ ] **批0（战斗动画急救）**：修 BattleTheater.cs:148 的 GetAnimationCount → GetAnimationNames() 取动画名回退；把 main 修到全绿。
 - [ ] **批1（等实测反馈）**：开创人实测 BHF（基线 36d9d0ec 的包）。反馈回来后按 bug 清单修。
