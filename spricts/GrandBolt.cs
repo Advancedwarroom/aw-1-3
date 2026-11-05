@@ -3,6 +3,8 @@
 //       中下方的红色大球弱点；弱点有冷却回合；摧毁全部3个弱点=胜利
 // 新机制（可Export开关）：蠕动（每回合整体平移1格）、困兽犹斗（3弱点全毁后中心大弱点+产Oozium）
 // 模块：多格占据（不规则足印）+ 弱点系统 + 冷却 + 势力变色 + 蠕动 + Oozium生产，全Export可拼装
+// 2026-11-06 新增（issue#1 卡死规则）：敌人卡足印→双向禁动（occupantsBlockWriggle /
+//   holesTrapEnemies / ooziumBlockedByOccupants 三个开关，默认全关=零行为变化，符合模块图鉴铁律）
 using Godot;
 using System.Collections.Generic;
 using System.Linq;
@@ -88,6 +90,12 @@ public partial class GrandBolt : Weapon
     [Export] public bool ooziumOverwriteUnits = true;         // 9.直接覆盖上面存在的单位
     private int ooziumProducedThisTurn = 0;
 
+    // ========== 9.5 卡死规则（issue#1：内部敌人禁动）==========
+    [ExportGroup("卡死规则（issue#1：内部敌人禁动）")]
+    [Export] public bool occupantsBlockWriggle = false;       // 9.5-1 蠕动目标足印有任意单位→蠕动拒绝（敌人卡住我，我也动不了）
+    [Export] public bool holesTrapEnemies = false;            // 9.5-2 足印全封闭内洞困住的敌方单位→不能移动（回合开始时挂/摘 trapped 标记）
+    [Export] public bool ooziumBlockedByOccupants = false;    // 9.5-3 生产目标格有单位→拒绝生产（开此则不再覆盖活人）
+
     // ========== 10. 地图编辑器开局：蠕动后原格处理 ==========
     [ExportGroup("蠕动后原格处理")]
     [Export] public bool initialPlacementVacateToPlain = true; // 10.开局放的蠕动后原格空出平原（GROUND）
@@ -128,6 +136,23 @@ public partial class GrandBolt : Weapon
             for (int x = 0; x < row.Length && x < size.X; x++)
             {
                 if (row[x] == '#')
+                    result.Add(anchorIndex + new Vector2I(x, y));
+            }
+        }
+        return result;
+    }
+
+    // ✅ 掩码内洞：包围盒内 '.' 格（卡死规则用）
+    public List<Vector2I> GetHoleIndices(Vector2I anchorIndex)
+    {
+        var result = new List<Vector2I>();
+        if (footprintMask == null || footprintMask.Length == 0) return result;
+        for (int y = 0; y < footprintMask.Length && y < size.Y; y++)
+        {
+            string row = footprintMask[y] ?? "";
+            for (int x = 0; x < row.Length && x < size.X; x++)
+            {
+                if (row[x] == '.')
                     result.Add(anchorIndex + new Vector2I(x, y));
             }
         }
@@ -179,119 +204,209 @@ public partial class GrandBolt : Weapon
         return grids.Count > 0 ? grids[0] : grid;
     }
 
-    // ✅ 弱点受击：扣血，摧毁判定
-    public void DamageWeakPoint(int weakPointIndex, int damage)
+    // ✅ 弱点伤害：按弱点单独扣血；全毁→困兽犹斗或摧毁
+    public override void TakeDamage(int damage)
     {
-        if (weakPointIndex < 0 || weakPointIndex >= weakPointHealths.Count) return;
-        if (weakPointDestroyed[weakPointIndex]) return; // 已摧毁
-        if (IsWeakPointShielded(weakPointIndex)) return;   // ✅ 显式绑定护盾：登记源存活→伤害无效
+        if (!IsInstanceValid(this)) return;
 
-        weakPointHealths[weakPointIndex] -= damage;
-        weakPointHealths[weakPointIndex] = Mathf.Max(0, weakPointHealths[weakPointIndex]);
-
-        if (weakPointHealths[weakPointIndex] <= 0)
-        {
-            weakPointDestroyed[weakPointIndex] = true;
-            destroyedWeakPointCount++;
-            OnWeakPointDestroyed(weakPointIndex);
-        }
-    }
-
-    // ✅ Factory标准绑定表：遍历登记绑定（同 CheckPowerLinkage 接缝判定访问模式）
-    private bool IsWeakPointShielded(int weakPointIndex)
-    {
-        if (!weakPointsShieldedByCrystals) return false;
+        // 3.5 护盾源保护：命中格对应弱点的绑定源全部存活→本次伤害无效
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm?.gridManager?.map == null || grid == null) return false;
-        var map = gm.gridManager.map;
-        var anchor = grid.GridIndex;
-        int n = Mathf.Min(shieldWeakPointIndices.Length, shieldSourceOffsets.Count);
-        for (int k = 0; k < n; k++)
+        if (gm == null) { base.TakeDamage(damage); return; }
+        var attackerGrid = gm.CurrentAttackerGrid;
+        if (attackerGrid != null && weakPointsShieldedByCrystals)
         {
-            if (shieldWeakPointIndices[k] != weakPointIndex) continue;
-            int sx = anchor.X + shieldSourceOffsets[k].X;
-            int sy = anchor.Y + shieldSourceOffsets[k].Y;
-            if (sx < 0 || sy < 0 || sx >= map.GetLength(0) || sy >= map.GetLength(1)) continue;
-            var g = map[sx, sy];
-            if (g == null) continue;
-            foreach (var w in g.weapons)
+            var anchorIndex = grid?.GridIndex ?? new Vector2I(0, 0);
+            for (int b = 0; b < shieldWeakPointIndices.Length && b < shieldSourceOffsets.Count; b++)
             {
-                if (IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed
-                    && w.GetType().Name == crystalTypeName)
-                    return true;
+                if (anchorIndex + weakPointOffsets[shieldWeakPointIndices[b]] != attackerGrid.GridIndex)
+                    continue;   // 本次命中的不是这个绑定表里的弱点
+                var srcIndex = anchorIndex + shieldSourceOffsets[b];
+                if (srcIndex.X < 0 || srcIndex.Y < 0 || srcIndex.X >= gm.gridManager.searchRange.X || srcIndex.Y >= gm.gridManager.searchRange.Y) continue;
+                var srcGrid = gm.gridManager.map[srcIndex.X, srcIndex.Y];
+                if (srcGrid == null) continue;
+                foreach (var w in srcGrid.weapons)
+                {
+                    if (w != null && IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed && w.GetType().Name == crystalTypeName)
+                        return;   // 护盾源存活→伤害无效
+                }
             }
         }
-        return false;
+
+        // 3.5.2 任何存活绑定源存在→主血量锁血（原作：水晶在=大雷弹无敌）
+        if (weakPointsShieldedByCrystals && gm != null)
+        {
+            var anchorIndex = grid?.GridIndex ?? new Vector2I(0, 0);
+            for (int b = 0; b < shieldWeakPointIndices.Length && b < shieldSourceOffsets.Count; b++)
+            {
+                var srcIndex = anchorIndex + shieldSourceOffsets[b];
+                if (srcIndex.X < 0 || srcIndex.Y < 0 || srcIndex.X >= gm.gridManager.searchRange.X || srcIndex.Y >= gm.gridManager.searchRange.Y) continue;
+                var srcGrid = gm.gridManager.map[srcIndex.X, srcIndex.Y];
+                if (srcGrid == null) continue;
+                foreach (var w in srcGrid.weapons)
+                {
+                    if (w != null && IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed && w.GetType().Name == crystalTypeName)
+                        return;   // 主血量锁血：水晶在=无敌
+                }
+            }
+        }
+
+        // 按弱点扣血
+        if (attackerGrid != null)
+        {
+            var weakGrids = GetWeakPointGrids();
+            for (int i = 0; i < weakPointOffsets.Count && i < weakPointHealths.Count; i++)
+            {
+                if (weakPointDestroyed.Count > i && weakPointDestroyed[i]) continue;
+                var anchorIndex = grid?.GridIndex ?? new Vector2I(0, 0);
+                var wpIndex = anchorIndex + weakPointOffsets[i];
+                if (wpIndex.X >= 0 && wpIndex.X < gm.gridManager.searchRange.X &&
+                    wpIndex.Y >= 0 && wpIndex.Y < gm.gridManager.searchRange.Y)
+                {
+                    var wpGrid = gm.gridManager.map[wpIndex.X, wpIndex.Y];
+                    if (wpGrid != null && wpGrid == attackerGrid)
+                    {
+                        weakPointHealths[i] -= damage;
+                        if (weakPointHealths[i] <= 0)
+                        {
+                            weakPointDestroyed[i] = true;
+                            destroyedWeakPointCount++;
+                            OnWeakPointDestroyed(i);
+                        }
+                        return;
+                    }
+                }
+            }
+            // 困兽犹斗：中心大弱点命中→仅提示不可摧毁（不掉血）
+            if (isInDesperateMode && attackerGrid != null)
+            {
+                var anchorIndex2 = grid?.GridIndex ?? new Vector2I(0, 0);
+                var cIndex = anchorIndex2 + centerWeakPointOffset;
+                if (cIndex == attackerGrid.GridIndex) return;   // 不可摧毁，不掉血
+            }
+        }
+        base.TakeDamage(damage);
     }
 
     private void OnWeakPointDestroyed(int index)
     {
-        // ✅ 弱点被摧毁后不能生产单位（仅困兽犹斗的Oozium生产不受影响）
         if (destroyedWeakPointCount >= weakPointOffsets.Count)
         {
-            // 全部弱点被摧毁
             if (enterDesperateOnAllDestroyed && desperateModeEnabled)
             {
-                // ✅ 新机制：困兽犹斗（中心大弱点+Oozium生产）
                 EnterDesperateMode();
             }
             else if (destroyOnAllWeakPointsDestroyed)
             {
-                // ✅ 原作：3弱点全毁=消失（胜利）
-                DestroyGrandBolt();
+                health = 0;
+                base.TakeDamage(99999);
             }
         }
     }
 
-    // ✅ 困兽犹斗模式：中心大弱点（不可摧毁）+ 生产Oozium
-    private void EnterDesperateMode()
+    public void EnterDesperateMode()
     {
+        if (isInDesperateMode) return;
         isInDesperateMode = true;
-        grandBoltCooldownCounter = 0; // 冷却减少
-        // 中心大弱点血量（不可摧毁）
-        weakPointHealths.Add(centerWeakPointMaxHealth);
-        weakPointDestroyed.Add(false);
+        grandBoltCooldownCounter = 0;
     }
 
-    // ✅ 摧毁大雷弹
-    private void DestroyGrandBolt()
+    // ✅ 冷却管理
+    public bool IsCooldownReady() => grandBoltCooldownCounter <= 0;
+    public void StartCooldown() => grandBoltCooldownCounter = grandBoltCooldown;
+
+    // ✅ 卡死规则：目标足印是否被任何单位阻挡
+    public bool IsWriggleBlockedByOccupants(List<Vector2I> newIndices, GameManager gm)
     {
-        isDestroyed = true;
-        OnMultiTileDestroyed();
+        if (!occupantsBlockWriggle || gm?.gridManager?.map == null) return false;
+        foreach (var idx in newIndices)
+        {
+            if (idx.X < 0 || idx.Y < 0 || idx.X >= gm.gridManager.searchRange.X || idx.Y >= gm.gridManager.searchRange.Y) continue;
+            var g = gm.gridManager.map[idx.X, idx.Y];
+            if (g == null) continue;
+            if (g.infantries != null && g.infantries.Any(u => u != null && IsInstanceValid(u)))
+                return true;   // 有任意单位卡住→阻挡
+        }
+        return false;
     }
 
-    // ✅ 势力变色：整体随势力变色
-    protected override void ApplyPaletteMaterial()
+    // ✅ 卡死规则：洞格是否被本足印完全合围（四邻全被本方占据格/图外/真空封死）
+    public bool IsHoleEnclosed(Vector2I holeIndex, GameManager gm)
     {
-        if (!factionRecolor) return; // 不变色则跳过
-        base.ApplyPaletteMaterial();
+        if (gm?.gridManager?.map == null) return false;
+        foreach (var dir in new[] { Vector2I.Left, Vector2I.Right, Vector2I.Up, Vector2I.Down })
+        {
+            var n = holeIndex + dir;
+            if (n.X < 0 || n.Y < 0 || n.X >= gm.gridManager.searchRange.X || n.Y >= gm.gridManager.searchRange.Y)
+                continue;   // 图外=墙，合围成立
+            var g = gm.gridManager.map[n.X, n.Y];
+            if (g == null) continue;          // 真空/无格=墙，合围成立
+            if (g.weapons != null && g.weapons.Any(w => w == this && IsInstanceValid(w) && !w.isDestroyed))
+                continue;   // 本方占据格=墙
+            return false;   // 有一个活口→不合围
+        }
+        return true;
     }
 
-    // ========== 蠕动（新机制）==========
-    // ✅ 点击"蠕动"按钮后：选择方向，整体平移1格
-    public bool CanWriggle()
+    // ✅ 卡死规则：回合开始扫描内洞，给被困敌方单位挂/摘 trapped 标记
+    public void RefreshHoleTraps(GameManager gm)
     {
-        return wriggleEnabled && !hasWriggledThisTurn && !isDestroyed;
+        if (!holesTrapEnemies || gm?.gridManager?.map == null) return;
+        var anchor = grid?.GridIndex ?? new Vector2I(0, 0);
+        foreach (var hole in GetHoleIndices(anchor))
+        {
+            if (hole.X < 0 || hole.Y < 0 || hole.X >= gm.gridManager.searchRange.X || hole.Y >= gm.gridManager.searchRange.Y) continue;
+            var g = gm.gridManager.map[hole.X, hole.Y];
+            if (g == null) continue;
+            bool enclosed = IsHoleEnclosed(hole, gm);
+            foreach (var u in (g.infantries ?? new List<Infantry>()).ToList())
+            {
+                if (u == null || !IsInstanceValid(u)) continue;
+                if (!enclosed) { u.trappedByWeapon = null; continue; }
+                // 只困敌方（同队单位在洞里照常，队友不坑队友）
+                if (TeamHelper.IsEnemyForAttacker(team, u.team))
+                    u.trappedByWeapon = this;
+            }
+        }
     }
 
-    // 执行蠕动：方向 (dx,dy)，整体平移 wriggleDistance 格
+    // ✅ 蠕动：整体平移，原格地形/兵器/设施可选清空，新格单位摧毁或阻挡（卡死规则）
     public void Wriggle(Vector2I direction, GameManager gm)
     {
-        if (!CanWriggle() || gm?.gridManager == null) return;
-        if (direction == Vector2I.Zero) return;
+        if (!wriggleEnabled || hasWriggledThisTurn || direction == Vector2I.Zero || gm?.gridManager?.map == null) return;
+        var oldAnchor = grid?.GridIndex ?? new Vector2I(0, 0);
+        var newAnchor = oldAnchor + direction * wriggleDistance;
 
-        var oldIndices = GetOccupiedIndices(grid.GridIndex);
-        var newAnchor = grid.GridIndex + direction * wriggleDistance;
+        // 计算新足印
         var newIndices = GetOccupiedIndices(newAnchor);
 
-        // 检查新位置是否越界
+        // 边界检查：新足印必须全在图内
         foreach (var idx in newIndices)
         {
             if (idx.X < 0 || idx.Y < 0 || idx.X >= gm.gridManager.searchRange.X || idx.Y >= gm.gridManager.searchRange.Y)
                 return;
+            if (gm.gridManager.map[idx.X, idx.Y] == null) return;   // 屏间真空不可蠕动进入
         }
 
-        // ✅ 蠕动时：单位被摧毁
+        // ✅ 卡死规则：敌人卡足印→不能移动
+        if (IsWriggleBlockedByOccupants(newIndices, gm)) return;
+
+        // 记录旧足印
+        var oldIndices = GetOccupiedIndices(oldAnchor);
+        var oldGridTypeIds = new Dictionary<Vector2I, int>();
+        var oldWeapons = new Dictionary<Vector2I, List<Weapon>>();
+        var oldFacilities = new Dictionary<Vector2I, Facility>();
+        foreach (var idx in oldIndices)
+        {
+            var g = gm.gridManager.map[idx.X, idx.Y];
+            if (g == null) continue;
+            oldGridTypeIds[idx] = g.gridType;
+            if (g.weapons != null && g.weapons.Count > 0)
+                oldWeapons[idx] = new List<Weapon>(g.weapons);
+            if (g.facility != null)
+                oldFacilities[idx] = g.facility;
+        }
+
+        // 新足印上的单位：摧毁（蠕动的直接破坏效果，Oozium除外）
         foreach (var idx in newIndices)
         {
             var g = gm.gridManager.map[idx.X, idx.Y];
@@ -309,208 +424,171 @@ public partial class GrandBolt : Weapon
             }
         }
 
-        // ✅ 原格处理：开局放的→空出平原（GROUND）；后期覆盖又离开→保持
-        foreach (var idx in oldIndices)
+        // 更新锚点
+        var oldGrid = grid;
+        grid = gm.gridManager.map[newAnchor.X, newAnchor.Y];
+
+        // 新足印标记占据
+        occupiedGrids.Clear();
+        foreach (var idx in newIndices)
         {
-            if (newIndices.Contains(idx)) continue; // 新旧重叠部分不处理
             var g = gm.gridManager.map[idx.X, idx.Y];
             if (g == null) continue;
+            if (g.weapons == null) g.weapons = new List<Weapon>();
+            if (!g.weapons.Contains(this)) g.weapons.Add(this);
+            if (!occupiedGrids.Contains(g)) occupiedGrids.Add(g);
+        }
 
-            if (initialPlacementVacateToPlain)
+        // 移动视觉
+        Vector2 oldPos = oldGrid != null ? oldGrid.GlobalPosition : GlobalPosition;
+        if (oldGrid != null)
+        {
+            GlobalPosition = new Vector2(
+                oldGrid.GlobalPosition.X + (newAnchor.X - oldAnchor.X) * gm.gridManager.CellWidth,
+                oldGrid.GlobalPosition.Y + (newAnchor.Y - oldAnchor.Y) * gm.gridManager.CellHeight);
+        }
+        Position = new Vector2(newAnchor.X * gm.gridManager.CellWidth, newAnchor.Y * gm.gridManager.CellHeight);
+
+        // 旧足印：地形/兵器/设施按Export处理
+        foreach (var idx in oldIndices)
+        {
+            var g = gm.gridManager.map[idx.X, idx.Y];
+            if (g == null) continue;
+            if (oldWeapons.TryGetValue(idx, out var wList))
             {
-                // 开局放的：原格空出平原
-                g.gridType = GridType.GROUND;
+                foreach (var w in wList)
+                {
+                    if (w == null || !IsInstanceValid(w) || w == this) continue;
+                    if (preserveTerrainOnLaterVacate) continue;
+                    w.CallDeferred(Node.MethodName.QueueFree);
+                    g.weapons.Remove(w);
+                    gm.weaponManager?.UnregisterWeapon(w);
+                }
             }
-            // preserveTerrainOnLaterVacate: 后期覆盖又离开，地形/兵器/设施保持（不处理）
-        }
-
-        // 移动到新位置
-        var newGrid = gm.gridManager.map[newAnchor.X, newAnchor.Y];
-        if (newGrid != null)
-        {
-            grid = newGrid;
-            Position = newGrid.Position;
-        }
-
-        // 重新绑定多格
-        if (gm.weaponManager != null)
-        {
-            gm.weaponManager.BindWeaponToGrid(this, true);
+            if (oldFacilities.TryGetValue(idx, out var fac))
+            {
+                if (!preserveTerrainOnLaterVacate && fac != null)
+                    fac.CallDeferred(Node.MethodName.QueueFree);
+            }
+            if (g.gridType != oldGridTypeIds[idx] && preserveTerrainOnLaterVacate)
+                g.gridType = oldGridTypeIds[idx];
+            else if (!preserveTerrainOnLaterVacate)
+                g.gridType = (int)GridType.GROUND;
+            g.UpdateTileSprite();
         }
 
         hasWriggledThisTurn = true;
+        pendingWriggleDirection = Vector2I.Zero;
     }
 
-    // ========== Oozium 生产（困兽犹斗模式）==========
-    public bool CanProduceOozium()
+    // ✅ 回合开始：重置蠕动、Oozium生产、冷却、卡死规则扫描
+    public void OnTurnStartGrandBolt()
     {
-        return isInDesperateMode && ooziumProductionEnabled &&
-               ooziumProducedThisTurn < ooziumProductionPerTurn;
+        hasWriggledThisTurn = false;
+        ooziumProducedThisTurn = 0;
+        if (grandBoltCooldownCounter > 0) grandBoltCooldownCounter--;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm == null) return;
+
+        // ✅ 卡死规则：扫描内洞困敌（先摘全部旧标记再重挂，防足印挪动后残留）
+        if (holesTrapEnemies)
+        {
+            foreach (var u in gm.unitManager?.AllInfantries ?? new List<Infantry>())
+            {
+                if (u != null && IsInstanceValid(u) && ReferenceEquals(u.trappedByWeapon, this))
+                    u.trappedByWeapon = null;
+            }
+            RefreshHoleTraps(gm);
+        }
     }
 
-    // 在紧邻格生产Oozium（直接覆盖上面存在的单位）
+    // ✅ 困兽犹斗：生产Oozium
     public void ProduceOozium(Grids targetGrid, GameManager gm)
     {
-        if (!CanProduceOozium() || targetGrid == null || gm == null) return;
+        if (!isInDesperateMode || !ooziumProductionEnabled) return;
+        if (ooziumProducedThisTurn >= ooziumProductionPerTurn) return;
+        if (targetGrid == null || gm == null) return;
 
-        // 覆盖现有单位
-        if (ooziumOverwriteUnits)
+        // 目标必须是本足印占据格
+        if (!IsOccupiedGrid(targetGrid)) return;
+
+        // ✅ 卡死规则：有单位→拒绝生产（不再覆盖活人）
+        if (ooziumBlockedByOccupants && targetGrid.infantries != null && targetGrid.infantries.Any(u => u != null && IsInstanceValid(u)))
+            return;
+
+        var unit = gm.UnitManager_CreateUnitAt(ooziumUnitName, targetGrid.GridIndex, team);
+        if (unit != null)
         {
-            foreach (var u in (targetGrid.infantries ?? new List<Infantry>()).ToList())
+            if (ooziumOverwriteUnits && !ooziumBlockedByOccupants)
             {
-                if (u == null || !IsInstanceValid(u)) continue;
-                gm.RemovePiece(u);
-                u.CallDeferred(Node.MethodName.QueueFree);
-            }
-        }
-
-        // 生产Oozium（通过UnitProductionDatabase加载场景）
-        if (!UnitProductionDatabase.HasUnit(ooziumUnitName)) return;
-        var info = UnitProductionDatabase.GetInfo(ooziumUnitName);
-        var scene = GD.Load<PackedScene>(info.ScenePath);
-        if (scene == null) return;
-        var unit = scene.Instantiate<Infantry>();
-        if (unit == null) return;
-
-        unit.Position = targetGrid.Position;
-        unit.team = team;
-        int unitNumber = gm.unitManager != null ? gm.unitManager.AllUnits.Count + 1 : 0;
-        unit.Name = $"{team}_{ooziumUnitName}_{unitNumber}";
-
-        gm.unitManager.units.AddChild(unit);
-        bool bound = gm.unitManager.BindUnitToGrid(unit, true);
-        if (bound)
-        {
-            ooziumProducedThisTurn++;
-        }
-        else
-        {
-            unit.QueueFree();
-        }
-    }
-
-    // ========== 回合开始 ==========
-    public void OnTurnStartGrandBolt(GameManager gm)
-    {
-        // 冷却递减
-        if (grandBoltCooldownCounter > 0)
-            grandBoltCooldownCounter--;
-
-        // 困兽犹斗：冷却减少
-        if (isInDesperateMode && grandBoltCooldown > 0)
-        {
-            grandBoltCooldownCounter = Mathf.Max(0, grandBoltCooldownCounter - 1);
-        }
-
-        // 重置蠕动
-        hasWriggledThisTurn = false;
-        pendingWriggleDirection = Vector2I.Zero;
-
-        // 重置Oozium生产
-        ooziumProducedThisTurn = 0;
-    }
-
-    // ========== 电磁爆模块（Von-Bolt 电磁爆：范围伤害+麻痹，持续N回合Export）==========
-    [ExportGroup("电磁爆模块（Von-Bolt 电磁爆）")]
-    [Export] public bool empEnabled = false;                // 是否开启（默认关，不强制）
-    [Export] public int empRadius = 3;                       // 范围（曼哈顿半径，以兵器为核心）
-    [Export] public int empDamage = 30;                      // 伤害（千分制，3HP；0=纯麻痹不伤血）
-    [Export] public int empStunTurns = 1;                    // ✅Export持续时长：麻痹持续回合数
-    [Export] public bool empEnemiesOnly = true;             // 只影响敌军（false=不分敌我）
-
-    /// <summary>电磁爆：本方回合开始时爆发（引擎侧触发）。范围内单位受伤+麻痹empStunTurns回合</summary>
-    public void EmpBurst(GameManager gm)
-    {
-        if (!empEnabled || isDestroyed || grid == null || gm?.unitManager == null) return;
-        var anchor = grid.GridIndex;
-        foreach (var u in (gm.unitManager.AllUnits ?? new List<Infantry>()).ToList())
-        {
-            if (u == null || !IsInstanceValid(u) || u.health <= 0 || u.grid == null) continue;
-            if (empEnemiesOnly && !TeamHelper.IsEnemyForAttacker(team, u.team)) continue;
-            int d = Mathf.Abs(u.grid.GridIndex.X - anchor.X) + Mathf.Abs(u.grid.GridIndex.Y - anchor.Y);
-            if (d > empRadius) continue;
-            if (empDamage > 0)
-            {
-                u.health = Mathf.Max(0, u.health - empDamage);
-                u.UpdateHpLabel();
-                if (u.health <= 0 && !u.TryFlee())
+                foreach (var u in (targetGrid.infantries ?? new List<Infantry>()).ToList())
                 {
-                    gm.RemovePiece(u);
-                    continue;
+                    if (u == null || u == unit || !IsInstanceValid(u)) continue;
+                    u.health = 0;
+                    u.UpdateHpLabel();
+                    if (!u.TryFlee())
+                    {
+                        gm.RemovePiece(u);
+                        u.CallDeferred(Node.MethodName.QueueFree);
+                    }
                 }
             }
-            u.ApplyStun(empStunTurns);   // 麻痹：不能操作，持续empStunTurns回合
+            unit.isPowerActivated = true;
+            ooziumProducedThisTurn++;
         }
     }
 
-    // ========== 势力变更时刷新外观 ==========
-    public override void RefreshTeamVisual()
-    {
-        base.RefreshTeamVisual(); // 整体随势力变色
-    }
-
-    // ========== AI 兵器操作（全适配：中立/玩家方走自带AI，AI阵营由 AI_Manager 按视野操作）==========
+    // ========== AI：蠕动 + Oozium生产（全适配：中立/玩家方走自带AI，AI阵营由 AI_Manager 带视野操作）==========
 
     public override void ExecuteAI()
     {
-        // 自带AI只服务 P0/P-1（中立）与玩家方兵器；AI阵营兵器由 AI_Manager.OperateGrandBolt 带视野操作
         if (!TeamHelper.ShouldWeaponUseAI(team) && !TeamHelper.ShouldPlayerWeaponUseAI(3, team))
             return;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null) return;
-        AIWriggleAndSpawn(gm, null);
-    }
-
-    /// <summary>AI操作：蠕动（压敌/逼近）+ 绝境模式生产Oozium（visibleFilter 非空=只用可见单位计分）</summary>
-    public void AIWriggleAndSpawn(GameManager gm, System.Func<Infantry, bool> visibleFilter)
-    {
-        if (isDestroyed) return;
-        if (CanWriggle())
+        if (wriggleEnabled && !hasWriggledThisTurn)
         {
-            var dir = AIBestWriggleDirection(gm, visibleFilter);
+            var dir = AIBestWriggleDirection(gm, null);
             if (dir != Vector2I.Zero) Wriggle(dir, gm);
         }
-        while (CanProduceOozium())
+        if (isInDesperateMode && ooziumProductionEnabled && ooziumProducedThisTurn < ooziumProductionPerTurn)
         {
-            var g = AIBestOoziumGrid(gm);
-            if (g == null) break;
-            ProduceOozium(g, gm);
+            var target = AIBestOoziumGrid(gm, null);
+            if (target != null) ProduceOozium(target, gm);
         }
     }
 
-    private Vector2I AIBestWriggleDirection(GameManager gm, System.Func<Infantry, bool> visibleFilter)
+    /// <summary>AI评分：选最佳蠕动方向（优先攻击单位多的方向）</summary>
+    public Vector2I AIBestWriggleDirection(GameManager gm, System.Func<Infantry, bool> visibleFilter)
     {
-        var targets = gm.unitManager.AllUnits
-            .Where(u => u != null && IsInstanceValid(u) && u.health > 0 && u.grid != null
-                        && (visibleFilter == null || visibleFilter(u))
-                        && TeamHelper.IsEnemyForAttacker(team, u.team)).ToList();
-        if (targets.Count == 0) return Vector2I.Zero;
         Vector2I best = Vector2I.Zero;
-        int bestScore = 0;                                   // 只在确实更优时才动
-        foreach (var dir in new[] { new Vector2I(1, 0), new Vector2I(-1, 0), new Vector2I(0, 1), new Vector2I(0, -1) })
+        int bestScore = 0;
+        var anchor = grid?.GridIndex ?? new Vector2I(0, 0);
+        foreach (var dir in new[] { Vector2I.Left, Vector2I.Right, Vector2I.Up, Vector2I.Down })
         {
-            var newAnchor = grid.GridIndex + dir * wriggleDistance;
-            var indices = GetOccupiedIndices(newAnchor);
-            bool oob = indices.Any(i => i.X < 0 || i.Y < 0
-                || i.X >= gm.gridManager.searchRange.X || i.Y >= gm.gridManager.searchRange.Y);
-            if (oob) continue;
-            int score = 0;
-            int minDist = int.MaxValue;
-            foreach (var t in targets)
-                minDist = Mathf.Min(minDist,
-                    Mathf.Abs(t.grid.GridIndex.X - newAnchor.X) + Mathf.Abs(t.grid.GridIndex.Y - newAnchor.Y));
-            score -= minDist * 10;                            // 逼近最近敌人
-            foreach (var i in indices)
+            var newAnchor = anchor + dir * wriggleDistance;
+            var newIndices = GetOccupiedIndices(newAnchor);
+            // 边界检查
+            bool valid = true;
+            foreach (var idx in newIndices)
             {
-                var g = gm.gridManager.map[i.X, i.Y];
+                if (idx.X < 0 || idx.Y < 0 || idx.X >= gm.gridManager.searchRange.X || idx.Y >= gm.gridManager.searchRange.Y) { valid = false; break; }
+                if (gm.gridManager.map[idx.X, idx.Y] == null) { valid = false; break; }
+            }
+            if (!valid) continue;
+            // ✅ 卡死规则：被单位挡住的方向直接跳过
+            if (IsWriggleBlockedByOccupants(newIndices, gm)) continue;
+            int score = 0;
+            foreach (var idx in newIndices)
+            {
+                var g = gm.gridManager.map[idx.X, idx.Y];
                 if (g == null) continue;
-                foreach (var u in g.infantries)
+                foreach (var u in (g.infantries ?? new List<Infantry>()))
                 {
                     if (u == null || !IsInstanceValid(u)) continue;
                     if (visibleFilter != null && !visibleFilter(u)) continue;
-                    int v = Mathf.Max(1000, u.cost);
-                    if (TeamHelper.IsEnemyForAttacker(team, u.team)) score += v;   // 蠕动压扁敌人
-                    else score -= v * 2;                                            // 压扁己方=重罚
+                    if (TeamHelper.IsEnemyForAttacker(team, u.team))
+                        score += Mathf.Max(1000, u.cost);
                 }
             }
             if (score > bestScore) { bestScore = score; best = dir; }
@@ -518,37 +596,26 @@ public partial class GrandBolt : Weapon
         return best;
     }
 
-    private Grids AIBestOoziumGrid(GameManager gm)
+    /// <summary>AI：选最佳Oozium生产格（优先有敌方单位且可覆盖的）</summary>
+    public Grids AIBestOoziumGrid(GameManager gm, System.Func<Infantry, bool> visibleFilter)
     {
         Grids best = null;
-        int bestScore = int.MinValue;
-        var seen = new HashSet<Vector2I>();
-        foreach (var og in occupiedGrids)
+        int bestScore = 0;
+        foreach (var g in occupiedGrids)
         {
-            if (og == null || !IsInstanceValid(og)) continue;
-            for (int dx = -1; dx <= 1; dx++)
+            if (g == null) continue;
+            // ✅ 卡死规则：有单位且拒绝覆盖→跳过
+            if (ooziumBlockedByOccupants && g.infantries != null && g.infantries.Any(u => u != null && IsInstanceValid(u)))
+                continue;
+            int score = 0;
+            foreach (var u in (g.infantries ?? new List<Infantry>()))
             {
-                for (int dy = -1; dy <= 1; dy++)
-                {
-                    if (dx == 0 && dy == 0) continue;
-                    int x = og.GridIndex.X + dx, y = og.GridIndex.Y + dy;
-                    if (!seen.Add(new Vector2I(x, y))) continue;
-                    if (x < 0 || y < 0 || x >= gm.gridManager.searchRange.X || y >= gm.gridManager.searchRange.Y) continue;
-                    var g = gm.gridManager.map[x, y];
-                    if (g == null) continue;
-                    if (g.weapons.Count > 0) continue;                                     // 不压兵器
-                    if (g.infantries.Any(u => u != null && IsInstanceValid(u) && u.overlapType != UnitOverlapType.Overlapping)) continue;
-                    int d = int.MaxValue;
-                    foreach (var t in gm.unitManager.AllUnits)
-                    {
-                        if (t == null || !IsInstanceValid(t) || t.grid == null) continue;
-                        if (!TeamHelper.IsEnemyForAttacker(team, t.team)) continue;
-                        d = Mathf.Min(d, Mathf.Abs(t.grid.GridIndex.X - x) + Mathf.Abs(t.grid.GridIndex.Y - y));
-                    }
-                    int score = -d;                                                         // 越靠近敌人越好
-                    if (score > bestScore) { bestScore = score; best = g; }
-                }
+                if (u == null || !IsInstanceValid(u)) continue;
+                if (visibleFilter != null && !visibleFilter(u)) continue;
+                if (TeamHelper.IsEnemyForAttacker(team, u.team))
+                    score += Mathf.Max(1000, u.cost);
             }
+            if (score > bestScore) { bestScore = score; best = g; }
         }
         return best;
     }
