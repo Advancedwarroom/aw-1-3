@@ -80,6 +80,40 @@ public void OnGridClickedForEdit(Grids grid)
         return;
     }
 
+    // ✅ ===== 多格单位预览确认（issue#1：优先级同多格兵器）=====
+    if (isMultiTileUnitPreviewMode && !string.IsNullOrEmpty(pendingMultiTileUnitTemplatePath))
+    {
+        if (previewMultiTileUnitGrids.Contains(grid))
+        {
+            var savedUnitPath = pendingMultiTileUnitTemplatePath;
+            var savedUnitTeam = pendingMultiTileUnitTeam;
+            ConfirmMultiTileUnitPlacement();
+            TrySpawnSymmetric(grid, savedUnitPath, savedUnitTeam, SpawnMode.Unit);
+            // 如果是从保存槽/CustomConfigUI进来的，清除它的pending状态
+            if (pendingSpawnMode != SpawnMode.None)
+            {
+                pendingSpawnMode = SpawnMode.None;
+                pendingSpawnScenePath = "";
+                var h = GetNodeOrNull<Label>("SpawnModeHint");
+                h?.QueueFree();
+            }
+        }
+        else
+        {
+            ClearMultiTileUnitPreview();
+            TranslateGroup.SetText(spawnHintLabel, "❌ 已取消多格单位预览（点击范围外）");
+            spawnHintLabel.AddThemeColorOverride("font_color", Colors.Yellow);
+            if (pendingSpawnMode != SpawnMode.None)
+            {
+                pendingSpawnMode = SpawnMode.None;
+                pendingSpawnScenePath = "";
+                var h = GetNodeOrNull<Label>("SpawnModeHint");
+                h?.QueueFree();
+            }
+        }
+        return;
+    }
+
     // ✅ ===== 优先处理生成模式（生成菜单打开 + 已选模板时，不拦截）=====
     if (currentSpawnMode != SpawnMode.None && !string.IsNullOrEmpty(selectedTemplatePath))
     {
@@ -93,9 +127,9 @@ public void OnGridClickedForEdit(Grids grid)
 
         if (currentSpawnMode == SpawnMode.Unit)
         {
-            SpawnUnitAtGrid(grid, selectedTemplatePath, unitTemplates.First(t => t.ScenePath == selectedTemplatePath).Team);
-            TrySpawnSymmetric(grid, selectedTemplatePath, unitTemplates.First(t => t.ScenePath == selectedTemplatePath).Team, SpawnMode.Unit);
-            DestroySpawnGhost();   // ✅ 实际放置后销毁幽灵预览
+            // ✅ issue#1：多格单位走预览确认（单格单位在 TryPreviewMultiTileUnit 内直通直生）
+            TryPreviewMultiTileUnit(grid, selectedTemplatePath, unitTemplates.First(t => t.ScenePath == selectedTemplatePath).Team);
+            DestroySpawnGhost();   // ✅ 进入多格预览/实际放置后销毁幽灵预览（绿色范围预览接管）
         }
         else if (currentSpawnMode == SpawnMode.Weapon)
         {

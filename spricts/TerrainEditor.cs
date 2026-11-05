@@ -259,6 +259,13 @@ public override void _Input(InputEvent @event)
             spawnHintLabel.AddThemeColorOverride("font_color", Colors.Yellow);
             return;
         }
+        if (isMultiTileUnitPreviewMode)
+        {
+            ClearMultiTileUnitPreview();
+            TranslateGroup.SetText(spawnHintLabel, "取消多格单位放置");
+            spawnHintLabel.AddThemeColorOverride("font_color", Colors.Yellow);
+            return;
+        }
         if (batchTerrainPanel?.Visible == true)
         {
             CloseBatchTerrainPanel();
