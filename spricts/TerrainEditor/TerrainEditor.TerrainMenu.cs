@@ -598,7 +598,14 @@ private void CloseTerrainMenu()
             GridType.WASTE_PIPE => TranslateGroup.T("☢️ 废土管道"),
             GridType.WASTE_PIPESEAM => TranslateGroup.T("☢️ 废土管道接缝"),
             GridType.WASTE_BROKENPIPE => TranslateGroup.T("☢️ 废土破碎管道"),
-            _ => type.ToString()
+                        GridType.FIRE => TranslateGroup.T("🔥 火焰"),
+            GridType.LAKE => TranslateGroup.T("🌊 湖泊"),
+            GridType.ROUGH_SEA => TranslateGroup.T("🌊 惊涛"),
+            GridType.STREET => TranslateGroup.T("🛣️ 街道"),
+            GridType.PATH => TranslateGroup.T("🥾 土路"),
+            GridType.DESERT_TRY_RIVER => TranslateGroup.T("🏜️ 干涸河床"),
+            GridType.MINE => TranslateGroup.T("💣 地雷"),
+_ => type.ToString()
         };
     }
 

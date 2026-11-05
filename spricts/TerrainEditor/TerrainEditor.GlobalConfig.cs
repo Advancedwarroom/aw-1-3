@@ -1324,7 +1324,10 @@ private void RefreshAllUnitVision()
         GridType.DESERT_WASTELAND, GridType.SNOW_WASTELAND, GridType.WASTE_WASTELAND,
         GridType.DESERT_PIPE, GridType.SNOW_PIPE, GridType.WASTE_PIPE,
         GridType.DESERT_PIPESEAM, GridType.SNOW_PIPESEAM, GridType.WASTE_PIPESEAM,
-        GridType.DESERT_BROKENPIPE, GridType.SNOW_BROKENPIPE, GridType.WASTE_BROKENPIPE
+        GridType.DESERT_BROKENPIPE, GridType.SNOW_BROKENPIPE, GridType.WASTE_BROKENPIPE,
+        // ✅ CoW补齐六地形
+        GridType.FIRE, GridType.LAKE, GridType.ROUGH_SEA, GridType.STREET,
+        GridType.PATH, GridType.DESERT_TRY_RIVER, GridType.MINE
     };
 
     private readonly Dictionary<GridType, Color> terrainColors = new()
@@ -1397,5 +1400,13 @@ private void RefreshAllUnitVision()
         { GridType.WASTE_PIPE, new Color(0.58f, 0.45f, 0.5f) },
         { GridType.WASTE_PIPESEAM, new Color(0.63f, 0.5f, 0.55f) },
         { GridType.WASTE_BROKENPIPE, new Color(0.42f, 0.32f, 0.36f) },
+        // ✅ CoW补齐六地形
+        { GridType.FIRE, new Color(0.95f, 0.45f, 0.1f) },
+        { GridType.LAKE, new Color(0.25f, 0.55f, 0.85f) },
+        { GridType.ROUGH_SEA, new Color(0.15f, 0.35f, 0.65f) },
+        { GridType.STREET, new Color(0.62f, 0.62f, 0.65f) },
+        { GridType.PATH, new Color(0.72f, 0.6f, 0.45f) },
+        { GridType.DESERT_TRY_RIVER, new Color(0.85f, 0.75f, 0.55f) },
+        { GridType.MINE, new Color(0.3f, 0.3f, 0.3f) },
     };
 }

@@ -157,6 +157,14 @@ public static class TerrainStyleManager
         [GridType.WASTE_PIPE] = ("waste_Pipeline", Biome.Waste),
         [GridType.WASTE_PIPESEAM] = ("waste_Pipeline", Biome.Waste),
         [GridType.WASTE_BROKENPIPE] = ("waste_Pipeline", Biome.Waste),
+        // ✅ CoW补齐六地形(rough_sea/try_river无独立目录, 复用sea/river瓦)
+        [GridType.LAKE] = ("lake", null),
+        [GridType.FIRE] = ("fire", null),
+        [GridType.MINE] = ("mine", null),
+        [GridType.STREET] = ("street", null),
+        [GridType.PATH] = ("path", null),
+        [GridType.ROUGH_SEA] = ("sea", null),
+        [GridType.DESERT_TRY_RIVER] = ("river", null),
     };
 
     /// <summary>查询 GridType 的 CoW 映射; 返回 false 表示该地形未接入 CoW 渲染(走原有贴图)</summary>

@@ -119,6 +119,28 @@ public virtual int GetMoveCost(GridType gridType)
         string moveTypeName = moveType.ToString();
         int customCost = extraSave.GetMoveCost(moveTypeName, terrainName);
         if (customCost >= 0) return customCost; // -1 表示走内置逻辑，继续原有代码
+        // ✅ CoW补齐六地形内置开销(ExtraSave仍可覆盖): FIRE/LAKE不可通行(空军1); ROUGH_SEA舰2; STREET=公路1; PATH/TRY_RIVER步兵1车辆2; MINE可踩1(伤害走fixedDamagePerTurn)
+        int newCost = gridType switch
+        {
+            GridType.FIRE => moveType is MoveType.Infantry or MoveType.Mech or MoveType.Oozium or MoveType.Treads or MoveType.Tire ? 999
+                : (moveType is MoveType.AirPlane or MoveType.AirShip or MoveType.Drone or MoveType.AeroSpacer or MoveType.HeliCopter or MoveType.SpaceShiper ? 1 : 999),
+            GridType.LAKE => moveType is MoveType.AirPlane or MoveType.AirShip or MoveType.Drone or MoveType.AeroSpacer or MoveType.HeliCopter or MoveType.SpaceShiper ? 1 : 999,
+            GridType.ROUGH_SEA => moveType is MoveType.Naval or MoveType.AirShip ? 2
+                : (moveType is MoveType.AirPlane or MoveType.Drone or MoveType.AeroSpacer or MoveType.HeliCopter or MoveType.SpaceShiper ? 1 : 999),
+            GridType.STREET => moveType is MoveType.Infantry or MoveType.Mech or MoveType.Oozium or MoveType.Treads or MoveType.Tire or MoveType.Hover
+                or MoveType.AirPlane or MoveType.AirShip or MoveType.Drone or MoveType.AeroSpacer or MoveType.HeliCopter or MoveType.SpaceShiper ? 1 : 999,
+            GridType.PATH => moveType is MoveType.Infantry or MoveType.Mech ? 1
+                : (moveType is MoveType.Treads or MoveType.Tire ? 2
+                : (moveType is MoveType.AirPlane or MoveType.AirShip or MoveType.Drone or MoveType.AeroSpacer or MoveType.HeliCopter or MoveType.SpaceShiper ? 1 : 999)),
+            GridType.DESERT_TRY_RIVER => moveType is MoveType.Infantry or MoveType.Mech ? 1
+                : (moveType is MoveType.Treads or MoveType.Tire ? 2
+                : (moveType is MoveType.AirPlane or MoveType.AirShip or MoveType.Drone or MoveType.AeroSpacer or MoveType.HeliCopter or MoveType.SpaceShiper ? 1 : 999)),
+            GridType.MINE => moveType is MoveType.Infantry or MoveType.Mech or MoveType.Oozium or MoveType.Treads or MoveType.Tire
+                or MoveType.AirPlane or MoveType.AirShip or MoveType.Drone or MoveType.AeroSpacer or MoveType.HeliCopter or MoveType.SpaceShiper ? 1 : 999,
+            _ => -1,
+        };
+        if (newCost >= 0) return newCost;
+
     }
     return moveType switch
     {

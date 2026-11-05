@@ -31,6 +31,13 @@ public partial class TerrainEditor
             { GridType.REEF, "Reef.png" },
             { GridType.BRIDGE, "BRIDGE.png" },
             { GridType.TP, "TP.png" },
+            { GridType.FIRE, "Fire.png" },
+            { GridType.LAKE, "Lake.png" },
+            { GridType.ROUGH_SEA, "RoughSea.png" },
+            { GridType.STREET, "Street.png" },
+            { GridType.PATH, "Path.png" },
+            { GridType.DESERT_TRY_RIVER, "TryRiver.png" },
+            { GridType.MINE, "Mine.png" },
         };
 
         private static readonly Dictionary<string, Texture2D> cache = new();
