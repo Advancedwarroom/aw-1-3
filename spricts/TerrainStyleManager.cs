@@ -163,7 +163,7 @@ public static class TerrainStyleManager
         [GridType.MINE] = ("mine", null),
         [GridType.STREET] = ("street", null),
         [GridType.PATH] = ("path", null),
-        [GridType.ROUGH_SEA] = ("sea", null),
+        [GridType.ROUGH_SEA] = ("rough_sea", null),
         [GridType.DESERT_TRY_RIVER] = ("river", null),
     };
 
@@ -212,7 +212,7 @@ public static class TerrainStyleManager
     private static readonly HashSet<string> _directionalDirs = new()
     {
         "street", "bridge", "pipeline", "plasma", "wall", "creeper", "sea", "river",
-        "reaf", "teleporttile", "meteor", "fog",
+        "reaf", "teleporttile", "meteor", "fog", "rough_sea",
         "snow_Pipeline", "waste_Pipeline", "desert_pipeline",
         "snow_street", "waste_path", "desert_path",
     };
