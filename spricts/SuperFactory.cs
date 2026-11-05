@@ -586,15 +586,16 @@ public partial class SuperFactory : Weapon
         if (animSprite != null && animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(GetFactoryAnimName()))
             animSprite.Play(GetFactoryAnimName());
         var anim = GetFactoryAnimName();
-        if (animSprite2D != null)
+        var spr = animSprite != null ? animSprite : GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        if (spr != null)
         {
-            // 贴图规矩：橙星/蓝月=烘焙原色不叠材质；中立皮=LUT随势力换色（材质贴在真正显示的子节点上）
+            // 贴图规矩：橙星/蓝月=烘焙原色不叠材质；中立皮=LUT随势力换色（材质贴在真正显示的节点上）
             if (anim == "Neutral")
             {
                 var mat = FactionPaletteManager.GetMaterial(team);
-                animSprite2D.Material = mat != null ? (ShaderMaterial)mat.Duplicate() : null;
+                spr.Material = mat != null ? (ShaderMaterial)mat.Duplicate() : null;
             }
-            else animSprite2D.Material = null;
+            else spr.Material = null;
         }
         var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
         if (dots != null) dots.Visible = anim == "Neutral";   // 换势力时同步黄灯层显隐
