@@ -223,6 +223,7 @@ private void OpenTerrainMenu(Grids grid)
     propertyEditorTitle.Text = $"{TranslateGroup.T("编辑格子")}: {grid.GridIndex} ({grid.gridType})";
     BuildPropertyEditor(grid);  
     propertyEditorPanel.Visible = true;
+    BuildTerrainModuleCsvUI(grid);
 }
 
 // 替换原有的 CloseTerrainMenu
