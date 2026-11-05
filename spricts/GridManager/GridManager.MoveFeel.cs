@@ -160,5 +160,8 @@ public partial class GridManager
         if (u == null) return;
         if (u.animSprite != null && IsInstanceValid(u.animSprite)) u.animSprite.FlipH = faceLeft;
         if (u.baseAnimSprite != null && IsInstanceValid(u.baseAnimSprite)) u.baseAnimSprite.FlipH = faceLeft;
+        // ✅ issue#1 多格机动单位：FlipH 时按足印宽度补偿偏移，翻转后的身体始终盖在足印上（贴图默认朝右绘制）
+        if (u.isMultiTileUnit)
+            u.ApplyFacingFlipOffset(faceLeft, gridSize.X);
     }
 }

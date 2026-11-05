@@ -163,6 +163,7 @@ public bool BindUnitToGrid(Infantry unit, bool forceRebind = false)
     if (unit.isMultiTileUnit)
     {
         unit.OccupyFootprint(gm);
+        unit.CaptureSpriteBaseX();   // ✅ issue#1：捕获贴图基准X（行走 FlipH 偏移补偿用）
 
         // ✅ issue#1 可选碾压：移动落脚时碾碎足印侧格上的敌方单格单位（复用 GrandBolt 蠕动碾压语义）
         if (unit.crushOccupantsOnMove && unit.footprintGrids != null)

@@ -83,4 +83,28 @@ public partial class Infantry
                 g.multiTileOccupant = null;
         footprintGrids.Clear();
     }
+
+    // ========== 行走朝向（FlipH + 足印宽度补偿；贴图默认朝右绘制）==========
+    private float animSpriteBaseX = float.NaN;
+    private float baseAnimSpriteBaseX = float.NaN;
+
+    /// <summary>捕获贴图基准X（首次绑定时调用；行走 FlipH 偏移补偿用）</summary>
+    public void CaptureSpriteBaseX()
+    {
+        if (animSprite != null && IsInstanceValid(animSprite) && float.IsNaN(animSpriteBaseX))
+            animSpriteBaseX = animSprite.Position.X;
+        if (baseAnimSprite != null && IsInstanceValid(baseAnimSprite) && float.IsNaN(baseAnimSpriteBaseX))
+            baseAnimSpriteBaseX = baseAnimSprite.Position.X;
+    }
+
+    /// <summary>FlipH 偏移补偿：镜像时把贴图右移（足印包围盒宽-1）格，翻转后的身体仍盖在足印上</summary>
+    public void ApplyFacingFlipOffset(bool faceLeft, float cellWidth)
+    {
+        if (!isMultiTileUnit) return;
+        float offsetX = Mathf.Max(0, unitFootprintSize.X - 1) * cellWidth;
+        if (!float.IsNaN(animSpriteBaseX) && animSprite != null && IsInstanceValid(animSprite))
+            animSprite.Position = new Vector2(animSpriteBaseX + (faceLeft ? offsetX : 0f), animSprite.Position.Y);
+        if (!float.IsNaN(baseAnimSpriteBaseX) && baseAnimSprite != null && IsInstanceValid(baseAnimSprite))
+            baseAnimSprite.Position = new Vector2(baseAnimSpriteBaseX + (faceLeft ? offsetX : 0f), baseAnimSprite.Position.Y);
+    }
 }
