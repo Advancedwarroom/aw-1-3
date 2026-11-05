@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://dnsxkfemav417" path="res://asscets/Weapons/Crystal/BlueCrystal.png" id="2_0t00i"]
 [ext_resource type="Texture2D" uid="uid://e4c1ams0opcl" path="res://asscets/Weapons/Crystal/Crystal.png" id="3_sa4nl"]
 [ext_resource type="Texture2D" uid="uid://btjipafibqmyf" path="res://asscets/Weapons/Crystal/OrangeCrystal.png" id="4_tbelf"]
+[ext_resource type="Texture2D" uid="uid://hv2oc0gk8mviy" path="res://asscets/Weapons/Crystal/CowCrystalMask.png" id="5_cowmask"]
 
 [resource]
 animations = [{
@@ -37,5 +38,13 @@ animations = [{
 }],
 "loop": true,
 "name": &"OrangeCrystal",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("5_cowmask")
+}],
+"loop": true,
+"name": &"CowCrystal",
 "speed": 5.0
 }]

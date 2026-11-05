@@ -18,8 +18,8 @@ crystalSupplyPrimaryAmmo = 999
 crystalSupplyFuel = 999
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=996334453]
-position = Vector2(15.999999, 9.777777)
-scale = Vector2(0.99999994, 0.9206349)
+position = Vector2(16, 0)
+scale = Vector2(1, 1)
 sprite_frames = ExtResource("1_x1sak")
 animation = &"OrangeCrystal"
 

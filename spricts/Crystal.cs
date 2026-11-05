@@ -644,42 +644,29 @@ public partial class Crystal : Weapon
         return !hasActed && remainingAttacks > 0;
     }
 
-    // ========== 贴图/动画绑定（按队伍） ==========
+    // ========== 贴图/动画绑定（CoW 编码mask + colortable LUT，随势力换色） ==========
     private void UpdateCrystalVisual()
     {
         if (animSprite == null) return;
-        // ✅ 黑水晶固定黑色(AWDS原作); P2=蓝晶; P0=无色基础
-        string animName = TeamHelper.PickTeamArt(team, "Crystal", "BlackCrystal", "BlueCrystal");
-        if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(animName))
-            animSprite.Animation = animName;
+        if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation("CowCrystal"))
+            animSprite.Animation = "CowCrystal";
         else if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation("BlackCrystal"))
             animSprite.Animation = "BlackCrystal";
-
         SetVisualNormal();
     }
 
-    // ✅ 水晶贴图为固定色(黑/白/橙/蓝成品图), 不走势力调色Shader ——
-    //    模板识别(mode2)会把水晶粉橙色误判为模板色染花(用户报"mask图")
     protected override void ApplyPaletteMaterial()
     {
-        if (animSprite != null && IsInstanceValid(animSprite))
-            animSprite.Material = null;
+        if (animSprite == null || !IsInstanceValid(animSprite)) return;
+        var lut = FactionPaletteManager.GetCowLutMaterial(team);
+        if (lut == null) return;
+        animSprite.Material = (ShaderMaterial)lut.Duplicate();
     }
 
     public override void RefreshTeamVisual()
     {
         base.RefreshTeamVisual();
         UpdateCrystalVisual();
-    }
-
-    // 水晶贴图为低饱和粉橙色，放宽模板识别范围
-    private void TuneCrystalMaterial()
-    {
-        if (animSprite?.Material is ShaderMaterial sm && sm.Shader == FactionPaletteManager.PaletteShader)
-        {
-            sm.SetShaderParameter("tpl_min_sat", 0.12f);
-            sm.SetShaderParameter("red_hue_min", 300.0f);
-        }
     }
 
     private Color CrystalBaseTint() =>

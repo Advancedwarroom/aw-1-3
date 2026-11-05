@@ -170,6 +170,7 @@ public void OnGridClickedForEdit(Grids grid)
         var oldTerrain = grid.gridType;
         grid.gridType = batchTerrainType;
         grid.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
+        ApplyBatchDirectionConfig(grid);
         UpdateGridVisual(grid);
         PushEditorAction(EditorActionType.PlaceTerrain, grid, oldTerrain);
         return;

@@ -259,8 +259,15 @@ public static class TerrainStyleManager
                 ? FirstExists($"{root}/sea+mask.png")
                 : FirstExists($"{root}/sea+{PlusJoin(land)}+mask.png", $"{root}/sea+mask.png");
         }
+        if (cowDir == "beach")
+        {
+            int b=dirMask&0xF, landM=(dirMask>>4)&0xF, diagM=(dirMask>>8)&0xF;
+            string bs=b==0?"":$"+{PlusJoin(b)}";
+            if(landM!=0)return FirstExists($"{root}/beach{bs}+land+{PlusJoin(landM)}+mask.png",$"{root}/beach+land+{PlusJoin(landM)}+mask.png",$"{root}/beach+mask.png");
+            if(diagM!=0){string d=diagM switch{1=>"NE",2=>"NW",4=>"SE",_=>"SW"};return FirstExists($"{root}/beach{bs}+land+{d}+mask.png",$"{root}/beach+land+{d}+mask.png",$"{root}/beach+mask.png");}
+            return FirstExists($"{root}/beach{bs}+mask.png",$"{root}/beach+mask.png");
+        }
         // 河: 单流向有专用瓦; 其余先用池塘(含全岸)兜底, 边检测后续迭代
-        if (cowDir == "river")
         {
             if (dirMask is 1 or 2 or 4 or 8)
                 return FirstExists($"{root}/river+{ConcatJoin(dirMask)}+mask.png", $"{root}/river+0+land+N+E+S+W+mask.png");

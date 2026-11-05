@@ -100,6 +100,8 @@ public partial class Grids : Node2D
     /// </summary>
     [ExportGroup("地形方向")]
     [Export] public int terrainDirection = 0;
+    [Export] public bool autoOptimizeDirection = true;
+    [Export] public string manualCowTexturePath = "";
     private int _lastTerrainDirection = -1;
     private Sprite2D _directionVariantSprite = null;
 
@@ -881,7 +883,9 @@ public partial class Grids : Node2D
             return;
         }
 
-        string texPath = TerrainStyleManager.ResolveCowTexturePath(gridType, terrainDirection);
+        string texPath = !string.IsNullOrEmpty(manualCowTexturePath) && ResourceLoader.Exists(manualCowTexturePath)
+            ? manualCowTexturePath
+            : TerrainStyleManager.ResolveCowTexturePath(gridType, terrainDirection);
         var mat = TerrainStyleManager.GetMaterialFor(gridType,
             (TerrainStyleManager.Biome)cowBakedBiome,
             (TerrainStyleManager.Style)cowBakedStyle);
@@ -1043,22 +1047,44 @@ public partial class Grids : Node2D
     /// </summary>
     public static int ComputeDirectionFromNeighbors(Grids[,] map, int x, int y, GridType type)
     {
-        int dir = 0;
-        int w = map.GetLength(0), h = map.GetLength(1);
-        // N
+        if (type == GridType.BEACH) return ComputeBeachDirectionMask(map, x, y);
+        int dir = 0, w = map.GetLength(0), h = map.GetLength(1);
         if (y > 0 && map[x, y - 1] != null && map[x, y - 1].gridType == type) dir |= 1;
-        // E
         if (x < w - 1 && map[x + 1, y] != null && map[x + 1, y].gridType == type) dir |= 2;
-        // S
         if (y < h - 1 && map[x, y + 1] != null && map[x, y + 1].gridType == type) dir |= 4;
-        // W
         if (x > 0 && map[x - 1, y] != null && map[x - 1, y].gridType == type) dir |= 8;
         return dir;
     }
-
-    /// <summary>刷新方向并更新渲染（地图加载/编辑后调用）</summary>
+    private static bool IsSeaBased(GridType t) =>
+        t is GridType.SEA or GridType.REEF or GridType.WHIRLPOOL or GridType.METEORITE or GridType.SEAFOG or GridType.BEACH;
+    public static int ComputeBeachDirectionMask(Grids[,] map, int x, int y)
+    {
+        int w = map.GetLength(0), h = map.GetLength(1);
+        Grids At(int gx, int gy) => (gx >= 0 && gx < w && gy >= 0 && gy < h) ? map[gx, gy] : null;
+        int land = 0, beach = 0, diag = 0;
+        var n=At(x,y-1); if(n!=null){if(!IsSeaBased(n.gridType))land|=1;if(n.gridType==GridType.BEACH)beach|=1;}
+        var e=At(x+1,y); if(e!=null){if(!IsSeaBased(e.gridType))land|=2;if(e.gridType==GridType.BEACH)beach|=2;}
+        var s=At(x,y+1); if(s!=null){if(!IsSeaBased(s.gridType))land|=4;if(s.gridType==GridType.BEACH)beach|=4;}
+        var wg=At(x-1,y); if(wg!=null){if(!IsSeaBased(wg.gridType))land|=8;if(wg.gridType==GridType.BEACH)beach|=8;}
+        var ne=At(x+1,y-1); if(ne!=null&&!IsSeaBased(ne.gridType))diag|=1;
+        var nw=At(x-1,y-1); if(nw!=null&&!IsSeaBased(nw.gridType))diag|=2;
+        var se=At(x+1,y+1); if(se!=null&&!IsSeaBased(se.gridType))diag|=4;
+        var sw=At(x-1,y+1); if(sw!=null&&!IsSeaBased(sw.gridType))diag|=8;
+        if(land!=0){
+            if(land==4&&(beach&1)!=0)beach&=~1;if(land==1&&(beach&4)!=0)beach&=~4;
+            if(land==2&&(beach&8)!=0)beach&=~8;if(land==8&&(beach&2)!=0)beach&=~2;
+            return beach|(land<<4);
+        }
+        bool DiagOk(int d,int a,int b)=>diag==d&&(beach==0||beach==a||beach==b||beach==(a|b));
+        if(DiagOk(1,1,2)||DiagOk(2,1,8)||DiagOk(4,2,4)||DiagOk(8,4,8))return beach|(diag<<8);
+        bool SeaAt(int gx,int gy){var t=At(gx,gy);return t==null||IsSeaBased(t.gridType);}
+        if(!SeaAt(x,y-2))beach&=~1;if(!SeaAt(x,y+2))beach&=~4;
+        if(!SeaAt(x+2,y))beach&=~2;if(!SeaAt(x-2,y))beach&=~8;
+        return beach;
+    }
     public void RefreshDirectionFromNeighbors(Grids[,] map)
     {
+        if (!autoOptimizeDirection) return;
         terrainDirection = ComputeDirectionFromNeighbors(map, GridIndex.X, GridIndex.Y, gridType);
     }
 
