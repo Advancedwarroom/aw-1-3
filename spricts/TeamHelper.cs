@@ -39,7 +39,19 @@ public static class FactionPaletteManager
     private static FactionConfig GetOrCreateFaction(string factionId)
     {
         var faction = TeamHelper.GetFaction(factionId);
-        if (faction != null) return faction;
+        if (faction != null)
+        {
+            // P-1正典紫防御：运行时任何污染（面板旧存档/脏缓存）导致偏色时，当场纠正并清缓存重新生成
+            var canonicalPurple = new Color(0.7f, 0.4f, 0.9f);
+            if (factionId == Player && !faction.PrimaryColor.IsEqualApprox(canonicalPurple))
+            {
+                faction.PrimaryColor = canonicalPurple;
+                faction.SecondaryColor = new Color(0.5f, 0.3f, 0.7f);
+                Materials.Remove(factionId);
+                Palettes.Remove(factionId);
+            }
+            return faction;
+        }
         
         // 预定义 Player3~Player8 的默认颜色
         Color primary = factionId switch
