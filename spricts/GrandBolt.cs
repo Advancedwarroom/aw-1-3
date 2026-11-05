@@ -392,7 +392,7 @@ public partial class GrandBolt : Weapon
 
         // 记录旧足印
         var oldIndices = GetOccupiedIndices(oldAnchor);
-        var oldGridTypeIds = new Dictionary<Vector2I, int>();
+        var oldGridTypeIds = new Dictionary<Vector2I, GridType>();
         var oldWeapons = new Dictionary<Vector2I, List<Weapon>>();
         var oldFacilities = new Dictionary<Vector2I, Facility>();
         foreach (var idx in oldIndices)
@@ -402,8 +402,8 @@ public partial class GrandBolt : Weapon
             oldGridTypeIds[idx] = g.gridType;
             if (g.weapons != null && g.weapons.Count > 0)
                 oldWeapons[idx] = new List<Weapon>(g.weapons);
-            if (g.facility != null)
-                oldFacilities[idx] = g.facility;
+            if (g.city != null)
+                oldFacilities[idx] = g.city;
         }
 
         // 新足印上的单位：摧毁（蠕动的直接破坏效果，Oozium除外）
@@ -473,7 +473,7 @@ public partial class GrandBolt : Weapon
             if (g.gridType != oldGridTypeIds[idx] && preserveTerrainOnLaterVacate)
                 g.gridType = oldGridTypeIds[idx];
             else if (!preserveTerrainOnLaterVacate)
-                g.gridType = (int)GridType.GROUND;
+                g.gridType = GridType.GROUND;
             g.UpdateTileSprite();
         }
 
@@ -619,4 +619,26 @@ public partial class GrandBolt : Weapon
         }
         return best;
     }
+
+    /// <summary>AI/玩家菜单共用: 本回合是否还能蠕动</summary>
+    public bool CanWriggle() => wriggleEnabled && !hasWriggledThisTurn;
+
+    /// <summary>AI_Manager入口: 蠕动逼近最近可见敌 + 绝望模式产Oozium(复用ExecuteAI同款判定)</summary>
+    public void AIWriggleAndSpawn(GameManager gm, System.Func<Infantry, bool> canSee)
+    {
+        if (gm?.gridManager == null) return;
+        if (wriggleEnabled && !hasWriggledThisTurn)
+        {
+            var dir = AIBestWriggleDirection(gm, canSee);
+            if (dir != Vector2I.Zero) Wriggle(dir, gm);
+        }
+        if (isInDesperateMode && ooziumProductionEnabled && ooziumProducedThisTurn < ooziumProductionPerTurn)
+        {
+            var target = AIBestOoziumGrid(gm, canSee);
+            if (target != null) ProduceOozium(target, gm);
+        }
+    }
+
+    /// <summary>回合开始(GameManager.Turn调用入口, 转调无参版+预留gm上下文)</summary>
+    public void OnTurnStartGrandBolt(GameManager gm) => OnTurnStartGrandBolt();
 }

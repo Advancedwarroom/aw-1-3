@@ -7,6 +7,10 @@ using System.Runtime.CompilerServices;
 
 public partial class GridManager : Node
 {
+    /// <summary>格子像素间距(BlackArc/巨雷定位用; 与tscn格距一致)</summary>
+    public int CellWidth => 32;
+    public int CellHeight => 32;
+
     [ExportGroup("")]
     [Export]
     public Node GridsNode;

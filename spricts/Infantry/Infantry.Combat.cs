@@ -327,7 +327,10 @@ public virtual bool ConsumePrimaryAmmo()
                         if (!CanTargetWeapon(weapon)) return;   // ✅ 准入拒绝
             var __theater = BattleTheater.TryCapture(this, weapon);   // 剧场动画：开演前快照（null=未启用）
             int damage = CalculateDamageAgainstWeapon(weapon, selectedWeapon);
-            weapon.TakeDamage(damage);
+            var gmAtk = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gmAtk != null) gmAtk.CurrentAttackerGrid = grid; // 巨雷弱点判定: 记录攻击来源格
+        weapon.TakeDamage(damage);
+        if (gmAtk != null) gmAtk.CurrentAttackerGrid = null;
             __theater?.AddVolley(true, damage, Math.Max(0, weapon.health), BattleAnimCatalog.GetFireClass(this, selectedWeapon, null));
 
             state = UnitState.Acted;

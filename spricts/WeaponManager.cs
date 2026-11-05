@@ -5,6 +5,16 @@ using System.Linq;
 
 public partial class WeaponManager : Node
 {
+    /// <summary>注销武器: 从占据格/总表移除并销毁(巨雷地板吞噬等流程用)</summary>
+    public void UnregisterWeapon(Weapon weapon)
+    {
+        if (weapon == null || !IsInstanceValid(weapon)) return;
+        var g = weapon.grid;
+        g?.weapons?.Remove(weapon);
+        AllWeapons.Remove(weapon);
+        weapon.QueueFree();
+    }
+
     [Export] public GridManager gridManager;
     [Export] public Node weaponsNode;  // 存放兵器的父节点
 

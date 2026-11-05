@@ -860,6 +860,13 @@ public partial class Grids : Node2D
             AddChild(sprite);
             terrainIconSprites[kvp.Key] = sprite;
         }
+    /// <summary>地形外观刷新(巨雷破坏/还原地板后调用)</summary>
+    public void UpdateTileSprite()
+    {
+        UpdateTerrainIcon();
+        ApplyCustomTerrainVisual();
+    }
+
     }
 
     public void UpdateTerrainIcon()
