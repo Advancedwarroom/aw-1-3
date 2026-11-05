@@ -13,7 +13,7 @@ public static class UnitProductionWhitelist
     public static HashSet<string> UnlockedUnits = new HashSet<string>();
 
     /// <summary>需实验室解锁的圈定单位（开创人圈定，见下；常规单位不在此列=默认可产）</summary>
-    public static HashSet<string> LabLockedUnits = new HashSet<string> { "Neotank", "Rig", "WarTank", "ProducibleBoat", "PipeRunner", "FlyBomb", "Oozium", "RepairBoat" };   // 开创人2026-11-03圈定8单位（黑炸弹=FlyBomb/黑船=RepairBoat为中性化名）；隐形战机/航母/巨型坦克=盟军造物，默认可产
+    public static HashSet<string> LabLockedUnits = new HashSet<string> { "Neotank", "Rig", "WarTank", "ProducibleBoat", "PipeRunner", "FlyBomb", "Oozium", "RepairBoat", "ForceSatellite", "AttackSatellite", "PipeWorker" };   // 开创人2026-11-05追加：双卫星+管道构建者需占领实验室解锁   // 开创人2026-11-03圈定8单位（黑炸弹=FlyBomb/黑船=RepairBoat为中性化名）；隐形战机/航母/巨型坦克=盟军造物，默认可产
 
     /// <summary>清空（新对局重置）</summary>
     public static void Reset()
