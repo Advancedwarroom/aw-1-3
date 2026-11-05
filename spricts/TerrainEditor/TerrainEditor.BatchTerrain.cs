@@ -20,6 +20,11 @@ public partial class TerrainEditor
     private Label batchTerrainTitleLabel;
     private Button batchTerrainCloseBtn;
     private Label batchTerrainHint;
+    private OptionButton batchStyleOption;
+    private OptionButton batchBiomeOption;
+    private OptionButton batchVariantOption;
+    private bool batchVariantAuto = true;
+    private string batchVariantTexturePath = "";
 
     // ========== ✅ 提取地形功能 ==========
     public SavedGridTerrainData ExtractedTerrain { get; private set; } = null;
@@ -106,11 +111,20 @@ public partial class TerrainEditor
         hint.Size = new Vector2(320, 40);
         batchTerrainPanel.AddChild(hint);
 
-        // 滚动区域
-        var scroll = new ScrollContainer();
-        scroll.Position = new Vector2(10, 100);
-        scroll.Size = new Vector2(320, 380);
-        scroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
+        CreateBatchConfigRow("🎨 风格",100,out batchStyleOption);
+        foreach(var s in Enum.GetValues<TerrainStyleManager.Style>())batchStyleOption.AddItem(s.ToString());
+        batchStyleOption.Selected=(int)TerrainStyleManager.CurrentStyle;
+        batchStyleOption.ItemSelected+=idx=>{if(Enum.IsDefined(typeof(TerrainStyleManager.Style),(int)idx))TerrainStyleManager.CurrentStyle=(TerrainStyleManager.Style)(int)idx;};
+        CreateBatchConfigRow("🌦️ 天气",132,out batchBiomeOption);
+        string[] biomeNames={"常规","雪","雨","废土","沙漠"};
+        foreach(var n in biomeNames)batchBiomeOption.AddItem(n);
+        batchBiomeOption.Selected=(int)TerrainStyleManager.CurrentBiome;
+        batchBiomeOption.ItemSelected+=idx=>{if(Enum.IsDefined(typeof(TerrainStyleManager.Biome),(int)idx))TerrainStyleManager.CurrentBiome=(TerrainStyleManager.Biome)(int)idx;};
+        CreateBatchConfigRow("🧩 贴图配置",164,out batchVariantOption);
+        batchVariantOption.ItemSelected+=OnBatchVariantSelected;
+        var scroll=new ScrollContainer();
+        scroll.Position=new Vector2(10,200);scroll.Size=new Vector2(320,280);
+        scroll.HorizontalScrollMode=ScrollContainer.ScrollMode.Disabled;
 
         batchTerrainButtonContainer = new VBoxContainer();
         batchTerrainButtonContainer.AddThemeConstantOverride("separation", 6);
@@ -179,6 +193,45 @@ public partial class TerrainEditor
         MakeMenuDraggable(batchTerrainPanel, dragHandle);
     }
 
+    private void CreateBatchConfigRow(string labelText,int y,out OptionButton option)
+    {
+        var label=new Label();TranslateGroup.SetText(label,labelText);label.AddThemeFontSizeOverride("font_size",12);
+        label.AddThemeColorOverride("font_color",new Color(0.7f,0.85f,0.75f));label.Position=new Vector2(16,y+4);
+        label.Size=new Vector2(76,24);batchTerrainPanel.AddChild(label);
+        option=new OptionButton();option.Position=new Vector2(96,y);option.Size=new Vector2(228,28);
+        option.AddThemeFontSizeOverride("font_size",11);batchTerrainPanel.AddChild(option);
+    }
+    private void RebuildBatchVariantOptions()
+    {
+        if(batchVariantOption==null)return;batchVariantOption.Clear();batchVariantOption.AddItem("🔄 自动优化（邻格适配）");
+        if(TerrainStyleManager.TryGetCowMapping(batchTerrainType,out string cowDir,out _))
+        {
+            string dirFs=ProjectSettings.GlobalizePath($"{TerrainStyleManager.CowRoot}/{cowDir}");
+            if(Directory.Exists(dirFs)){int idx=1;foreach(var f in Directory.GetFiles(dirFs,"*.png").OrderBy(f=>f)){
+                string resPath=$"{TerrainStyleManager.CowRoot}/{cowDir}/{Path.GetFileName(f)}";
+                string display=Path.GetFileNameWithoutExtension(f);if(display.Length>30)display=display[..30]+"…";
+                batchVariantOption.AddItem(display);var tex=ResourceLoader.Exists(resPath)?GD.Load<Texture2D>(resPath):null;
+                if(tex!=null)batchVariantOption.SetItemIcon(idx,tex);batchVariantOption.SetItemMetadata(idx,resPath);idx++;
+            }}
+        }
+        batchVariantOption.Selected=0;batchVariantAuto=true;batchVariantTexturePath="";
+    }
+    private void OnBatchVariantSelected(long idx)
+    {
+        if(idx==0){batchVariantAuto=true;batchVariantTexturePath="";}
+        else{batchVariantAuto=false;batchVariantTexturePath=batchVariantOption.GetItemMetadata((int)idx).AsString();}
+    }
+    private void ApplyBatchDirectionConfig(Grids grid)
+    {
+        if(grid==null)return;
+        if(batchVariantAuto){grid.autoOptimizeDirection=true;grid.manualCowTexturePath="";}
+        else{grid.autoOptimizeDirection=false;grid.manualCowTexturePath=batchVariantTexturePath;}
+        var map=gridManager?.map;if(map==null)return;var gi=grid.GridIndex;
+        for(int dy=-2;dy<=2;dy++)for(int dx=-2;dx<=2;dx++){
+            int nx=gi.X+dx,ny=gi.Y+dy;
+            if(nx>=0&&nx<map.GetLength(0)&&ny>=0&&ny<map.GetLength(1))map[nx,ny]?.RefreshDirectionFromNeighbors(map);
+        }
+    }
     private Button CreateBatchTerrainSelectButton(GridType terrainType)
     {
         var btn = new Button();
@@ -251,6 +304,7 @@ public partial class TerrainEditor
         batchTerrainType = type;
         isBatchTerrainMode = true;
         lastBatchGrid = null;
+        RebuildBatchVariantOptions();
         CloseBatchTerrainPanel();
         UpdateBatchTerrainButtonVisual();
     }
@@ -298,6 +352,7 @@ public partial class TerrainEditor
             savedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds()
         };
         batchTerrainType = grid.gridType;
+        RebuildBatchVariantOptions();
         if (batchTerrainBtn != null)
             batchTerrainBtn.Text = $"🗺️ {GetTerrainDisplayName(grid.gridType)}";
         spawnHintLabel.Text = $"✅ {TranslateGroup.T("已提取地形")}: {GetTerrainDisplayName(grid.gridType)}，{TranslateGroup.T("点击批量地形按钮直接铺设")}";
