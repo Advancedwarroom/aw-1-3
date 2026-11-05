@@ -256,7 +256,6 @@ public partial class TerrainEditor
             {
                 btn.Icon = tex;
                 btn.ExpandIcon = true;
-                btn.IconMaxWidth = 34;
             }
             btn.TextOverrunBehavior = TextServer.OverrunBehavior.TrimChar;
 
@@ -308,7 +307,7 @@ public partial class TerrainEditor
     {
         var g = quickSwitchTarget;
         if (g == null) return;
-        var paths = TerrainVisuals.GetVariantPaths(g.gridType);
+        var paths = TerrainVisuals.GetVariantPaths(g.gridType).ToList();
         if (paths.Count == 0) return;
         var cur = sessionTerrainTexture.TryGetValue(g.gridType, out var p) ? p : paths[0];
         int idx = (paths.IndexOf(cur) + 1) % paths.Count;
