@@ -37,6 +37,7 @@ public partial class GameManager
         weaponManager?.OnTurnStartForNewTurn(); // 使用新方法
 
         // ✅ 照明弹效果大回合过期处理
+        ProcessTerrainSpreadTurnStart();
         fogOfWarManager?.OnBigTurnEnd();
 
         }
