@@ -67,6 +67,11 @@ public partial class GridManager
                     if (infantry is not Oozium && neighbor.weapon != null && !neighbor.weapon.AllowsPassage(infantry))
                         continue;
 
+                    // ✅ issue#1：他方多格机动单位足印阻挡（Oozium 豁免）
+                    if (infantry is not Oozium && neighbor.multiTileOccupant != null && neighbor.multiTileOccupant != infantry
+                        && IsInstanceValid(neighbor.multiTileOccupant) && !neighbor.multiTileOccupant.IsQueuedForDeletion())
+                        continue;
+
                     int newCost = accCost + moveCost;
                     if (best.TryGetValue(neighbor, out int old) && newCost >= old) continue;
                     if (!ignoreMovePoints && newCost > infantry.movePoints) continue;
@@ -398,6 +403,11 @@ public partial class GridManager
                 if (newCost > maxMove) continue;
 
                 if (infantry is not Oozium && neighbor.weapon != null && !neighbor.weapon.AllowsPassage(infantry))
+                    continue;
+
+                // ✅ issue#1：他方多格机动单位足印阻挡（Oozium 豁免）
+                if (infantry is not Oozium && neighbor.multiTileOccupant != null && neighbor.multiTileOccupant != infantry
+                    && IsInstanceValid(neighbor.multiTileOccupant) && !neighbor.multiTileOccupant.IsQueuedForDeletion())
                     continue;
 
                 // ✅ 可见格子或迷雾关闭时：敌方单位所在格子不加入移动范围（仅NonOverlapping）

@@ -39,6 +39,7 @@ public partial class Grids : Node2D
     [Export] public GridType gridType;
     public List<Infantry> infantries = new();
     public Infantry infantry;
+    public Infantry multiTileOccupant;   // ✅ issue#1 多格机动单位：足印占据者（运行时通道，不入存档；消费者须校验 IsInstanceValid）
     public Action<Grids> OnClickGrid;
     public Action OnClickEmpty;
 

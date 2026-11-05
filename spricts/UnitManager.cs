@@ -75,6 +75,20 @@ public bool BindUnitToGrid(Infantry unit, bool forceRebind = false)
         return false;
     }
 
+    // ✅ issue#1 多格机动单位：任何单位不可绑定到他方多格足印占据格
+    if (targetGrid.multiTileOccupant != null && targetGrid.multiTileOccupant != unit
+        && IsInstanceValid(targetGrid.multiTileOccupant) && !targetGrid.multiTileOccupant.IsQueuedForDeletion())
+    {
+        return false;
+    }
+
+    // ✅ issue#1 多格机动单位：足印预检（越界/真空/他方足印重叠→拒绝，避免绑到一半卡死）
+    if (unit != null && unit.isMultiTileUnit)
+    {
+        var gmPre = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        if (!unit.CheckFootprintFit(gridPos, gmPre)) return false;
+    }
+
     // ✅ 修复：Overlapping 和 Oozium 类型可以共存，只有 NonOverlapping 才检查冲突
     if (unit.overlapType == UnitOverlapType.NonOverlapping && 
         targetGrid.infantries.Count > 0)
@@ -143,6 +157,12 @@ public bool BindUnitToGrid(Infantry unit, bool forceRebind = false)
             gm.CallDeferred(nameof(gm.RefreshSpecializedUnitLists));
         }
         gm.CallDeferred(nameof(gm.UpdateUnitLists));
+    }
+
+    // ✅ issue#1 多格机动单位：绑定成功后占据足印（锚点格已在 infantries，侧格走 multiTileOccupant）
+    if (unit.isMultiTileUnit)
+    {
+        unit.OccupyFootprint(gm);
     }
 
     return true;
@@ -290,6 +310,10 @@ public bool CanMoveTo(Vector2I gridPos, Infantry unit)
 
     // ✅ 兵器阻挡（非Oozium不能通过兵器格子）
     if (unit is not Oozium && grid.weapon != null && !grid.weapon.AllowsPassage(unit))
+        return false;
+    // ✅ issue#1 多格机动单位：他方多格足印占据格一律不可进入（敌我皆挡；死亡残留惰性失效）
+    if (grid.multiTileOccupant != null && grid.multiTileOccupant != unit
+        && IsInstanceValid(grid.multiTileOccupant) && !grid.multiTileOccupant.IsQueuedForDeletion())
         return false;
     
     // ✅ 友方单位不阻挡路径，敌方单位阻挡在GridManager.CalculateMoveRangeGeneric中处理
