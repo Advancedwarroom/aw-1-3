@@ -99,8 +99,8 @@ public partial class TerrainEditor
         foreach (var g in gm.grids)
         {
             if (g == null || !IsInstanceValid(g) || g.gridType != type) continue;
-            var sprite = g.GetNodeOrNull<Sprite2D>("Sprite2D");
-            if (sprite != null) sprite.Texture = tex;
+            g.UpdateTerrainIcon();        // 图标可见性/方向变体刷新
+            g.ApplyCustomTerrainVisual(); // 会话贴图变体在 Grids 内统一应用(含默认贴图还原)
         }
     }
 

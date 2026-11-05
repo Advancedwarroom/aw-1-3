@@ -1136,11 +1136,15 @@ public partial class Grids : Node2D
         }
 
         // ✅ 会话级贴图变体优先（编辑器"换贴图"功能，同型格子全局换肤）
+        // 实际显示的地形图标是 terrainIconSprites(命名 TerrainIcon_{type}), grid.tscn 无 "Sprite2D" 子节点
         var sessionTex = TerrainEditor.GetSessionTerrainTexture(gridType);
         if (sessionTex != null)
         {
-            var sSprite = GetNodeOrNull<Sprite2D>("Sprite2D");
-            if (sSprite != null) sSprite.Texture = sessionTex;
+            if (terrainIconSprites.TryGetValue(gridType, out var sIcon) && IsInstanceValid(sIcon))
+                sIcon.Texture = sessionTex;
         }
+        else if (terrainIconSprites.TryGetValue(gridType, out var dIcon) && IsInstanceValid(dIcon)
+                 && terrainIconTextures != null && terrainIconTextures.TryGetValue(gridType, out var defTex))
+            dIcon.Texture = defTex; // 无会话变体时还原 grid.tscn 默认贴图
     }
 }

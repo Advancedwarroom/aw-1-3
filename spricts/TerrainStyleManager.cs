@@ -268,6 +268,7 @@ public static class TerrainStyleManager
             return FirstExists($"{root}/beach{bs}+mask.png",$"{root}/beach+mask.png");
         }
         // 河: 单流向有专用瓦; 其余先用池塘(含全岸)兜底, 边检测后续迭代
+        if (cowDir == "river")
         {
             if (dirMask is 1 or 2 or 4 or 8)
                 return FirstExists($"{root}/river+{ConcatJoin(dirMask)}+mask.png", $"{root}/river+0+land+N+E+S+W+mask.png");
