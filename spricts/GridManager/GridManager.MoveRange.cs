@@ -296,6 +296,20 @@ public partial class GridManager
         CalculateMoveRangeGeneric(infantry, effectiveMovePoints);
         SetupMoveRangeCallbacks(infantry);
 
+        // ✅ issue#1 多格机动单位：选中时足印高亮（本体轮廓蓝；ForceClearAllRangeVisuals 统一清理，不用额外擦除）
+        if (infantry.isMultiTileUnit && infantry.footprintGrids != null)
+        {
+            foreach (var fg in infantry.footprintGrids)
+            {
+                if (fg == null || !IsInstanceValid(fg)) continue;
+                if (fg.pathIcon != null)
+                {
+                    fg.pathIcon.Modulate = new Color(0.3f, 0.7f, 1f, 0.9f);   // 本体轮廓蓝
+                    fg.pathIcon.Show();
+                }
+            }
+        }
+
         // ✅ 移动端：移动范围激活期间禁用格子拾取，防止触摸按下即触发点击（改为滑动轨迹+松手确认）
         if (isMobilePlatform)
         {
