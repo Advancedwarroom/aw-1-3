@@ -889,6 +889,8 @@ public partial class Grids : Node2D
     public void UpdateCowTerrainIcon()
     {
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        // ✅ 懒烘焙: 从未烘焙的格子(-1, 三板斧/快速切换/旧档放置)先按当前全局风格补烘焙, 防自动优化渲染回默认
+        if (cowBakedStyle < 0 || cowBakedBiome < 0) BakeCowBrush();
         bool cowOn = gm == null || gm.enableCowTerrainStyle; // 取不到gm(孤立预览)时默认开
         if (cowOn) TerrainStyleManager.ApplyFromGameManager(gm);
 

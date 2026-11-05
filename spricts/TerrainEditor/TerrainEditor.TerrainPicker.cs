@@ -316,8 +316,24 @@ public partial class TerrainEditor
         if (g == null) return;
         var paths = TerrainVisuals.GetVariantPaths(g.gridType).ToList();
         if (paths.Count == 0) return;
-        var cur = sessionTerrainTexture.TryGetValue(g.gridType, out var p) ? p : paths[0];
-        int idx = (paths.IndexOf(cur) + 1) % paths.Count;
+        // ✅ 循环到底回到默认(取消变体): [默认]→v1→…→v末→[默认]
+        bool hasVariant = sessionTerrainTexture.TryGetValue(g.gridType, out var p);
+        int idx = hasVariant ? (paths.IndexOf(p) + 1) % (paths.Count + 1) : 1;
+        if (idx >= paths.Count) // 回到默认
+        {
+            sessionTerrainTexture.Remove(g.gridType);
+            var gm0 = PickerResolveGridManager();
+            if (gm0?.grids != null)
+                foreach (var gg in gm0.grids)
+                    if (gg != null && IsInstanceValid(gg) && gg.gridType == g.gridType)
+                    {
+                        gg.UpdateTerrainIcon();
+                        gg.ApplyCustomTerrainVisual();
+                    }
+            if (quickSwitchTitle != null)
+                quickSwitchTitle.Text = $"{TranslateGroup.T("快速切换地形")} - {GetTerrainDisplayName(g.gridType)} | {TranslateGroup.T("贴图")}: {TranslateGroup.T("默认")}";
+            return;
+        }
         ApplyTerrainTextureVariant(g.gridType, paths[idx]);
         if (quickSwitchTitle != null)
             quickSwitchTitle.Text = $"{TranslateGroup.T("快速切换地形")} - {GetTerrainDisplayName(g.gridType)} | {TranslateGroup.T("贴图")} {idx + 1}/{paths.Count}";

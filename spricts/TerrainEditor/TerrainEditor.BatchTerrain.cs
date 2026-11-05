@@ -220,13 +220,12 @@ public partial class TerrainEditor
     private void OnBatchVariantSelected(long idx)
     {
         if(idx==0){batchVariantAuto=true;batchVariantTexturePath="";}
-        else{batchVariantAuto=false;batchVariantTexturePath=batchVariantOption.GetItemMetadata((int)idx).AsString();}
+        else{batchVariantAuto=true;batchVariantTexturePath=batchVariantOption.GetItemMetadata((int)idx).AsString();}// ✅解耦: 选图只锁贴图, 不关自动方向
     }
     private void ApplyBatchDirectionConfig(Grids grid)
     {
         if(grid==null)return;
-        if(batchVariantAuto){grid.autoOptimizeDirection=true;grid.manualCowTexturePath="";}
-        else{grid.autoOptimizeDirection=false;grid.manualCowTexturePath=batchVariantTexturePath;}
+        grid.autoOptimizeDirection=true;grid.manualCowTexturePath=batchVariantTexturePath;// ✅并行: 方向自动+贴图锁定(有选图锁图, 无则默认), 互不冲突
         var map=gridManager?.map;if(map==null)return;var gi=grid.GridIndex;
         for(int dy=-2;dy<=2;dy++)for(int dx=-2;dx<=2;dx++){
             int nx=gi.X+dx,ny=gi.Y+dy;
