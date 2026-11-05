@@ -90,6 +90,9 @@ public partial class MapEditorHelper
 
         g.gridType = record.oldTerrain;
         g.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
+        // ✅ 贴图锁状态还原(仅当记录携带时)
+        if (record.oldAutoOptimizeDirection.HasValue) g.autoOptimizeDirection = record.oldAutoOptimizeDirection.Value;
+        if (record.oldManualCowTexturePath != null) g.manualCowTexturePath = record.oldManualCowTexturePath;
         g.UpdateTerrainIcon();
 
         // ✅ 安全清理当前格子上的所有单位/兵器/设施（多格兵器特殊处理）
@@ -112,6 +115,9 @@ public partial class MapEditorHelper
 
         g.gridType = record.newTerrain;
         g.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
+        // ✅ 贴图锁状态还原(仅当记录携带时)
+        if (record.newAutoOptimizeDirection.HasValue) g.autoOptimizeDirection = record.newAutoOptimizeDirection.Value;
+        if (record.newManualCowTexturePath != null) g.manualCowTexturePath = record.newManualCowTexturePath;
         g.UpdateTerrainIcon();
 
         // ✅ 安全清理当前格子上的所有单位/兵器/设施（多格兵器特殊处理）

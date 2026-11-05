@@ -59,4 +59,9 @@ public class EditorActionRecord
     public SavedFacilityData newFacilityData;
     public List<EditorActionRecord> subActions = new();
     public long timestamp;
+    // ✅ 贴图锁状态(批量笔刷/洪水填充写入): null=未携带, 撤销/前进时不触碰(兼容旧记录)
+    public bool? oldAutoOptimizeDirection;
+    public string oldManualCowTexturePath;
+    public bool? newAutoOptimizeDirection;
+    public string newManualCowTexturePath;
 }
