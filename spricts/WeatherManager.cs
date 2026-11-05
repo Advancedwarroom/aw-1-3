@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>天气类型定义（注册表条目；mods 可 RegisterWeatherType 追加）</summary>
-public class WeatherType
+public class WeatherTypeDef
 {
     public int id;
     public string name = "";
@@ -48,7 +48,7 @@ public partial class WeatherManager : Node
     [Export] public bool weatherAffectsAI = true;      // AI 寻路/决策计入天气（issue 要求；关闭则 AI 按晴算）
 
     // 类型注册表 + 格子级天气栈
-    private readonly Dictionary<int, WeatherType> types = new();
+    private readonly Dictionary<int, WeatherTypeDef> types = new();
     private readonly Dictionary<Vector2I, List<WeatherLayer>> cellStacks = new();
     public const int MaxStackLayers = 4;               // issue：不同天气最多叠 4 层
 
@@ -62,15 +62,15 @@ public partial class WeatherManager : Node
     // ========== 内置五种（默认值按 AW 系惯例；mod 可在 _Ready 后覆写注册项）==========
     private void RegisterBuiltinTypes()
     {
-        RegisterWeatherType(new WeatherType { id = 0, name = "晴" });
-        RegisterWeatherType(new WeatherType { id = 1, name = "雨", defensePercent = 1100, visionDelta = -1 });
-        RegisterWeatherType(new WeatherType { id = 2, name = "雪", moveCostDelta = 1, movePointsDelta = -1, fuelCostDelta = 1 });
-        RegisterWeatherType(new WeatherType { id = 3, name = "沙暴", attackPercent = 900, visionDelta = -2 });
-        RegisterWeatherType(new WeatherType { id = 4, name = "雾", visionDelta = -3, fireRangeDelta = -1 });
+        RegisterWeatherType(new WeatherTypeDef { id = 0, name = "晴" });
+        RegisterWeatherType(new WeatherTypeDef { id = 1, name = "雨", defensePercent = 1100, visionDelta = -1 });
+        RegisterWeatherType(new WeatherTypeDef { id = 2, name = "雪", moveCostDelta = 1, movePointsDelta = -1, fuelCostDelta = 1 });
+        RegisterWeatherType(new WeatherTypeDef { id = 3, name = "沙暴", attackPercent = 900, visionDelta = -2 });
+        RegisterWeatherType(new WeatherTypeDef { id = 4, name = "雾", visionDelta = -3, fireRangeDelta = -1 });
     }
 
-    public void RegisterWeatherType(WeatherType t) => types[t.id] = t;
-    public WeatherType GetWeatherType(int id) => types.TryGetValue(id, out var t) ? t : null;
+    public void RegisterWeatherType(WeatherTypeDef t) => types[t.id] = t;
+    public WeatherTypeDef GetWeatherType(int id) => types.TryGetValue(id, out var t) ? t : null;
 
     // ========== 增删查 ==========
     /// <summary>给格子加一层天气：同类不叠（续时长），异类≤4层。turns=-1 永久。</summary>
@@ -132,9 +132,9 @@ public partial class WeatherManager : Node
     }
 
     // ========== 效果聚合（基底 + 各层一起算；显式转晴则剔除基底）==========
-    private List<WeatherType> GetActiveTypesAt(Vector2I cell, bool forAI)
+    private List<WeatherTypeDef> GetActiveTypesAt(Vector2I cell, bool forAI)
     {
-        var result = new List<WeatherType>();
+        var result = new List<WeatherTypeDef>();
         if (forAI && !weatherAffectsAI) return result;   // AI 开关：关闭=按无天气算
         if (!localWeatherEnabled) return result;
         var layers = GetLayersAt(cell);
