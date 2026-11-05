@@ -163,6 +163,27 @@ public bool BindUnitToGrid(Infantry unit, bool forceRebind = false)
     if (unit.isMultiTileUnit)
     {
         unit.OccupyFootprint(gm);
+
+        // ✅ issue#1 可选碾压：移动落脚时碾碎足印侧格上的敌方单格单位（复用 GrandBolt 蠕动碾压语义）
+        if (unit.crushOccupantsOnMove && unit.footprintGrids != null)
+        {
+            foreach (var fg in unit.footprintGrids)
+            {
+                if (fg == null || fg == unit.grid) continue;
+                foreach (var victim in (fg.infantries ?? new List<Infantry>()).ToList())
+                {
+                    if (victim == null || !IsInstanceValid(victim)) continue;
+                    if (!TeamHelper.IsEnemyForAttacker(unit.team, victim.team)) continue;
+                    victim.health = 0;
+                    victim.UpdateHpLabel();
+                    if (!victim.TryFlee())
+                    {
+                        gm.RemovePiece(victim);
+                        victim.CallDeferred(Node.MethodName.QueueFree);
+                    }
+                }
+            }
+        }
     }
 
     return true;
@@ -221,6 +242,7 @@ public bool BindUnitToGrid(Infantry unit, bool forceRebind = false)
     if (unit == null) return;
     unit.OnDestroyed();
     // 从格子解绑
+    unit.ClearFootprint();   // ✅ issue#1 多格机动单位：死亡/移除时清足印侧格引用
     if (unit.grid != null)
     {
         unit.grid.infantries.Remove(unit);

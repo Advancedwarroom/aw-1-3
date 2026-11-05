@@ -10,7 +10,8 @@ public partial class Infantry
     [ExportGroup("多格机动单位（issue#1·一期）")]
     [Export] public bool isMultiTileUnit = false;                 // 多格占据（默认关=零行为变化）
     [Export] public Vector2I unitFootprintSize = new Vector2I(2, 2);
-    [Export] public string[] unitFootprintMask = new string[0];   // 空=全矩形；否则每行 size.X 字符，'#'占据 '.'空
+    [Export] public string[] unitFootprintMask = new string[0];
+    [Export] public bool crushOccupantsOnMove = false;   // 二期：移动落脚碾碎足印侧格上的敌方单格单位（默认关）   // 空=全矩形；否则每行 size.X 字符，'#'占据 '.'空
 
     public List<Grids> footprintGrids = new();                    // 运行时足印（含锚点格）
 

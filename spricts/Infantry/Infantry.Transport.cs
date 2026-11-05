@@ -117,6 +117,9 @@ public List<Infantry> transportedUnits = new List<Infantry>();
         // 载着人的运输单位不能再被装（套娃会丢失内部单位）
         if (unit.canTransportUnits && unit.transportedUnits.Count > 0) return false;
 
+        // ✅ issue#1 多格机动单位：双向禁运（多格不可被装载；多格载具不可装载他人）——置于白名单之前，不可绕过
+        if (unit.isMultiTileUnit || this.isMultiTileUnit) return false;
+
         // 1. 显式白名单（兵种ID 或 参照兵种ID 命中均可）——白名单是权威：命中即放行，不再被属性过滤误伤
         //    （此前航母白名单全是空军却勾了“排除空军”，导致什么都装不了）
         bool hasWhitelist = canTransportUnitTypes != null && canTransportUnitTypes.Count > 0;
@@ -212,6 +215,8 @@ public virtual bool LoadUnit(Infantry unit)
             unit.grid.infantry = unit.grid.infantries.Count > 0 ? unit.grid.infantries[0] : null;
         unit.grid = null; // ✅ 彻底断开与格子的关联
     }
+    
+    unit.ClearFootprint();   // ✅ issue#1：防多格足印残留（CanTransportUnit 已禁运，此处兜底）
     
     UpdateLoadedIcon();
     

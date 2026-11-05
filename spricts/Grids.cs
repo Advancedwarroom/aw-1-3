@@ -676,11 +676,26 @@ public partial class Grids : Node2D
 
     public string GetTerrainDefenseDescription() { float bonus = TerrainDefenseBonus * 100; return bonus > 0 ? $"{bonus:F0}%" : TranslateGroup.T("无"); }
 
-    public List<Infantry> GetEnemyInfantries(string team) { return infantries.Where(i => i != null && TeamHelper.IsEnemyForAttacker(team, i.team)).ToList(); }
+    public List<Infantry> GetEnemyInfantries(string team)
+    {
+        var list = infantries.Where(i => i != null && TeamHelper.IsEnemyForAttacker(team, i.team)).ToList();
+        // ✅ issue#1 多格机动单位：足印占据者视为本格敌方单位（目标解析+高亮统一入口；锚点格去重）
+        var occ = multiTileOccupant;
+        if (occ != null && !list.Contains(occ) && IsInstanceValid(occ) && !occ.IsQueuedForDeletion()
+            && TeamHelper.IsEnemyForAttacker(team, occ.team))
+            list.Add(occ);
+        return list;
+    }
 
     private double lastClickTime = 0;
     private const double DOUBLE_CLICK_WINDOW = 0.3;
-    public bool HasEnemyInfantry(string team) { return infantries.Any(i => i != null && IsInstanceValid(i) && TeamHelper.IsEnemyForAttacker(team, i.team)); }
+    public bool HasEnemyInfantry(string team)
+    {
+        if (infantries.Any(i => i != null && IsInstanceValid(i) && TeamHelper.IsEnemyForAttacker(team, i.team))) return true;
+        // ✅ issue#1 多格机动单位：足印占据者也算敌方单位
+        var occ = multiTileOccupant;
+        return occ != null && IsInstanceValid(occ) && !occ.IsQueuedForDeletion() && TeamHelper.IsEnemyForAttacker(team, occ.team);
+    }
     public static bool IsForceActionMode = false;
 
     public void ClickGrid(Node viewport, InputEvent inputs, int shape_index)
@@ -795,7 +810,15 @@ public partial class Grids : Node2D
     public static bool IsLiveEnemyOf(Infantry reference, Infantry i)
         => i != null && i != reference && IsInstanceValid(i) && !i.IsQueuedForDeletion() && i.health > 0 && !i.isTransported
            && i.team != reference.team && TeamHelper.IsEnemyForAttacker(reference.team, i.team);
-    public List<Infantry> GetEnemyInfantries(Infantry reference) { return infantries.Where(i => IsLiveEnemyOf(reference, i)).ToList(); }
+    public List<Infantry> GetEnemyInfantries(Infantry reference)
+    {
+        var list = infantries.Where(i => IsLiveEnemyOf(reference, i)).ToList();
+        // ✅ issue#1 多格机动单位：足印占据者视为本格敌方单位（锚点格去重）
+        var occ = multiTileOccupant;
+        if (occ != null && !list.Contains(occ) && IsLiveEnemyOf(reference, occ))
+            list.Add(occ);
+        return list;
+    }
     public bool HasEnemyInfantry(Infantry reference) { return infantries.Any(i => i != reference && IsInstanceValid(i) && TeamHelper.IsEnemyForAttacker(reference.team, i.team)); }
 
     // 格子上是否存在攻击者实际能造成伤害的敌方单位（伤害矩阵中有可用武器，含弹药检查）
