@@ -44,7 +44,9 @@ public static class TerrainRegistry
     {
         var customs = defs.Values.Where(d => !d.builtIn)
             .Select(d => new Godot.Collections.Dictionary { ["id"] = d.id, ["name"] = d.displayName, ["base"] = d.baseTerrain, ["skin"] = d.biomeSkin }).ToArray();
-        FileAccess.Open(CustomTerrainJsonPath, FileAccess.ModeFlags.Write)?.StoreString(Json.Stringify(new Godot.Collections.Array(customs)));
+        var arr = new Godot.Collections.Array();
+        foreach (var d in customs) arr.Add(d);
+        FileAccess.Open(CustomTerrainJsonPath, FileAccess.ModeFlags.Write)?.StoreString(Json.Stringify(arr));
     }
 
     public static int LoadCustom()

@@ -19,7 +19,7 @@ public partial class GridManager
     public void ApplyRandomScreenLinksIfEnabled()
     {
         if (!randomScreenLinks || GetScreenCount() <= 1) return;
-        int seed = randomLinkSeed != 0 ? randomLinkSeed : Environment.TickCount;
+        int seed = randomLinkSeed != 0 ? randomLinkSeed : System.Environment.TickCount;
         RerollRandomScreenLinks(seed);
     }
 
