@@ -441,7 +441,6 @@ public static class UnitRegistry
             Cost = 32000,                       // 造价暂定（含天基打击溢价），开创人可改
             AnimPrefix = "AttackSatellite",
             HasPrimaryWeapon = true,
-            MaxPrimaryAmmoOverride = 6,
             VisionRange = 3,
         },
 
