@@ -108,7 +108,7 @@ public partial class TerrainEditor
         terrainMenuPanel.AddChild(moduleCsvContainer);
     }
 
-    private static string JoinTargets(Vector2I[] t)
+    private static string JoinTargets(System.Collections.Generic.IEnumerable<Vector2I> t)
         => t == null ? "" : string.Join(";", t.Select(v => $"{v.X},{v.Y}"));
     private static string JoinInts(int[] a)
         => a == null ? "" : string.Join(",", a);
@@ -131,7 +131,7 @@ public partial class TerrainEditor
         g.destroyChainBuildingWhitelist = destroyBuildingEdit.Text.Trim();
         g.destroyChainWeaponWhitelist = destroyWeaponEdit.Text.Trim();
         g.teleportEnabled = teleportEnableCheck.ButtonPressed;
-        g.teleportTargets = ParseTargets(teleportTargetsEdit.Text);
+        g.teleportTargets = new Godot.Collections.Array<Vector2I>(ParseTargets(teleportTargetsEdit.Text));
         g.teleportDefaultScanTerrain = teleportScanEdit.Text.Trim();
         g.teleportUseGlobalFixed = teleportGlobalCheck.ButtonPressed;
         g.terrainHidesUnits = hideUnitsCheck.ButtonPressed;
