@@ -1507,6 +1507,7 @@ public static void UpdateUnitsCannotMove()
 public static bool CanUnitMove(Infantry unit)
 {
     if (unit != null && unit.IsStunned) return false;   // ✅ 麻痹中不能移动
+    if (unit != null && unit.IsTrappedByWeapon()) return false;   // ✅ issue#1：多格单位内部卡敌→不能移动
     return !unitsCannotMove.ContainsKey(unit);
 }
 }

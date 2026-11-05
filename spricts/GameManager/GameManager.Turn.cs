@@ -116,6 +116,7 @@ public partial class GameManager
         bool isNewTurn = (turns > previousTurn);
         if (isNewTurn)
             WeatherSystem.AdvanceDay();   // ✅ 天气系统（模块15）：新一天按出现率轮换天气
+            WeatherManager.Instance?.OnTurnStart();   // ✅ issue#1：区域天气层（格子栈）回合递减
         selectedInfantry = null;
                         if (turnPhase == 1)
 

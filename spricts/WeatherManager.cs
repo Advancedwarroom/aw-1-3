@@ -8,8 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>天气类型定义（注册表条目；mods 可 RegisterWeatherType 追加）</summary>
-public class WeatherTypeDef
+/// <summary>天气类型定义（注册表条目；mods 可 RegisterRegionalWeatherType 追加）</summary>
+public class RegionalWeatherType
 {
     public int id;
     public string name = "";
@@ -31,7 +31,7 @@ public class WeatherTypeDef
 }
 
 /// <summary>格子上的单层天气</summary>
-public class WeatherLayer
+public class RegionalWeatherLayer
 {
     public int typeId;
     public int remainingTurns;   // 剩余回合数；-1 = 永久
@@ -48,8 +48,8 @@ public partial class WeatherManager : Node
     [Export] public bool weatherAffectsAI = true;      // AI 寻路/决策计入天气（issue 要求；关闭则 AI 按晴算）
 
     // 类型注册表 + 格子级天气栈
-    private readonly Dictionary<int, WeatherTypeDef> types = new();
-    private readonly Dictionary<Vector2I, List<WeatherLayer>> cellStacks = new();
+    private readonly Dictionary<int, RegionalWeatherType> types = new();
+    private readonly Dictionary<Vector2I, List<RegionalWeatherLayer>> cellStacks = new();
     public const int MaxStackLayers = 4;               // issue：不同天气最多叠 4 层
 
     public override void _Ready()
@@ -62,26 +62,26 @@ public partial class WeatherManager : Node
     // ========== 内置五种（默认值按 AW 系惯例；mod 可在 _Ready 后覆写注册项）==========
     private void RegisterBuiltinTypes()
     {
-        RegisterWeatherType(new WeatherTypeDef { id = 0, name = "晴" });
-        RegisterWeatherType(new WeatherTypeDef { id = 1, name = "雨", defensePercent = 1100, visionDelta = -1 });
-        RegisterWeatherType(new WeatherTypeDef { id = 2, name = "雪", moveCostDelta = 1, movePointsDelta = -1, fuelCostDelta = 1 });
-        RegisterWeatherType(new WeatherTypeDef { id = 3, name = "沙暴", attackPercent = 900, visionDelta = -2 });
-        RegisterWeatherType(new WeatherTypeDef { id = 4, name = "雾", visionDelta = -3, fireRangeDelta = -1 });
+        RegisterRegionalWeatherType(new RegionalWeatherType { id = 0, name = "晴" });
+        RegisterRegionalWeatherType(new RegionalWeatherType { id = 1, name = "雨", defensePercent = 1100, visionDelta = -1 });
+        RegisterRegionalWeatherType(new RegionalWeatherType { id = 2, name = "雪", moveCostDelta = 1, movePointsDelta = -1, fuelCostDelta = 1 });
+        RegisterRegionalWeatherType(new RegionalWeatherType { id = 3, name = "沙暴", attackPercent = 900, visionDelta = -2 });
+        RegisterRegionalWeatherType(new RegionalWeatherType { id = 4, name = "雾", visionDelta = -3, fireRangeDelta = -1 });
     }
 
-    public void RegisterWeatherType(WeatherTypeDef t) => types[t.id] = t;
-    public WeatherTypeDef GetWeatherType(int id) => types.TryGetValue(id, out var t) ? t : null;
+    public void RegisterRegionalWeatherType(RegionalWeatherType t) => types[t.id] = t;
+    public RegionalWeatherType GetRegionalWeatherType(int id) => types.TryGetValue(id, out var t) ? t : null;
 
     // ========== 增删查 ==========
     /// <summary>给格子加一层天气：同类不叠（续时长），异类≤4层。turns=-1 永久。</summary>
     public bool AddWeather(Vector2I cell, int typeId, int turns, bool replaceSunny = false)
     {
         if (!localWeatherEnabled || typeId == 0) return false;
-        var type = GetWeatherType(typeId);
+        var type = GetRegionalWeatherType(typeId);
         if (type == null) return false;
         if (!cellStacks.TryGetValue(cell, out var stack))
         {
-            stack = new List<WeatherLayer>();
+            stack = new List<RegionalWeatherLayer>();
             cellStacks[cell] = stack;
         }
         var existing = stack.FirstOrDefault(l => l.typeId == typeId);
@@ -92,7 +92,7 @@ public partial class WeatherManager : Node
             return true;
         }
         if (stack.Count >= MaxStackLayers) return false;   // 异类≤4层
-        stack.Add(new WeatherLayer { typeId = typeId, remainingTurns = turns, replaceBaseSunny = replaceSunny });
+        stack.Add(new RegionalWeatherLayer { typeId = typeId, remainingTurns = turns, replaceBaseSunny = replaceSunny });
         type.onActivate?.Invoke();
         return true;
     }
@@ -103,7 +103,7 @@ public partial class WeatherManager : Node
         var layer = stack.FirstOrDefault(l => l.typeId == typeId);
         if (layer == null) return;
         stack.Remove(layer);
-        GetWeatherType(typeId)?.onDeactivate?.Invoke();
+        GetRegionalWeatherType(typeId)?.onDeactivate?.Invoke();
         if (stack.Count == 0) cellStacks.Remove(cell);
     }
 
@@ -111,14 +111,14 @@ public partial class WeatherManager : Node
     {
         foreach (var stack in cellStacks.Values)
             foreach (var layer in stack)
-                GetWeatherType(layer.typeId)?.onDeactivate?.Invoke();
+                GetRegionalWeatherType(layer.typeId)?.onDeactivate?.Invoke();
         cellStacks.Clear();
     }
 
-    public IReadOnlyList<WeatherLayer> GetLayersAt(Vector2I cell)
+    public IReadOnlyList<RegionalWeatherLayer> GetLayersAt(Vector2I cell)
     {
-        if (!localWeatherEnabled) return Array.Empty<WeatherLayer>();
-        return cellStacks.TryGetValue(cell, out var s) ? s : (IReadOnlyList<WeatherLayer>)Array.Empty<WeatherLayer>();
+        if (!localWeatherEnabled) return Array.Empty<RegionalWeatherLayer>();
+        return cellStacks.TryGetValue(cell, out var s) ? s : (IReadOnlyList<RegionalWeatherLayer>)Array.Empty<RegionalWeatherLayer>();
     }
 
     /// <summary>有效天气判定（CO 天气检查走这里）：区域层优先，无层回退基底；显式转晴返回0</summary>
@@ -132,21 +132,21 @@ public partial class WeatherManager : Node
     }
 
     // ========== 效果聚合（基底 + 各层一起算；显式转晴则剔除基底）==========
-    private List<WeatherTypeDef> GetActiveTypesAt(Vector2I cell, bool forAI)
+    private List<RegionalWeatherType> GetActiveTypesAt(Vector2I cell, bool forAI)
     {
-        var result = new List<WeatherTypeDef>();
+        var result = new List<RegionalWeatherType>();
         if (forAI && !weatherAffectsAI) return result;   // AI 开关：关闭=按无天气算
         if (!localWeatherEnabled) return result;
         var layers = GetLayersAt(cell);
         bool baseReplaced = layers.Any(l => l.replaceBaseSunny);
         if (!baseReplaced && baseWeatherId != 0)
         {
-            var b = GetWeatherType(baseWeatherId);
+            var b = GetRegionalWeatherType(baseWeatherId);
             if (b != null) result.Add(b);
         }
         foreach (var l in layers)
         {
-            var t = GetWeatherType(l.typeId);
+            var t = GetRegionalWeatherType(l.typeId);
             if (t != null) result.Add(t);
         }
         return result;
@@ -232,10 +232,10 @@ public partial class WeatherManager : Node
     {
         if (!localWeatherEnabled) return "";
         var layers = GetLayersAt(cell);
-        if (layers.Count == 0) return baseWeatherId != 0 ? GetWeatherType(baseWeatherId)?.name : "";
+        if (layers.Count == 0) return baseWeatherId != 0 ? GetRegionalWeatherType(baseWeatherId)?.name : "";
         return string.Join("+", layers.Select(l =>
         {
-            var t = GetWeatherType(l.typeId);
+            var t = GetRegionalWeatherType(l.typeId);
             string n = t?.name ?? "?";
             return l.remainingTurns >= 0 ? $"{n}{l.remainingTurns}" : n;
         }));
