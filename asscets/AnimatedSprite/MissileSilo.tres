@@ -19,4 +19,10 @@ region = Rect2(0, 0, 30, 48)
 atlas = ExtResource("1_t1_0")
 region = Rect2(0, 0, 30, 30)
 [resource]
-animations = [{"frames": [{"duration": 1.0, "texture": SubResource("Atlas_0_0")}], "loop": true, "name": &"MissileSilo", "speed": 2.0}, {"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_0")}], "loop": true, "name": &"MissileSiloEmpty", "speed": 2.0}]
+animations = [{"frames": [{"duration": 1.0, "texture": SubResource("Atlas_0_0")}], "loop": true, "name": &"MissileSilo", "speed": 2.0}, {"frames": [{"duration": 1.0, "texture": SubResource("Atlas_1_0")}], "loop": true, "name": &"MissileSiloEmpty", "speed": 2.0}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("3_cow")}],
+"loop": true, "name": &"CowMissileSilo", "speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("4_cow")}],
+"loop": true, "name": &"CowMissileSiloEmpty", "speed": 1.0
+}]

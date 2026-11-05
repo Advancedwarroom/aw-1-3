@@ -115,6 +115,12 @@ public partial class Gate : Weapon
     {
         if (animSprite == null) return;
         string anim = GetIdleAnimName();
+        // ✅ CoW LUT: 优先Cow编码动画(换色), 无则回落原版
+        if (animSprite?.SpriteFrames != null)
+        {
+            string cowAnim = "Cow" + anim;
+            if (animSprite.SpriteFrames.HasAnimation(cowAnim)) anim = cowAnim;
+        }
         if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(anim))
             animSprite.Play(anim);
     }

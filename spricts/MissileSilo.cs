@@ -412,7 +412,9 @@ public partial class MissileSilo : Weapon
     {
         if (animSprite == null) return;
         bool empty = hasFired || (useAmmoSystem && currentAmmo <= 0) || (oneTimeUse && hasFired);
-        string anim = empty ? "MissileSiloEmpty" : "MissileSilo";
+        string anim = empty ? "CowMissileSiloEmpty" : "CowMissileSilo";
+        if (animSprite?.SpriteFrames == null || !animSprite.SpriteFrames.HasAnimation(anim))
+            anim = empty ? "MissileSiloEmpty" : "MissileSilo";
         if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(anim))
             animSprite.Play(anim);
         UpdateHpLabel();
