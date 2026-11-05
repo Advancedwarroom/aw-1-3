@@ -613,7 +613,7 @@ public void ShowTransportMenu(Infantry transport, bool afterMove)
 
     // ✅ 与普通单位统一判定：尊重 attackType/弹药/射程内可伤害目标
     attackButton.Visible = CanShowAttackButton(transport);
-    captureButton.Visible = false;
+    captureButton.Visible = transport.CanPerformLoadedCapture();
 
     var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
     if (gm?.gridManager != null)
