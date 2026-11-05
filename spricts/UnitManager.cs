@@ -10,9 +10,10 @@ public partial class UnitManager : Node
     [Export] public bool allowUnitOverlap = false;
 
 
-    public List<Infantry> AllUnits
+    public List<Infantry> AllUnits { get; private set; } = new List<Infantry>();
+
     /// <summary>全部存活步兵(巨雷EMP/吞噬链用, 别名AllUnits)</summary>
-    public List<Infantry> AllInfantries => AllUnits; { get; private set; } = new List<Infantry>();
+    public List<Infantry> AllInfantries => AllUnits;
 
     public override void _Ready()
     {
