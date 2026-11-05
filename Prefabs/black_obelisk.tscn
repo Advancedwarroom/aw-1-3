@@ -17,6 +17,7 @@ maxHealth = 990
 health = 990
 canRotate = false
 maxAttacksPerTurn = 0
+size = Vector2i(3, 3)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(48, 52)
