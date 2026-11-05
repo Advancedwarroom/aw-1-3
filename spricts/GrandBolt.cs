@@ -668,7 +668,7 @@ public partial class GrandBolt : Weapon
                     {
                         var u = t.infantry;
                         if (!u.healthLocked)
-                            u.health = Math.Max(u.health - empBurstInfantryDamage, 1); // ✅ 不击杀(保底1血), 击杀结算语义待作者定
+                            u.health = Mathf.Max(u.health - empBurstInfantryDamage, 1); // ✅ 不击杀(保底1血), 击杀结算语义待作者定
                     }
                 }
     }
