@@ -418,6 +418,33 @@ public static class UnitRegistry
             OverlapType = UnitOverlapType.Oozium,
         },
 
+        // ==================== 天军（原地图事件单位，2026-11-05 入册走可生产通道）====================
+        ["ForceSatellite"] = new UnitConfig
+        {
+            UnitId = "ForceSatellite",
+            DisplayName = TranslateGroup.T("力场卫星"),
+            MoveType = MoveType.SpaceShiper,
+            MovePoints = 6,
+            Cost = 28000,                       // 造价暂定（超级兵器档），开创人可改
+            AnimPrefix = "ForceSatellite",
+            HasPrimaryWeapon = false,
+            HasSecondaryWeapon = false,
+            AttackType = AttackType.NoAttack,   // 无武器：仅力场支援
+            VisionRange = 3,
+        },
+        ["AttackSatellite"] = new UnitConfig
+        {
+            UnitId = "AttackSatellite",
+            DisplayName = TranslateGroup.T("黑琥珀"),
+            MoveType = MoveType.SpaceShiper,
+            MovePoints = 6,
+            Cost = 32000,                       // 造价暂定（含天基打击溢价），开创人可改
+            AnimPrefix = "AttackSatellite",
+            HasPrimaryWeapon = true,
+            MaxPrimaryAmmoOverride = 6,
+            VisionRange = 3,
+        },
+
         ["FlyBomb"] = new UnitConfig
         {
             UnitId = "FlyBomb",
