@@ -16,6 +16,9 @@ public enum WeatherType { Sun = 0, Rain = 1, Snow = 2, Sandstorm = 3, Mist = 4 }
 
 public static class WeatherSystem
 {
+    /// <summary>天气免疫: 模块15(CO技能)weatherImmune=1 的势力单位不受天气惩罚(文件头设计注释)</summary>
+    private static bool IsImmune(Infantry unit) => CoModuleSystem.GetWeatherImmune(unit);
+
     static WeatherType current = WeatherType.Sun;
     static int daysRemaining = 0;            // 当前天气剩余天数（0=未启用天气轮换）
     static bool randomWeather = true;        // 是否每日随机轮换

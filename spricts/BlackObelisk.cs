@@ -12,6 +12,19 @@ using System.Linq;
 
 public partial class BlackObelisk : BlackCannon
 {
+    // ✅ CoW LUT换色(2026-11全换色): 仅主体走colortable LUT; GlowSprite(黄色光线)显式无材质=钉死黄色不变色
+    protected override void ApplyPaletteMaterial()
+    {
+        var body = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D") ?? animSprite;
+        if (body != null && IsInstanceValid(body))
+        {
+            var lut = FactionPaletteManager.GetCowLutMaterial(team);
+            if (lut != null) body.Material = (ShaderMaterial)lut.Duplicate();
+        }
+        var glow = GetNodeOrNull<AnimatedSprite2D>("GlowSprite");
+        if (glow != null && IsInstanceValid(glow)) glow.Material = null; // ✅ 黄色光线不参与换色
+    }
+
     [ExportGroup("黑尖塔 - 多格配置")]
     [Export] public Vector2I multiTileSize = new Vector2I(3, 3);
 
