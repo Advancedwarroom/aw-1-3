@@ -131,6 +131,20 @@ public partial class WeatherManager : Node
         return layers[0].typeId;                              // 顶层优先
     }
 
+    // ========== 与模块15（全球天气）的融合查询（issue#1）==========
+    /// <summary>区域层→模块15天气枚举（内建ID对齐：0晴1雨2雪3沙暴4雾）；无层/未启用/自定义类型返回null=回退全球</summary>
+    public static WeatherType? GetRegionalWeatherAt(Vector2I cell)
+    {
+        var inst = Instance;
+        if (inst == null || !inst.localWeatherEnabled) return null;
+        var layers = inst.GetLayersAt(cell);
+        if (layers == null || layers.Count == 0) return null;
+        if (layers.Any(l => l.replaceBaseSunny)) return WeatherType.Sun;   // 显式转晴
+        int id = layers[0].typeId;                                         // 顶层优先
+        if (id < 0 || id > 4) return null;                                 // 自定义类型 v1 回退全球
+        return (WeatherType)id;
+    }
+
     // ========== 效果聚合（基底 + 各层一起算；显式转晴则剔除基底）==========
     private List<RegionalWeatherType> GetActiveTypesAt(Vector2I cell, bool forAI)
     {

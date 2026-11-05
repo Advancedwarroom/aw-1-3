@@ -102,16 +102,20 @@ public static class WeatherSystem
 
     public static void SetRandomWeather(bool enabled) => randomWeather = enabled;
 
-    // ---------- 惩罚查询（模块15 免疫在此统一过滤） ----------
-    /// <summary>天气是否对该单位免疫（模块15 weatherImmune / isCoUnit Zone 内亦可配）</summary>
-    public static bool IsImmune(Infantry unit)
-        => unit != null && CoModuleSystem.GetWeatherImmune(unit);
+    // ---------- 惩罚查询（模块15 免疫在此统一过滤）----------
+    // ✅ issue#1 区域天气融合：查询一律走 EffectiveAt(cell)——区域天气层优先，无层回退全球 Current。
+    // 免疫（weatherImmune CO）对全球+区域天气一视同仁。
 
-    /// <summary>视野修正：雨-1 / 雾-2</summary>
+    /// <summary>某格的有效天气：区域天气层优先（WeatherManager 格子栈），无层回退全球 Current</summary>
+    public static WeatherType EffectiveAt(Vector2I cell)
+        => WeatherManager.GetRegionalWeatherAt(cell) ?? current;
+
+    /// <summary>视野修正：雨-1 / 雾-2（按观察单位所在格的天气）</summary>
     public static int GetVisionModifier(Infantry unit)
     {
         if (IsImmune(unit)) return 0;
-        return current switch
+        var w = unit?.grid != null ? EffectiveAt(unit.grid.GridIndex) : current;
+        return w switch
         {
             WeatherType.Rain => -1,
             WeatherType.Mist => -2,
@@ -119,10 +123,12 @@ public static class WeatherSystem
         };
     }
 
-    /// <summary>移动消耗修正：雪+1（道路/桥/轨道/传送门/建筑格与空军除外）</summary>
+    /// <summary>移动消耗修正：雪+1（按目标格的天气；道路/桥/轨道/传送门/建筑格与空军除外）</summary>
     public static int GetMovementCostModifier(Infantry unit, Grids g)
     {
-        if (IsImmune(unit) || current != WeatherType.Snow) return 0;
+        if (IsImmune(unit)) return 0;
+        var w = g != null ? EffectiveAt(g.GridIndex) : current;
+        if (w != WeatherType.Snow) return 0;
         if (unit is { IsAirUnit: true }) return 0;
         if (g == null) return 0;
         if (g.city != null) return 0;   // 建筑格
@@ -138,11 +144,19 @@ public static class WeatherSystem
     };
     static bool ExemptSnowTerrain(GridType t) => SnowExempt.Contains(t);
 
-    /// <summary>攻击百分比修正：沙暴-15%</summary>
+    /// <summary>攻击百分比修正：沙暴-15%（按攻击单位所在格的天气）</summary>
     public static float GetOffenseModifierPercent(Infantry unit)
-        => IsImmune(unit) || current != WeatherType.Sandstorm ? 0f : -15f;
+    {
+        if (IsImmune(unit)) return 0f;
+        var w = unit?.grid != null ? EffectiveAt(unit.grid.GridIndex) : current;
+        return w != WeatherType.Sandstorm ? 0f : -15f;
+    }
 
-    /// <summary>射程修正：沙暴-1</summary>
+    /// <summary>射程修正：沙暴-1（按攻击单位所在格的天气）</summary>
     public static int GetFireRangeModifier(Infantry unit)
-        => IsImmune(unit) || current != WeatherType.Sandstorm ? 0 : -1;
+    {
+        if (IsImmune(unit)) return 0;
+        var w = unit?.grid != null ? EffectiveAt(unit.grid.GridIndex) : current;
+        return w != WeatherType.Sandstorm ? 0 : -1;
+    }
 }
