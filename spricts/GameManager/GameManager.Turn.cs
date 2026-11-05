@@ -184,6 +184,12 @@ public partial class GameManager
                 {
                 }
             }
+            // ✅ 运输单位移动后中断舱内占领
+            if (unit.loadedCapturingGrid != null && unit.grid != unit.loadedCapturingGrid)
+            {
+                unit.loadedCaptureProgress = 0;
+                unit.loadedCapturingGrid = null;
+            }
             bool canMoveThisTurn = APC.CanUnitMove(unit);
             unit.isMoved = false;
             unit.isAttacked = false;
