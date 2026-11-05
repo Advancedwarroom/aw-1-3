@@ -589,6 +589,19 @@ public partial class SuperFactory : Weapon
         if (dots != null) dots.Visible = GetFactoryAnimName() == "Neutral";   // 换势力时同步黄灯层显隐
     }
 
+    private string lastVisualTeam = null;
+
+    public override void _Process(double delta)
+    {
+        base._Process(delta);
+        // 编辑器/运行时直接改 team 字段也立即换皮（对齐 SetDirection 即改即转；官方通道 SetFactoryTeam 已自带刷新）
+        if (IsNodeReady() && team != lastVisualTeam)
+        {
+            lastVisualTeam = team;
+            RefreshTeamVisual();
+        }
+    }
+
     /// <summary>按队伍选贴图动画（橙/蓝/绿/黄/中立/黑洞六套原版色，无需 Shader 染色）</summary>
     public string GetFactoryAnimName()
     {
