@@ -492,6 +492,7 @@ private void CloseTerrainMenu()
         colorRect.CustomMinimumSize = new Vector2(6, 28);
         colorRect.Position = new Vector2(4, 4);
         btn.AddChild(colorRect);
+        AttachTerrainPreview(btn, terrainType);
 
         // ✅ 地形贴图预览图标：复用 grid.tscn 的 terrainIconTextures 映射（与地图实际显示一致），取不到则保持纯文字
         var terrainTex = GetTerrainIconTexture(terrainType);

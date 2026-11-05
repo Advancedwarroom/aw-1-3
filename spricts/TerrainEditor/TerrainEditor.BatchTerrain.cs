@@ -138,6 +138,7 @@ public partial class TerrainEditor
 
         scroll.AddChild(batchTerrainButtonContainer);
         batchTerrainPanel.AddChild(scroll);
+        CreateBatchBrushBar(batchTerrainPanel);
 
         // 提取当前地形按钮
         var extractBtn = new Button();
@@ -266,6 +267,7 @@ public partial class TerrainEditor
         btn.AddThemeStyleboxOverride("pressed", pressedStyle);
 
         GridType capturedType = terrainType;
+        AttachTerrainPreview(btn, terrainType);
         btn.Pressed += () => StartBatchTerrainMode(capturedType);
 
         return btn;

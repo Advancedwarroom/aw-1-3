@@ -1134,5 +1134,13 @@ public partial class Grids : Node2D
                 }
             }
         }
+
+        // ✅ 会话级贴图变体优先（编辑器"换贴图"功能，同型格子全局换肤）
+        var sessionTex = TerrainEditor.GetSessionTerrainTexture(gridType);
+        if (sessionTex != null)
+        {
+            var sSprite = GetNodeOrNull<Sprite2D>("Sprite2D");
+            if (sSprite != null) sSprite.Texture = sessionTex;
+        }
     }
 }

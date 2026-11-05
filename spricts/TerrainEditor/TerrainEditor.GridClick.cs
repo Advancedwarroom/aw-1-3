@@ -167,12 +167,7 @@ public void OnGridClickedForEdit(Grids grid)
     // ✅ 批量地形放置模式：直接改地形，不经过选择菜单
     if (isBatchTerrainMode)
     {
-        var oldTerrain = grid.gridType;
-        grid.gridType = batchTerrainType;
-        grid.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
-        ApplyBatchDirectionConfig(grid);
-        UpdateGridVisual(grid);
-        PushEditorAction(EditorActionType.PlaceTerrain, grid, oldTerrain);
+        ApplyBatchBrushAt(grid);
         return;
     }
 
@@ -252,7 +247,7 @@ public void OnGridClickedForEdit(Grids grid)
 
     if (allTargets.Count == 1)
     {
-        OpenTerrainMenu(grid);
+        OpenTerrainQuickSwitch(grid);
     }
     else
     {
@@ -289,7 +284,7 @@ private void ShowMultiSelectMenu(List<EditTarget> targets)
             case "grid":
                 btn = CreateSelectionButton(target.DisplayName, target.Color, () => {
                     CloseSelectionMenu();
-                    OpenTerrainMenu(selectedGrid);
+                    OpenTerrainQuickSwitch(selectedGrid);
                 });
                 break;
             case "spawn":
