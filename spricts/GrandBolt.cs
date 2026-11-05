@@ -641,4 +641,35 @@ public partial class GrandBolt : Weapon
 
     /// <summary>回合开始(GameManager.Turn调用入口, 转调无参版+预留gm上下文)</summary>
     public void OnTurnStartGrandBolt(GameManager gm) => OnTurnStartGrandBolt();
+
+    [Export] public int empBurstWeaponDamage = 1;    // ✅ 电磁爆: 对敌对武器伤害(占位语义, 待作者调)
+    [Export] public int empBurstInfantryDamage = 0;  // ✅ 电磁爆: 对敌对步兵伤害(占位语义, 待作者调)
+
+    /// <summary>电磁爆: 回合开始爆发(GameManager.Turn调用)——占据格周围8格, 对敌对武器/步兵生效</summary>
+    public void EmpBurst(GameManager gm)
+    {
+        if (gm?.gridManager?.map == null || grid == null) return;
+        if (empBurstWeaponDamage <= 0 && empBurstInfantryDamage <= 0) return;
+        var map = gm.gridManager.map;
+        int w = map.GetLength(0), h = map.GetLength(1);
+        foreach (var idx in GetOccupiedIndices(grid.GridIndex))
+            for (int dx = -1; dx <= 1; dx++)
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    int nx = idx.X + dx, ny = idx.Y + dy;
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                    var t = map[nx, ny];
+                    if (t == null || !IsInstanceValid(t)) continue;
+                    if (empBurstWeaponDamage > 0 && t.weapons != null)
+                        foreach (var wp in t.weapons.ToList())
+                            if (wp != this && IsInstanceValid(wp) && wp.team != team)
+                                wp.TakeDamage(empBurstWeaponDamage);
+                    if (empBurstInfantryDamage > 0 && t.infantry != null && t.infantry.team != team)
+                    {
+                        var u = t.infantry;
+                        if (!u.healthLocked)
+                            u.health = Math.Max(u.health - empBurstInfantryDamage, 1); // ✅ 不击杀(保底1血), 击杀结算语义待作者定
+                    }
+                }
+    }
 }
