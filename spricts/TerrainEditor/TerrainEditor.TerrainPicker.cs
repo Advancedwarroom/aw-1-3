@@ -320,6 +320,7 @@ public partial class TerrainEditor
     // 1x1 / 3x3 / 5x5 方形笔刷 + 洪水填充，整批合并为一条撤销记录（对标 CoW EditorPlacementSize + Fill）
     public int BatchBrushSize { get; private set; } = 1;
     public bool BatchFloodFill { get; private set; } = false;
+    [Export] public bool refreshNeighborDirectionAfterBrush = true; // ✅ 批量铺设后邻域方向重算: true=刷新5x5邻格方向贴图(仅自动优化的格子生效); false=跳过重算
 
     private void CreateBatchBrushBar(Panel panel)
     {
@@ -391,6 +392,17 @@ public partial class TerrainEditor
             var old = g.gridType;
             g.gridType = batchTerrainType;
             g.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
+            // ✅ 手动贴图锁(批量面板"贴图配置"选了具体贴图时): 锁自选图, 不走方向解析; 自动优化则按邻格算
+            if (batchVariantAuto)
+            {
+                g.autoOptimizeDirection = true;
+                g.manualCowTexturePath = "";
+            }
+            else
+            {
+                g.autoOptimizeDirection = false;
+                g.manualCowTexturePath = batchVariantTexturePath;
+            }
             UpdateGridVisual(g);
             parent.subActions.Add(new EditorActionRecord
             {
@@ -403,7 +415,8 @@ public partial class TerrainEditor
         }
         if (changed > 0)
         {
-            // ✅ 邻域方向刷新(自动优化开启的格子): 多格铺设改变邻接关系, 同 ApplyBatchDirectionConfig 的5x5范围
+            // ✅ 邻域方向刷新(自动优化开启的格子): 多格铺设改变邻接关系, 同 ApplyBatchDirectionConfig 的5x5范围; Export开关可关
+            if (!refreshNeighborDirectionAfterBrush) { PickerResolveHelper()?.PushAction(parent); TranslateGroup.SetText(spawnHintLabel, $"已铺设 {changed} 格"); return; }
             var gm = PickerResolveGridManager();
             if (gm?.map != null)
             {
@@ -458,6 +471,17 @@ public partial class TerrainEditor
 
             g.gridType = newType;
             g.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
+            // ✅ 手动贴图锁: 同笔刷路径
+            if (batchVariantAuto)
+            {
+                g.autoOptimizeDirection = true;
+                g.manualCowTexturePath = "";
+            }
+            else
+            {
+                g.autoOptimizeDirection = false;
+                g.manualCowTexturePath = batchVariantTexturePath;
+            }
             UpdateGridVisual(g);
             parent.subActions.Add(new EditorActionRecord
             {
@@ -481,7 +505,8 @@ public partial class TerrainEditor
 
         if (changed > 0)
         {
-            // ✅ 邻域方向刷新: 按填充记录逐格5x5刷新
+            // ✅ 邻域方向刷新: 按填充记录逐格5x5刷新; Export开关可关
+            if (!refreshNeighborDirectionAfterBrush) { PickerResolveHelper()?.PushAction(parent); TranslateGroup.SetText(spawnHintLabel, $"已填充 {changed} 格"); return; }
             foreach (var sub in parent.subActions)
             {
                 for (int dy = -2; dy <= 2; dy++)
