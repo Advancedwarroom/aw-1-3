@@ -11,11 +11,11 @@
 [resource]
 animations = [{
 "frames": [{"duration": 1.0, "texture": ExtResource("1")}],
-"loop": true, "name": &"P0Port", "speed": 6.25
+"loop": true, "name": &"P0Port", "speed": 2.0
 }, {
 "frames": [{"duration": 1.0, "texture": ExtResource("2")}],
-"loop": true, "name": &"portteam1", "speed": 6.25
+"loop": true, "name": &"portteam1", "speed": 2.0
 }, {
 "frames": [{"duration": 1.0, "texture": ExtResource("3")}],
-"loop": true, "name": &"portteam2", "speed": 6.25
+"loop": true, "name": &"portteam2", "speed": 2.0
 }]
