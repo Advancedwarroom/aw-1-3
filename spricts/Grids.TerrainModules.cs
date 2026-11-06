@@ -109,26 +109,4 @@ public partial class Grids
             // 单位/设施/兵器白名单: 名称在各自对象的name上, 由GameManager侧按白名单csv匹配
         }
     }
-
-    // ==================== 传送绑定(对标CoW TELEPORTTILE; 每格单独绑定目标) ====================
-    [Export] public bool teleportEnabled = false;            // ✅ 传送模块总开关(单位移动到此格即传送)
-    [Export] public Godot.Collections.Array<Vector2I> teleportTargets = new(); // ✅ 绑定目标格子(可多选; 编辑器逐格绑定)
-    [Export] public string teleportDefaultScanTerrain = "";    // ✅ 默认模式: 未手动绑定时, 扫描全图这些地形(英文名csv)作为候选目标
-    [Export] public bool teleportUseGlobalFixed = false;     // ✅ 默认模式: 全局固定格子(=teleportTargets, 同类地形共享)
-
-    /// <summary>取该格传送目标集: 优先手动绑定, 否则按默认扫描/全局固定</summary>
-    public List<Vector2I> ResolveTeleportTargets(GridManager gm)
-    {
-        var result = new List<Vector2I>();
-        if (teleportTargets != null && teleportTargets.Count > 0) { result.AddRange(teleportTargets); return result; }
-        if (gm?.map == null) return result;
-        if (!string.IsNullOrEmpty(teleportDefaultScanTerrain))
-        {
-            var scan = teleportDefaultScanTerrain.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            foreach (var g in gm.grids)
-                if (g != null && scan.Contains(g.gridType.ToString()))
-                    result.Add(g.GridIndex);
-        }
-        return result;
-    }
 }

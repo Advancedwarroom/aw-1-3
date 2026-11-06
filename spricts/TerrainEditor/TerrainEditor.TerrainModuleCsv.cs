@@ -11,9 +11,9 @@ public partial class TerrainEditor
     private Grids moduleCsvTarget;
     private LineEdit spreadTerrainEdit, spreadWeaponEdit, spreadBuildingEdit, spreadUnitEdit;
     private LineEdit destroyTerrainEdit, destroyUnitEdit, destroyBuildingEdit, destroyWeaponEdit;
-    private LineEdit teleportTargetsEdit, teleportScanEdit, visionBlacklistEdit;
+    private LineEdit visionBlacklistEdit;
     private SpinBox spreadCooldownSpin, spreadCapSpin, spreadManhattanSpin, visionMinSpin, visionMaxSpin, visionAmountSpin;
-    private CheckBox spreadEnableCheck, spreadCapCheck, teleportEnableCheck, teleportGlobalCheck, hideUnitsCheck, visionEnableCheck;
+    private CheckBox spreadEnableCheck, spreadCapCheck, hideUnitsCheck, visionEnableCheck;
 
     private LineEdit MakeCsvRow(string label, string value, VBoxContainer parent)
     {
@@ -85,11 +85,7 @@ public partial class TerrainEditor
         destroyBuildingEdit = MakeCsvRow("摧毁链白名单设施", grid.destroyChainBuildingWhitelist, moduleCsvContainer);
         destroyWeaponEdit = MakeCsvRow("摧毁链白名单兵器", grid.destroyChainWeaponWhitelist, moduleCsvContainer);
 
-        teleportEnableCheck = MakeCheckRow("传送开关", grid.teleportEnabled, moduleCsvContainer);
-        teleportTargetsEdit = MakeCsvRow("传送目标(x,y;x,y)", JoinTargets(grid.teleportTargets), moduleCsvContainer);
-        teleportScanEdit = MakeCsvRow("默认扫描地形csv", grid.teleportDefaultScanTerrain, moduleCsvContainer);
-        teleportGlobalCheck = MakeCheckRow("全局固定格子", grid.teleportUseGlobalFixed, moduleCsvContainer);
-
+                                
         hideUnitsCheck = MakeCheckRow("地形隐蔽", grid.terrainHidesUnits, moduleCsvContainer);
 
         visionEnableCheck = MakeCheckRow("视野加成开关", grid.visionBonusEnabled, moduleCsvContainer);
@@ -130,11 +126,7 @@ public partial class TerrainEditor
         g.destroyChainUnitWhitelist = destroyUnitEdit.Text.Trim();
         g.destroyChainBuildingWhitelist = destroyBuildingEdit.Text.Trim();
         g.destroyChainWeaponWhitelist = destroyWeaponEdit.Text.Trim();
-        g.teleportEnabled = teleportEnableCheck.ButtonPressed;
-        g.teleportTargets = new Godot.Collections.Array<Vector2I>(ParseTargets(teleportTargetsEdit.Text));
-        g.teleportDefaultScanTerrain = teleportScanEdit.Text.Trim();
-        g.teleportUseGlobalFixed = teleportGlobalCheck.ButtonPressed;
-        g.terrainHidesUnits = hideUnitsCheck.ButtonPressed;
+                                        g.terrainHidesUnits = hideUnitsCheck.ButtonPressed;
         g.visionBonusEnabled = visionEnableCheck.ButtonPressed;
         g.visionBonusFactionBlacklist = ParseInts(visionBlacklistEdit.Text);
         g.visionBonusMinRange = (int)visionMinSpin.Value;
