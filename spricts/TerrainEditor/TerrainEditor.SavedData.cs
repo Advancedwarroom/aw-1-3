@@ -43,6 +43,10 @@ public partial class TerrainEditor
             // ✅ N屏：先设屏数再建图（横向条带均分）
             gridManager.screenCount = screens <= 0 ? 1 : screens;
             // ✅ 每屏独立宽：总宽=各屏宽之和；空数组=均分(旧行为)
+            bool wMismatch = screenWidths != null && screenWidths.Length != gridManager.screenCount;
+            bool hMismatch = screenHeights != null && screenHeights.Length != gridManager.screenCount;
+            if (wMismatch || hMismatch)
+                GD.PrintErr($"[多屏] ⚠️ 分屏设置数量与屏数不符（宽:{screenWidths?.Length ?? 0}/{gridManager.screenCount} 高:{screenHeights?.Length ?? 0}/{gridManager.screenCount}），已回退均分");
             gridManager.screenWidths = (screenWidths != null && screenWidths.Length == gridManager.screenCount) ? screenWidths : new int[0];
             gridManager.screenHeights = (screenHeights != null && screenHeights.Length == gridManager.screenCount) ? screenHeights : new int[0];
             int gap = gridManager.screenGap;

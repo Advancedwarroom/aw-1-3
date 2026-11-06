@@ -1093,11 +1093,11 @@ private void RefreshAllUnitVision()
                 var r = new HBoxContainer();
                 var lb = new Label(); TranslateGroup.SetText(lb, $"屏{i + 1} 宽:"); lb.CustomMinimumSize = new Vector2(56, 24);
                 r.AddChild(lb);
-                var sp = new SpinBox { MinValue = 5, MaxValue = 300, Value = widthSpin.Value, CustomMinimumSize = new Vector2(90, 26) };
-                sp.Name = $"ScreenW{i}";
+                var sp = new SpinBox { MinValue = 5, MaxValue = 300, Value = (gridManager != null && i < gridManager.screenWidths.Length) ? gridManager.screenWidths[i] : (int)widthSpin.Value, CustomMinimumSize = new Vector2(90, 26) };
+                sp.Name = $"ScreenW{i}";   // ✅ 取真实各屏宽，整体宽只是缺省
                 sp.ValueChanged += (v) => RebuildScreenPreview();
                 r.AddChild(sp);
-                var sph = new SpinBox { MinValue = 5, MaxValue = 300, Value = heightSpin.Value, CustomMinimumSize = new Vector2(90, 26) };
+                var sph = new SpinBox { MinValue = 5, MaxValue = 300, Value = (gridManager != null && gridManager.screenHeights != null && i < gridManager.screenHeights.Length && gridManager.screenHeights[i] > 0) ? gridManager.screenHeights[i] : (int)heightSpin.Value, CustomMinimumSize = new Vector2(90, 26) };   // ✅ 取真实各屏高
                 sph.Name = $"ScreenH{i}";
                 r.AddChild(new Label { Text = TranslateGroup.T("高:") });
                 r.AddChild(sph);
@@ -1130,6 +1130,7 @@ private void RefreshAllUnitVision()
                     var sh = perScreenWidthBox.GetNodeOrNull<SpinBox>($"ScreenH{k}");
                     ws[k] = sp != null ? (int)sp.Value : w;
                     hs[k] = sh != null ? (int)sh.Value : h;
+                    if (sp == null || sh == null) ShowImportHint(TranslateGroup.T("⚠️ 部分屏未单独设置宽高，已用整体宽高兜底（分屏优先，整体仅缺省）"));
                 }
             }
             GenerateNewMap(w, h, sc, ws, hs);
