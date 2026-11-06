@@ -78,6 +78,7 @@ public partial class GridManager : Node
     // ✅ N屏工具：屏号（横向条带均分；余数归入靠前的屏）
     [Export] public int[] screenWidths = new int[0];   // ✅ 每屏宽(列数)，空数组=均分
     [Export] public int[] screenHeights = new int[0];
+    [Export] public int[] screenYOffsets = new int[0];   // ✅ 每屏Y偏移（顶边悬空量），空数组=全部顶对齐
     [Export] public int screenGap = 3;   // ✅ 屏间间隔（格）：间隔带与矮屏下方不生成格子（真物理分离）
 
     public bool IsInsideAnyScreen(int x, int y)
@@ -86,7 +87,10 @@ public partial class GridManager : Node
         int sid = GetScreenId(new Vector2I(x, y));
         if (sid < 0) return false;
         if (screenHeights != null && screenHeights.Length == screenCount)
-            return y < Math.Max(1, screenHeights[sid]);
+        {
+            int yoff = (screenYOffsets != null && sid < screenYOffsets.Length) ? screenYOffsets[sid] : 0;
+            return y >= yoff && y < yoff + Math.Max(1, screenHeights[sid]);
+        }
         return true;
     }  // ✅ 每屏高(行数)，空数组=全局高
 
@@ -279,8 +283,9 @@ public partial class GridManager : Node
     
     }
 
-    // ✅ 每屏独立宽高加减（Extra配置·分屏调整）：宽锚 0左/1中/2右，高锚 0上/1中/2下
-    // 内容随格平移；收缩区有 单位/兵器/设施/传送端点 时整体拒绝（不半吊子）
+    // ✅ 每屏独立宽高加减（Extra配置·分屏调整）：宽锚 0左/1中/2右，高锚 0上/1中/2下（严格：底边/顶边真正钉死）
+    // 高方向引入每屏Y偏移：下锚扩=顶边上移、内容原地不动（底边严格固定）；世界最小y<0时整体下移归一化
+    // 收缩区有 单位/兵器/城市/传送端点 时整体拒绝
     public string ResizeScreen(int idx, int dw, int dh, int wAnchor, int hAnchor)
     {
         int n = GetScreenCount();
@@ -289,12 +294,13 @@ public partial class GridManager : Node
         dh = (int)Mathf.Clamp(dh, -300, 300);
         if (dw == 0 && dh == 0) return TranslateGroup.T("增减量都是 0");
 
-        // —— 现几何 ——
         int[] ws = new int[n];
         int baseW = searchRange.X / n;
         for (int k = 0; k < n; k++) ws[k] = (screenWidths != null && screenWidths.Length == n) ? screenWidths[k] : baseW;
         int[] hs = new int[n];
         for (int k = 0; k < n; k++) hs[k] = (screenHeights != null && screenHeights.Length == n && screenHeights[k] > 0) ? screenHeights[k] : searchRange.Y;
+        int[] yoffs = new int[n];
+        for (int k = 0; k < n; k++) yoffs[k] = (screenYOffsets != null && k < screenYOffsets.Length) ? screenYOffsets[k] : 0;
 
         int newW = (int)Mathf.Clamp(ws[idx] + dw, 5, 300); dw = newW - ws[idx];
         int newH = (int)Mathf.Clamp(hs[idx] + dh, 5, 300); dh = newH - hs[idx];
@@ -302,7 +308,7 @@ public partial class GridManager : Node
 
         int leftShift = (wAnchor == 2) ? dw : (wAnchor == 1 ? dw / 2 : 0);
         int rightShift = dw - leftShift;
-        int topShift = (hAnchor == 2) ? dh : (hAnchor == 1 ? dh / 2 : 0);
+        int topShift = (hAnchor == 2) ? dh : (hAnchor == 1 ? dh / 2 : 0);   // >0=顶边上移（严格底边）
         int startX = GetScreenStartX(idx);
         int endX = startX + ws[idx];
         int newStartX = startX - leftShift;
@@ -314,12 +320,20 @@ public partial class GridManager : Node
             if (newStartX < prevEnd) return TranslateGroup.T("左扩会撞上邻屏，已拒绝");
         }
 
-        // —— 新几何先落地（IsInsideAnyScreen 读数组）——
+        // —— 新几何 ——
         ws[idx] = newW; hs[idx] = newH;
+        int oldOff = yoffs[idx];
+        int newOff = oldOff - topShift;
+        int worldShift = 0;
+        if (newOff < 0) { worldShift = -newOff; newOff = 0; }   // 世界归一化：全体下移
+        for (int k = 0; k < n; k++) yoffs[k] += worldShift;
+        yoffs[idx] = newOff;
         int totalW = screenGap * (n - 1); foreach (var v in ws) totalW += v;
-        int totalH = 0; foreach (var v in hs) totalH = Mathf.Max(totalH, v);
+        int totalH = 0; for (int k = 0; k < n; k++) totalH = Mathf.Max(totalH, yoffs[k] + hs[k]);
 
-        // —— 旧→新坐标映射 ——
+        screenWidths = ws; screenHeights = hs; screenYOffsets = yoffs;
+
+        // —— 旧→新坐标映射（宽：内容随带平移；高：内容原地不动 + 世界归一化）——
         var moved = new System.Collections.Generic.Dictionary<Vector2I, Vector2I>();
         foreach (var g in grids)
         {
@@ -330,7 +344,7 @@ public partial class GridManager : Node
                 if (gx >= endX) nx = gx + rightShift;
                 else if (gx >= startX) nx = gx - leftShift;
             }
-            if (dh != 0 && nx >= newStartX && nx < newEndX && gy < hs[idx]) ny = gy + topShift;
+            if (dh != 0 || worldShift > 0) ny = gy + worldShift;
             moved[g.GridIndex] = new Vector2I(nx, ny);
         }
 
@@ -346,7 +360,7 @@ public partial class GridManager : Node
             var np = moved[g.GridIndex];
             if (newCells.Contains(np)) continue;
             if (g.infantry != null || g.weapon != null || g.city != null)
-                return TranslateGroup.T("收缩区域有单位/兵器/设施，先移走再调整");
+                return TranslateGroup.T("收缩区域有单位/兵器/城市，先移走再调整");
         }
         if (teleportLinks != null)
             foreach (var l in teleportLinks)
@@ -358,7 +372,6 @@ public partial class GridManager : Node
             }
 
         // —— 执行 ——
-        screenWidths = ws; screenHeights = hs;
         foreach (var g in grids)
         {
             if (g == null) continue;
