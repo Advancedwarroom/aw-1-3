@@ -60,6 +60,7 @@ public override void TakeDamage(int damage)
 
             // 切换地形
             destroyedGrid.gridType = GridType.BROKENPIPE;
+            destroyedGrid.TriggerDestroyChain(gm?.gridManager?.map, 0); // ✅ 摧毁链: 相邻白名单内地形链式消失(多米诺)
 
             // 更新格子视觉
             var sprite = destroyedGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
@@ -297,6 +298,7 @@ public override void TakeDamage(int damage)
                     if (targetGrid.weapon == weapon)
                         targetGrid.weapon = null;
                     targetGrid.gridType = GridType.BROKENPIPE;
+                    targetGrid.TriggerDestroyChain(gm?.gridManager?.map, 0); // ✅ 摧毁链: 相邻白名单内地形链式消失(多米诺)
 
                     var sprite = targetGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
                     if (sprite != null)
