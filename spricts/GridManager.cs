@@ -276,6 +276,119 @@ public partial class GridManager : Node
 
         // 4. 重新初始化
         Init();
+    
+    }
+
+    // ✅ 每屏独立宽高加减（Extra配置·分屏调整）：宽锚 0左/1中/2右，高锚 0上/1中/2下
+    // 内容随格平移；收缩区有 单位/兵器/设施/传送端点 时整体拒绝（不半吊子）
+    public string ResizeScreen(int idx, int dw, int dh, int wAnchor, int hAnchor)
+    {
+        int n = GetScreenCount();
+        if (idx < 0 || idx >= n) return TranslateGroup.T("屏索引越界");
+        dw = (int)Mathf.Clamp(dw, -300, 300);
+        dh = (int)Mathf.Clamp(dh, -300, 300);
+        if (dw == 0 && dh == 0) return TranslateGroup.T("增减量都是 0");
+
+        // —— 现几何 ——
+        int[] ws = new int[n];
+        int baseW = searchRange.X / n;
+        for (int k = 0; k < n; k++) ws[k] = (screenWidths != null && screenWidths.Length == n) ? screenWidths[k] : baseW;
+        int[] hs = new int[n];
+        for (int k = 0; k < n; k++) hs[k] = (screenHeights != null && screenHeights.Length == n && screenHeights[k] > 0) ? screenHeights[k] : searchRange.Y;
+
+        int newW = (int)Mathf.Clamp(ws[idx] + dw, 5, 300); dw = newW - ws[idx];
+        int newH = (int)Mathf.Clamp(hs[idx] + dh, 5, 300); dh = newH - hs[idx];
+        if (dw == 0 && dh == 0) return TranslateGroup.T("已达尺寸上下限");
+
+        int leftShift = (wAnchor == 2) ? dw : (wAnchor == 1 ? dw / 2 : 0);
+        int rightShift = dw - leftShift;
+        int topShift = (hAnchor == 2) ? dh : (hAnchor == 1 ? dh / 2 : 0);
+        int startX = GetScreenStartX(idx);
+        int endX = startX + ws[idx];
+        int newStartX = startX - leftShift;
+        int newEndX = endX + rightShift;
+
+        if (idx > 0 && leftShift > 0)
+        {
+            int prevEnd = GetScreenStartX(idx - 1) + ws[idx - 1];
+            if (newStartX < prevEnd) return TranslateGroup.T("左扩会撞上邻屏，已拒绝");
+        }
+
+        // —— 新几何先落地（IsInsideAnyScreen 读数组）——
+        ws[idx] = newW; hs[idx] = newH;
+        int totalW = screenGap * (n - 1); foreach (var v in ws) totalW += v;
+        int totalH = 0; foreach (var v in hs) totalH = Mathf.Max(totalH, v);
+
+        // —— 旧→新坐标映射 ——
+        var moved = new System.Collections.Generic.Dictionary<Vector2I, Vector2I>();
+        foreach (var g in grids)
+        {
+            if (g == null) continue;
+            int gx = g.GridIndex.X, gy = g.GridIndex.Y, nx = gx, ny = gy;
+            if (dw != 0)
+            {
+                if (gx >= endX) nx = gx + rightShift;
+                else if (gx >= startX) nx = gx - leftShift;
+            }
+            if (dh != 0 && nx >= newStartX && nx < newEndX && gy < hs[idx]) ny = gy + topShift;
+            moved[g.GridIndex] = new Vector2I(nx, ny);
+        }
+
+        var newCells = new System.Collections.Generic.HashSet<Vector2I>();
+        for (int y = 0; y < totalH; y++)
+            for (int x = 0; x < totalW; x++)
+                if (IsInsideAnyScreen(x, y)) newCells.Add(new Vector2I(x, y));
+
+        // —— 收缩区守卫 ——
+        foreach (var g in grids)
+        {
+            if (g == null) continue;
+            var np = moved[g.GridIndex];
+            if (newCells.Contains(np)) continue;
+            if (g.infantry != null || g.weapon != null || g.city != null)
+                return TranslateGroup.T("收缩区域有单位/兵器/设施，先移走再调整");
+        }
+        if (teleportLinks != null)
+            foreach (var l in teleportLinks)
+            {
+                if (l == null) continue;
+                bool fromOk = moved.TryGetValue(l.from, out var nf) && newCells.Contains(nf);
+                bool toOk = moved.TryGetValue(l.to, out var nt) && newCells.Contains(nt);
+                if (!fromOk || !toOk) return TranslateGroup.T("收缩区域有传送链路端点，先删除链路再调整");
+            }
+
+        // —— 执行 ——
+        screenWidths = ws; screenHeights = hs;
+        foreach (var g in grids)
+        {
+            if (g == null) continue;
+            var np = moved[g.GridIndex];
+            if (!newCells.Contains(np)) { GridsNode.RemoveChild(g); g.Free(); continue; }
+            g.GridIndex = np;
+            g.Name = $"Grid_{np.X}_{np.Y}";
+            g.Position = startPos + new Vector2(np.X * gridSize.X, np.Y * gridSize.Y);
+        }
+        var scene = GD.Load<PackedScene>("res://grid.tscn");
+        foreach (var c in newCells)
+        {
+            if (GetGridAt(c) != null) continue;
+            var grid = scene.Instantiate<Grids>();
+            grid.gridType = GridType.GROUND;
+            grid.GridIndex = c;
+            grid.Name = $"Grid_{c.X}_{c.Y}";
+            grid.Position = startPos + new Vector2(c.X * gridSize.X, c.Y * gridSize.Y);
+            GridsNode.AddChild(grid);
+        }
+        searchRange = new Vector2I(totalW, totalH);
+        if (teleportLinks != null)
+            foreach (var l in teleportLinks)
+            {
+                if (l == null) continue;
+                if (moved.TryGetValue(l.from, out var nf2)) l.from = nf2;
+                if (moved.TryGetValue(l.to, out var nt2)) l.to = nt2;
+            }
+        Init();   // 依坐标重建 map/grids 索引
+        return null;
     }
 
     public Vector2I[] offset =

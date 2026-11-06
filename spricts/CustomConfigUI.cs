@@ -215,6 +215,11 @@ public partial class CustomConfigUI : Control
         factionConfigPanel.Name = "FactionConfig";
         tabContainer.AddChild(factionConfigPanel);
         tabContainer.SetTabTitle(4, TranslateGroup.T("🏴 势力配置"));
+
+        // 6. 分屏调整（每屏宽高加减+锚点）
+        var screenResizePanel = BuildScreenResizeTab();
+        tabContainer.AddChild(screenResizePanel);
+        tabContainer.SetTabTitle(5, TranslateGroup.T("🖥️ 分屏调整"));
     }
 
     // ==================== 通用方法 ====================
