@@ -6,6 +6,12 @@
 [ext_resource type="Texture2D" path="res://art/TempAirport/TemporaryAirportBlue1.png" id="4"]
 [ext_resource type="Texture2D" path="res://art/TempAirport/TemporaryAirportBlue2.png" id="5"]
 
+[ext_resource type="Texture2D" path="res://art/TempAirport/TemporaryAirport0_light.png" id="n0"]
+[ext_resource type="Texture2D" path="res://art/TempAirport/TemporaryAirport1_light.png" id="n1"]
+[ext_resource type="Texture2D" path="res://art/TempAirport/TemporaryAirport2_light.png" id="n2"]
+[ext_resource type="Texture2D" path="res://art/TempAirport/TemporaryAirportBlue1_light.png" id="n3"]
+[ext_resource type="Texture2D" path="res://art/TempAirport/TemporaryAirportBlue2_light.png" id="n4"]
+
 [resource]
 animations = [{
 "frames": [{"duration": 1.0, "texture": ExtResource("1")}],
