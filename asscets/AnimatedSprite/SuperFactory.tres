@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=7 format=3]
+[gd_resource type="SpriteFrames" load_steps=34 format=3]
 
 [ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/os_f1.png" id="1"]
 [ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/os_f2.png" id="2"]
@@ -6,6 +6,82 @@
 [ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/bm_f2.png" id="4"]
 [ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/neutral_f1.png" id="5"]
 [ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/neutral_f2.png" id="6"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/os_4dir.png" id="7"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/bm_4dir.png" id="8"]
+[ext_resource type="Texture2D" path="res://asscets/units/BlackHoleFactory/neutral_4dir.png" id="9"]
+
+[sub_resource type="AtlasTexture" id="at_os_Down_0"]
+atlas = ExtResource("7")
+region = Rect2(0, 0, 86, 118)
+[sub_resource type="AtlasTexture" id="at_os_Down_1"]
+atlas = ExtResource("7")
+region = Rect2(0, 118, 86, 118)
+[sub_resource type="AtlasTexture" id="at_os_Left_0"]
+atlas = ExtResource("7")
+region = Rect2(118, 0, 118, 86)
+[sub_resource type="AtlasTexture" id="at_os_Left_1"]
+atlas = ExtResource("7")
+region = Rect2(118, 118, 118, 86)
+[sub_resource type="AtlasTexture" id="at_os_Up_0"]
+atlas = ExtResource("7")
+region = Rect2(236, 0, 86, 118)
+[sub_resource type="AtlasTexture" id="at_os_Up_1"]
+atlas = ExtResource("7")
+region = Rect2(236, 118, 86, 118)
+[sub_resource type="AtlasTexture" id="at_os_Right_0"]
+atlas = ExtResource("7")
+region = Rect2(354, 0, 118, 86)
+[sub_resource type="AtlasTexture" id="at_os_Right_1"]
+atlas = ExtResource("7")
+region = Rect2(354, 118, 118, 86)
+[sub_resource type="AtlasTexture" id="at_bm_Down_0"]
+atlas = ExtResource("8")
+region = Rect2(0, 0, 86, 118)
+[sub_resource type="AtlasTexture" id="at_bm_Down_1"]
+atlas = ExtResource("8")
+region = Rect2(0, 118, 86, 118)
+[sub_resource type="AtlasTexture" id="at_bm_Left_0"]
+atlas = ExtResource("8")
+region = Rect2(118, 0, 118, 86)
+[sub_resource type="AtlasTexture" id="at_bm_Left_1"]
+atlas = ExtResource("8")
+region = Rect2(118, 118, 118, 86)
+[sub_resource type="AtlasTexture" id="at_bm_Up_0"]
+atlas = ExtResource("8")
+region = Rect2(236, 0, 86, 118)
+[sub_resource type="AtlasTexture" id="at_bm_Up_1"]
+atlas = ExtResource("8")
+region = Rect2(236, 118, 86, 118)
+[sub_resource type="AtlasTexture" id="at_bm_Right_0"]
+atlas = ExtResource("8")
+region = Rect2(354, 0, 118, 86)
+[sub_resource type="AtlasTexture" id="at_bm_Right_1"]
+atlas = ExtResource("8")
+region = Rect2(354, 118, 118, 86)
+[sub_resource type="AtlasTexture" id="at_neutral_Down_0"]
+atlas = ExtResource("9")
+region = Rect2(0, 0, 86, 118)
+[sub_resource type="AtlasTexture" id="at_neutral_Down_1"]
+atlas = ExtResource("9")
+region = Rect2(0, 118, 86, 118)
+[sub_resource type="AtlasTexture" id="at_neutral_Left_0"]
+atlas = ExtResource("9")
+region = Rect2(118, 0, 118, 86)
+[sub_resource type="AtlasTexture" id="at_neutral_Left_1"]
+atlas = ExtResource("9")
+region = Rect2(118, 118, 118, 86)
+[sub_resource type="AtlasTexture" id="at_neutral_Up_0"]
+atlas = ExtResource("9")
+region = Rect2(236, 0, 86, 118)
+[sub_resource type="AtlasTexture" id="at_neutral_Up_1"]
+atlas = ExtResource("9")
+region = Rect2(236, 118, 86, 118)
+[sub_resource type="AtlasTexture" id="at_neutral_Right_0"]
+atlas = ExtResource("9")
+region = Rect2(354, 0, 118, 86)
+[sub_resource type="AtlasTexture" id="at_neutral_Right_1"]
+atlas = ExtResource("9")
+region = Rect2(354, 118, 118, 86)
 
 [resource]
 animations = [{
@@ -20,4 +96,41 @@ animations = [{
 }, {
 "frames": [{"duration": 1.0, "texture": ExtResource("5")}],
 "loop": true, "name": &"SuperFactoryBroken", "speed": 1.0
+
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_os_Down_0")}, {"duration": 1.0, "texture": SubResource("at_os_Down_1")}],
+"loop": true, "name": &"OrangeStar_Down", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_os_Left_0")}, {"duration": 1.0, "texture": SubResource("at_os_Left_1")}],
+"loop": true, "name": &"OrangeStar_Left", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_os_Up_0")}, {"duration": 1.0, "texture": SubResource("at_os_Up_1")}],
+"loop": true, "name": &"OrangeStar_Up", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_os_Right_0")}, {"duration": 1.0, "texture": SubResource("at_os_Right_1")}],
+"loop": true, "name": &"OrangeStar_Right", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_bm_Down_0")}, {"duration": 1.0, "texture": SubResource("at_bm_Down_1")}],
+"loop": true, "name": &"BlueMoon_Down", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_bm_Left_0")}, {"duration": 1.0, "texture": SubResource("at_bm_Left_1")}],
+"loop": true, "name": &"BlueMoon_Left", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_bm_Up_0")}, {"duration": 1.0, "texture": SubResource("at_bm_Up_1")}],
+"loop": true, "name": &"BlueMoon_Up", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_bm_Right_0")}, {"duration": 1.0, "texture": SubResource("at_bm_Right_1")}],
+"loop": true, "name": &"BlueMoon_Right", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_neutral_Down_0")}, {"duration": 1.0, "texture": SubResource("at_neutral_Down_1")}],
+"loop": true, "name": &"Neutral_Down", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_neutral_Left_0")}, {"duration": 1.0, "texture": SubResource("at_neutral_Left_1")}],
+"loop": true, "name": &"Neutral_Left", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_neutral_Up_0")}, {"duration": 1.0, "texture": SubResource("at_neutral_Up_1")}],
+"loop": true, "name": &"Neutral_Up", "speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": SubResource("at_neutral_Right_0")}, {"duration": 1.0, "texture": SubResource("at_neutral_Right_1")}],
+"loop": true, "name": &"Neutral_Right", "speed": 2.0
 }]

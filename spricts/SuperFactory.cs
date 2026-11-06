@@ -265,6 +265,11 @@ public partial class SuperFactory : Weapon
         SetDirection(direction);
     }
 
+
+    private static readonly string[] DIR_SUFFIX = { "Up", "Right", "Down", "Left" };
+    /// <summary>四向离线预渲染动画名: 团队_朝向(Up/Right/Down/Left, 与原画朝向枚举对齐)</summary>
+    private string GetDirectionalAnimName() => $"{GetFactoryAnimName()}_{DIR_SUFFIX[((int)_direction) & 3]}";
+
     public void SetDirection(CannonDirection dir)
     {
         _direction = dir;   // 必须写后备字段——写direction会触发setter回调SetDirection=无限递归栈溢出（放完即闪退的根）
@@ -278,12 +283,15 @@ public partial class SuperFactory : Weapon
         }
         if (animSprite != null)
         {
-            // 精灵对中到当前足印中心（size×16 px）+ 按朝向转图
+            // ✅ 离线预渲染四向(2026-11): 运行时零旋转, 查表换Animation——BlackHoleFactory旋转错位坑根治
             var center = new Vector2(factorySize.X * 16, factorySize.Y * 16);
             animSprite.Position = center;
-            animSprite.RotationDegrees = (((int)dir - 2 + 4) % 4) * 90;   // 原画朝下(2)=0°
+            animSprite.RotationDegrees = 0;
+            var dAnim = GetDirectionalAnimName();
+            if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(dAnim))
+                animSprite.Play(dAnim);
             var dots = GetNodeOrNull<AnimatedSprite2D>("YellowDots");
-            if (dots != null) { dots.Position = center; dots.RotationDegrees = animSprite.RotationDegrees; }
+            if (dots != null) { dots.Position = center; }
             if (IsInsideTree()) UpdateMultiTileVisual();
         }
     }
@@ -293,7 +301,7 @@ public partial class SuperFactory : Weapon
     {
         var anim = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
         if (anim != null && anim.SpriteFrames != null && anim.SpriteFrames.HasAnimation(GetFactoryAnimName()))
-            anim.Play(GetFactoryAnimName());
+            anim.Play(anim.SpriteFrames.HasAnimation(GetDirectionalAnimName()) ? GetDirectionalAnimName() : GetFactoryAnimName());
     }
 
     public bool RotateFactoryClockwise()
