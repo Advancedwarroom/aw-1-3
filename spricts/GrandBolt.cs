@@ -58,7 +58,8 @@ public partial class GrandBolt : Weapon
     [ExportGroup("困兽犹斗（中心大弱点）")]
     [Export] public bool desperateModeEnabled = true;          // 4.是否开启困兽犹斗模式
     [Export] public Vector2I centerWeakPointOffset = new Vector2I(9, 6); // 中心大弱点偏移（最下面红色大球）
-    [Export] public int centerWeakPointMaxHealth = 9999;       // 中心大弱点血量（不可摧毁）
+    [Export] public int centerWeakPointMaxHealth = 9999;       // 中心大弱点血量（困兽犹斗：极难摧毁但可摧毁）
+    public int centerWeakPointHealth = -1;                      // ✅ -1=未激活；困兽犹斗开启时=Max（可摧毁：打到0=胜利）
     public bool isInDesperateMode = false;                     // 是否处于困兽犹斗
 
     // ========== 5. 摧毁行为 ==========
@@ -276,12 +277,21 @@ public partial class GrandBolt : Weapon
                     }
                 }
             }
-            // 困兽犹斗：中心大弱点命中→仅提示不可摧毁（不掉血）
-            if (isInDesperateMode && attackerGrid != null)
+            // 困兽犹斗：中心大弱点命中→扣血（9999血，极难摧毁但可摧毁；打空=真正死亡=胜利）
+            if (isInDesperateMode)
             {
                 var anchorIndex2 = grid?.GridIndex ?? new Vector2I(0, 0);
-                var cIndex = anchorIndex2 + centerWeakPointOffset;
-                if (cIndex == attackerGrid.GridIndex) return;   // 不可摧毁，不掉血
+                var cIndex2 = anchorIndex2 + centerWeakPointOffset;
+                if (cIndex2 == attackerGrid.GridIndex && centerWeakPointHealth > 0)
+                {
+                    centerWeakPointHealth -= damage;
+                    if (centerWeakPointHealth <= 0)
+                    {
+                        centerWeakPointHealth = 0;
+                        base.TakeDamage(99999);   // 中心大弱点摧毁=本体直接销毁，啥也不剩
+                    }
+                    return;
+                }
             }
         }
         base.TakeDamage(damage);
@@ -308,6 +318,7 @@ public partial class GrandBolt : Weapon
         if (isInDesperateMode) return;
         isInDesperateMode = true;
         grandBoltCooldownCounter = 0;
+        centerWeakPointHealth = centerWeakPointMaxHealth;   // ✅ 中心大弱点激活（9999血，可摧毁）
     }
 
     // ✅ 冷却管理
