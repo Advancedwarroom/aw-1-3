@@ -479,14 +479,12 @@ public partial class Facility : Node2D
         if (baseSprite != null) baseSprite.Hide();
         if (normalSprite != null) normalSprite.Hide();
         
-        var mat = FactionPaletteManager.GetMaterial(facilityTeam);
-        if (mat == null) return;
-        
-        // 给 animSprite 应用调色板材质
+        // ✅ 2026-11 设施拆雷: 城市设施全是每势力成品固定画(非CoW编码图/非红蓝模板画), mode2模板识别(mode=2)对非模板画=误判染色
+        // (染花水晶同款雷; P1/P2靠IsNativeArt幸免, 其余势力全在吃误判)——原生固定画直出Material=null;
+        // 若未来某设施接入(R,G)编码贴图, 在此改挂 FactionPaletteManager.GetCowLutMaterial(facilityTeam)
         if (animSprite != null && IsInstanceValid(animSprite))
         {
-            var animMat = (ShaderMaterial)mat.Duplicate();
-            animSprite.Material = animMat;
+            animSprite.Material = null;
             animSprite.Show();
         }
     }
