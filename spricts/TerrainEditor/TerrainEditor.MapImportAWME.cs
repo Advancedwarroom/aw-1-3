@@ -138,6 +138,14 @@ public partial class TerrainEditor
                 return;
             }
 
+            // ✅ 外部单屏格式：重置屏状态，避免沿用旧图的多屏设置被切成幽灵屏
+            if (gridManager != null)
+            {
+                gridManager.screenCount = 1;
+                gridManager.screenWidths = new int[0];
+                gridManager.screenHeights = new int[0];
+                gridManager.screenYOffsets = new int[0];
+            }
             // ✅ 重新调整地图大小，创建/删除格子以匹配导入尺寸
             gridManager?.ResizeMap(width, height);
 

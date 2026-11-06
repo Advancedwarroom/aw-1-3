@@ -279,6 +279,14 @@ public partial class TerrainEditor
 
             if (mapWidth > 0 && mapHeight > 0)
             {
+                // ✅ 外部单屏格式：重置屏状态，避免沿用旧图的多屏设置被切成幽灵屏
+                if (gridManager != null)
+                {
+                    gridManager.screenCount = 1;
+                    gridManager.screenWidths = new int[0];
+                    gridManager.screenHeights = new int[0];
+                    gridManager.screenYOffsets = new int[0];
+                }
                 gridManager?.ResizeMap(mapWidth, mapHeight);
                 // ✅ 关键：ResizeMap 后必须重新获取 grids 引用
                 gridManager?.Init();
