@@ -6,6 +6,12 @@
 [ext_resource type="Texture2D" path="res://art/TempPort/TemporaryPortBlue1.png" id="4"]
 [ext_resource type="Texture2D" path="res://art/TempPort/TemporaryPortBlue2.png" id="5"]
 
+[ext_resource type="Texture2D" path="res://art/TempPort/TemporaryPort0_light.png" id="n0"]
+[ext_resource type="Texture2D" path="res://art/TempPort/TemporaryPort1_light.png" id="n1"]
+[ext_resource type="Texture2D" path="res://art/TempPort/TemporaryPort2_light.png" id="n2"]
+[ext_resource type="Texture2D" path="res://art/TempPort/TemporaryPortBlue1_light.png" id="n3"]
+[ext_resource type="Texture2D" path="res://art/TempPort/TemporaryPortBlue2_light.png" id="n4"]
+
 [resource]
 animations = [{
 "frames": [{"duration": 1.0, "texture": ExtResource("1")}],

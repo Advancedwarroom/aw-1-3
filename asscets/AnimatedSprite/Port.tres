@@ -4,6 +4,10 @@
 [ext_resource type="Texture2D" path="res://art/Port/Port1.png" id="2"]
 [ext_resource type="Texture2D" path="res://art/Port/Port2.png" id="3"]
 
+[ext_resource type="Texture2D" path="res://art/Port/Port0_light.png" id="n0"]
+[ext_resource type="Texture2D" path="res://art/Port/Port1_light.png" id="n1"]
+[ext_resource type="Texture2D" path="res://art/Port/Port2_light.png" id="n2"]
+
 [resource]
 animations = [{
 "frames": [{"duration": 1.0, "texture": ExtResource("1")}],

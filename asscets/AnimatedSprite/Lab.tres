@@ -4,6 +4,10 @@
 [ext_resource type="Texture2D" path="res://art/Lab_P1.png" id="2_lab_p1"]
 [ext_resource type="Texture2D" path="res://art/Lab_P2.png" id="3_lab_p2"]
 
+[ext_resource type="Texture2D" path="res://art/Lab_P0_light.png" id="n0"]
+[ext_resource type="Texture2D" path="res://art/Lab_P1_light.png" id="n1"]
+[ext_resource type="Texture2D" path="res://art/Lab_P2_light.png" id="n2"]
+
 [resource]
 animations = [{
 "frames": [{
