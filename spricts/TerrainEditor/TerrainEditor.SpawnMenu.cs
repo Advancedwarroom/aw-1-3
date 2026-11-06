@@ -472,7 +472,7 @@ private Button CreateTemplateButton(UnitTemplate template)
         spawnHintLabel.AddThemeColorOverride("font_color", new Color(0.4f, 1f, 0.4f));
 
         // ✅ 黑炮/大型黑炮/幽灵炮/Gate门：显示方向选择器
-        bool isCannon = template.ScenePath.Contains("black_cannon") || template.ScenePath.Contains("large_cannon") || template.ScenePath.Contains("death_ray") || template.ScenePath.Contains("SuperFactory") || template.ScenePath.Contains("ghost_cannon") || template.ScenePath.Contains("Gate.tscn");
+        bool isCannon = template.ScenePath.Contains("black_cannon") || template.ScenePath.Contains("large_cannon") || template.ScenePath.Contains("death_ray") || template.ScenePath.Contains("SuperFactory") || template.ScenePath.Contains("ghost_cannon") || template.ScenePath.Contains("GhostCannon") || template.ScenePath.Contains("Gate.tscn");
         if (directionSelector != null)
         {
             directionSelector.Visible = isCannon;
