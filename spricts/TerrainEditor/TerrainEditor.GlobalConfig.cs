@@ -229,6 +229,18 @@ private readonly List<UnitTemplate> weaponTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("⚡ 巨型雷电 Grand Bolt"), ScenePath = "res://Prefabs/GrandBolt.tscn",
         Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.75f, 0.35f, 0.75f),
         Description = TranslateGroup.T("AWDS最终关Von Bolt巨型兵器：约19宽×13高不规则多格，3个弱点（各有冷却回合），摧毁全部弱点=胜利；可Export开关：蠕动（每回合平移1格）/困兽犹斗（弱点全毁后中心大弱点+产Oozium）") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🔴 巨雷模块·弱点A"), ScenePath = "res://Prefabs/GrandBoltModuleA.tscn",
+        Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.85f, 0.3f, 0.3f),
+        Description = TranslateGroup.T("模块化巨雷(学CoW多件分置, 独立新版不动整体版)：弱点模块A, 独立放置/独立摧毁, 死后显dead锁血") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🔴 巨雷模块·弱点B"), ScenePath = "res://Prefabs/GrandBoltModuleB.tscn",
+        Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.85f, 0.3f, 0.3f),
+        Description = TranslateGroup.T("模块化巨雷：弱点模块B") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🔴 巨雷模块·弱点C"), ScenePath = "res://Prefabs/GrandBoltModuleC.tscn",
+        Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.85f, 0.3f, 0.3f),
+        Description = TranslateGroup.T("模块化巨雷：弱点模块C") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("💥 巨雷模块·核心"), ScenePath = "res://Prefabs/GrandBoltModuleCore.tscn",
+        Category = TranslateGroup.T("兵器"), Team = "Player0", DisplayColor = new Color(0.9f, 0.6f, 0.2f),
+        Description = TranslateGroup.T("模块化巨雷：中心核心模块(困兽犹斗核心), 独立放置/独立摧毁") },
 };
 
 private readonly List<UnitTemplate> facilityTemplates = new()
