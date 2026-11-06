@@ -1,22 +1,23 @@
 // GrandBolt.VisualParts.cs
-// 巨雷分部件视觉系统: 基体+四弱点独立图层, 不规则尺寸天然支持, 四向离线预渲染查表切换, 弱点独立摧毁状态机
-// 资产: asscets/Weapons/GrandBolt/gb_base_{S,W,N,E}.png (4帧横条) + gb_points.png(96格16x16) + gb_core.png(32槽60x60) + gb_layout.json
+// 巨雷分部件视觉系统: 基体+四弱点独立图层, 不规则尺寸, 四向离线预渲染查表, 弱点状态机, CoW LUT势力换色(mask=中立原色, 蓝绿橙粉黑紫全自动)
+// 资产: gb_base_{S,W,N,E}.png(编码版4帧条) + gb_points.png + gb_core.png + gb_layout.json (asscets/Weapons/GrandBolt/)
 using Godot;
 using System;
 
 public partial class GrandBoltVisual : Node2D
 {
-    [Export] public bool enableRotation = true;          // 四向开关(关=只S向, 省显存)
-    [Export] public int direction = 0;                   // 0=S 1=W 2=N 3=E (离线预渲染查表, 无运行时旋转)
-    [Export] public double animFps = 2.0;                // 动画帧率(4帧循环)
+    [Export] public bool enableRotation = true;
+    [Export] public int direction = 0;                   // 0=S 1=W 2=N 3=E
+    [Export] public double animFps = 2.0;
 
     private Sprite2D baseSprite;
-    private readonly Sprite2D[] pointSprites = new Sprite2D[4];  // 0=A 1=B 2=C 3=核心
+    private readonly Sprite2D[] pointSprites = new Sprite2D[4];
     private readonly bool[] pointDead = new bool[4];
     private Texture2D[] baseTex;
     private Texture2D pointsTex, coreTex;
     private double acc;
     private int frame;
+    private string lastTeam;
 
     private static readonly int[,] PTS = {
         { 41,145,14,14 },
@@ -46,6 +47,7 @@ public partial class GrandBoltVisual : Node2D
             AddChild(pointSprites[i]);
         }
         ApplyDirection();
+        ApplyTeamMaterial(true);
     }
 
     private static void RotRect(int x, int y, int w, int h, int k, out int ox, out int oy, out int ow, out int oh)
@@ -58,6 +60,20 @@ public partial class GrandBoltVisual : Node2D
             ox = nx; oy = ny; ow = nw; oh = nh;
             int t = W; W = H; H = t;
         }
+    }
+
+    /// <summary>CoW正统换色: 编码资产+(R,G)查colortable LUT; team变更多节点同步重套材质</summary>
+    private void ApplyTeamMaterial(bool force = false)
+    {
+        var w = GetParent() as Weapon;
+        string t = w?.team ?? "neutral";
+        if (!force && t == lastTeam) return;
+        lastTeam = t;
+        var lut = FactionPaletteManager.GetCowLutMaterial(t);
+        if (lut == null) return;
+        baseSprite.Material = (ShaderMaterial)lut.Duplicate();
+        foreach (var p in pointSprites)
+            p.Material = (ShaderMaterial)lut.Duplicate();
     }
 
     private void ApplyDirection()
@@ -99,7 +115,9 @@ public partial class GrandBoltVisual : Node2D
 
     public override void _Process(double delta)
     {
-        if (baseSprite == null || animFps <= 0) return;
+        if (baseSprite == null) return;
+        ApplyTeamMaterial();
+        if (animFps <= 0) return;
         acc += delta;
         double step = 1.0 / animFps;
         if (acc < step) return;
@@ -110,7 +128,6 @@ public partial class GrandBoltVisual : Node2D
         for (int i = 0; i < 4; i++) ApplyPointFrame(i, k);
     }
 
-    /// <summary>弱点摧毁状态机: id 0=A 1=B 2=C 3=核心, 单点独立互不影响</summary>
     public void SetWeakPointDead(int id, bool dead = true)
     {
         if (id < 0 || id > 3) return;
