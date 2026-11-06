@@ -18,7 +18,7 @@ public partial class GameManager
     [Export] public bool p2AnnihilationVictoryEnabled = true;
 
     [ExportGroup("兵器摧毁胜利判定")]
-    [Export] public bool weaponVictoryEnabled = false;
+    [Export] public bool weaponVictoryEnabled = true;   // ✅ 默认开：有旗兵器被全歼即分胜负（无旗地图不受影响）
 
     // ✅ 曾登场势力记录：从未有单位/兵器的势力不判负（修复地图刚生成时自动判负）
     private readonly HashSet<string> teamsWithPresence = new();

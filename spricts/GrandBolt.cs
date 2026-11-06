@@ -58,6 +58,7 @@ public partial class GrandBolt : Weapon
     [ExportGroup("困兽犹斗（中心大弱点）")]
     [Export] public bool desperateModeEnabled = true;          // 4.是否开启困兽犹斗模式
     [Export] public Vector2I centerWeakPointOffset = new Vector2I(9, 6); // 中心大弱点偏移（最下面红色大球）
+    [Export] public bool defeatOwnerOnDestroyed = true;        // ✅ 摧毁后守方失败（兵器胜利判定目标，默认开）
     [Export] public int centerWeakPointMaxHealth = 9999;       // 中心大弱点血量（困兽犹斗：极难摧毁但可摧毁）
     public int centerWeakPointHealth = -1;                      // ✅ -1=未激活；困兽犹斗开启时=Max（可摧毁：打到0=胜利）
     public bool isInDesperateMode = false;                     // 是否处于困兽犹斗
@@ -116,6 +117,8 @@ public partial class GrandBolt : Weapon
             weakPointDestroyed.Add(false);
         }
 
+        contributesToVictory = defeatOwnerOnDestroyed;   // ✅ 挂兵器胜利判定旗（默认开）
+        victoryCountRequired = 1;
         base._Ready();
     }
 
