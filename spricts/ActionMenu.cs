@@ -320,6 +320,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
         // ✅ 导弹井发射 / 天基打击按钮
         UpdateSiloStrikeButtons();
         UpdateForceSupportButtons();
+        UpdateGrandBoltWriggleButtons();   // ✅ GrandBolt 手动蠕动（范围预览+曼哈顿步数）
 
         // ✅ N屏地图：传送按钮（站在有出链的格子上时显示）
         UpdateTeleportButtonVisibility(unit);

@@ -408,11 +408,19 @@ public partial class GrandBolt : Weapon
     }
 
     // ✅ 蠕动：整体平移，原格地形/兵器/设施可选清空，新格单位摧毁或阻挡（卡死规则）
+    // ✅ 旧签名兼容：AI 用，默认直达最大距离
     public void Wriggle(Vector2I direction, GameManager gm)
     {
-        if (!wriggleEnabled || hasWriggledThisTurn || direction == Vector2I.Zero || gm?.gridManager?.map == null) return;
+        Wriggle(direction, wriggleDistance, gm);
+    }
+
+    // ✅ 手动蠕动核心：步数显式指定（点击格曼哈顿距离），不再默认直达最大
+    public void Wriggle(Vector2I direction, int steps, GameManager gm)
+    {
+        if (!wriggleEnabled || !grandBoltEnabled || hasWriggledThisTurn || direction == Vector2I.Zero || steps <= 0 || gm?.gridManager?.map == null) return;
+        steps = Mathf.Min(steps, wriggleDistance);
         var oldAnchor = grid?.GridIndex ?? new Vector2I(0, 0);
-        var newAnchor = oldAnchor + direction * wriggleDistance;
+        var newAnchor = oldAnchor + direction * steps;
 
         // 计算新足印
         var newIndices = GetOccupiedIndices(newAnchor);
@@ -631,6 +639,90 @@ public partial class GrandBolt : Weapon
             foreach (var i2 in GetOccupiedIndices(grid.GridIndex)) initialFootprint.Add(i2);
         if (initialFootprint.Count == 0) return preserveTerrainOnLaterVacate;
         return initialFootprint.Contains(idx) ? !initialPlacementVacateToPlain : preserveTerrainOnLaterVacate;
+    }
+
+    // ==================== 手动蠕动：范围预览 + 曼哈顿步数 ====================
+    // ✅ 可达范围：四轴各 1..wriggleDistance 格，越界/无格/被单位挡 → 该轴截断
+    public System.Collections.Generic.List<Grids> GetWriggleReachableCells(GameManager gm)
+    {
+        var list = new System.Collections.Generic.List<Grids>();
+        if (gm?.gridManager == null || grid == null || !CanWriggle() || !wriggleEnabled || !grandBoltEnabled) return list;
+        var anchor = grid.GridIndex;
+        foreach (var dir in new[] { Vector2I.Left, Vector2I.Right, Vector2I.Up, Vector2I.Down })
+        {
+            for (int k = 1; k <= wriggleDistance; k++)
+            {
+                var na = anchor + dir * k;
+                var idxs = GetOccupiedIndices(na);
+                bool valid = idxs.Count > 0;
+                foreach (var idx in idxs)
+                {
+                    if (idx.X < 0 || idx.Y < 0 || idx.X >= gm.gridManager.searchRange.X || idx.Y >= gm.gridManager.searchRange.Y) { valid = false; break; }
+                    var g = gm.gridManager.GetGridAt(idx);
+                    if (g == null) { valid = false; break; }
+                    if (occupantsBlockWriggle && g.infantry != null) { valid = false; break; }
+                }
+                if (!valid) break;                      // 遇阻断轴（不跳过障碍）
+                var cell = gm.gridManager.GetGridAt(na);
+                if (cell != null) list.Add(cell);
+            }
+        }
+        return list;
+    }
+
+    // ✅ 点击格 → 主曼哈顿轴步数 → 蠕动（近格=少走，不再默认直达最大）
+    public void WriggleToward(Grids targetCell, GameManager gm)
+    {
+        if (targetCell == null || grid == null) return;
+        var d = targetCell.GridIndex - grid.GridIndex;
+        if (d == Vector2I.Zero) return;
+        Vector2I dir; int steps;
+        if (Mathf.Abs(d.X) >= Mathf.Abs(d.Y)) { dir = new Vector2I(Mathf.Sign(d.X), 0); steps = Mathf.Abs(d.X); }
+        else { dir = new Vector2I(0, Mathf.Sign(d.Y)); steps = Mathf.Abs(d.Y); }
+        steps = Mathf.Clamp(steps, 1, wriggleDistance);
+        Wriggle(dir, steps, gm);
+    }
+
+    // ✅ 手动选格 UI：绿色高亮可达格，点击确认
+    public void BeginWriggleSelection(GameManager gm)
+    {
+        if (!wriggleEnabled || !grandBoltEnabled || !CanWriggle() || gm?.gridManager == null) return;
+        var reachable = GetWriggleReachableCells(gm);
+        if (reachable.Count == 0) return;
+        gm.gridManager.ClearWeaponRange();
+        Grids.IsForceActionMode = true;
+        foreach (var node in GetTree().GetNodesInGroup("grids"))
+        {
+            if (node is not Grids g) continue;
+            if (reachable.Contains(g))
+            {
+                g.Modulate = new Color(0.35f, 1f, 0.55f, 0.85f);   // 蠕动绿
+                g.IsInWeaponRange = true;
+                gm.gridManager.OverrideUnitInput(g, true);
+                g.OnClickGrid = (to) => ConfirmWriggle(to, gm);
+            }
+            else
+            {
+                gm.gridManager.OverrideUnitInput(g, true);
+                g.OnClickEmpty = () => CancelWriggleSelection(gm);
+            }
+        }
+    }
+
+    public void ConfirmWriggle(Grids target, GameManager gm)
+    {
+        if (gm == null || target == null) return;
+        CancelWriggleSelection(gm);
+        if (!GetWriggleReachableCells(gm).Contains(target)) return;
+        WriggleToward(target, gm);
+    }
+
+    public void CancelWriggleSelection(GameManager gm)
+    {
+        gm.gridManager.ClearWeaponRange();
+        Grids.IsForceActionMode = false;
+        foreach (var node in GetTree().GetNodesInGroup("grids"))
+            if (node is Grids g) { gm.gridManager.OverrideUnitInput(g, false); g.OnClickGrid = null; g.OnClickEmpty = null; }
     }
 
     // ✅ 全部存活器官剩余产能（AI 决策用；蠕动不在此列——它有自己独立的 grandBoltCooldown）
