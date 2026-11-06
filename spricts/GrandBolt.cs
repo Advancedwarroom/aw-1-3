@@ -99,6 +99,20 @@ public partial class GrandBolt : Weapon
     // ✅ 首蠕平原：开局足印格集合（"原格空出平原"按格判定，无需时序标记）
     private System.Collections.Generic.HashSet<Vector2I> initialFootprint = new();
 
+    // ✅ 势力换色（factionRecolor）：大雷弹本体+部件视觉应用调色板 Shader（黑弧同款机制，普通美术用 GetMaterial 模板色表模式）
+    protected override void ApplyPaletteMaterial()
+    {
+        if (!factionRecolor) { base.ApplyPaletteMaterial(); return; }
+        var mat = FactionPaletteManager.GetMaterial(team);
+        if (mat == null) return;
+        var main = GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+        if (main != null) main.Material = (ShaderMaterial)mat.Duplicate();   // Duplicate 防跨实例串参
+        var pv = GetNodeOrNull<Node2D>("PartVisual");
+        if (pv != null)
+            foreach (var c in pv.GetChildren())
+                if (c is AnimatedSprite2D ps) ps.Material = (ShaderMaterial)mat.Duplicate();
+    }
+
     // ========== 9.5 卡死规则（issue#1：内部敌人禁动）==========
     [ExportGroup("卡死规则（issue#1：内部敌人禁动）")]
     [Export] public bool occupantsBlockWriggle = false;       // 9.5-1 蠕动目标足印有任意单位→蠕动拒绝（敌人卡住我，我也动不了）
