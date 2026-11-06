@@ -4,7 +4,7 @@
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/BlackArc.tres" id="2_arc"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_arc"]
-size = Vector2(129, 129)
+size = Vector2(33, 33)
 
 [node name="BlackArc" type="Node2D"]
 z_index = 10
@@ -14,12 +14,9 @@ maxHealth = 990
 health = 990
 canRotate = false
 maxAttacksPerTurn = 1
-size = Vector2i(4, 4)
-isMultiTile = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-position = Vector2(64, 64)
-scale = Vector2(4, 4)
+position = Vector2(16, 16)
 sprite_frames = ExtResource("2_arc")
 animation = &"BlackArc"
 autoplay = "BlackArc"
@@ -27,12 +24,12 @@ autoplay = "BlackArc"
 [node name="Area2D" type="Area2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-position = Vector2(64, 64)
+position = Vector2(16, 16)
 shape = SubResource("RectangleShape2D_arc")
 
 [node name="HpLabel" type="Label" parent="."]
-offset_left = 52.0
-offset_top = 48.0
+offset_left = 16.0
+offset_top = 16.0
 offset_right = 40.0
 offset_bottom = 42.0
 pivot_offset = Vector2(4, 4)
