@@ -91,6 +91,13 @@ public partial class GrandBolt : Weapon
     [Export] public int ooziumProductionCooldown = 1;        // 9.生产冷却（困兽犹斗时冷却减少）
     [Export] public bool ooziumOverwriteUnits = true;         // 9.直接覆盖上面存在的单位
     private int ooziumProducedThisTurn = 0;
+    // ✅ 每器官独立生产状态（完全分开）：弱点i器官（仅存活弱点、困兽前阶段）/ 核心器官（困兽犹斗）/ 蠕动冷却本就独立(grandBoltCooldown)
+    private int[] weakProducedThisTurn = new int[0];
+    private int[] weakCooldownCounters = new int[0];
+    private int coreProducedThisTurn = 0;
+    private int coreCooldownCounter = 0;
+    // ✅ 首蠕平原：开局足印格集合（"原格空出平原"按格判定，无需时序标记）
+    private System.Collections.Generic.HashSet<Vector2I> initialFootprint = new();
 
     // ========== 9.5 卡死规则（issue#1：内部敌人禁动）==========
     [ExportGroup("卡死规则（issue#1：内部敌人禁动）")]
@@ -116,6 +123,8 @@ public partial class GrandBolt : Weapon
             weakPointHealths.Add(weakPointMaxHealth);
             weakPointDestroyed.Add(false);
         }
+        weakProducedThisTurn = new int[weakPointOffsets.Count];
+        weakCooldownCounters = new int[weakPointOffsets.Count];
 
         contributesToVictory = defeatOwnerOnDestroyed;   // ✅ 挂兵器胜利判定旗（默认开）
         victoryCountRequired = 1;
@@ -318,7 +327,8 @@ public partial class GrandBolt : Weapon
 
     public void EnterDesperateMode()
     {
-        if (isInDesperateMode) return;
+        if (isInDesperateMode) return;        if (!grandBoltEnabled) return;   // ✅ 总开关：不进困兽犹斗
+
         isInDesperateMode = true;
         grandBoltCooldownCounter = 0;
         centerWeakPointHealth = centerWeakPointMaxHealth;   // ✅ 中心大弱点激活（9999血，可摧毁）
@@ -473,7 +483,7 @@ public partial class GrandBolt : Weapon
                 foreach (var w in wList)
                 {
                     if (w == null || !IsInstanceValid(w) || w == this) continue;
-                    if (preserveTerrainOnLaterVacate) continue;
+                    if (HasVacateKeepTerrain(idx)) continue;
                     w.CallDeferred(Node.MethodName.QueueFree);
                     g.weapons.Remove(w);
                     gm.weaponManager?.UnregisterWeapon(w);
@@ -481,12 +491,12 @@ public partial class GrandBolt : Weapon
             }
             if (oldFacilities.TryGetValue(idx, out var fac))
             {
-                if (!preserveTerrainOnLaterVacate && fac != null)
+                if (!HasVacateKeepTerrain(idx) && fac != null)
                     fac.CallDeferred(Node.MethodName.QueueFree);
             }
-            if (g.gridType != oldGridTypeIds[idx] && preserveTerrainOnLaterVacate)
+            if (g.gridType != oldGridTypeIds[idx] && HasVacateKeepTerrain(idx))
                 g.gridType = oldGridTypeIds[idx];
-            else if (!preserveTerrainOnLaterVacate)
+            else if (!HasVacateKeepTerrain(idx))
                 g.gridType = GridType.GROUND;
             g.UpdateTileSprite();
         }
@@ -498,8 +508,16 @@ public partial class GrandBolt : Weapon
     // ✅ 回合开始：重置蠕动、Oozium生产、冷却、卡死规则扫描
     public void OnTurnStartGrandBolt()
     {
+        if (!grandBoltEnabled) return;   // ✅ 总开关：关闭则蠕动/生产/卡死扫描全部停摆
         hasWriggledThisTurn = false;
         ooziumProducedThisTurn = 0;
+        coreProducedThisTurn = 0;
+        if (coreCooldownCounter > 0) coreCooldownCounter--;                 // ✅ 核心冷却独立递减
+        for (int i = 0; i < weakProducedThisTurn.Length; i++)
+        {
+            weakProducedThisTurn[i] = 0;
+            if (weakCooldownCounters[i] > 0) weakCooldownCounters[i]--;     // ✅ 每个弱点冷却独立递减
+        }
         if (grandBoltCooldownCounter > 0) grandBoltCooldownCounter--;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm == null) return;
@@ -519,9 +537,27 @@ public partial class GrandBolt : Weapon
     // ✅ 困兽犹斗：生产Oozium
     public void ProduceOozium(Grids targetGrid, GameManager gm)
     {
-        if (!isInDesperateMode || !ooziumProductionEnabled) return;
-        if (ooziumProducedThisTurn >= ooziumProductionPerTurn) return;
+        if (!grandBoltEnabled || !ooziumProductionEnabled) return;
         if (targetGrid == null || gm == null) return;
+
+        // ✅ 器官分流：弱点格→弱点器官i；中心格→核心；其余格拒绝
+        int organ = ResolveOrganIndex(targetGrid);
+        if (organ < 0) return;
+        bool isCore = organ == 99;
+        if (isCore)
+        {
+            if (!isInDesperateMode) return;                 // 核心仅困兽犹斗阶段可产
+        }
+        else
+        {
+            if (isInDesperateMode) return;                  // 弱点器官仅困兽前阶段可产
+            if (organ >= weakPointDestroyed.Count || weakPointDestroyed[organ]) return;   // 该弱点已毁→该器官停产
+        }
+
+        int produced = isCore ? coreProducedThisTurn : weakProducedThisTurn[organ];
+        int cd = isCore ? coreCooldownCounter : weakCooldownCounters[organ];
+        if (cd > 0) return;                                 // ✅ 该器官冷却中（与其他器官互不影响）
+        if (produced >= ooziumProductionPerTurn) return;  // 该器官本回合配额已满
 
         // 目标必须是本足印占据格
         if (!IsOccupiedGrid(targetGrid)) return;
@@ -548,8 +584,78 @@ public partial class GrandBolt : Weapon
                 }
             }
             unit.isPowerActivated = true;
-            ooziumProducedThisTurn++;
+            if (isCore)
+            {
+                coreProducedThisTurn++;
+                if (coreProducedThisTurn >= ooziumProductionPerTurn)
+                    coreCooldownCounter = Mathf.Max(0, ooziumProductionCooldown);           // ✅ 核心独立冷却
+            }
+            else
+            {
+                weakProducedThisTurn[organ]++;
+                if (weakProducedThisTurn[organ] >= ooziumProductionPerTurn)
+                    weakCooldownCounters[organ] = Mathf.Max(0, ooziumProductionCooldown);   // ✅ 弱点器官独立冷却（互不影响）
+            }
         }
+    }
+
+    // ✅ 器官解析：弱点下标 0..N-1；核心=99；非器官=-1
+    private int ResolveOrganIndex(Grids g)
+    {
+        if (g == null || grid == null) return -1;
+        var baseIdx = grid.GridIndex;
+        for (int k = 0; k < weakPointOffsets.Count; k++)
+            if (baseIdx + weakPointOffsets[k] == g.GridIndex) return k;
+        if (baseIdx + centerWeakPointOffset == g.GridIndex) return 99;
+        return -1;
+    }
+
+    // ✅ 首蠕平原判定：开局足印格按"空出平原"开关，其余格走"后期保持"
+    private bool HasVacateKeepTerrain(Vector2I idx)
+    {
+        if (initialFootprint.Count == 0 && grid != null)
+            foreach (var i2 in GetOccupiedIndices(grid.GridIndex)) initialFootprint.Add(i2);
+        if (initialFootprint.Count == 0) return preserveTerrainOnLaterVacate;
+        return initialFootprint.Contains(idx) ? !initialPlacementVacateToPlain : preserveTerrainOnLaterVacate;
+    }
+
+    // ✅ 全部存活器官剩余产能（AI 决策用；蠕动不在此列——它有自己独立的 grandBoltCooldown）
+    public int TotalOoziumCapacityLeft()
+    {
+        int left = 0;
+        if (!isInDesperateMode)
+        {
+            for (int k = 0; k < weakProducedThisTurn.Length; k++)
+                if (k < weakPointDestroyed.Count && !weakPointDestroyed[k] && weakCooldownCounters[k] <= 0)
+                    left += Mathf.Max(0, ooziumProductionPerTurn - weakProducedThisTurn[k]);
+        }
+        else if (coreCooldownCounter <= 0)
+        {
+            left += Mathf.Max(0, ooziumProductionPerTurn - coreProducedThisTurn);
+        }
+        return left;
+    }
+
+    // ✅ 第一个有产能的器官格（AI 备用目标）
+    public Grids FirstAvailableOrganCell(GameManager gm)
+    {
+        if (gm?.gridManager == null || grid == null) return null;
+        var baseIdx = grid.GridIndex;
+        if (!isInDesperateMode)
+        {
+            for (int k = 0; k < weakPointOffsets.Count; k++)
+            {
+                if (k < weakPointDestroyed.Count && weakPointDestroyed[k]) continue;
+                if (k >= weakProducedThisTurn.Length || weakProducedThisTurn[k] >= ooziumProductionPerTurn || weakCooldownCounters[k] > 0) continue;
+                var g = gm.gridManager.GetGridAt(baseIdx + weakPointOffsets[k]);
+                if (g != null) return g;
+            }
+        }
+        else if (coreCooldownCounter <= 0 && coreProducedThisTurn < ooziumProductionPerTurn)
+        {
+            return gm.gridManager.GetGridAt(baseIdx + centerWeakPointOffset);
+        }
+        return null;
     }
 
     // ========== AI：蠕动 + Oozium生产（全适配：中立/玩家方走自带AI，AI阵营由 AI_Manager 带视野操作）==========
@@ -565,9 +671,10 @@ public partial class GrandBolt : Weapon
             var dir = AIBestWriggleDirection(gm, null);
             if (dir != Vector2I.Zero) Wriggle(dir, gm);
         }
-        if (isInDesperateMode && ooziumProductionEnabled && ooziumProducedThisTurn < ooziumProductionPerTurn)
+        if (grandBoltEnabled && ooziumProductionEnabled && TotalOoziumCapacityLeft() > 0)
         {
             var target = AIBestOoziumGrid(gm, null);
+            if (target == null || ResolveOrganIndex(target) < 0) target = FirstAvailableOrganCell(gm);   // ✅ 非器官格→回退到有产能的器官
             if (target != null) ProduceOozium(target, gm);
         }
     }
