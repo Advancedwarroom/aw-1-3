@@ -13,6 +13,9 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("1_radar_p0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("n0")
 }],
 "loop": true,
 "name": &"P0Radar",
@@ -21,6 +24,9 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("2_radar_p1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("n1")
 }],
 "loop": true,
 "name": &"radarteam1",
@@ -29,6 +35,9 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("3_radar_p2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("n2")
 }],
 "loop": true,
 "name": &"radarteam2",

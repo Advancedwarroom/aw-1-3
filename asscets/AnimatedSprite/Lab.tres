@@ -13,6 +13,9 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("1_lab_p0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("n0")
 }],
 "loop": true,
 "name": &"P0Lab",
@@ -21,6 +24,9 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("2_lab_p1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("n1")
 }],
 "loop": true,
 "name": &"labteam1",
@@ -29,6 +35,9 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("3_lab_p2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("n2")
 }],
 "loop": true,
 "name": &"labteam2",

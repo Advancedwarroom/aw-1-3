@@ -13,6 +13,9 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("1_hq_p0")
+}, {
+"duration": 1.0,
+"texture": ExtResource("n0")
 }],
 "loop": true,
 "name": &"P0HQ",
@@ -21,6 +24,9 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("2_hq_p1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("n1")
 }],
 "loop": true,
 "name": &"hqteam1",
@@ -29,6 +35,9 @@ animations = [{
 "frames": [{
 "duration": 1.0,
 "texture": ExtResource("3_hq_p2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("n2")
 }],
 "loop": true,
 "name": &"hqteam2",
