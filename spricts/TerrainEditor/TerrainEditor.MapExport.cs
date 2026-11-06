@@ -35,6 +35,14 @@ public partial class TerrainEditor
         sb.AppendLine("=== AW-1-3 Map Export ===");
         sb.AppendLine($"Width: {width}");
         sb.AppendLine($"Height: {height}");
+        int _esc = gridManager?.GetScreenCount() ?? 1;
+        sb.AppendLine($"Screens: {_esc}");
+        if (gridManager?.screenWidths != null && gridManager.screenWidths.Length == _esc)
+            sb.AppendLine($"ScreenW: {string.Join(",", gridManager.screenWidths)}");
+        if (gridManager?.screenHeights != null && gridManager.screenHeights.Length == _esc)
+            sb.AppendLine($"ScreenH: {string.Join(",", gridManager.screenHeights)}");
+        if (gridManager?.screenYOffsets != null && gridManager.screenYOffsets.Length == _esc)
+            sb.AppendLine($"ScreenY: {string.Join(",", gridManager.screenYOffsets)}");
         sb.AppendLine($"ExportTime: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         bool fogEnabled = gameManager?.fogOfWarManager?.isFogOfWarEnabled ?? false;
         sb.AppendLine($"FogOfWar: {(fogEnabled ? "Enabled" : "Disabled")}");

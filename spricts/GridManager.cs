@@ -404,6 +404,21 @@ public partial class GridManager : Node
         return null;
     }
 
+    // ✅ 移除不在任何屏范围内的格子（多屏真空带），用于导入/载入后清理几何
+    public void PruneOutsideScreens()
+    {
+        for (int i = grids.Count - 1; i >= 0; i--)
+        {
+            var g = grids[i];
+            if (g == null) continue;
+            if (IsInsideAnyScreen(g.GridIndex.X, g.GridIndex.Y)) continue;
+            GridsNode.RemoveChild(g);
+            g.Free();
+            grids.RemoveAt(i);
+        }
+        Init();
+    }
+
     public Vector2I[] offset =
     {
         new Vector2I(0,1),

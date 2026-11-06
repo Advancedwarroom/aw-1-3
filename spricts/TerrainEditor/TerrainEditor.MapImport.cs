@@ -9,6 +9,15 @@ using System.Reflection;
 // TerrainEditor · MapImport（由 TerrainEditor.cs 按模块拆分；partial class，Export 分组已显式标注）
 public partial class TerrainEditor
 {
+        private static int[] ParseCsv(string csv)
+        {
+            if (string.IsNullOrWhiteSpace(csv)) return null;
+            var list = new System.Collections.Generic.List<int>();
+            foreach (var p in csv.Split(','))
+                if (int.TryParse(p.Trim(), out int v)) list.Add(v);
+            return list.Count > 0 ? list.ToArray() : null;
+        }
+
 
     // ========== ✅ 地图导入 ==========
     private void OpenImportDialog()
@@ -291,6 +300,8 @@ public partial class TerrainEditor
 
             // ✅ 先扫描一遍计算地图尺寸
             int mapWidth = 0, mapHeight = 0;
+            int mapScreens = 1;
+            int[] mapSw = null, mapSh = null, mapSy = null;
             string scanSection = "";
             foreach (var rawLine in lines)
             {
@@ -300,6 +311,13 @@ public partial class TerrainEditor
                 {
                     scanSection = line.Substring(4, line.Length - 8).Trim();
                     continue;
+                }
+                if (scanSection == "")
+                {
+                    if (line.StartsWith("Screens:") && int.TryParse(line.Substring(8).Trim(), out int sv)) mapScreens = Math.Max(1, sv);
+                    else if (line.StartsWith("ScreenW:")) mapSw = ParseCsv(line.Substring(8));
+                    else if (line.StartsWith("ScreenH:")) mapSh = ParseCsv(line.Substring(8));
+                    else if (line.StartsWith("ScreenY:")) mapSy = ParseCsv(line.Substring(8));
                 }
 
                 if (scanSection == "Terrain Matrix [x,y]=Type")
@@ -332,9 +350,16 @@ public partial class TerrainEditor
 
             if (mapWidth > 0 && mapHeight > 0)
             {
+                if (gridManager != null)
+                {
+                    gridManager.screenCount = mapScreens;
+                    if (mapSw != null && mapSw.Length == mapScreens) gridManager.screenWidths = mapSw;
+                    if (mapSh != null && mapSh.Length == mapScreens) gridManager.screenHeights = mapSh;
+                    if (mapSy != null && mapSy.Length == mapScreens) gridManager.screenYOffsets = mapSy;
+                }
                 gridManager?.ResizeMap(mapWidth, mapHeight);
-                // ✅ 关键：ResizeMap 后必须重新获取 grids 引用
                 gridManager?.Init();
+                gridManager?.PruneOutsideScreens();
             }
 
             int lineIdx = 0;

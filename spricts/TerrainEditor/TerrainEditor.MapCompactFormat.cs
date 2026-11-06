@@ -69,7 +69,11 @@ public partial class TerrainEditor
 
         var sb = new System.Text.StringBuilder();
         sb.AppendLine("=== AW Compact ===");
-        sb.AppendLine($"W:{width} H:{height} F:{(fog ? 1 : 0)} S:{(gridManager?.GetScreenCount() ?? 1)}");
+        int _sc = gridManager?.GetScreenCount() ?? 1;
+        string _sw = (gridManager?.screenWidths != null && gridManager.screenWidths.Length == _sc) ? string.Join(",", gridManager.screenWidths) : null;
+        string _sh = (gridManager?.screenHeights != null && gridManager.screenHeights.Length == _sc) ? string.Join(",", gridManager.screenHeights) : null;
+        string _sy = (gridManager?.screenYOffsets != null && gridManager.screenYOffsets.Length == _sc) ? string.Join(",", gridManager.screenYOffsets) : null;
+        sb.AppendLine($"W:{width} H:{height} F:{(fog ? 1 : 0)} S:{_sc}" + (_sw != null ? $" SW:{_sw}" : "") + (_sh != null ? $" SH:{_sh}" : "") + (_sy != null ? $" SY:{_sy}" : ""));
         sb.AppendLine();
 
         sb.AppendLine("=== T ===");
@@ -179,6 +183,15 @@ public partial class TerrainEditor
         catch (Exception ex) { ShowImportHint($"❌ {TranslateGroup.T("导出失败")}: {ex.Message}"); }
     }
 
+        private static int[] ParseCsvInts(string csv)
+        {
+            if (string.IsNullOrWhiteSpace(csv)) return null;
+            var list = new System.Collections.Generic.List<int>();
+            foreach (var p in csv.Split(','))
+                if (int.TryParse(p.Trim(), out int v)) list.Add(v);
+            return list.Count > 0 ? list.ToArray() : null;
+        }
+
     // ✅ 极简导入
     private void ParseCompactMap(string content)
     {
@@ -189,9 +202,9 @@ public partial class TerrainEditor
             ClearAllMapEntities();
 
             var lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-
-            // ✅ 先扫描一遍计算地图尺寸
+        // ✅ 先扫描一遍计算地图尺寸
             int mapWidth = 0, mapHeight = 0, mapScreens = 1;
+            int[] mapSw = null, mapSh = null, mapSy = null;
             string scanSection = "";
             foreach (var rawLine in lines)
             {
@@ -207,6 +220,12 @@ public partial class TerrainEditor
                 {
                     var sm = System.Text.RegularExpressions.Regex.Match(line, @"S:(\d+)");
                     if (sm.Success) mapScreens = Math.Max(1, int.Parse(sm.Groups[1].Value));
+                    var msw = System.Text.RegularExpressions.Regex.Match(line, @"SW:([\d,]+)");
+                    if (msw.Success) mapSw = ParseCsvInts(msw.Groups[1].Value);
+                    var msh = System.Text.RegularExpressions.Regex.Match(line, @"SH:([\d,]+)");
+                    if (msh.Success) mapSh = ParseCsvInts(msh.Groups[1].Value);
+                    var msy = System.Text.RegularExpressions.Regex.Match(line, @"SY:([\d,]+)");
+                    if (msy.Success) mapSy = ParseCsvInts(msy.Groups[1].Value);
                 }
                 if (scanSection == "T")
                 {
@@ -236,9 +255,14 @@ public partial class TerrainEditor
             {
                 // ✅ N屏：先设屏数再建图（screenId 在 Init 中分配）
                 if (gridManager != null) gridManager.screenCount = mapScreens;
+                // ✅ 恢复各屏几何（旧档无 SW/SH/SY 则留空=均分/顶对齐，向后兼容）
+                if (mapSw != null && mapSw.Length == mapScreens) gridManager.screenWidths = mapSw;
+                if (mapSh != null && mapSh.Length == mapScreens) gridManager.screenHeights = mapSh;
+                if (mapSy != null && mapSy.Length == mapScreens) gridManager.screenYOffsets = mapSy;
                 gridManager?.ResizeMap(mapWidth, mapHeight);
                 // ✅ 关键：ResizeMap 后必须重新获取 grids 引用
                 gridManager?.Init();
+                gridManager?.PruneOutsideScreens();   // ✅ 清真空带（ResizeMap 建的是全矩形）
             }
 
             string section = "";
