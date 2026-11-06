@@ -204,22 +204,59 @@ public partial class TerrainEditor
     }
     private void RebuildBatchVariantOptions()
     {
-        if(batchVariantOption==null)return;batchVariantOption.Clear();batchVariantOption.AddItem("🔄 自动优化（邻格适配）");
+        if(batchVariantOption==null)return;
+        batchVariantOption.Clear();
+        batchVariantOption.AddItem("🔄 自动优化（邻格适配）");
         if(TerrainStyleManager.TryGetCowMapping(batchTerrainType,out string cowDir,out _))
         {
-            string dirFs=ProjectSettings.GlobalizePath($"{TerrainStyleManager.CowRoot}/{cowDir}");
-            if(Directory.Exists(dirFs)){int idx=1;foreach(var f in Directory.GetFiles(dirFs,"*.png").OrderBy(f=>f)){
-                string resPath=$"{TerrainStyleManager.CowRoot}/{cowDir}/{Path.GetFileName(f)}";
-                string display=Path.GetFileNameWithoutExtension(f);if(display.Length>30)display=display[..30]+"…";
-                batchVariantOption.AddItem(display);var tex=ResourceLoader.Exists(resPath)?GD.Load<Texture2D>(resPath):null;
-                if(tex!=null)batchVariantOption.SetItemIcon(idx,tex);batchVariantOption.SetItemMetadata(idx,resPath);idx++;
-            }}
+            // ✅ DirAccess直扫res://(不再依赖GlobalizePath转文件系统路径: 中文路径/导出环境全兼容)
+            var files=new System.Collections.Generic.List<string>();
+            using(var dir=DirAccess.Open($"{TerrainStyleManager.CowRoot}/{cowDir}"))
+            {
+                if(dir!=null)
+                {
+                    dir.ListDirBegin();
+                    while(true){var f=dir.GetNext();if(f=="")break;if(!dir.CurrentIsDir()&&f.EndsWith(".png"))files.Add(f);}
+                    dir.ListDirEnd();
+                }
+            }
+            if(files.Count==0) // 兜底: DirAccess失败退回文件系统
+            {
+                string dirFs=ProjectSettings.GlobalizePath($"{TerrainStyleManager.CowRoot}/{cowDir}");
+                if(Directory.Exists(dirFs))files.AddRange(Directory.GetFiles(dirFs,"*.png").Select(System.IO.Path.GetFileName));
+            }
+            int idx=1;
+            foreach(var f in files.OrderBy(f=>f,System.StringComparer.Ordinal))
+            {
+                string resPath=$"{TerrainStyleManager.CowRoot}/{cowDir}/{f}";
+                string display=System.IO.Path.GetFileNameWithoutExtension(f);if(display.Length>30)display=display[..30]+"…";
+                batchVariantOption.AddItem(display);
+                var tex=ResourceLoader.Exists(resPath)?GD.Load<Texture2D>(resPath):null;
+                if(tex!=null)batchVariantOption.SetItemIcon(idx,tex);
+                batchVariantOption.SetItemMetadata(idx,resPath);
+                idx++;
+            }
         }
-        batchVariantOption.Selected=0;batchVariantAuto=true;batchVariantTexturePath="";
+        batchVariantOption.Selected=0;
+        batchVariantAuto=true;
+        batchVariantTexturePath="";
     }
     private void OnBatchVariantSelected(long idx)
     {
-        if(idx==0){batchVariantAuto=true;batchVariantTexturePath="";}
+        if(idx==0)
+        {
+            batchVariantAuto=true;
+            batchVariantTexturePath="";
+            // ✅ 真取消: 同步清掉全图该地形已铺格子的贴图锁(方向仍自动)
+            var gmC=GetTree()?.GetFirstNodeInGroup("grid_manager") as GridManager;
+            if(gmC?.grids!=null)
+                foreach(var g in gmC.grids)
+                    if(g!=null&&IsInstanceValid(g)&&g.gridType==batchTerrainType&&g.manualCowTexturePath!="")
+                    {
+                        g.manualCowTexturePath="";
+                        g.UpdateTerrainIcon();
+                    }
+        }
         else{batchVariantAuto=true;batchVariantTexturePath=batchVariantOption.GetItemMetadata((int)idx).AsString();}// ✅解耦: 选图只锁贴图, 不关自动方向
     }
     private void ApplyBatchDirectionConfig(Grids grid)

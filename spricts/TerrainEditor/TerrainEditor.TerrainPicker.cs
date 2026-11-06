@@ -415,12 +415,11 @@ public partial class TerrainEditor
             var old = g.gridType;
             var oldAuto = g.autoOptimizeDirection;
             var oldPath = g.manualCowTexturePath;
-            var lockAuto = batchVariantAuto;
-            var lockPath = batchVariantAuto ? "" : batchVariantTexturePath;
+            var lockPath = batchVariantTexturePath ?? ""; // ✅ 选图即锁图(空串=自动方向解析), 与batchVariantAuto彻底解耦
             g.gridType = batchTerrainType;
             g.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
             // ✅ 手动贴图锁(批量面板"贴图配置"选了具体贴图时): 锁自选图, 不走方向解析; 自动优化则按邻格算
-            g.autoOptimizeDirection = lockAuto;
+            g.autoOptimizeDirection = true; // ✅ 方向恒自动, 贴图锁定与方向解耦
             g.manualCowTexturePath = lockPath;
             UpdateGridVisual(g);
             parent.subActions.Add(new EditorActionRecord
@@ -431,7 +430,7 @@ public partial class TerrainEditor
                 newTerrain = batchTerrainType,
                 oldAutoOptimizeDirection = oldAuto,
                 oldManualCowTexturePath = oldPath,
-                newAutoOptimizeDirection = lockAuto,
+                newAutoOptimizeDirection = true,
                 newManualCowTexturePath = lockPath
             });
             changed++;
@@ -454,6 +453,7 @@ public partial class TerrainEditor
                             int nx = gi.X + dx, ny = gi.Y + dy;
                             if (nx >= 0 && nx < w && ny >= 0 && ny < h)
                                 gm.map[nx, ny]?.RefreshDirectionFromNeighbors(gm.map);
+                                gm.map[nx, ny]?.UpdateTerrainIcon(); // ✅ 立即重渲染, 所见即所得
                         }
                 }
             }
@@ -494,12 +494,11 @@ public partial class TerrainEditor
 
             var oldAuto = g.autoOptimizeDirection;
             var oldPath = g.manualCowTexturePath;
-            var lockAuto = batchVariantAuto;
-            var lockPath = batchVariantAuto ? "" : batchVariantTexturePath;
+            var lockPath = batchVariantTexturePath ?? ""; // ✅ 选图即锁图(空串=自动方向解析), 与batchVariantAuto彻底解耦
             g.gridType = newType;
             g.BakeCowBrush(); // ✅ 放置/修改地形时把当前画笔风格烘焙进格子
             // ✅ 手动贴图锁: 同笔刷路径
-            g.autoOptimizeDirection = lockAuto;
+            g.autoOptimizeDirection = true; // ✅ 方向恒自动, 贴图锁定与方向解耦
             g.manualCowTexturePath = lockPath;
             UpdateGridVisual(g);
             parent.subActions.Add(new EditorActionRecord
@@ -510,7 +509,7 @@ public partial class TerrainEditor
                 newTerrain = newType,
                 oldAutoOptimizeDirection = oldAuto,
                 oldManualCowTexturePath = oldPath,
-                newAutoOptimizeDirection = lockAuto,
+                newAutoOptimizeDirection = true,
                 newManualCowTexturePath = lockPath
             });
             changed++;
@@ -538,6 +537,7 @@ public partial class TerrainEditor
                         int nx = sub.position.X + dx, ny = sub.position.Y + dy;
                         if (nx >= 0 && nx < w && ny >= 0 && ny < h)
                             gm.map[nx, ny]?.RefreshDirectionFromNeighbors(gm.map);
+                                gm.map[nx, ny]?.UpdateTerrainIcon(); // ✅ 立即重渲染, 所见即所得
                     }
             }
             PickerResolveHelper()?.PushAction(parent);
