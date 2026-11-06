@@ -16,7 +16,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"P0Lab",
-"speed": 5.0
+"speed": 2.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -24,7 +24,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"labteam1",
-"speed": 5.0
+"speed": 2.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -32,5 +32,5 @@ animations = [{
 }],
 "loop": true,
 "name": &"labteam2",
-"speed": 5.0
+"speed": 2.0
 }]
