@@ -110,7 +110,7 @@ public partial class GrandBolt : Weapon
         var pv = GetNodeOrNull<Node2D>("PartVisual");
         if (pv != null)
             foreach (var c in pv.GetChildren())
-                if (c is AnimatedSprite2D ps) ps.Material = (ShaderMaterial)mat.Duplicate();
+                if (c is CanvasItem ci && ci is not Label && ci is not Control) ci.Material = (ShaderMaterial)mat.Duplicate();   // 精灵2D/动画精灵通吃
     }
 
     // ========== 9.5 卡死规则（issue#1：内部敌人禁动）==========
