@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://spricts/GrandBolt.cs" id="1_gb"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/GrandBolt.tres" id="2_gb"]
+[ext_resource type="Script" path="res://spricts/GrandBoltVisual.cs" id="3_vis"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gb"]
 size = Vector2(33, 33)
@@ -15,7 +16,7 @@ health = 9999
 canRotate = false
 maxAttacksPerTurn = 0
 isMultiTile = true
-size = Vector2(19, 13)
+size = Vector2(9, 6)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(304, 208)
@@ -40,3 +41,6 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 10
 theme_override_font_sizes/font_size = 18
 text = "99"
+
+[node name="PartVisual" type="Node2D" parent="."]
+script = ExtResource("3_vis")
