@@ -169,7 +169,11 @@ public override void _Input(InputEvent @event)
         // ✅ 格子画笔：点击有格就扣/真空处点紧邻空地就拓（真空无格子节点，只能走全局坐标换算——开创人批2）
         if (isCellBrushMode && @event is InputEventMouseButton mbBrush && mbBrush.Pressed && mbBrush.ButtonIndex == MouseButton.Left)
         {
-            if (gridManager != null) HandleBrushClickAt(gridManager.GetGlobalMousePosition());
+            if (gridManager != null)
+            {
+                var vp = gridManager.GetViewport();
+                HandleBrushClickAt(vp.CanvasTransform.AffineInverse() * vp.GetMousePosition());   // GridManager非Node2D，经视口反变换取世界坐标
+            }
         }
 
         // ✅ ESC 退出传送编辑模式（修复：进入后无有效退出路径）
