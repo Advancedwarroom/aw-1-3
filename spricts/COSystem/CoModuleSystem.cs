@@ -11,6 +11,7 @@ public class CoTeamState
     public List<CoProfile> partners = new();  // ✅ 配合模块：Tag Power 搭档 CO（合体技）
         public int boundScreen = -1;          // 开创人2026-11-07：绑屏CO（-1=不绑定=全屏通用）
         public bool isDead = false;             // CO死亡：效果全灭（GetState对死亡返回null，全链路自动失效）
+        public readonly System.Collections.Generic.HashSet<string> switchedThisTurn = new();   // 开创人2026-11-07：本回合已切换过的搭档CO（一个搭档一次）
     public float charge = 0f;            // 能量条（星数 = charge；全队共享）
     public CoPowerMode powerMode = CoPowerMode.Off;
     public int powerTurnsLeft = 0;      // 大招剩余己方回合数
@@ -662,6 +663,7 @@ public static class CoModuleSystem
         st.powerUsedThisTurn = true;
         st.charge = 0f;
         st.tagExtraTurnUsed = false;
+        st.switchedThisTurn.Clear();   // ✅ 切换CO次数随回合重置（一个搭档一次/回合）
         GrantTeamExtraTurn(team);   // ✅ 模块6（多次移动）：合体技全军再动
         st.tagExtraTurnUsed = true;
         ExecuteActivationEffects(team);   // ✅ 发动时效果（模块8回血/模块15天气……）
@@ -823,5 +825,39 @@ public static class CoModuleSystem
     {
         Teams.Clear();
         loaded = false;
+    }
+
+    // ---------- 开创人2026-11-07：切换CO（一个搭档一次）----------
+    public static bool HasSwitchablePartner(string team)
+    {
+        var st = GetState(team);
+        if (st?.partners == null) return false;
+        foreach (var p in st.partners)
+            if (!st.switchedThisTurn.Contains(p.id)) return true;
+        return false;
+    }
+
+    public static bool IsPartnerSwitchedThisTurn(string team, int partnerIndex)
+    {
+        var st = GetState(team);
+        return st == null || st.partners == null || partnerIndex < 0 || partnerIndex >= st.partners.Count
+            || st.switchedThisTurn.Contains(st.partners[partnerIndex].id);
+    }
+
+    /// <summary>切换CO：与指定搭档互换主副 → 全军再动；每个搭档每回合限一次（开创人规矩）</summary>
+    public static bool SwitchToPartner(string team, int partnerIndex, out string error)
+    {
+        error = null;
+        var st = GetState(team);
+        if (st == null) { error = TranslateGroup.T("无可用CO"); return false; }
+        if (st.partners == null || partnerIndex < 0 || partnerIndex >= st.partners.Count) { error = TranslateGroup.T("无此搭档"); return false; }
+        var target = st.partners[partnerIndex];
+        if (st.switchedThisTurn.Contains(target.id)) { error = $"{target.name} {TranslateGroup.T("本回合已切换过（一个搭档一次）")}"; return false; }
+        st.partners[partnerIndex] = st.profile;   // 原CO降为搭档
+        st.profile = target;                       // 新CO上任
+        st.switchedThisTurn.Add(target.id);
+        GrantTeamExtraTurn(team);                  // 全军再动（单位/兵器行动状态全恢复）
+        GD.Print($"[CO] {team} 切换CO → {target.name}（全军再动！）");
+        return true;
     }
 }
