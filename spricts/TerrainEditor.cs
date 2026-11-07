@@ -161,6 +161,9 @@ public override void _Ready()
 [Export] public bool continuousPlacement = true;   // ✅ 连续放置：开=拖拽连刷；关=拖拽平移相机、单击才放置
 private bool _tapPending;
 
+// ✅ 延迟清除单击标记（release 下一帧再清，避免与格子 click 的时序竞争误杀单击）
+private void ClearTapPendingFlag() => _tapPending = false;
+
 public override void _Input(InputEvent @event)
 {
         // ✅ ESC 退出传送编辑模式（修复：进入后无有效退出路径）
@@ -170,8 +173,17 @@ public override void _Input(InputEvent @event)
             return;
         }
         // ✅ 单击记账：区分"真实按下"与"拖拽掠过"（连续放置开关用）
+        // 释放改为延迟一帧清，防止 release 先于格子 click 到达时误杀单击；手机触摸走 ScreenTouch 分支
         if (@event is InputEventMouseButton emb && emb.ButtonIndex == MouseButton.Left)
-            _tapPending = emb.Pressed;
+        {
+            if (emb.Pressed) _tapPending = true;
+            else CallDeferred(nameof(ClearTapPendingFlag));
+        }
+        else if (@event is InputEventScreenTouch touch)
+        {
+            if (touch.Pressed) _tapPending = true;
+            else CallDeferred(nameof(ClearTapPendingFlag));
+        }
     if (@event is InputEventKey keyEvent && keyEvent.Pressed && keyEvent.Keycode == Key.Escape)
     {
         if (globalConfigPanel?.Visible == true)

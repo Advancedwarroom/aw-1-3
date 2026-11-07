@@ -281,4 +281,28 @@ public partial class MapEditorHelper
         AddChild(dialog);
         dialog.PopupCentered();
     }
+
+    // ✅ 一键退出全部编辑模式（TerrainEditor 进入销毁模式前调用，防止模式残留吞点击）
+    public void ExitAllModes()
+    {
+        bool hadAny = IsSelectMode || IsPasteMode || IsSymmetryMode
+            || IsAreaFillMode || IsTerrainFillMode || IsShapeFillMode
+            || !string.IsNullOrEmpty(pendingTexturePath);
+        IsSelectMode = false;
+        IsPasteMode = false;
+        IsSymmetryMode = false;
+        IsAreaFillMode = false;
+        IsTerrainFillMode = false;
+        IsShapeFillMode = false;
+        pendingTexturePath = "";
+        // 对称：连带清轴线和预览
+        CurrentSymmetryAxis = SymmetryAxis.None;
+        symmetryAxisLine = -1;
+        ClearSymmetryPreview();
+        // 形状填充拖拽中途中断 / 粘贴选区作废
+        isDraggingShapeEdge = false;
+        currentPasteSelection = null;
+        if (hadAny)
+            UpdateStatusHint(TranslateGroup.T("已退出全部编辑模式"));
+    }
 }

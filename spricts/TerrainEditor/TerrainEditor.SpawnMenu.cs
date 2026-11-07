@@ -170,7 +170,13 @@ private LineEdit spawnSearchBox;
 
 private void ToggleDestroyMode()
 {
-    isDestroyMode = !isDestroyMode;
+    bool entering = !isDestroyMode;
+    // ✅ 修复"点啥都不销毁"：进入销毁模式前强制清场（关面板/退模式/清待处理状态）
+    //    注意：CloseSpawnMenu/CloseAllMenus 内部会把 isDestroyMode 复位，必须先清场、后统一置位
+    if (entering)
+        CleanupBeforeDestroyMode();
+
+    isDestroyMode = entering;
     destroyModeBtn.Text = isDestroyMode ? TranslateGroup.T("❌ 退出销毁") : TranslateGroup.T("💀 销毁模式");
 
     if (isDestroyMode)
@@ -187,6 +193,33 @@ private void ToggleDestroyMode()
     {
         TranslateGroup.SetText(spawnHintLabel, "选择模式开始...");
         spawnHintLabel.AddThemeColorOverride("font_color", new Color(0.8f, 0.8f, 0.6f));
+    }
+}
+
+// ✅ 进入销毁模式前的强制清场：四类吞点击源头全复位
+//    A 生成状态残留 / B 编辑面板残留 / C MapEditorHelper模式残留 / D 待处理模式与保存槽等待态
+private void CleanupBeforeDestroyMode()
+{
+    // A+B：全部编辑面板（生成菜单不关的话，spawnMenuPanel.Visible=true 会在 GridClick 里吞掉所有点击）
+    if (spawnMenuPanel?.Visible == true) CloseSpawnMenu();
+    if (selectionMenuPanel?.Visible == true) CloseSelectionMenu();
+    if (propertyEditorPanel?.Visible == true) ClosePropertyEditor();
+    if (terrainMenuPanel?.Visible == true) CloseTerrainMenu();
+    if (globalConfigPanel?.Visible == true) CloseGlobalConfigPanel();
+    StopBatchTerrainMode();   // 批量地形：内部自含 isBatchTerrainMode=false + 关面板
+    // C：编辑器助手的全部模式（框选/粘贴/对称/区域填充/形状填充/贴图替换，标志全在 Helper 私有，必须走它的总出口）
+    var helper = GetTree()?.GetFirstNodeInGroup("map_editor_helper") as MapEditorHelper;
+    helper?.ExitAllModes();
+    // D：TerrainEditor 自己的待处理模式 + 保存槽等待态
+    isTextureApplyMode = false;
+    pendingTextureApplyPath = "";
+    pendingSpawnMode = SpawnMode.None;
+    pendingSpawnScenePath = "";
+    var slots = GetTree()?.GetFirstNodeInGroup("editor_save_slots") as EditorSaveSlots;
+    if (slots != null)
+    {
+        slots.CancelPendingSave();
+        slots.CancelPendingLoad();
     }
 }
 
