@@ -17,29 +17,30 @@ public partial class GrandBolt : Weapon
 
     // ========== 2. 多格占据（19×13，不规则足印）==========
     [ExportGroup("多格占据（不规则足印）")]
-    [Export] public Vector2I grandBoltSize = new Vector2I(19, 13);  // 2.占位宽×高
+    [Export] public Vector2I grandBoltSize = new Vector2I(19, 12);  // 2.占位宽×高（终稿19×12，180格）
     // 足印掩码：每行一个字符串，'#'=占据，'.'=空（长度须=size.X，行数须=size.Y）
     [Export] public string[] footprintMask = new string[] {
-        "......#######......",
-        "....###########....",
-        "..###############..",
-        "###################",
-        "###################",
-        "###################",
-        "###################",
-        "###################",
-        "###################",
-        "###################",
-        "....###########....",
-        "......#######......",
+        "......#######......",   // y0  7
+        "....###########....",   // y1 11
+        "..###############..",   // y2 15
+        "###################",   // y3 19 ┐
+        "###################",   // y4 19 │
+        "###################",   // y5 19 │ 核心 y5-6 (8-10,5-6)
+        "###################",   // y6 19 │
+        "###################",   // y7 19 │
+        "###################",   // y8 19 ┘ 19×6
+        "..###############..",   // y9 15 A(3)/C(15)外侧各1肉
+        "....###########....",   // y10 11
+        "......#######......",   // y11 7 B(9,11)居中
     };
 
     // ========== 3. 弱点系统（3个，不同行）==========
     [ExportGroup("弱点系统")]
+    // ✅ 终稿弱点坐标，与 GrandBoltVisual.PTS / gb_points.png 逐位重合
     [Export] public Godot.Collections.Array<Vector2I> weakPointOffsets = new Godot.Collections.Array<Vector2I> {
-        new Vector2I(4, 2),    // 左弱点
-        new Vector2I(9, 1),   // 中弱点
-        new Vector2I(14, 2),  // 右弱点
+        new Vector2I(3, 9),     // A（左）
+        new Vector2I(9, 11),   // B（最底行七格中央）
+        new Vector2I(15, 9),  // C（右）
     };
     [Export] public int weakPointMaxHealth = 999;              // 每个弱点血量（千分制）
     public List<int> weakPointHealths = new List<int>();        // 各弱点当前血量
@@ -128,6 +129,10 @@ public partial class GrandBolt : Weapon
         isMultiTile = true;
         size = grandBoltSize;
 
+        // ✅ 四向旋转格子绑定：先冻结朝南(S)原始足印/弱点，再按当前方向重绑定（BHF教训：旋转必须绑格子）
+        CaptureSouthFacing();
+        RebindForDirection();
+
         // 初始化弱点血量
         weakPointHealths.Clear();
         weakPointDestroyed.Clear();
@@ -142,6 +147,70 @@ public partial class GrandBolt : Weapon
         contributesToVictory = defeatOwnerOnDestroyed;   // ✅ 挂兵器胜利判定旗（默认开）
         victoryCountRequired = 1;
         base._Ready();
+    }
+
+    // ========== 四向旋转（格子级绑定，与 GrandBoltVisual 离线四向图同向同序）==========
+    private BlackCannon.CannonDirection _direction = BlackCannon.CannonDirection.Down;  // 朝南=底图原向
+    [Export]
+    public BlackCannon.CannonDirection direction
+    {
+        get => _direction;
+        set
+        {
+            _direction = value;
+            if (IsNodeReady()) RebindForDirection();
+        }
+    }
+    private string[] _maskS;                            // 朝南原始掩码（终稿）
+    private Godot.Collections.Array<Vector2I> _weakS;   // 朝南原始弱点
+    private Vector2I _sizeS;                          // 朝南原始占地
+
+    private void CaptureSouthFacing()
+    {
+        _maskS = (string[])footprintMask.Clone();
+        _weakS = new Godot.Collections.Array<Vector2I>(weakPointOffsets);
+        _sizeS = grandBoltSize;
+    }
+
+    private void RebindForDirection()
+    {
+        if (_maskS == null) return;
+        // Down=南=k0, Left=西=k1, Up=北=k2, Right=东=k3（与 GrandBoltVisual.SetDirection/RotRect 的 CCW 步数一致）
+        int k = ((int)_direction + 2) & 3;
+        var mask = (string[])_maskS.Clone();
+        var weak = new Godot.Collections.Array<Vector2I>(_weakS);
+        var center = centerWeakPointOffset;
+        int w = _sizeS.X, h = _sizeS.Y;
+        for (int i = 0; i < k; i++)
+        {
+            for (int j = 0; j < weak.Count; j++) weak[j] = RotCellCCW(weak[j], w, h);
+            center = RotCellCCW(center, w, h);
+            mask = RotateMaskCCW(mask, w, h);
+            (w, h) = (h, w);
+        }
+        footprintMask = mask;
+        weakPointOffsets = weak;
+        centerWeakPointOffset = center;
+        size = new Vector2I(w, h);
+    }
+
+    // (x,y) → (h-1-y, x)，与 GrandBoltVisual.RotRect 同公式
+    private static Vector2I RotCellCCW(Vector2I c, int w, int h) => new Vector2I(h - 1 - c.Y, c.X);
+
+    private static string[] RotateMaskCCW(string[] m, int w, int h)
+    {
+        var rows = new char[w][];                    // 新 H'=w 行
+        for (int y = 0; y < w; y++) rows[y] = new string('.', h).ToCharArray();  // 新 W'=h 列
+        for (int y = 0; y < h && y < (m?.Length ?? 0); y++)
+        {
+            string row = m[y] ?? "";
+            for (int x = 0; x < w && x < row.Length; x++)
+                if (row[x] == '#')
+                    rows[x][h - 1 - y] = '#';        // (x,y) → 新 (x'=h-1-y, y'=x)
+        }
+        var r = new string[w];
+        for (int y = 0; y < w; y++) r[y] = new string(rows[y]);
+        return r;
     }
 
     // ✅ 不规则足印：根据掩码计算占据格子

@@ -17,6 +17,14 @@ public partial class TerrainEditor
                 if (w is not GrandBolt gb || !IsInstanceValid(gb)) continue;
                 gb.empBurstWeaponDamage = (int)empW;
                 gb.empBurstInfantryDamage = (int)empB;
+                // ✅ 逻辑层同步换向：足印/弱点/中心全部绕 footprint 中心旋转绑定（BHF 的教训）
+                gb.direction = dir switch
+                {
+                    0 => BlackCannon.CannonDirection.Down,   // 南
+                    1 => BlackCannon.CannonDirection.Left,    // 西
+                    2 => BlackCannon.CannonDirection.Up,     // 北
+                    _ => BlackCannon.CannonDirection.Right,  // 东
+                };
                 var vis = gb.GetNodeOrNull<GrandBoltVisual>("PartVisual");
                 if (vis == null) continue;
                 vis.SetEnableRotation(rotEnabled);
