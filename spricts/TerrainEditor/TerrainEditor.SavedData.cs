@@ -7,11 +7,12 @@ using System.Collections.Generic;
 using System.Reflection;
 
 // TerrainEditor · SavedData（由 TerrainEditor.cs 按模块拆分；partial class，Export 分组已显式标注）
+public enum MapShape { RECT, DIAMOND, CIRCLE, ELLIPSE, TRIANGLE_UP }   // 地图形状（开创人2026-11-07：菱/圆/椭圆/三角，方格近似）
 public partial class TerrainEditor
 {
 
     // ✅ 新增：生成新地图
-    private void GenerateNewMap(int width, int height, int screens = 1, int[] screenWidths = null, int[] screenHeights = null)
+    private void GenerateNewMap(int width, int height, int screens = 1, int[] screenWidths = null, int[] screenHeights = null, MapShape shape = MapShape.RECT)
     {
         if (gridManager == null)
         {
@@ -28,14 +29,14 @@ public partial class TerrainEditor
         confirm.Size = new Vector2I(400, 200);
         confirm.Confirmed += () => {
             confirm.QueueFree();
-            ExecuteGenerateMap(width, height, screens, screenWidths, screenHeights);
+            ExecuteGenerateMap(width, height, screens, screenWidths, screenHeights, shape);
         };
         confirm.Canceled += () => confirm.QueueFree();
         AddChild(confirm);
         confirm.PopupCentered();
     }
 
-    private void ExecuteGenerateMap(int width, int height, int screens = 1, int[] screenWidths = null, int[] screenHeights = null)
+    private void ExecuteGenerateMap(int width, int height, int screens = 1, int[] screenWidths = null, int[] screenHeights = null, MapShape shape = MapShape.RECT)
     {
         try
         {
@@ -90,6 +91,34 @@ public partial class TerrainEditor
                     g.QueueFree();
                 }
                 if (outside.Count > 0) gridManager.RefreshScreenIds();   // 挖空后重刷屏归属
+            }
+
+
+            // ✅ 形状挖空：菱/圆/椭圆/三角（中心=地图中心，半径=内切撑满；三角顶点朝上）
+            if (shape != MapShape.RECT)
+            {
+                float cx = (totalWidth - 1) / 2f, cy = (totalHeight - 1) / 2f;
+                float rx = totalWidth / 2f, ry = totalHeight / 2f;
+                var shapeRemove = new System.Collections.Generic.List<Grids>();
+                foreach (var g in gridManager.grids)
+                {
+                    if (g == null) continue;
+                    float nx = (g.GridIndex.X - cx) / rx, ny = (g.GridIndex.Y - cy) / ry;
+                    bool inside = shape switch
+                    {
+                        MapShape.DIAMOND => Mathf.Abs(nx) + Mathf.Abs(ny) <= 1f,
+                        MapShape.CIRCLE or MapShape.ELLIPSE => nx * nx + ny * ny <= 1f,
+                        MapShape.TRIANGLE_UP => ny >= -1f && ny <= 1f && Mathf.Abs(nx) <= (ny + 1f) / 2f,
+                        _ => true,
+                    };
+                    if (!inside) shapeRemove.Add(g);
+                }
+                foreach (var g in shapeRemove)
+                {
+                    gridManager.grids.Remove(g);
+                    gridManager.map[g.GridIndex.X, g.GridIndex.Y] = null;
+                    g.QueueFree();
+                }
             }
 
             // 重置游戏状态
