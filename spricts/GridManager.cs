@@ -112,6 +112,7 @@ public partial class GridManager : Node
     public int GetScreenId(Vector2I pos)
 {
     if (screenCount <= 1) return 0;
+        if (freeformScreens) { var fg = GetGridAt(pos); return fg != null ? fg.screenId : -1; }   // 自由屏：直读格子存储屏号
     for (int s = 0; s < screenCount; s++)
     {
         int start = GetScreenStartX(s);
