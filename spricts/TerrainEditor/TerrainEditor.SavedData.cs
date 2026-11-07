@@ -58,6 +58,7 @@ public partial class TerrainEditor
                 if (gridManager.screenWidths[s] <= 0) gridManager.screenWidths[s] = Mathf.Max(1, width);
             for (int s = 0; s < gridManager.screenHeights.Length; s++)
                 if (gridManager.screenHeights[s] <= 0) gridManager.screenHeights[s] = Mathf.Max(1, height);
+            gridManager.screenYOffsets = new int[gridManager.screenCount];   // ✅ 生成时Y偏移清零（防上一张图的偏移残留致大面积误挖）
             int gap = gridManager.screenGap;
             int totalWidth = 0;
             if (gridManager.screenWidths.Length > 0) { foreach (var sw in gridManager.screenWidths) totalWidth += Math.Max(1, sw); }
