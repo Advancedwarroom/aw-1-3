@@ -764,7 +764,7 @@ public static class CoModuleSystem
             if (node is not Grids g || g.city == null) continue;
             if (g.city.facilityTeam != team) continue;
             g.city.productionsThisTurn = 0;
-            if (g.city is SuperFactory sf) sf.portUsedThisTurn = new bool[8];   // BHF三口重新充能
+            if (g.weapon is SuperFactory sf) sf.portUsedThisTurn = new bool[8];   // BHF三口重新充能（BHF是兵器不是设施）
         }
     }
 
