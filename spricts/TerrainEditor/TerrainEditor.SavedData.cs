@@ -52,6 +52,12 @@ public partial class TerrainEditor
                 GD.PrintErr($"[多屏] ⚠️ 分屏设置数量与屏数不符（宽:{screenWidths?.Length ?? 0}/{gridManager.screenCount} 高:{screenHeights?.Length ?? 0}/{gridManager.screenCount}），已回退均分");
             gridManager.screenWidths = (screenWidths != null && screenWidths.Length == gridManager.screenCount) ? screenWidths : new int[0];
             gridManager.screenHeights = (screenHeights != null && screenHeights.Length == gridManager.screenCount) ? screenHeights : new int[0];
+
+            // ✅ 零值清洗：宽/高为0的屏=跟随全局（开创人2026-11-07：否则IsInsideAnyScreen全false→一张格都不建→空地图）
+            for (int s = 0; s < gridManager.screenWidths.Length; s++)
+                if (gridManager.screenWidths[s] <= 0) gridManager.screenWidths[s] = Mathf.Max(1, width);
+            for (int s = 0; s < gridManager.screenHeights.Length; s++)
+                if (gridManager.screenHeights[s] <= 0) gridManager.screenHeights[s] = Mathf.Max(1, height);
             int gap = gridManager.screenGap;
             int totalWidth = 0;
             if (gridManager.screenWidths.Length > 0) { foreach (var sw in gridManager.screenWidths) totalWidth += Math.Max(1, sw); }
