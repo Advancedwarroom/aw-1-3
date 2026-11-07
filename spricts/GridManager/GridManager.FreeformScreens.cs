@@ -46,13 +46,13 @@ public partial class GridManager
         int n = comps.Count;
         screenCount = n <= 0 ? 1 : n;
         screenWidths = new int[n]; screenHeights = new int[n];
-        screenXOffsets = new int[n]; screenYOffsets = new int[n];
+        screenYOffsets = new int[n];
         for (int s = 0; s < n; s++)
         {
             int minX = comps[s].Min(x => x.GridIndex.X), maxX = comps[s].Max(x => x.GridIndex.X);
             int minY = comps[s].Min(x => x.GridIndex.Y), maxY = comps[s].Max(x => x.GridIndex.Y);
             screenWidths[s] = maxX - minX + 1; screenHeights[s] = maxY - minY + 1;
-            screenXOffsets[s] = minX; screenYOffsets[s] = minY;
+            screenYOffsets[s] = minY;   // X偏移无独立字段（GetScreenStartX按宽度和算），自由屏模式不走矩形路径
         }
         return n;
     }
