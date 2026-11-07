@@ -128,6 +128,11 @@ public partial class GrandBoltVisual : Node2D
         for (int i = 0; i < 4; i++) ApplyPointFrame(i, k);
     }
 
+    /// <summary>编辑模式面板API: 旋转开关/方向/帧率(实时应用到本体+全部弱点图层)</summary>
+    public void SetEnableRotation(bool v) { enableRotation = v; ApplyDirection(); }
+    public void SetDirection(int k) { direction = k & 3; ApplyDirection(); }
+    public void SetAnimFps(double f) { animFps = f; }
+
     public void SetWeakPointDead(int id, bool dead = true)
     {
         if (id < 0 || id > 3) return;

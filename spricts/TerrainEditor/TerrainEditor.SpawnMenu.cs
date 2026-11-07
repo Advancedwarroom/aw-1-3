@@ -129,8 +129,8 @@ private void CreateSpawnMenu()
 
     // 滚动容器
     var scroll = new ScrollContainer();
-    scroll.Position = new Vector2(15, 190);
-    scroll.Size = new Vector2(370, 400);
+    scroll.Position = new Vector2(15, 222);
+    scroll.Size = new Vector2(370, 368);
     scroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
 
     spawnButtonContainer = new VBoxContainer();
@@ -139,6 +139,37 @@ private void CreateSpawnMenu()
 
     scroll.AddChild(spawnButtonContainer);
     spawnMenuPanel.AddChild(scroll);
+
+    // ===== ⚙ 巨雷配置行(编辑模式直调, 不再进检查器): 旋转/方向/帧率/EMP两值, 改动实时应用到场上全部巨雷 =====
+    var gbLab = new Label(); TranslateGroup.SetText(gbLab, "⚙巨雷");
+    gbLab.AddThemeFontSizeOverride("font_size", 11); gbLab.Position = new Vector2(15, 196); gbLab.Size = new Vector2(45, 24);
+    spawnMenuPanel.AddChild(gbLab);
+    var gbRot = new CheckBox(); TranslateGroup.SetText(gbRot, "旋转");
+    gbRot.AddThemeFontSizeOverride("font_size", 10); gbRot.Position = new Vector2(60, 194); gbRot.Size = new Vector2(56, 26);
+    gbRot.ButtonPressed = true; gbRot.Toggled += on => ApplyGrandBoltConfig(on, gbDir.Selected, gbFps.Value, gbEmpW.Value, gbEmpB.Value);
+    spawnMenuPanel.AddChild(gbRot);
+    var gbDir = new OptionButton();
+    gbDir.AddThemeFontSizeOverride("font_size", 10); gbDir.Position = new Vector2(118, 194); gbDir.Size = new Vector2(62, 26);
+    foreach (var dn in new[] { "S", "W", "N", "E" }) gbDir.AddItem(dn);
+    gbDir.ItemSelected += idx => ApplyGrandBoltConfig(gbRot.ButtonPressed, (int)idx, gbFps.Value, gbEmpW.Value, gbEmpB.Value);
+    spawnMenuPanel.AddChild(gbDir);
+    var mkSpin = new System.Func<int, int, int, SpinBox>((x, v, mx) => {
+        var s = new SpinBox(); s.MinValue = 0; s.MaxValue = mx; s.Value = v;
+        s.AddThemeFontSizeOverride("font_size", 10); s.Position = new Vector2(x, 194); s.Size = new Vector2(52, 26);
+        return s; });
+    var gbFps = mkSpin(186, 2, 30);
+    gbFps.ValueChanged += v => ApplyGrandBoltConfig(gbRot.ButtonPressed, gbDir.Selected, v, gbEmpW.Value, gbEmpB.Value);
+    spawnMenuPanel.AddChild(gbFps);
+    var gbEmpW = mkSpin(244, 1, 99);
+    gbEmpW.ValueChanged += v => ApplyGrandBoltConfig(gbRot.ButtonPressed, gbDir.Selected, gbFps.Value, v, gbEmpB.Value);
+    spawnMenuPanel.AddChild(gbEmpW);
+    var gbEmpB = mkSpin(302, 0, 99);
+    gbEmpB.ValueChanged += v => ApplyGrandBoltConfig(gbRot.ButtonPressed, gbDir.Selected, gbFps.Value, gbEmpW.Value, v);
+    spawnMenuPanel.AddChild(gbEmpB);
+    var gbHint = new Label(); TranslateGroup.SetText(gbHint, "帧率|EMP武|EMP步");
+    gbHint.AddThemeFontSizeOverride("font_size", 8); gbHint.AddThemeColorOverride("font_color", new Color(0.5f, 0.6f, 0.55f));
+    gbHint.Position = new Vector2(186, 176); gbHint.Size = new Vector2(180, 18);
+    spawnMenuPanel.AddChild(gbHint);
 
     var dragHandle = new Panel();
     dragHandle.Name = "DragHandle";
