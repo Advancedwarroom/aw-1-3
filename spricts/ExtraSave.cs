@@ -170,6 +170,19 @@ public partial class ExtraSave : Node
 
         // 2. 调整地图大小
         gridMgr.ResizeMap(mapData.width, mapData.height);
+
+        // ✅ 分屏结构（开创人2026-11-07）：矩形模式Init前应用屏参数；自由拓扑先全铺建格、地形后挖真空再洪泛重算
+        bool hasScreens = mapData.screenWidths != null && mapData.screenWidths.Count > 0;
+        bool freeform = hasScreens && mapData.freeformScreens;
+        if (hasScreens && !freeform)
+        {
+            gridMgr.screenCount = Mathf.Max(1, mapData.screenCount);
+            gridMgr.screenWidths = mapData.screenWidths.ToArray();
+            gridMgr.screenHeights = mapData.screenHeights.Count == gridMgr.screenCount ? mapData.screenHeights.ToArray() : Enumerable.Repeat(mapData.height, gridMgr.screenCount).ToArray();
+            gridMgr.screenYOffsets = mapData.screenYOffsets.Count == gridMgr.screenCount ? mapData.screenYOffsets.ToArray() : new int[gridMgr.screenCount];
+            gridMgr.screenGap = mapData.screenGap;
+        }
+        if (freeform) gridMgr.screenCount = 1;   // 自由拓扑：先铺满矩形建格（真实拓扑由真空+洪泛恢复）
         gridMgr.Init();
 
         // 3. 加载地形
@@ -189,6 +202,34 @@ public partial class ExtraSave : Node
                 }
                 terrainIdx++;
             }
+        }
+
+
+        if (freeform)
+        {
+            // 按存档真空挖格（-1=无格）+ 洪泛重算屏号（连通块=屏，屏号不用存）
+            var deadCells = new List<Grids>();
+            int ti2 = 0;
+            for (int y = 0; y < mapData.height; y++)
+                for (int x = 0; x < mapData.width; x++)
+                {
+                    if (ti2 < mapData.terrainIds.Count && mapData.terrainIds[ti2] == -1)
+                    {
+                        var dg = gridMgr.map[x, y];
+                        if (dg != null) deadCells.Add(dg);
+                    }
+                    ti2++;
+                }
+            foreach (var dg in deadCells)
+            {
+                gridMgr.grids.Remove(dg);
+                gridMgr.map[dg.GridIndex.X, dg.GridIndex.Y] = null;
+                gridMgr.GridsNode.RemoveChild(dg);
+                dg.Free();
+            }
+            gridMgr.screenGap = mapData.screenGap;
+            gridMgr.freeformScreens = true;
+            gridMgr.RecalculateScreensFromCells();
         }
 
         // 4. 加载设施
