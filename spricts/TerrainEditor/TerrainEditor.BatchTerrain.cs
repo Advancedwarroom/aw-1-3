@@ -224,7 +224,7 @@ public partial class TerrainEditor
             }
             if(files.Count==0) // 兜底2: 索引清单
             {
-                using(var f=Godot.FileAccess.Open($"{TerrainStyleManager.CowRoot}/cow_index.txt",FileAccess.ModeFlags.Read))
+                using(var f=Godot.FileAccess.Open($"{TerrainStyleManager.CowRoot}/cow_index.txt",Godot.FileAccess.ModeFlags.Read))
                 {
                     if(f!=null)
                         foreach(var line in f.GetAsText().Split('\n',System.StringSplitOptions.RemoveEmptyEntries))
