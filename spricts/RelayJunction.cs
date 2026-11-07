@@ -11,6 +11,7 @@ public partial class RelayJunction : Facility
 {
     /// <summary>绑定的兵工厂锚点相对坐标（相对本格）；空=自动找最近的超级兵工厂</summary>
     [Export] public Godot.Collections.Array<Vector2I> boundFactoryOffsets = new();
+    [Export] public bool allowCrossScreenBind = true;   // 🌐 是否可跨屏绑定：false=兵工厂必须与本口同屏，跨屏不接管
 
     public override void _Ready()
     {
@@ -52,6 +53,7 @@ public partial class RelayJunction : Facility
             foreach (var f in factories)
             {
                 if (f.grid == null) continue;
+                if (!allowCrossScreenBind && !gm.gridManager.IsSameScreen(myIdx, f.grid.GridIndex)) continue;   // 🌐 异屏厂不接管
                 foreach (var off in boundFactoryOffsets)
                 {
                     if (f.grid.GridIndex == myIdx + off)
@@ -72,6 +74,7 @@ public partial class RelayJunction : Facility
             foreach (var f in factories)
             {
                 if (f.grid == null) continue;
+                if (!allowCrossScreenBind && !gm.gridManager.IsSameScreen(mine.GridIndex, f.grid.GridIndex)) continue;   // 🌐 自动最近也限同屏
                 float d = f.grid.GlobalPosition.DistanceSquaredTo(mine.GlobalPosition);
                 if (d < best) { best = d; nearest = f; }
             }

@@ -284,6 +284,27 @@ public partial class GridManager : Node
     
     }
 
+    // ✅ 跨屏判定：格子属于第几个屏（-1=真空/屏外）。绑定系统"是否可跨屏绑定"开关的判定入口
+    public int GetScreenIndexOf(Vector2I cell)
+    {
+        int n = GetScreenCount();
+        for (int k = 0; k < n; k++)
+        {
+            int sx = GetScreenStartX(k);
+            int yo = (screenYOffsets != null && k < screenYOffsets.Length) ? screenYOffsets[k] : 0;
+            int hh = (screenHeights != null && k < screenHeights.Length && screenHeights[k] > 0) ? screenHeights[k] : searchRange.Y;
+            int ww = (screenWidths != null && k < screenWidths.Length && screenWidths[k] > 0) ? screenWidths[k] : (searchRange.X / Mathf.Max(1, n));
+            if (cell.X >= sx && cell.X < sx + ww && cell.Y >= yo && cell.Y < yo + hh) return k;
+        }
+        return -1;
+    }
+
+    public bool IsSameScreen(Vector2I a, Vector2I b)
+    {
+        int sa = GetScreenIndexOf(a), sb = GetScreenIndexOf(b);
+        return sa >= 0 && sa == sb;
+    }
+
     // ✅ 每屏独立宽高加减（Extra配置·分屏调整）：宽锚 0左/1中/2右，高锚 0上/1中/2下（严格：底边/顶边真正钉死）
     // 高方向引入每屏Y偏移：下锚扩=顶边上移、内容原地不动（底边严格固定）；世界最小y<0时整体下移归一化
     // 收缩区有 单位/兵器/城市/传送端点 时整体拒绝

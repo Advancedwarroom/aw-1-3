@@ -53,6 +53,7 @@ public partial class GrandBolt : Weapon
     [Export] public string crystalTypeName = "Crystal";                  // 3.5护盾源类型名（默认黑水晶，可换任意兵器）
     [Export] public int[] shieldWeakPointIndices = new int[0];           // 3.5绑定表：每条绑定一项=被保护弱点序号（一弱点多源/一源多弱点均可）
     [Export] public Godot.Collections.Array<Vector2I> shieldSourceOffsets = new Godot.Collections.Array<Vector2I>();// 3.5与上一数组同序：护盾源格（相对锚点格）
+    [Export] public bool allowCrossScreenBind = true;   // 🌐 是否可跨屏绑定：false=护盾源必须与本雷同屏，跨屏源不保护
 
     // ========== 4. 中心大弱点（困兽犹斗模式）==========
     [ExportGroup("困兽犹斗（中心大弱点）")]
@@ -317,6 +318,7 @@ public partial class GrandBolt : Weapon
                     continue;   // 本次命中的不是这个绑定表里的弱点
                 var srcIndex = anchorIndex + shieldSourceOffsets[b];
                 if (srcIndex.X < 0 || srcIndex.Y < 0 || srcIndex.X >= gm.gridManager.searchRange.X || srcIndex.Y >= gm.gridManager.searchRange.Y) continue;
+                if (!allowCrossScreenBind && !gm.gridManager.IsSameScreen(anchorIndex, srcIndex)) continue;   // 🌐 异屏源不保护
                 var srcGrid = gm.gridManager.map[srcIndex.X, srcIndex.Y];
                 if (srcGrid == null) continue;
                 foreach (var w in srcGrid.weapons)
@@ -335,6 +337,7 @@ public partial class GrandBolt : Weapon
             {
                 var srcIndex = anchorIndex + shieldSourceOffsets[b];
                 if (srcIndex.X < 0 || srcIndex.Y < 0 || srcIndex.X >= gm.gridManager.searchRange.X || srcIndex.Y >= gm.gridManager.searchRange.Y) continue;
+                if (!allowCrossScreenBind && !gm.gridManager.IsSameScreen(anchorIndex, srcIndex)) continue;   // 🌐 异屏源不保护
                 var srcGrid = gm.gridManager.map[srcIndex.X, srcIndex.Y];
                 if (srcGrid == null) continue;
                 foreach (var w in srcGrid.weapons)

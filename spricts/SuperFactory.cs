@@ -50,6 +50,7 @@ public partial class SuperFactory : Weapon
 
     [ExportGroup("超级兵工厂 - 管道联动")]
     [Export] public Godot.Collections.Array<Vector2I> linkedSeamOffsets = new();  // 联动的管道接缝相对坐标（相对锚点格）
+    [Export] public bool allowCrossScreenBind = true;   // 🌐 是否可跨屏绑定：false=接缝必须与本厂同屏，跨屏接缝静默失效
     [Export] public bool losePowerWhenSeamsDestroyed = true;  // 接缝全毁→失去供能变中立
 
     [ExportGroup("超级兵工厂 - 缴获红利")]
@@ -204,6 +205,8 @@ public partial class SuperFactory : Weapon
         {
             int sx = anchor.X + offset.X, sy = anchor.Y + offset.Y;
             if (sx < 0 || sy < 0 || sx >= map.GetLength(0) || sy >= map.GetLength(1)) continue;
+            // 🌐 跨屏绑定开关：false 时异屏接缝不算数
+            if (!allowCrossScreenBind && !gm.gridManager.IsSameScreen(anchor, new Vector2I(sx, sy))) continue;
             var g = map[sx, sy];
             if (g == null) continue;
 
