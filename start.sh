@@ -27,11 +27,13 @@ fi
 if [ ! -x "$HOME/godot-editor/Godot.x86_64" ]; then
   echo "==> 下载 Godot ${GODOT_VERSION} .NET 版"
   mkdir -p "$HOME/godot-editor" && cd "$HOME/godot-editor"
+  rm -rf Godot_v*-stable_mono_linux_x86_64 godot.zip
   wget -q "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip" -O godot.zip
-  unzip -o godot.zip && rm godot.zip
-  BIN="$(ls Godot_v*_mono_linux.x86_64 | head -1)"
+  unzip -o -q godot.zip && rm godot.zip
+  BIN="$(find . -maxdepth 2 -type f -name 'Godot_v*_mono_linux.x86_64' | head -1)"
+  echo "==> 找到二进制: $BIN"
   chmod +x "$BIN"
-  ln -sf "$HOME/godot-editor/$BIN" "$HOME/godot-editor/Godot.x86_64"
+  ln -sf "$(realpath "$BIN")" "$HOME/godot-editor/Godot.x86_64"
 else
   echo "==> Godot 已就绪，跳过下载"
 fi
