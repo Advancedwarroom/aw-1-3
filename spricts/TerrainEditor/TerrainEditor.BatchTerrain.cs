@@ -123,8 +123,14 @@ public partial class TerrainEditor
         batchBiomeOption.ItemSelected+=idx=>{if(Enum.IsDefined(typeof(TerrainStyleManager.Biome),(int)idx))TerrainStyleManager.CurrentBiome=(TerrainStyleManager.Biome)(int)idx;};
         CreateBatchConfigRow("🧩 贴图配置",164,out batchVariantOption);
         batchVariantOption.ItemSelected+=OnBatchVariantSelected;
+        var rebakeLab=new Label();TranslateGroup.SetText(rebakeLab,"🔁 邻域重算");rebakeLab.AddThemeFontSizeOverride("font_size",12);
+        rebakeLab.AddThemeColorOverride("font_color",new Color(0.7f,0.85f,0.75f));rebakeLab.Position=new Vector2(16,200);
+        rebakeLab.Size=new Vector2(76,24);batchTerrainPanel.AddChild(rebakeLab);
+        var rebakeCheck=new CheckBox();rebakeCheck.Position=new Vector2(96,196);rebakeCheck.Size=new Vector2(28,28);
+        rebakeCheck.ButtonPressed=refreshNeighborDirectionAfterBrush;rebakeCheck.AddThemeFontSizeOverride("font_size",11);
+        rebakeCheck.Toggled+=on=>{refreshNeighborDirectionAfterBrush=on;};batchTerrainPanel.AddChild(rebakeCheck);
         var scroll=new ScrollContainer();
-        scroll.Position=new Vector2(10,200);scroll.Size=new Vector2(320,280);
+        scroll.Position=new Vector2(10,232);scroll.Size=new Vector2(320,248);
         scroll.HorizontalScrollMode=ScrollContainer.ScrollMode.Disabled;
 
         batchTerrainButtonContainer = new VBoxContainer();
