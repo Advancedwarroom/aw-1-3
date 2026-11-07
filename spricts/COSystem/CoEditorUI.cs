@@ -30,6 +30,7 @@ public partial class CoEditorUI : CanvasLayer
     private SpinBox addTurnsSpin;
     private OptionButton addDurationOpt;
     private OptionButton bindTeamOpt;
+    private OptionButton bindScreenOpt;   // 开创人2026-11-07：CO绑屏选择（0=不绑定/全屏通用）
     private FileDialog avatarDialog;
 
     /// <summary>当前编辑中的 CO（工作副本）</summary>
@@ -319,6 +320,21 @@ public partial class CoEditorUI : CanvasLayer
             bindTeamOpt.AddItem(t);
         bindTeamOpt.CustomMinimumSize = new Vector2(120, 30);
         bindRow.AddChild(bindTeamOpt);
+        var bindScreenLabel = new Label();
+        bindScreenLabel.Text = $"{TranslateGroup.T("绑定屏幕")}（{TranslateGroup.T("不绑定")}={TranslateGroup.T("全屏通用")}）";
+        bindScreenLabel.AddThemeFontSizeOverride("font_size", 12);
+        bindRow.AddChild(bindScreenLabel);
+        bindScreenOpt = new OptionButton();
+        bindScreenOpt.CustomMinimumSize = new Vector2(120, 30);
+        bindScreenOpt.AddThemeFontSizeOverride("font_size", 12);
+        bindScreenOpt.AddItem(TranslateGroup.T("不绑定（全屏通用）"));
+        {
+            var gmScr = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+            int scrN = gmScr?.gridManager != null ? Mathf.Max(1, gmScr.gridManager.screenCount) : 4;
+            for (int s = 0; s < scrN; s++)
+                bindScreenOpt.AddItem($"{TranslateGroup.T("屏")}{s + 1}");
+        }
+        bindRow.AddChild(bindScreenOpt);
         var bindBtn = new Button();
         TranslateGroup.SetText(bindBtn, "🔗 绑定（本局该势力立即使用此 CO）");
         bindBtn.CustomMinimumSize = new Vector2(280, 30);
@@ -537,7 +553,10 @@ public partial class CoEditorUI : CanvasLayer
         string team = bindTeamOpt.Selected >= 0
             ? new[] { "Player1", "Player2", "Player3", "Player4", "Player5", "Player6", "Player7", "Player8" }[bindTeamOpt.Selected]
             : "Player1";
-        CoModuleSystem.Register(team, editing.id);
+        int bs = bindScreenOpt != null ? bindScreenOpt.Selected - 1 : -1;
+        if (bs < 0) bs = -1;
+        CoModuleSystem.Register(team, editing.id, bs);   // 开创人2026-11-07：绑屏CO（-1=不绑定=全屏通用，绑屏失守即死）
+        GD.Print($"[CO] {team} 绑定 {editing.name}，屏幕: {(bs < 0 ? "全屏通用" : $"屏{bs + 1}")}");
         GD.Print($"[CO编辑器] {team} 已绑定 CO：{editing.name}（{editing.id}）");
     }
 
