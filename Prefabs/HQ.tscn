@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://spricts/HQ.cs" id="1_hq"]
-[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/HQ.tres" id="2_hq"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/HQ_cow.tres" id="2_hq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hq"]
 size = Vector2(33, 33)
@@ -18,6 +18,6 @@ shape = SubResource("RectangleShape2D_hq")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(16, 0)
-scale = Vector2(1.0, 1.12)
+scale = Vector2(1.0, 1.0)
 sprite_frames = ExtResource("2_hq")
 animation = &"P0HQ"

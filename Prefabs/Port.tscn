@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://lmb8ts6qp39xc"]
 
 [ext_resource type="Script" path="res://spricts/Port.cs" id="1_port"]
-[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Port.tres" id="2_anim"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Port_cow.tres" id="2_anim"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_port"]
 size = Vector2(33, 33)
@@ -21,7 +21,7 @@ shape = SubResource("RectangleShape2D_port")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=6861894616]
 position = Vector2(16, 16)
-scale = Vector2(0.99999994, 0.9166667)
+scale = Vector2(1.0, 1.0)
 offset = Vector2(0, -4)
 sprite_frames = ExtResource("2_anim")
 animation = &"P0Port"
