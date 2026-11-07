@@ -282,6 +282,7 @@ public partial class GameManager
         }
 
         weaponManager?.OnPhaseStart();
+        CoModuleSystem.CheckCoSurvival(TeamHelper.GetPhaseTeamName(turnPhase), this);   // ✅ CO绑屏：每相位查存活（开创人2026-11-07）
         // 关闭所有UI
         gridManager.CloseRange();
         gridManager.HideAttackRange();
