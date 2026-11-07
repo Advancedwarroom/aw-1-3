@@ -581,6 +581,7 @@ private void OpenSpawnMenu()
     isMenuOpen = true;
     currentSpawnMode = SpawnMode.None;
     isDestroyMode = false;
+    TranslateGroup.SetText(destroyModeBtn, "💀 销毁模式");   // ✅ 同步按钮文案（菜单开关会强制退销毁模式，文字不能留在"退出销毁"）
     selectedTemplatePath = "";
     DestroySpawnGhost();   // ✅ 打开菜单重置选择，销毁幽灵预览
     UpdateModeButtonStyles();
@@ -596,6 +597,7 @@ private void CloseSpawnMenu()
     spawnMenuPanel.Visible = false;
     currentSpawnMode = SpawnMode.None;
     isDestroyMode = false;
+    TranslateGroup.SetText(destroyModeBtn, "💀 销毁模式");   // ✅ 同步按钮文案（同 OpenSpawnMenu）
     selectedTemplatePath = "";
     DestroySpawnGhost();   // ✅ 关闭菜单（含ESC）时销毁幽灵预览
     if (directionSelector != null) directionSelector.Visible = false;
