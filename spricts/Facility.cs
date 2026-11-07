@@ -419,14 +419,32 @@ public partial class Facility : Node2D
     protected void PlayTeamAnimation()
     {
         var names = GetTeamAnimNames();
-        if (names == null || animSprite == null || !IsInstanceValid(animSprite) || animSprite.SpriteFrames == null) return;
+        if (names == null) return;
         var (neutral, red, blue) = names.Value;
         string anim = TeamHelper.PickTeamArt(facilityTeam, neutral, red, blue);
-        var frames = animSprite.SpriteFrames;
-        if (!frames.HasAnimation(anim)) anim = frames.HasAnimation(red) ? red : neutral;
-        if (!frames.HasAnimation(anim)) return;
-        if (animSprite.Animation != anim || !animSprite.IsPlaying()) animSprite.Play(anim);
-        animSprite.Modulate = Colors.White; // 旧版 P-1 用 Modulate 染色，现统一由 Shader 处理
+
+        // 单图层（原路径不变）
+        if (animSprite != null && IsInstanceValid(animSprite) && animSprite.SpriteFrames != null)
+        {
+            var frames = animSprite.SpriteFrames;
+            if (!frames.HasAnimation(anim)) anim = frames.HasAnimation(red) ? red : neutral;
+            if (!frames.HasAnimation(anim)) return;
+            if (animSprite.Animation != anim || !animSprite.IsPlaying()) animSprite.Play(anim);
+            animSprite.Modulate = Colors.White; // 旧版 P-1 用 Modulate 染色，现统一由 Shader 处理
+        }
+
+        // ✅ 双图层：Base/Normal 层用同名动画同步驱动（Base层灰阶mask随shader染势力色）
+        PlayOnLayer(baseAnimSprite, anim, neutral, red);
+        PlayOnLayer(normalAnimSprite, anim, neutral, red);
+    }
+
+    private static void PlayOnLayer(AnimatedSprite2D layer, string anim, string neutral, string red)
+    {
+        if (layer == null || !IsInstanceValid(layer) || layer.SpriteFrames == null) return;
+        var f = layer.SpriteFrames;
+        if (!f.HasAnimation(anim)) anim = f.HasAnimation(red) ? red : neutral;
+        if (!f.HasAnimation(anim)) return;
+        if (layer.Animation != anim || !layer.IsPlaying()) layer.Play(anim);
     }
     
     /// <summary>

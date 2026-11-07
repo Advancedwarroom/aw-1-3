@@ -1,0 +1,26 @@
+[gd_resource type="SpriteFrames" load_steps=7 format=3]
+
+[ext_resource type="Texture2D" path="res://art/Port/Port0_base.png" id="1"]
+[ext_resource type="Texture2D" path="res://art/Port/Port0_light_base.png" id="2"]
+[ext_resource type="Texture2D" path="res://art/Port/Port1_base.png" id="3"]
+[ext_resource type="Texture2D" path="res://art/Port/Port1_light_base.png" id="4"]
+[ext_resource type="Texture2D" path="res://art/Port/Port2_base.png" id="5"]
+[ext_resource type="Texture2D" path="res://art/Port/Port2_light_base.png" id="6"]
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 1.0, "texture": ExtResource("2")}],
+"loop": true,
+"name": &"P0Port",
+"speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("3")}, {"duration": 1.0, "texture": ExtResource("4")}],
+"loop": true,
+"name": &"portteam1",
+"speed": 2.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("5")}, {"duration": 1.0, "texture": ExtResource("6")}],
+"loop": true,
+"name": &"portteam2",
+"speed": 2.0
+}]

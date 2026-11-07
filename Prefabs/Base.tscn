@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://bxfqlc8iqrl0j" path="res://spricts/Base.cs" id="1_lv8qx"]
 [ext_resource type="SpriteFrames" uid="uid://bmv4ldmmpavya" path="res://asscets/AnimatedSprite/Base.tres" id="2_lv8qx"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Base_base.tres" id="dl_base"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Base_overlay.tres" id="dl_over"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bx6pw"]
 size = Vector2(33, 33)
@@ -21,3 +23,13 @@ position = Vector2(16, 3.9999986)
 scale = Vector2(0.99999994, 1.12)
 sprite_frames = ExtResource("2_lv8qx")
 animation = &"P0Base"
+
+[node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(16, 3.9999986)
+scale = Vector2(0.99999994, 1.12)
+visible = false
+sprite_frames = ExtResource("dl_base")
+
+[node name="NormalAnimSprite" type="AnimatedSprite2D" parent="BaseAnimSprite"]
+visible = false
+sprite_frames = ExtResource("dl_over")

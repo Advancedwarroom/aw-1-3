@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" uid="uid://di0deur6usdbg" path="res://spricts/City.cs" id="1_bx6pw"]
 [ext_resource type="SpriteFrames" uid="uid://8tnuhc1uw0tn" path="res://asscets/AnimatedSprite/City.tres" id="1_bxqij"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/City_base.tres" id="dl_base"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/City_overlay.tres" id="dl_over"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bx6pw"]
 size = Vector2(33, 33)
@@ -22,3 +24,13 @@ scale = Vector2(0.99999994, 0.9166667)
 sprite_frames = ExtResource("1_bxqij")
 animation = &"P0City"
 frame_progress = 0.935788
+
+[node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(16, 16)
+scale = Vector2(0.99999994, 0.9166667)
+visible = false
+sprite_frames = ExtResource("dl_base")
+
+[node name="NormalAnimSprite" type="AnimatedSprite2D" parent="BaseAnimSprite"]
+visible = false
+sprite_frames = ExtResource("dl_over")

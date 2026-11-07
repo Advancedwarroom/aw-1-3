@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" path="res://spricts/Lab.cs" id="1_lab"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Lab.tres" id="2_lab"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Lab_base.tres" id="dl_base"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Lab_overlay.tres" id="dl_over"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lab"]
 size = Vector2(33, 33)
@@ -21,3 +23,13 @@ position = Vector2(16, 0)
 scale = Vector2(1.0, 1.12)
 sprite_frames = ExtResource("2_lab")
 animation = &"P0Lab"
+
+[node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(16, 0)
+scale = Vector2(1.0, 1.12)
+visible = false
+sprite_frames = ExtResource("dl_base")
+
+[node name="NormalAnimSprite" type="AnimatedSprite2D" parent="BaseAnimSprite"]
+visible = false
+sprite_frames = ExtResource("dl_over")

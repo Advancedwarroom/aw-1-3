@@ -1,0 +1,34 @@
+[gd_resource type="SpriteFrames" load_steps=15 format=3]
+
+[ext_resource type="Texture2D" path="res://art/Base/Base13_overlay.png" id="1"]
+[ext_resource type="Texture2D" path="res://art/Base/Base14_overlay.png" id="2"]
+[ext_resource type="Texture2D" path="res://art/Base/Base1_overlay.png" id="3"]
+[ext_resource type="Texture2D" path="res://art/Base/Base2_overlay.png" id="4"]
+[ext_resource type="Texture2D" path="res://art/Base/Base3_overlay.png" id="5"]
+[ext_resource type="Texture2D" path="res://art/Base/Base4_overlay.png" id="6"]
+[ext_resource type="Texture2D" path="res://art/Base/Base5_overlay.png" id="7"]
+[ext_resource type="Texture2D" path="res://art/Base/Base6_overlay.png" id="8"]
+[ext_resource type="Texture2D" path="res://art/Base/Base7_overlay.png" id="9"]
+[ext_resource type="Texture2D" path="res://art/Base/Base8_overlay.png" id="10"]
+[ext_resource type="Texture2D" path="res://art/Base/Base9_overlay.png" id="11"]
+[ext_resource type="Texture2D" path="res://art/Base/Base10_overlay.png" id="12"]
+[ext_resource type="Texture2D" path="res://art/Base/Base11_overlay.png" id="13"]
+[ext_resource type="Texture2D" path="res://art/Base/Base12_overlay.png" id="14"]
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 1.0, "texture": ExtResource("2")}],
+"loop": true,
+"name": &"P0Base",
+"speed": 5.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("3")}, {"duration": 1.0, "texture": ExtResource("4")}, {"duration": 1.0, "texture": ExtResource("5")}, {"duration": 1.0, "texture": ExtResource("6")}, {"duration": 1.0, "texture": ExtResource("7")}, {"duration": 1.0, "texture": ExtResource("8")}],
+"loop": true,
+"name": &"baseteam1",
+"speed": 5.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("9")}, {"duration": 1.0, "texture": ExtResource("10")}, {"duration": 1.0, "texture": ExtResource("11")}, {"duration": 1.0, "texture": ExtResource("12")}, {"duration": 1.0, "texture": ExtResource("13")}, {"duration": 1.0, "texture": ExtResource("14")}],
+"loop": true,
+"name": &"baseteam2",
+"speed": 5.0
+}]
