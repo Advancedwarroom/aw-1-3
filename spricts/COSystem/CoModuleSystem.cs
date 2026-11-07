@@ -742,7 +742,7 @@ public static class CoModuleSystem
     /// <summary>模块23（外交）：结盟/解盟（运行时全局生效）</summary>
     public static void SetAlliance(string a, string b, bool allied) => TeamHelper.SetAlliance(a, b, allied);
 
-    /// <summary>模块6（多次移动加成）：全势力单位恢复可行动（Tag Power / 特殊模块用）</summary>
+    /// <summary>模块6（多次移动加成）：单位+兵器+设施+地形四层操作刷新（Tag Power / 切换CO用）</summary>
     public static void GrantTeamExtraTurn(string team)
     {
         var tree = (Engine.GetMainLoop() as SceneTree);
@@ -758,14 +758,27 @@ public static class CoModuleSystem
             i.SetWaitVisual(false);
             i.RestoreAnimAndBreath();
         }
-        // ✅ 设施行动状态（开创人2026-11-07：切换CO=全体恢复）——生产计数重置；中转口建造进度不动（防刷）
         foreach (var node in tree.GetNodesInGroup("grids"))
         {
-            if (node is not Grids g || g.city == null) continue;
-            if (g.city.facilityTeam != team) continue;
+            if (node is not Grids g) continue;
+
+            // ✅ 兵器层操作刷新（开创人2026-11-07）：与 WeaponManager.OnPhaseStart() 同款字段，只刷本队
+            if (g.weapon != null && GodotObject.IsInstanceValid(g.weapon) && g.weapon.team == team)
+            {
+                g.weapon.hasActed = false;
+                g.weapon.remainingAttacks = g.weapon.maxAttacksPerTurn;
+            }
+
+            // ✅ 设施行动状态（开创人2026-11-07：切换CO=全体恢复）——生产计数重置；中转口建造进度不动（防刷）
+            if (g.city == null || g.city.facilityTeam != team) continue;
             g.city.productionsThisTurn = 0;
             if (g.weapon is SuperFactory sf) sf.portUsedThisTurn = new bool[8];   // BHF三口重新充能（BHF是兵器不是设施）
         }
+
+        // ✅ 地形层操作刷新（开创人2026-11-07规矩：Tag=四层全刷）——重放回合切换时的六步地形结算（本队）
+        // ⚠️ 平衡注意：治疗地形会回第二次血、伤害地形会掉第二次血；要区分就进 ApplyTerrainDamageToAllUnits 加开关
+        var gm = tree.GetFirstNodeInGroup("game_manager") as GameManager;
+        gm?.ApplyTerrainDamageToAllUnits(team);
     }
 
     static int PowerDuration(CoTeamState st, CoPowerMode mode)
