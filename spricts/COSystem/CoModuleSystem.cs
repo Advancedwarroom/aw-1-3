@@ -9,6 +9,8 @@ public class CoTeamState
 {
     public CoProfile profile;
     public List<CoProfile> partners = new();  // ✅ 配合模块：Tag Power 搭档 CO（合体技）
+        public int boundScreen = -1;          // 开创人2026-11-07：绑屏CO（-1=不绑定=全屏通用）
+        public bool isDead = false;             // CO死亡：效果全灭（GetState对死亡返回null，全链路自动失效）
     public float charge = 0f;            // 能量条（星数 = charge；全队共享）
     public CoPowerMode powerMode = CoPowerMode.Off;
     public int powerTurnsLeft = 0;      // 大招剩余己方回合数
@@ -116,7 +118,7 @@ public static class CoModuleSystem
     }
 
     /// <summary>给势力绑定 CO（开局/选将时调用）</summary>
-    public static void Register(string team, string coId)
+    public static void Register(string team, string coId, int boundScreen = -1)
     {
         EnsureLoaded();
         if (!Profiles.TryGetValue(coId, out var p))
@@ -124,8 +126,39 @@ public static class CoModuleSystem
             GD.PrintErr($"[CO] 档案不存在：{coId}");
             return;
         }
-        Teams[team] = new CoTeamState { profile = p };
+        Teams[team] = new CoTeamState { profile = p, boundScreen = boundScreen };
         GD.Print($"[CO] {team} 绑定 CO：{p.name}（{p.id}）");
+    }
+
+    // ---------- 开创人2026-11-07：CO绑屏与死亡 ----------
+    /// <summary>CO存活检查：绑屏CO——绑定屏内己方建筑归零=屏失守=CO死亡；
+    /// 不绑定（全屏通用）——全部屏都无己方建筑=势力全屏失败才死。建议每相位调用。</summary>
+    public static void CheckCoSurvival(string team, GameManager gm)
+    {
+        var st = GetState(team);
+        if (st == null || gm?.gridManager?.grids == null) return;
+        int onScreen = 0, total = 0;
+        foreach (var g in gm.gridManager.grids)
+        {
+            if (g?.city == null || g.city.facilityTeam != team) continue;
+            total++;
+            if (gm.gridManager.GetScreenId(g.GridIndex) == st.boundScreen) onScreen++;
+        }
+        if (st.boundScreen >= 0)
+        {
+            if (onScreen == 0) KillCo(team, $"屏{st.boundScreen + 1}失守");
+        }
+        else if (total == 0) KillCo(team, "势力全屏失败");
+    }
+
+    private static void KillCo(string team, string reason)
+    {
+        if (!Teams.TryGetValue(team, out var st) || st.isDead) return;
+        st.isDead = true;
+        st.powerMode = CoPowerMode.Off;
+        st.powerTurnsLeft = 0;
+        st.partners.Clear();
+        GD.PrintErr($"[CO] ☠ {team} 的CO {st.profile?.name ?? "?"} 死亡：{reason}（效果即刻失效，技能栏消失）");
     }
 
     /// <summary>配合模块：给势力追加 Tag Power 搭档 CO</summary>
@@ -149,7 +182,7 @@ public static class CoModuleSystem
     public static void Unregister(string team) => Teams.Remove(team);
     public static bool HasCo(string team) => team != null && Teams.TryGetValue(team, out var s) && s.profile != null;
     public static CoTeamState GetState(string team) => string.IsNullOrEmpty(team) ? null
-        : Teams.TryGetValue(team, out var s) ? s : null;
+        : Teams.TryGetValue(team, out var s) ? (s.isDead ? null : s) : null;   // ✅ 死亡CO对全系统隐身
     public static CoProfile GetProfile(string team) => GetState(team)?.profile;
 
     // ---------- 模块取值核心 ----------
