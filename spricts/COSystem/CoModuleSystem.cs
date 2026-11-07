@@ -758,6 +758,14 @@ public static class CoModuleSystem
             i.SetWaitVisual(false);
             i.RestoreAnimAndBreath();
         }
+        // ✅ 设施行动状态（开创人2026-11-07：切换CO=全体恢复）——生产计数重置；中转口建造进度不动（防刷）
+        foreach (var node in tree.GetNodesInGroup("grids"))
+        {
+            if (node is not Grids g || g.city == null) continue;
+            if (g.city.facilityTeam != team) continue;
+            g.city.productionsThisTurn = 0;
+            if (g.city is SuperFactory sf) sf.portUsedThisTurn = new bool[8];   // BHF三口重新充能
+        }
     }
 
     static int PowerDuration(CoTeamState st, CoPowerMode mode)
