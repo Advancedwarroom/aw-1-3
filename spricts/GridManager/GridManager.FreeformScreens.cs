@@ -56,4 +56,65 @@ public partial class GridManager
         }
         return n;
     }
+
+    // ———— 画笔增删格子（开创人2026-11-07：不要地图边界，外面无限拓展）————
+
+    /// <summary>在指定坐标增格；界外自动平移原点+重映射全图索引（无负坐标、世界位置不变），可无限拓展</summary>
+    public Grids AddCellAt(Vector2I idx, GridType type = GridType.GROUND)
+    {
+        if (map == null) return null;
+        if (idx.X >= 0 && idx.Y >= 0 && idx.X < searchRange.X && idx.Y < searchRange.Y)
+        {
+            var ex = GetGridAt(idx);
+            return ex != null ? ex : CreateCell(idx, type);
+        }
+        // 界外拓展：原点平移 shift，全图索引重映射，数组扩容
+        int shiftX = Mathf.Max(0, -idx.X), shiftY = Mathf.Max(0, -idx.Y);
+        int newW = Mathf.Max(searchRange.X, idx.X + 1) + shiftX;
+        int newH = Mathf.Max(searchRange.Y, idx.Y + 1) + shiftY;
+        var newMap = new Grids[newW, newH];
+        foreach (var g in grids)
+        {
+            if (g == null) continue;
+            var ni = g.GridIndex + new Vector2I(shiftX, shiftY);
+            g.GridIndex = ni;
+            g.Name = $"Grid_{ni.X}_{ni.Y}";
+            g.Position = startPos + new Vector2(ni.X * gridSize.X, ni.Y * gridSize.Y);
+            newMap[ni.X, ni.Y] = g;
+        }
+        startPos -= new Vector2(shiftX * gridSize.X, shiftY * gridSize.Y);   // 已有格子世界位置不动
+        map = newMap;
+        searchRange = new Vector2I(newW, newH);
+        return CreateCell(idx + new Vector2I(shiftX, shiftY), type);
+    }
+
+    private Grids CreateCell(Vector2I idx, GridType type)
+    {
+        var scene = GD.Load<PackedScene>("res://Prefabs/grid.tscn") ?? GD.Load<PackedScene>("res://grid.tscn");
+        if (scene == null) return null;
+        var grid = scene.Instantiate<Grids>();
+        grid.gridType = type;
+        grid.GridIndex = idx;
+        grid.Name = $"Grid_{idx.X}_{idx.Y}";
+        grid.Position = startPos + new Vector2(idx.X * gridSize.X, idx.Y * gridSize.Y);
+        GridsNode.AddChild(grid);
+        map[idx.X, idx.Y] = grid;
+        grids.Add(grid);
+        return grid;
+    }
+
+    /// <summary>扣格：有单位/兵器/设施占据时拒绝（防误拆）；成功后格子移除</summary>
+    public bool RemoveCellAt(Vector2I idx, out string error)
+    {
+        error = null;
+        var g = GetGridAt(idx);
+        if (g == null) { error = TranslateGroup.T("该处无格子"); return false; }
+        if (g.infantry != null || g.weapon != null || g.city != null)
+        { error = TranslateGroup.T("格子上还有单位/兵器/设施，先移走再扣"); return false; }
+        grids.Remove(g);
+        map[idx.X, idx.Y] = null;
+        GridsNode.RemoveChild(g);
+        g.Free();
+        return true;
+    }
 }
