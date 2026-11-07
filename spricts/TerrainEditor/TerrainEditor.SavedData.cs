@@ -22,7 +22,9 @@ public partial class TerrainEditor
         // 确认对话框
         var confirm = new ConfirmationDialog();
         confirm.Title = TranslateGroup.T("⚠️ 确认生成新地图");
-        confirm.DialogText = $"{TranslateGroup.T("将生成")} {width}×{height} × {screens} {TranslateGroup.T("屏的新地图，")}\n{TranslateGroup.T("当前所有单位、兵器、设施将被清空！")}\n\n{TranslateGroup.T("是否继续？")}";
+        int dlgW = (screenWidths != null && screenWidths.Length == screens) ? screenWidths.Sum() + (screens - 1) * gridManager.screenGap : width * screens;
+        int dlgH = (screenHeights != null && screenHeights.Length == screens) ? screenHeights.Max() : height;
+        confirm.DialogText = $"{TranslateGroup.T("将生成")} {screens} {TranslateGroup.T("屏")}（{TranslateGroup.T("总宽")} {dlgW} × {TranslateGroup.T("总高")} {dlgH}）{TranslateGroup.T("的新地图，当前所有单位、兵器、设施将被清空！")}";
         confirm.Size = new Vector2I(400, 200);
         confirm.Confirmed += () => {
             confirm.QueueFree();
@@ -54,8 +56,9 @@ public partial class TerrainEditor
             if (gridManager.screenWidths.Length > 0) { foreach (var sw in gridManager.screenWidths) totalWidth += Math.Max(1, sw); }
             else totalWidth = width * gridManager.screenCount;
             totalWidth += gap * (gridManager.screenCount - 1);   // ✅ 屏间间隔带宽度（真分离）
-            int totalHeight = height;
-            if (gridManager.screenHeights.Length > 0) { totalHeight = 1; foreach (var sh in gridManager.screenHeights) totalHeight = Math.Max(totalHeight, sh); }
+            // 总高=各屏高度最大值（不拿全局高兜底——开创人2026-11-07：全局兜底导致矮屏被拉成一致高）
+            int totalHeight = (gridManager.screenHeights.Length > 0) ? 1 : height;
+            foreach (var sh in gridManager.screenHeights) totalHeight = Math.Max(totalHeight, sh);
 
             // 调整地图大小
             gridManager.ResizeMap(totalWidth, totalHeight);
@@ -72,12 +75,29 @@ public partial class TerrainEditor
                 }
             }
 
+
+            // ✅ 屏外挖真空：以引擎自己的 IsInsideAnyScreen 为准——间隔带/矮屏下方/Y偏移悬空区一律无格子（真物理分离）
+            if (gridManager.screenCount > 1)
+            {
+                var outside = new System.Collections.Generic.List<Grids>();
+                foreach (var g in gridManager.grids)
+                    if (g != null && !gridManager.IsInsideAnyScreen(g.GridIndex.X, g.GridIndex.Y))
+                        outside.Add(g);
+                foreach (var g in outside)
+                {
+                    gridManager.grids.Remove(g);
+                    gridManager.map[g.GridIndex.X, g.GridIndex.Y] = null;
+                    g.QueueFree();
+                }
+                if (outside.Count > 0) gridManager.RefreshScreenIds();   // 挖空后重刷屏归属
+            }
+
             // 重置游戏状态
             gameManager?.ResetGameState();
             gameManager?.UpdateUnitLists();
             gameManager?.RefreshSpecializedUnitLists();
 
-            ShowImportHint($"✅ {TranslateGroup.T("地图生成成功")}！\n{TranslateGroup.T("尺寸")}: {width}×{height} × {gridManager.screenCount}{TranslateGroup.T("屏（总宽")}{totalWidth}{TranslateGroup.T("）")}");
+            ShowImportHint($"✅ {TranslateGroup.T("地图生成成功")}！\n{TranslateGroup.T("总尺寸")}: {totalWidth}×{totalHeight} × {gridManager.screenCount} {TranslateGroup.T("屏")}");
         }
         catch (Exception ex)
         {
