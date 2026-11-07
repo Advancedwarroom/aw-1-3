@@ -63,17 +63,21 @@ public partial class GrandBoltVisual : Node2D
     }
 
     /// <summary>CoW正统换色: 编码资产+(R,G)查colortable LUT; team变更多节点同步重套材质</summary>
+    private ShaderMaterial lutCache;
+    /// <summary>✅ 每帧重断言: Weapon基类换色流程会事后覆盖子节点材质(GetBaseLayerMaterial等), 早退式缓存会让GB_Base被覆盖成中立lut——改为每帧强制重挂当前势力lut(查表仍按team缓存)</summary>
     private void ApplyTeamMaterial(bool force = false)
     {
         var w = GetParent() as Weapon;
         string t = w?.team ?? "neutral";
-        if (!force && t == lastTeam) return;
-        lastTeam = t;
-        var lut = FactionPaletteManager.GetCowLutMaterial(t);
-        if (lut == null) return;
-        baseSprite.Material = (ShaderMaterial)lut.Duplicate();
+        if (t != lastTeam || lutCache == null || force)
+        {
+            lastTeam = t;
+            lutCache = FactionPaletteManager.GetCowLutMaterial(t);
+        }
+        if (lutCache == null) return;
+        baseSprite.Material = (ShaderMaterial)lutCache.Duplicate();
         foreach (var p in pointSprites)
-            p.Material = (ShaderMaterial)lut.Duplicate();
+            if (p != null) p.Material = (ShaderMaterial)lutCache.Duplicate();
     }
 
     private void ApplyDirection()
