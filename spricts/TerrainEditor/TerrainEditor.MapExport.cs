@@ -54,7 +54,6 @@ public partial class TerrainEditor
         // ✅ issue#1 区域天气：总开关+基底+格子栈随图导出（WeatherStacks 行为 x,y,typeId,turns,replaceSunny;... ）
         var wmExport = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
         sb.AppendLine($"LocalWeather: {((wmExport != null && wmExport.localWeatherEnabled) ? "On" : "Off")}");
-        sb.AppendLine($"BaseWeather: {wmExport?.baseWeatherId ?? 0}");
         sb.AppendLine($"WeatherStacks: {wmExport?.SerializeStacks() ?? ""}");
         sb.AppendLine();
 

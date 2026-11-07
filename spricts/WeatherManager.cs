@@ -1,7 +1,8 @@
 // WeatherManager.cs - 区域天气系统（格战模块二十四）
 // 需求源：Advancedwarroom/Commander_Wars issue#1（区域天气）
-// 设计：全球基底天气（baseWeatherId）+ 格子级天气栈（同类不叠=续时长，异类最多4层，
-//       单层可标记"替代基底为晴"）。AI 与玩家走同一套静态查询，效果只读不改实际数值。
+// 设计：格子级天气栈（同类不叠=续时长，异类最多4层，单层可标记"替代全球天气为晴"）。
+//       ✅ 2026-11-07 拍板：基底天气废除，全球天气只听 CO（WeatherSystem.Current，CO技能/轮换）；
+//       区域天气不受任何 CO 技能/免疫影响（weatherImmune 只管全球天气）。无层格子回退全球。
 // 注意：本文件只做"数据与查询"；效果接入点见 docs 侧《INTEGRATION_天气.md》（grep 口诀清单）。
 using Godot;
 using System;
@@ -23,7 +24,7 @@ public class RegionalWeatherType
     public int minFireRangeDelta = 0; // 最小射程增量
     public int visionDelta = 0;       // 视野增量
     public int fuelCostDelta = 0;     // 每格燃料消耗增量
-    // 该区域层是否把本格基底天气视为晴（issue：替代基底的晴选项）
+    // 该区域层是否把本格全球天气视为晴（issue：替代全球天气的晴选项）
     public bool replaceBaseWithSunny = false;
     // 生效/失效回调（mod 扩展用，可空）
     public Action onActivate;
@@ -44,7 +45,6 @@ public partial class WeatherManager : Node
 
     [ExportGroup("区域天气总开关")]
     [Export] public bool localWeatherEnabled = false;  // 地图设置勾选（= issue 的 ☑️ Enable Local Weather）
-    [Export] public int baseWeatherId = 0;             // 全球基底天气（0=晴）
     [Export] public bool weatherAffectsAI = true;      // AI 寻路/决策计入天气（issue 要求；关闭则 AI 按晴算）
 
     // 类型注册表 + 格子级天气栈
@@ -121,16 +121,6 @@ public partial class WeatherManager : Node
         return cellStacks.TryGetValue(cell, out var s) ? s : (IReadOnlyList<RegionalWeatherLayer>)Array.Empty<RegionalWeatherLayer>();
     }
 
-    /// <summary>有效天气判定（CO 天气检查走这里）：区域层优先，无层回退基底；显式转晴返回0</summary>
-    public int GetEffectiveWeatherIdAt(Vector2I cell)
-    {
-        if (!localWeatherEnabled) return baseWeatherId;
-        var layers = GetLayersAt(cell);
-        if (layers.Count == 0) return baseWeatherId;
-        if (layers.Any(l => l.replaceBaseSunny)) return 0;   // 替代基底=晴
-        return layers[0].typeId;                              // 顶层优先
-    }
-
     // ========== 与模块15（全球天气）的融合查询（issue#1）==========
     /// <summary>区域层→模块15天气枚举（内建ID对齐：0晴1雨2雪3沙暴4雾）；无层/未启用/自定义类型返回null=回退全球</summary>
     public static WeatherType? GetRegionalWeatherAt(Vector2I cell)
@@ -145,20 +135,13 @@ public partial class WeatherManager : Node
         return (WeatherType)id;
     }
 
-    // ========== 效果聚合（基底 + 各层一起算；显式转晴则剔除基底）==========
+    // ========== 效果聚合（纯区域各层；基底已废除——全球天气归 WeatherSystem/CO 管）==========
     private List<RegionalWeatherType> GetActiveTypesAt(Vector2I cell, bool forAI)
     {
         var result = new List<RegionalWeatherType>();
         if (forAI && !weatherAffectsAI) return result;   // AI 开关：关闭=按无天气算
         if (!localWeatherEnabled) return result;
-        var layers = GetLayersAt(cell);
-        bool baseReplaced = layers.Any(l => l.replaceBaseSunny);
-        if (!baseReplaced && baseWeatherId != 0)
-        {
-            var b = GetRegionalWeatherType(baseWeatherId);
-            if (b != null) result.Add(b);
-        }
-        foreach (var l in layers)
+        foreach (var l in GetLayersAt(cell))
         {
             var t = GetRegionalWeatherType(l.typeId);
             if (t != null) result.Add(t);
@@ -246,7 +229,7 @@ public partial class WeatherManager : Node
     {
         if (!localWeatherEnabled) return "";
         var layers = GetLayersAt(cell);
-        if (layers.Count == 0) return baseWeatherId != 0 ? GetRegionalWeatherType(baseWeatherId)?.name : "";
+        if (layers.Count == 0) return "";   // ✅ 无层=听全球天气（CO），区域 UI 不显示
         return string.Join("+", layers.Select(l =>
         {
             var t = GetRegionalWeatherType(l.typeId);

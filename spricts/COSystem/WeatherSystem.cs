@@ -114,7 +114,7 @@ public static class WeatherSystem
         => WeatherManager.GetRegionalWeatherAt(cell) ?? current;
 
     // ✅ issue#1 区域天气·多层聚合接管：≥2层 或 含自定义类型(>4) 时，
-    // 内建单层已由 EffectiveAt 桥接枚举覆盖；多层/自定义改走 WeatherManager 聚合（基底+各层乘区/增量一起算）
+    // 内建单层已由 GetRegionalWeatherAt 桥接枚举覆盖；多层/自定义改走 WeatherManager 聚合（纯区域各层乘区/增量）
     static bool RegionalAggregateTakesOver(Vector2I cell, out WeatherManager wm)
     {
         wm = WeatherManager.Instance;
@@ -125,13 +125,22 @@ public static class WeatherSystem
         return true;
     }
 
-    /// <summary>视野修正：雨-1 / 雾-2（按观察单位所在格的天气）</summary>
+    /// <summary>视野修正：雨-1 / 雾-2（按观察单位所在格）。区域天气层不受 CO 技能/免疫影响（2026-11-07 拍板）；全球天气听 CO</summary>
     public static int GetVisionModifier(Infantry unit)
     {
+        if (unit?.grid != null)
+        {
+            if (RegionalAggregateTakesOver(unit.grid.GridIndex, out var wm)) return wm.GetVisionDelta(unit.grid.GridIndex);   // 多层/自定义区域层：免疫不适用
+            var rw = WeatherManager.GetRegionalWeatherAt(unit.grid.GridIndex);
+            if (rw != null) return rw switch   // 单层内建区域层（含显式转晴）：免疫不适用，且屏蔽全球天气
+            {
+                WeatherType.Rain => -1,
+                WeatherType.Mist => -2,
+                _ => 0,
+            };
+        }
         if (IsImmune(unit)) return 0;
-        if (unit?.grid != null && RegionalAggregateTakesOver(unit.grid.GridIndex, out var wm)) return wm.GetVisionDelta(unit.grid.GridIndex);   // ✅ 区域多层/自定义聚合接管
-        var w = unit?.grid != null ? EffectiveAt(unit.grid.GridIndex) : current;
-        return w switch
+        return current switch
         {
             WeatherType.Rain => -1,
             WeatherType.Mist => -2,
@@ -139,13 +148,23 @@ public static class WeatherSystem
         };
     }
 
-    /// <summary>移动消耗修正：雪+1（按目标格的天气；道路/桥/轨道/传送门/建筑格与空军除外）</summary>
+    /// <summary>移动消耗修正：雪+1（按目标格；道路/桥/轨道/传送门/建筑格与空军除外）。区域天气层不受 CO 技能/免疫影响；全球天气听 CO</summary>
     public static int GetMovementCostModifier(Infantry unit, Grids g)
     {
+        if (g != null)
+        {
+            if (RegionalAggregateTakesOver(g.GridIndex, out var wm)) return wm.GetMoveCostDelta(g.GridIndex);   // 多层/自定义区域层（调用点 Mathf.Max(1,…) 保底）
+            var rw = WeatherManager.GetRegionalWeatherAt(g.GridIndex);
+            if (rw.HasValue)   // 单层内建区域层（含显式转晴）：免疫不适用，豁免表照跑，且屏蔽全球天气
+            {
+                if (rw.Value != WeatherType.Snow) return 0;
+                if (unit is { IsAirUnit: true }) return 0;
+                if (g.city != null) return 0;   // 建筑格
+                return ExemptSnowTerrain(g.gridType) ? 0 : 1;
+            }
+        }
         if (IsImmune(unit)) return 0;
-        if (g != null && RegionalAggregateTakesOver(g.GridIndex, out var wm)) return wm.GetMoveCostDelta(g.GridIndex);   // ✅ 区域多层/自定义聚合接管（调用点 Mathf.Max(1,…) 保底）
-        var w = g != null ? EffectiveAt(g.GridIndex) : current;
-        if (w != WeatherType.Snow) return 0;
+        if (current != WeatherType.Snow) return 0;
         if (unit is { IsAirUnit: true }) return 0;
         if (g == null) return 0;
         if (g.city != null) return 0;   // 建筑格
@@ -161,21 +180,29 @@ public static class WeatherSystem
     };
     static bool ExemptSnowTerrain(GridType t) => SnowExempt.Contains(t);
 
-    /// <summary>攻击百分比修正：沙暴-15%（按攻击单位所在格的天气）</summary>
+    /// <summary>攻击百分比修正：沙暴-15%（按攻击单位所在格）。区域天气层不受 CO 技能/免疫影响；全球天气听 CO</summary>
     public static float GetOffenseModifierPercent(Infantry unit)
     {
+        if (unit?.grid != null)
+        {
+            if (RegionalAggregateTakesOver(unit.grid.GridIndex, out var wm)) return (wm.GetAttackPercent(unit.grid.GridIndex) - 1000) / 10f;   // 多层/自定义区域层（千分制→百分制）
+            var rw = WeatherManager.GetRegionalWeatherAt(unit.grid.GridIndex);
+            if (rw.HasValue) return rw.Value == WeatherType.Sandstorm ? -15f : 0f;   // 单层内建区域层（含显式转晴）：免疫不适用，且屏蔽全球天气
+        }
         if (IsImmune(unit)) return 0f;
-        if (unit?.grid != null && RegionalAggregateTakesOver(unit.grid.GridIndex, out var wm)) return (wm.GetAttackPercent(unit.grid.GridIndex) - 1000) / 10f;   // ✅ 区域多层/自定义聚合接管（千分制→百分制）
-        var w = unit?.grid != null ? EffectiveAt(unit.grid.GridIndex) : current;
-        return w != WeatherType.Sandstorm ? 0f : -15f;
+        return current != WeatherType.Sandstorm ? 0f : -15f;
     }
 
-    /// <summary>射程修正：沙暴-1（按攻击单位所在格的天气）</summary>
+    /// <summary>射程修正：沙暴-1（按攻击单位所在格）。区域天气层不受 CO 技能/免疫影响；全球天气听 CO</summary>
     public static int GetFireRangeModifier(Infantry unit)
     {
+        if (unit?.grid != null)
+        {
+            if (RegionalAggregateTakesOver(unit.grid.GridIndex, out var wm)) return wm.GetFireRangeDelta(unit.grid.GridIndex);   // 多层/自定义区域层
+            var rw = WeatherManager.GetRegionalWeatherAt(unit.grid.GridIndex);
+            if (rw.HasValue) return rw.Value == WeatherType.Sandstorm ? -1 : 0;   // 单层内建区域层（含显式转晴）：免疫不适用，且屏蔽全球天气
+        }
         if (IsImmune(unit)) return 0;
-        if (unit?.grid != null && RegionalAggregateTakesOver(unit.grid.GridIndex, out var wm)) return wm.GetFireRangeDelta(unit.grid.GridIndex);   // ✅ 区域多层/自定义聚合接管
-        var w = unit?.grid != null ? EffectiveAt(unit.grid.GridIndex) : current;
-        return w != WeatherType.Sandstorm ? 0 : -1;
+        return current != WeatherType.Sandstorm ? 0 : -1;
     }
 }

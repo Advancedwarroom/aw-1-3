@@ -145,9 +145,8 @@ public class SavedMapData
     public int width = 0;
     public int height = 0;
     public bool fogOfWarEnabled = false;
-    // ✅ issue#1 区域天气存档（开关+基底+格子栈序列化串）
+    // ✅ issue#1 区域天气存档（开关+格子栈序列化串；基底已废除，全球天气只听 CO）
     public bool localWeatherEnabled = false;
-    public int baseWeatherId = 0;
     public string weatherStacks = "";
 
     // 地形矩阵

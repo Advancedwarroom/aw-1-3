@@ -227,7 +227,6 @@ public partial class ExtraSave : Node
         if (wmLoad != null)
         {
             wmLoad.localWeatherEnabled = mapData.localWeatherEnabled;
-            wmLoad.baseWeatherId = mapData.baseWeatherId;
             wmLoad.DeserializeStacks(mapData.weatherStacks);
         }
 
