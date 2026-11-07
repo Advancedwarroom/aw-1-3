@@ -59,10 +59,8 @@ public partial class Gate : Weapon
     protected override void ApplyPaletteMaterial()
     {
         if (animSprite == null || !IsInstanceValid(animSprite)) return;
-        var lut = FactionPaletteManager.GetCowLutMaterial(team);
-        if (lut == null) return;
-        // 独立副本: 避免待机变暗 tone 污染共享缓存材质
-        animSprite.Material = (ShaderMaterial)lut.Duplicate();
+        // ✅ 2026-11: Gate改固定彩画(黄黑防护栏+红门, 取自CoW gate双文件按官方shader反解, 用户预期图验收)——plain RGBA不再过LUT(mode2/LUT对固定画都是误判), Material=null直出
+        animSprite.Material = null;
     }
 
     /// <summary>通行判定：被毁/血尽→全通行；关闭→封死；否则按白名单</summary>
