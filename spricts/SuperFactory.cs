@@ -600,7 +600,9 @@ public partial class SuperFactory : Weapon
             // 贴图规矩：橙星/蓝月=烘焙原色不叠材质；中立皮=LUT随势力换色（材质贴在真正显示的节点上）
             if (anim == "Neutral")
             {
-                var mat = FactionPaletteManager.GetMaterial(team);
+                // ✅ 中立皮=纯灰模（实测 R=G=B=126，红色相像素 0%）——必须走 mode3 灰度重着色；
+                //    GetMaterial 是 mode2 模板色表（抓红/蓝模板色相像素），对灰模零作用=灰模原样输出
+                var mat = FactionPaletteManager.GetGrayscaleMaterial(team);
                 spr.Material = mat != null ? (ShaderMaterial)mat.Duplicate() : null;
             }
             else spr.Material = null;

@@ -197,6 +197,8 @@ public partial class TerrainEditor
             dr2.direction = (BlackCannon.CannonDirection)data.direction;
         else if (weapon is LargeCannon lc2)
             lc2.direction = (BlackCannon.CannonDirection)data.direction;
+        else if (weapon is SuperFactory sf2)   // ✅ BHF: 开局/加载恢复存档方向（原缺，开局永远 Down）
+            sf2.direction = (BlackCannon.CannonDirection)data.direction;
 
         weapon.hasActed = false;
         weapon.Position = grid.Position;

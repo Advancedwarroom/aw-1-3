@@ -304,6 +304,8 @@ private void SpawnWeaponAtGrid(Grids grid, string scenePath, string team)
             };
             gc.UpdateDirectionVisual();
         }
+        if (weapon is SuperFactory sf)   // ✅ BHF: 方向选择器四向（原缺分支，放置永远默认 Down）
+            sf.direction = pendingCannonDirection;
         ApplySavedWeaponData(weapon);
         gameManager.UpdateUnitLists();
 

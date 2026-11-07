@@ -311,9 +311,16 @@ public partial class EditorSaveSlots : Node
             sizeY = weapon.size.Y,
             fieldValues = SerializeObjectFields(weapon)
         };
+        // ✅ direction 可能是字段（BlackCannon）也可能是属性（SuperFactory）——property 时 GetField 返回 null 会静默丢方向
         var dirField = weapon.GetType().GetField("direction", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
         if (dirField != null)
             data.direction = (int)dirField.GetValue(weapon);
+        else
+        {
+            var dirProp = weapon.GetType().GetProperty("direction", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            if (dirProp != null && dirProp.PropertyType == typeof(BlackCannon.CannonDirection))
+                data.direction = (int)dirProp.GetValue(weapon);
+        }
         return data;
     }
 
