@@ -84,7 +84,7 @@ public partial class GridManager
         }
         startPos -= new Vector2(shiftX * gridSize.X, shiftY * gridSize.Y);   // 已有格子世界位置不动
         map = newMap;
-        searchRange = new Vector2I(newW, newH);
+        searchRange = new Vector2(newW, newH);   // searchRange为Vector2
         return CreateCell(idx + new Vector2I(shiftX, shiftY), type);
     }
 
