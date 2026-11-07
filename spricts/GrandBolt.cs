@@ -382,7 +382,7 @@ public partial class GrandBolt : Weapon
                     if (centerWeakPointHealth <= 0)
                     {
                         centerWeakPointHealth = 0;
-                        base.TakeDamage(99999);   // 中心大弱点摧毁=本体直接销毁，啥也不剩
+                        EnterFinalDeath();   // ✅ 核心被摧毁：先演终局（核心死切片），再结算移除
                     }
                     return;
                 }
@@ -391,8 +391,31 @@ public partial class GrandBolt : Weapon
         base.TakeDamage(damage);
     }
 
+    [Export] public float finalDeathDelay = 1.5f;   // 核心摧毁后终局演出时长（秒）
+    private bool _finalDeathStarted = false;
+
+    // ✅ 终局演出：核心死切片上屏+动画定格，延迟后走正规死亡结算（dead 终局贴图终于能上屏）
+    private async void EnterFinalDeath()
+    {
+        if (_finalDeathStarted) return;
+        _finalDeathStarted = true;
+        var vis = GetNodeOrNull<GrandBoltVisual>("PartVisual");
+        if (vis != null)
+        {
+            vis.SetWeakPointDead(3);   // 核心死态切片（gb_core.png 死状态）
+            vis.SetAnimFps(0);          // 定格当前帧
+        }
+        await ToSignal(GetTree().CreateTimer(finalDeathDelay), SceneTreeTimer.SignalName.Timeout);
+        if (!GodotObject.IsInstanceValid(this)) return;   // 演出期间被别的伤害提前拆了就别补刀
+        base.TakeDamage(99999);
+    }
+
     private void OnWeakPointDestroyed(int index)
     {
+        // ✅ 弱点死亡→视觉同步换死切片（此前逻辑死了皮还活着；三死齐即自动呈现困兽犹斗=lost 合成态）
+        var vis = GetNodeOrNull<GrandBoltVisual>("PartVisual");
+        if (vis != null) vis.SetWeakPointDead(index);
+
         if (destroyedWeakPointCount >= weakPointOffsets.Count)
         {
             if (enterDesperateOnAllDestroyed && desperateModeEnabled)
