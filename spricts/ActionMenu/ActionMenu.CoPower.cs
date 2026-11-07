@@ -10,6 +10,7 @@ public partial class ActionMenu
     private Button copButton;
     private Button scopButton;
     private Button tagButton;
+    private Button switchButton;
 
     public void EnsureCoPowerButtons()
     {
@@ -45,6 +46,16 @@ public partial class ActionMenu
             var parent = moveButton.GetParent();
             parent.AddChild(tagButton);
             parent.MoveChild(tagButton, moveButton.GetIndex() + 3);
+        if (switchButton == null || !IsInstanceValid(switchButton))
+        {
+            if (moveButton == null) return;
+            switchButton = new Button();
+            switchButton.Name = "SwitchCoButton";
+            TranslateGroup.SetText(switchButton, "切换CO");
+            switchButton.Pressed += OnSwitchPressed;
+            parent.AddChild(switchButton);
+            parent.MoveChild(switchButton, moveButton.GetIndex() + 4);
+        }
         }
     }
 
@@ -63,6 +74,8 @@ public partial class ActionMenu
         copButton.Visible = canCop;
         scopButton.Visible = canScop;
         tagButton.Visible = canTag;
+        bool canSwitch = unit != null && CoModuleSystem.HasSwitchablePartner(team);
+        if (switchButton != null && IsInstanceValid(switchButton)) switchButton.Visible = canSwitch;
         if (canCop)
             TranslateGroup.SetText(copButton, $"技能 {CoModuleSystem.GetCharge(team):F1}/{CoModuleSystem.GetProfile(team).powerStars}★");
         if (canScop)
@@ -73,6 +86,39 @@ public partial class ActionMenu
 
     private void OnCopPressed() => ActivateCoPower(false);
     private void OnScopPressed() => ActivateCoPower(true);
+
+    private void OnSwitchPressed()
+    {
+        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm == null) return;
+        string team = TeamHelper.GetPhaseTeamName(gm.turnPhase);
+        var old = gm.GetNodeOrNull("CoSwitchPopup");
+        if (old != null) { old.QueueFree(); return; }   // 再点=关闭
+        var popup = new VBoxContainer { Name = "CoSwitchPopup" };
+        popup.Position = new Vector2(60, 200);
+        gm.AddChild(popup);
+        var partners = CoModuleSystem.GetState(team)?.partners;
+        if (partners != null)
+            for (int i = 0; i < partners.Count; i++)
+            {
+                int idx = i;
+                var b = new Button();
+                bool used = CoModuleSystem.IsPartnerSwitchedThisTurn(team, idx);
+                TranslateGroup.SetText(b, $"{partners[i].name}{(used ? $"（{TranslateGroup.T("已切换")}）" : "")}");
+                b.Disabled = used;
+                b.Pressed += () =>
+                {
+                    popup.QueueFree();
+                    if (!CoModuleSystem.SwitchToPartner(team, idx, out var err)) GD.PrintErr(err);
+                    Hide();
+                };
+                popup.AddChild(b);
+            }
+        var cancel = new Button();
+        TranslateGroup.SetText(cancel, "取消");
+        cancel.Pressed += () => popup.QueueFree();
+        popup.AddChild(cancel);
+    }
     private void OnTagPressed()
     {
         var unit = currentUnit;
