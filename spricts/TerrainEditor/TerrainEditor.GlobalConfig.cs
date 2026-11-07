@@ -1094,6 +1094,36 @@ private void RefreshAllUnitVision()
             else if (ov != null) ov.QueueFree();
         };
         mapGenHBox.AddChild(gridLineCheck);
+        var brushCheck = new CheckBox();
+        brushCheck.Name = "CellBrushCheck";
+        brushCheck.AddThemeFontSizeOverride("font_size", 12);
+        TranslateGroup.SetText(brushCheck, "格子画笔");
+        brushCheck.Toggled += (on) =>
+        {
+            isCellBrushMode = on;
+            if (on && gridManager != null)
+            {
+                var glc = mapGenHBox.GetNodeOrNull<CheckBox>("GridLineCheck");
+                if (glc != null) glc.ButtonPressed = true;   // 开笔强制格线显示（开创人规矩）
+                var bo = mapGenHBox.GetNodeOrNull<OptionButton>("BrushScreenOpt");
+                if (bo != null)
+                {
+                    bo.Clear();
+                    bo.AddItem(TranslateGroup.T("所有屏"));
+                    for (int s = 0; s < gridManager.screenCount; s++)
+                        bo.AddItem($"{TranslateGroup.T("屏")}{s + 1}");
+                    bo.Selected = 0;
+                }
+            }
+        };
+        mapGenHBox.AddChild(brushCheck);
+        var brushOpt = new OptionButton();
+        brushOpt.Name = "BrushScreenOpt";
+        brushOpt.CustomMinimumSize = new Vector2(72, 28);
+        brushOpt.AddThemeFontSizeOverride("font_size", 12);
+        brushOpt.AddItem(TranslateGroup.T("所有屏"));
+        brushOpt.ItemSelected += (sel) => { brushTargetScreen = (int)sel - 1; };   // 0=所有屏
+        mapGenHBox.AddChild(brushOpt);
         mapGenHBox.AddChild(screensSpin);
 
         // ✅ 每屏独立宽（容器先声明，生成按钮的回调要用）
