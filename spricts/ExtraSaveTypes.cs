@@ -160,6 +160,13 @@ public class SavedMapData
     // 资金
     public int p1Funds = 0;
     public int p2Funds = 0;
+    // ✅ 分屏结构（开创人2026-11-07：多屏/自由拓扑地图的屏参数落盘；老存档无这些字段=默认单屏，向后兼容）
+    public int screenCount = 1;
+    public List<int> screenWidths = new List<int>();
+    public List<int> screenHeights = new List<int>();
+    public List<int> screenYOffsets = new List<int>();
+    public int screenGap = 1;
+    public bool freeformScreens = false;
 }
 [Serializable]
 public class CustomMoveTypeData
