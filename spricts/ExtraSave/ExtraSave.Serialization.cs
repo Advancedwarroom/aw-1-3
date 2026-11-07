@@ -309,9 +309,23 @@ public partial class ExtraSave
             d["facilities"] = SerializeFacilityList(item.facilities);
             d["p1Funds"] = item.p1Funds;
             d["p2Funds"] = item.p2Funds;
+            d["screenCount"] = item.screenCount;
+            d["screenWidths"] = new Godot.Collections.Array<int>(item.screenWidths);
+            d["screenHeights"] = new Godot.Collections.Array<int>(item.screenHeights);
+            d["screenYOffsets"] = new Godot.Collections.Array<int>(item.screenYOffsets);
+            d["screenGap"] = item.screenGap;
+            d["freeformScreens"] = item.freeformScreens;
             arr.Add(d);
         }
         return arr;
+    }
+
+    private static List<int> ParseIntList(Godot.Collections.Array arr)
+    {
+        var list = new List<int>();
+        if (arr == null) return list;
+        foreach (var v in arr) list.Add(v.AsInt32());
+        return list;
     }
 
     private List<SavedMapData> ParseMapList(Godot.Collections.Array arr)
@@ -333,7 +347,13 @@ public partial class ExtraSave
                 localWeatherEnabled = d.GetValueOrDefault("localWeatherEnabled", false).AsBool(),
                 weatherStacks = d.GetValueOrDefault("weatherStacks", "").AsString(),
                 p1Funds = d.GetValueOrDefault("p1Funds", 0).AsInt32(),
-                p2Funds = d.GetValueOrDefault("p2Funds", 0).AsInt32()
+                p2Funds = d.GetValueOrDefault("p2Funds", 0).AsInt32(),
+                screenCount = d.GetValueOrDefault("screenCount", 1).AsInt32(),
+                screenWidths = ParseIntList(d.GetValueOrDefault("screenWidths", new Variant()).AsGodotArray()),
+                screenHeights = ParseIntList(d.GetValueOrDefault("screenHeights", new Variant()).AsGodotArray()),
+                screenYOffsets = ParseIntList(d.GetValueOrDefault("screenYOffsets", new Variant()).AsGodotArray()),
+                screenGap = d.GetValueOrDefault("screenGap", 1).AsInt32(),
+                freeformScreens = d.GetValueOrDefault("freeformScreens", false).AsBool()
             };
 
             var terrainArr = d.GetValueOrDefault("terrainIds", new Variant()).AsGodotArray();
