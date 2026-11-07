@@ -27,7 +27,13 @@ public partial class ExtraSave
             localWeatherEnabled = WeatherManager.Instance?.localWeatherEnabled ?? false,
             weatherStacks = WeatherManager.Instance?.SerializeStacks() ?? "",
             p1Funds = gm.p1Funds,
-            p2Funds = gm.p2Funds
+            p2Funds = gm.p2Funds,
+            screenCount = gridMgr.screenCount,
+            screenWidths = new List<int>(gridMgr.screenWidths ?? Array.Empty<int>()),
+            screenHeights = new List<int>(gridMgr.screenHeights ?? Array.Empty<int>()),
+            screenYOffsets = new List<int>(gridMgr.screenYOffsets ?? Array.Empty<int>()),
+            screenGap = gridMgr.screenGap,
+            freeformScreens = gridMgr.freeformScreens
         };
 
         // 保存地形
@@ -38,7 +44,7 @@ public partial class ExtraSave
                 for (int x = 0; x < gridMgr.map.GetLength(0); x++)
                 {
                     var grid = gridMgr.map[x, y];
-                    mapData.terrainIds.Add(grid != null ? (int)grid.gridType : 0);
+                    mapData.terrainIds.Add(grid != null ? (int)grid.gridType : -1);   // ✅ 真空存-1（开创人2026-11-07：GROUND=0与真空撞车，自由拓扑读档毁形状的根源）
                 }
             }
         }
