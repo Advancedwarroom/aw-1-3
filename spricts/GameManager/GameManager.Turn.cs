@@ -306,7 +306,7 @@ public partial class GameManager
     }
 
     // ========== ✅ 新增：对所有单位应用地形伤害 ==========
-    private void ApplyTerrainDamageToAllUnits()
+    public void ApplyTerrainDamageToAllUnits(string onlyTeam = null)
     {
         if (unitManager?.AllUnits == null) return;
 
@@ -315,6 +315,7 @@ public partial class GameManager
         {
             if (unit == null || !IsInstanceValid(unit)) continue;
             if (unit.grid == null) continue;
+            if (onlyTeam != null && unit.team != onlyTeam) continue;
 
             var grid = unit.grid;
 
