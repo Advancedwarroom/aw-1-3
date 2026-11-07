@@ -1,0 +1,12 @@
+{
+  "name": "godot-net-cloud",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": { "version": "8.0" }
+  },
+  "forwardPorts": [6080],
+  "portsAttributes": {
+    "6080": { "label": "noVNC (Godot 桌面)", "onAutoForward": "notify" }
+  },
+  "postStartCommand": "bash start.sh"
+}
