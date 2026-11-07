@@ -51,6 +51,11 @@ public partial class TerrainEditor
         sb.AppendLine($"WeatherChances: {string.Join(",", WeatherSystem.Chances)}");
         sb.AppendLine($"WeatherRandom: {(WeatherSystem.RandomWeather ? "On" : "Off")}");
         sb.AppendLine($"WeatherDuration: {WeatherSystem.RandomDurationMin}-{WeatherSystem.RandomDurationMax}");
+        // ✅ issue#1 区域天气：总开关+基底+格子栈随图导出（WeatherStacks 行为 x,y,typeId,turns,replaceSunny;... ）
+        var wmExport = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+        sb.AppendLine($"LocalWeather: {((wmExport != null && wmExport.localWeatherEnabled) ? "On" : "Off")}");
+        sb.AppendLine($"BaseWeather: {wmExport?.baseWeatherId ?? 0}");
+        sb.AppendLine($"WeatherStacks: {wmExport?.SerializeStacks() ?? ""}");
         sb.AppendLine();
 
         sb.AppendLine("=== Terrain Matrix [x,y]=Type ===");

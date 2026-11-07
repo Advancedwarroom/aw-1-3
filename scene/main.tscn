@@ -39,6 +39,7 @@
 [ext_resource type="Script" uid="uid://ltftlah0etrk" path="res://spricts/CustomConfigUI.cs" id="30_kpobt"]
 [ext_resource type="Script" uid="uid://cppncwnmgkx0v" path="res://spricts/ExtraSave.cs" id="31_216wm"]
 [ext_resource type="PackedScene" uid="uid://kbpull7ec1pg" path="res://Prefabs/large_cannon.tscn" id="34_7xrs8"]
+[ext_resource type="Script" path="res://spricts/WeatherManager.cs" id="98_wmgr"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mswub"]
 
@@ -2814,6 +2815,9 @@ script = ExtResource("27_camtouch")
 position = Vector2(-464, -176)
 script = ExtResource("26_oldxj")
 isFogOfWarEnabled = false
+
+[node name="WeatherManager" type="Node" parent="."]
+script = ExtResource("98_wmgr")
 
 [connection signal="input_event" from="UnitManager/Units/Oozium/Area2D" to="UnitManager/Units/Oozium" method="InputClick"]
 [connection signal="input_event" from="UnitManager/Units/Oozium2/Area2D" to="UnitManager/Units/Oozium2" method="InputClick"]

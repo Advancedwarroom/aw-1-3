@@ -290,6 +290,22 @@ public partial class TerrainEditor
                         WeatherSystem.RandomDurationMax = dmax;
                     }
                 }
+                else if (wl.StartsWith("LocalWeather: "))
+                {
+                    var wmx = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+                    if (wmx != null) wmx.localWeatherEnabled = wl.EndsWith("On");
+                }
+                else if (wl.StartsWith("BaseWeather: "))
+                {
+                    var wmx = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+                    if (wmx != null && int.TryParse(wl.Substring("BaseWeather: ".Length).Trim(), out int bw)) wmx.baseWeatherId = bw;
+                }
+                else if (wl.StartsWith("WeatherStacks: "))
+                {
+                    // 顺序保证：LocalWeather 行在本行之前解析，DeserializeStacks 内 AddWeather 受开关门控
+                    var wmx = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+                    wmx?.DeserializeStacks(wl.Substring("WeatherStacks: ".Length).Trim());
+                }
                 else if (wl.StartsWith("Weather: "))
                 {
                     var m = System.Text.RegularExpressions.Regex.Match(wl.Substring("Weather: ".Length), @"(\w+)\s*,\s*(\d+)");

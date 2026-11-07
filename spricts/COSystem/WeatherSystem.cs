@@ -113,10 +113,23 @@ public static class WeatherSystem
     public static WeatherType EffectiveAt(Vector2I cell)
         => WeatherManager.GetRegionalWeatherAt(cell) ?? current;
 
+    // ✅ issue#1 区域天气·多层聚合接管：≥2层 或 含自定义类型(>4) 时，
+    // 内建单层已由 EffectiveAt 桥接枚举覆盖；多层/自定义改走 WeatherManager 聚合（基底+各层乘区/增量一起算）
+    static bool RegionalAggregateTakesOver(Vector2I cell, out WeatherManager wm)
+    {
+        wm = WeatherManager.Instance;
+        if (wm == null || !wm.localWeatherEnabled) { wm = null; return false; }
+        var layers = wm.GetLayersAt(cell);
+        if (layers == null || layers.Count == 0) { wm = null; return false; }
+        if (layers.Count == 1 && layers[0].typeId >= 0 && layers[0].typeId <= 4) { wm = null; return false; }
+        return true;
+    }
+
     /// <summary>视野修正：雨-1 / 雾-2（按观察单位所在格的天气）</summary>
     public static int GetVisionModifier(Infantry unit)
     {
         if (IsImmune(unit)) return 0;
+        if (unit?.grid != null && RegionalAggregateTakesOver(unit.grid.GridIndex, out var wm)) return wm.GetVisionDelta(unit.grid.GridIndex);   // ✅ 区域多层/自定义聚合接管
         var w = unit?.grid != null ? EffectiveAt(unit.grid.GridIndex) : current;
         return w switch
         {
@@ -130,6 +143,7 @@ public static class WeatherSystem
     public static int GetMovementCostModifier(Infantry unit, Grids g)
     {
         if (IsImmune(unit)) return 0;
+        if (g != null && RegionalAggregateTakesOver(g.GridIndex, out var wm)) return wm.GetMoveCostDelta(g.GridIndex);   // ✅ 区域多层/自定义聚合接管（调用点 Mathf.Max(1,…) 保底）
         var w = g != null ? EffectiveAt(g.GridIndex) : current;
         if (w != WeatherType.Snow) return 0;
         if (unit is { IsAirUnit: true }) return 0;
@@ -151,6 +165,7 @@ public static class WeatherSystem
     public static float GetOffenseModifierPercent(Infantry unit)
     {
         if (IsImmune(unit)) return 0f;
+        if (unit?.grid != null && RegionalAggregateTakesOver(unit.grid.GridIndex, out var wm)) return (wm.GetAttackPercent(unit.grid.GridIndex) - 1000) / 10f;   // ✅ 区域多层/自定义聚合接管（千分制→百分制）
         var w = unit?.grid != null ? EffectiveAt(unit.grid.GridIndex) : current;
         return w != WeatherType.Sandstorm ? 0f : -15f;
     }
@@ -159,6 +174,7 @@ public static class WeatherSystem
     public static int GetFireRangeModifier(Infantry unit)
     {
         if (IsImmune(unit)) return 0;
+        if (unit?.grid != null && RegionalAggregateTakesOver(unit.grid.GridIndex, out var wm)) return wm.GetFireRangeDelta(unit.grid.GridIndex);   // ✅ 区域多层/自定义聚合接管
         var w = unit?.grid != null ? EffectiveAt(unit.grid.GridIndex) : current;
         return w != WeatherType.Sandstorm ? 0 : -1;
     }

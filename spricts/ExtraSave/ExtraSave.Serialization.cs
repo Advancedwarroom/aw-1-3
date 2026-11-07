@@ -301,6 +301,9 @@ public partial class ExtraSave
             d["width"] = item.width;
             d["height"] = item.height;
             d["fogOfWarEnabled"] = item.fogOfWarEnabled;
+            d["localWeatherEnabled"] = item.localWeatherEnabled;
+            d["baseWeatherId"] = item.baseWeatherId;
+            d["weatherStacks"] = item.weatherStacks;
             d["terrainIds"] = new Godot.Collections.Array<int>(item.terrainIds);
             d["units"] = SerializeUnitList(item.units);
             d["weapons"] = SerializeWeaponList(item.weapons);
@@ -328,6 +331,9 @@ public partial class ExtraSave
                 width = d.GetValueOrDefault("width", 0).AsInt32(),
                 height = d.GetValueOrDefault("height", 0).AsInt32(),
                 fogOfWarEnabled = d.GetValueOrDefault("fogOfWarEnabled", false).AsBool(),
+                localWeatherEnabled = d.GetValueOrDefault("localWeatherEnabled", false).AsBool(),
+                baseWeatherId = d.GetValueOrDefault("baseWeatherId", 0).AsInt32(),
+                weatherStacks = d.GetValueOrDefault("weatherStacks", "").AsString(),
                 p1Funds = d.GetValueOrDefault("p1Funds", 0).AsInt32(),
                 p2Funds = d.GetValueOrDefault("p2Funds", 0).AsInt32()
             };

@@ -115,8 +115,10 @@ public partial class GameManager
         fogOfWarManager?.OnTurnChanged();
         bool isNewTurn = (turns > previousTurn);
         if (isNewTurn)
+        {
             WeatherSystem.AdvanceDay();   // ✅ 天气系统（模块15）：新一天按出现率轮换天气
-            WeatherManager.Instance?.OnTurnStart();   // ✅ issue#1：区域天气层（格子栈）回合递减
+            WeatherManager.Instance?.OnTurnStart();   // ✅ issue#1：区域天气层（格子栈）回合递减（大回合一次，非每阶段）
+        }
         selectedInfantry = null;
                         if (turnPhase == 1)
 

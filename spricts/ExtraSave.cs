@@ -221,6 +221,16 @@ public partial class ExtraSave : Node
         // 7. 加载资金
         gm.p1Funds = mapData.p1Funds;
         gm.p2Funds = mapData.p2Funds;
+
+        // 8. ✅ issue#1 恢复区域天气（开关/基底先落，DeserializeStacks 内部 ClearAllWeather+AddWeather 受开关门控）
+        var wmLoad = WeatherManager.Instance;
+        if (wmLoad != null)
+        {
+            wmLoad.localWeatherEnabled = mapData.localWeatherEnabled;
+            wmLoad.baseWeatherId = mapData.baseWeatherId;
+            wmLoad.DeserializeStacks(mapData.weatherStacks);
+        }
+
         gm.fogOfWarManager?.RefreshFog();
         gm.UpdateUnitLists();
         gm.RefreshSpecializedUnitLists();

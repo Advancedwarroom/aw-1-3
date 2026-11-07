@@ -24,6 +24,9 @@ public partial class ExtraSave
             width = gridMgr.map?.GetLength(0) ?? 0,
             height = gridMgr.map?.GetLength(1) ?? 0,
             fogOfWarEnabled = gm.fogOfWarManager?.isFogOfWarEnabled ?? false,
+            localWeatherEnabled = WeatherManager.Instance?.localWeatherEnabled ?? false,
+            baseWeatherId = WeatherManager.Instance?.baseWeatherId ?? 0,
+            weatherStacks = WeatherManager.Instance?.SerializeStacks() ?? "",
             p1Funds = gm.p1Funds,
             p2Funds = gm.p2Funds
         };

@@ -623,6 +623,31 @@ private void RefreshAllUnitVision()
         weatherRandomHBox.AddChild(weatherRandomHint);
         globalConfigContainer.AddChild(weatherRandomHBox);
 
+        // ✅ issue#1 区域天气总开关（= Enable Local Weather）+ 全球基底天气（挨着随机轮换开关）
+        var wm = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+        var localWeatherHBox = new HBoxContainer();
+        localWeatherHBox.AddThemeConstantOverride("separation", 10);
+        var localWeatherLabel = new Label();
+        TranslateGroup.SetText(localWeatherLabel, "区域天气:");
+        localWeatherLabel.CustomMinimumSize = new Vector2(90, 28);
+        localWeatherLabel.AddThemeFontSizeOverride("font_size", 13);
+        localWeatherHBox.AddChild(localWeatherLabel);
+        var localWeatherCheck = new CheckBox();
+        localWeatherCheck.ButtonPressed = wm?.localWeatherEnabled ?? false;
+        localWeatherCheck.CustomMinimumSize = new Vector2(28, 28);
+        localWeatherCheck.Toggled += (pressed) => { if (wm != null) wm.localWeatherEnabled = pressed; };
+        localWeatherHBox.AddChild(localWeatherCheck);
+        var baseWeatherOption = new OptionButton();
+        baseWeatherOption.Name = "BaseWeatherOption";
+        foreach (WeatherType wt in Enum.GetValues(typeof(WeatherType)))
+            baseWeatherOption.AddItem(TranslateGroup.T(WeatherSystem.WeatherName(wt)));
+        baseWeatherOption.Selected = wm?.baseWeatherId ?? 0;
+        baseWeatherOption.CustomMinimumSize = new Vector2(110, 28);
+        baseWeatherOption.AddThemeFontSizeOverride("font_size", 12);
+        baseWeatherOption.ItemSelected += (index) => { if (wm != null) wm.baseWeatherId = (int)index; };
+        localWeatherHBox.AddChild(baseWeatherOption);
+        globalConfigContainer.AddChild(localWeatherHBox);
+
         // 出现权重（晴/雨/雪/沙暴/雾）
         var weightNames = new[] { "晴权重", "雨权重", "雪权重", "沙暴权重", "雾权重" };
         for (int wi = 0; wi < 5; wi++)
