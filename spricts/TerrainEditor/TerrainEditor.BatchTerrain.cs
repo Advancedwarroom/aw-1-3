@@ -23,6 +23,7 @@ public partial class TerrainEditor
     private OptionButton batchStyleOption;
     private OptionButton batchBiomeOption;
     private OptionButton batchVariantOption;
+    private OptionButton variantCountLabel; // 贴图配置计数诊断
     private bool batchVariantAuto = true;
     private string batchVariantTexturePath = "";
 
@@ -207,9 +208,10 @@ public partial class TerrainEditor
         if(batchVariantOption==null)return;
         batchVariantOption.Clear();
         batchVariantOption.AddItem("🔄 自动优化（邻格适配）");
+        variantCountLabel = batchVariantOption; // 诊断句柄
         if(TerrainStyleManager.TryGetCowMapping(batchTerrainType,out string cowDir,out _))
         {
-            // ✅ DirAccess直扫res://(不再依赖GlobalizePath转文件系统路径: 中文路径/导出环境全兼容)
+            // ✅ 三重兜底: DirAccess直扫res:// → cow_index.txt清单(1130张,FileAccess不受中文路径/沙箱影响) → 文件系统
             var files=new System.Collections.Generic.List<string>();
             using(var dir=DirAccess.Open($"{TerrainStyleManager.CowRoot}/{cowDir}"))
             {
@@ -220,11 +222,23 @@ public partial class TerrainEditor
                     dir.ListDirEnd();
                 }
             }
-            if(files.Count==0) // 兜底: DirAccess失败退回文件系统
+            if(files.Count==0) // 兜底2: 索引清单
+            {
+                using(var f=FileAccess.Open($"{TerrainStyleManager.CowRoot}/cow_index.txt",FileAccess.ModeFlags.Read))
+                {
+                    if(f!=null)
+                        foreach(var line in f.GetAsText().Split('\n',System.StringSplitOptions.RemoveEmptyEntries))
+                            if(line.StartsWith(cowDir+"/")&&line.EndsWith(".png"))
+                                files.Add(line.Substring(cowDir.Length+1));
+                }
+            }
+            if(files.Count==0) // 兜底3: 文件系统
             {
                 string dirFs=ProjectSettings.GlobalizePath($"{TerrainStyleManager.CowRoot}/{cowDir}");
                 if(Directory.Exists(dirFs))files.AddRange(Directory.GetFiles(dirFs,"*.png").Select(System.IO.Path.GetFileName));
             }
+            // ✅ 诊断: 首项显示变体计数(0=全兜底失败, 反馈时直接报这个数)
+            if(variantCountLabel!=null)variantCountLabel.SetItemText(0,$"🔄 自动优化（邻格适配）·变体{files.Count}");
             int idx=1;
             foreach(var f in files.OrderBy(f=>f,System.StringComparer.Ordinal))
             {

@@ -438,7 +438,7 @@ public partial class TerrainEditor
         if (changed > 0)
         {
             // ✅ 邻域方向刷新(自动优化开启的格子): 多格铺设改变邻接关系, 同 ApplyBatchDirectionConfig 的5x5范围; Export开关可关
-            if (!refreshNeighborDirectionAfterBrush) { PickerResolveHelper()?.PushAction(parent); TranslateGroup.SetText(spawnHintLabel, $"已铺设 {changed} 格"); return; }
+            if (!refreshNeighborDirectionAfterBrush) { PickerResolveHelper()?.PushAction(parent); TranslateGroup.SetText(spawnHintLabel, $"已铺设 {changed} 格（⚠邻域重算关闭——检查TerrainEditor的refreshNeighborDirectionAfterBrush）"); return; }
             var gm = PickerResolveGridManager();
             if (gm?.map != null)
             {
@@ -528,7 +528,7 @@ public partial class TerrainEditor
         if (changed > 0)
         {
             // ✅ 邻域方向刷新: 按填充记录逐格5x5刷新; Export开关可关
-            if (!refreshNeighborDirectionAfterBrush) { PickerResolveHelper()?.PushAction(parent); TranslateGroup.SetText(spawnHintLabel, $"已填充 {changed} 格"); return; }
+            if (!refreshNeighborDirectionAfterBrush) { PickerResolveHelper()?.PushAction(parent); TranslateGroup.SetText(spawnHintLabel, $"已填充 {changed} 格（⚠邻域重算关闭）"); return; }
             foreach (var sub in parent.subActions)
             {
                 for (int dy = -2; dy <= 2; dy++)
