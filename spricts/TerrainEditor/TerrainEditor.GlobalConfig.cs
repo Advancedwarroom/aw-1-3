@@ -1067,6 +1067,33 @@ private void RefreshAllUnitVision()
         screensSpin.Value = gridManager?.GetScreenCount() ?? 1;
         screensSpin.CustomMinimumSize = new Vector2(60, 28);
         screensSpin.AddThemeFontSizeOverride("font_size", 12);
+
+        var shapeLabel = new Label();
+        shapeLabel.AddThemeFontSizeOverride("font_size", 12);
+        TranslateGroup.SetText(shapeLabel, "形状");
+        mapGenHBox.AddChild(shapeLabel);
+        var shapeOpt = new OptionButton();
+        shapeOpt.Name = "MapShapeOpt";
+        shapeOpt.CustomMinimumSize = new Vector2(72, 28);
+        shapeOpt.AddThemeFontSizeOverride("font_size", 12);
+        foreach (var sn in new[] { "矩形", "菱形", "圆形", "椭圆", "三角形" }) shapeOpt.AddItem(TranslateGroup.T(sn));
+        mapGenHBox.AddChild(shapeOpt);
+        var gridLineCheck = new CheckBox();
+        gridLineCheck.Name = "GridLineCheck";
+        gridLineCheck.AddThemeFontSizeOverride("font_size", 12);
+        TranslateGroup.SetText(gridLineCheck, "格线");
+        gridLineCheck.Toggled += (on) =>
+        {
+            if (gridManager == null) return;
+            var ov = gridManager.GetNodeOrNull<GridLineOverlay>("GridLineOverlay");
+            if (on)
+            {
+                if (ov == null) { ov = new GridLineOverlay { Name = "GridLineOverlay" }; gridManager.AddChild(ov); }
+                ov.Setup(gridManager);
+            }
+            else if (ov != null) ov.QueueFree();
+        };
+        mapGenHBox.AddChild(gridLineCheck);
         mapGenHBox.AddChild(screensSpin);
 
         // ✅ 每屏独立宽（容器先声明，生成按钮的回调要用）
@@ -1145,7 +1172,8 @@ private void RefreshAllUnitVision()
                     if (sp == null || sh == null) ShowImportHint(TranslateGroup.T("⚠️ 部分屏未单独设置宽高，已用整体宽高兜底（分屏优先，整体仅缺省）"));
                 }
             }
-            GenerateNewMap(w, h, sc, ws, hs);
+            var shapeOpt2 = mapGenHBox.GetNodeOrNull<OptionButton>("MapShapeOpt");
+            GenerateNewMap(w, h, sc, ws, hs, (MapShape)(shapeOpt2?.Selected ?? 0));
         };
         mapGenHBox.AddChild(genMapBtn);
 
