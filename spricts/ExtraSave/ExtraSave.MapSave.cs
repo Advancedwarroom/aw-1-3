@@ -33,7 +33,8 @@ public partial class ExtraSave
             screenHeights = new List<int>(gridMgr.screenHeights ?? Array.Empty<int>()),
             screenYOffsets = new List<int>(gridMgr.screenYOffsets ?? Array.Empty<int>()),
             screenGap = gridMgr.screenGap,
-            freeformScreens = gridMgr.freeformScreens
+            freeformScreens = gridMgr.freeformScreens,
+            teamFunds = TeamHelper.GetActiveFactionIds().ToDictionary(id => id, id => gm.GetTeamFunds(id))
         };
 
         // 保存地形
@@ -117,9 +118,66 @@ public partial class ExtraSave
             }
         }
 
+        // ✅ 开创人2026-11-08：格子自定义（[x,y]{Test:...} 与 txt 导入同格式）+ 自定义类型注册表随图
+        if (gridMgr.grids != null)
+        {
+            foreach (var grid in gridMgr.grids)
+            {
+                if (grid == null) continue;
+                string gDiff = SerializeGridCustoms(grid);
+                if (!string.IsNullOrEmpty(gDiff))
+                    mapData.gridCustoms.Add($"[{grid.GridIndex.X},{grid.GridIndex.Y}]{gDiff}");
+            }
+        }
+        if (CustomMoveTypes != null) mapData.customMoveTypes = new List<CustomMoveTypeData>(CustomMoveTypes.Values);
+        if (CustomTerrainTypes != null) mapData.customTerrainTypes = new List<CustomTerrainTypeData>(CustomTerrainTypes.Values);
+
         Data.savedMaps[slotIndex] = mapData;
         SaveAllData();
         return true;
+    }
+
+    // ✅ 格子自定义序列化：new Grids() 模板 + 基础类型过滤（与 TerrainEditor.GetGridCustomsDiff 同格式同语义；两处独立实现，互改需同步）
+    private string SerializeGridCustoms(Grids grid)
+    {
+        if (grid == null) return "";
+        var template = new Grids();
+        var diffs = new List<string>();
+        const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
+        foreach (var f in grid.GetType().GetFields(flags))
+        {
+            if (f.GetCustomAttribute<ExportAttribute>() == null || !IsBasicType(f.FieldType)) continue;
+            object v1 = f.GetValue(grid), v2 = f.GetValue(template);
+            if (!GridValuesEqual(v1, v2)) diffs.Add($"{f.Name}:{FormatGridValue(v1)}");
+        }
+        foreach (var p in grid.GetType().GetProperties(flags))
+        {
+            if (p.GetCustomAttribute<ExportAttribute>() == null || !p.CanRead || !p.CanWrite || !IsBasicType(p.PropertyType)) continue;
+            object v1 = p.GetValue(grid), v2 = p.GetValue(template);
+            if (!GridValuesEqual(v1, v2)) diffs.Add($"{p.Name}:{FormatGridValue(v1)}");
+        }
+        return diffs.Count == 0 ? "" : "{Test:true;" + string.Join(";", diffs) + "}";
+    }
+
+    private static bool IsBasicType(Type t)
+        => t.IsEnum || t == typeof(bool) || t == typeof(int) || t == typeof(uint) || t == typeof(long)
+        || t == typeof(float) || t == typeof(double) || t == typeof(string)
+        || t == typeof(Color) || t == typeof(Vector2) || t == typeof(Vector2I) || t == typeof(Vector3) || t == typeof(Vector3I);
+
+    private static bool GridValuesEqual(object a, object b)
+    {
+        if (a == null && b == null) return true;
+        if (a == null || b == null) return false;
+        return a.GetType() == b.GetType() && a.Equals(b);
+    }
+
+    private static string FormatGridValue(object val)
+    {
+        if (val == null) return "null";
+        if (val is bool b) return b ? "true" : "false";
+        if (val is float f) return f.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (val is double d) return d.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return val.ToString();
     }
 
     private Grids FindGridByIndex(GridManager gridMgr, string xStr, string yStr)

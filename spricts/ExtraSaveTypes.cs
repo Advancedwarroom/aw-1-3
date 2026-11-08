@@ -167,6 +167,11 @@ public class SavedMapData
     public List<int> screenYOffsets = new List<int>();
     public int screenGap = 1;
     public bool freeformScreens = false;
+    // ✅ 开创人2026-11-08：格子自定义+自定义类型注册表+全体势力资金随图（与 txt 导出走同一格式；老存档无=默认，向后兼容）
+    public List<string> gridCustoms = new List<string>();
+    public List<CustomMoveTypeData> customMoveTypes = new List<CustomMoveTypeData>();
+    public List<CustomTerrainTypeData> customTerrainTypes = new List<CustomTerrainTypeData>();
+    public Dictionary<string, int> teamFunds = new Dictionary<string, int>();
 }
 [Serializable]
 public class CustomMoveTypeData

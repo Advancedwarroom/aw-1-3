@@ -55,6 +55,26 @@ public partial class TerrainEditor
         var wmExport = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
         sb.AppendLine($"LocalWeather: {((wmExport != null && wmExport.localWeatherEnabled) ? "On" : "Off")}");
         sb.AppendLine($"WeatherStacks: {wmExport?.SerializeStacks() ?? ""}");
+        // ✅ issue#1 随机屏映射（开创人2026-11-08：随图导出，多屏图导回不再丢链接设置）
+        sb.AppendLine($"RandomLinks: {(gridManager.randomScreenLinks ? "On" : "Off")}");
+        sb.AppendLine($"RandomLinkSeed: {gridManager.randomLinkSeed}");
+        sb.AppendLine($"RandomLinksPerPair: {gridManager.randomLinksPerPair}");
+        sb.AppendLine($"RandomLinkInnerOnly: {(gridManager.randomLinkInnerOnly ? "On" : "Off")}");
+        // ✅ 自定义移动/地形类型注册表随图导出（开创人2026-11-08：剪贴板分享的图跨设备可玩）
+        var esExport = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("extra_save") as ExtraSave;
+        if (esExport != null)
+        {
+            foreach (var mt in esExport.CustomMoveTypes.Values)
+            {
+                var mc = string.Join(",", mt.moveCosts.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+                sb.AppendLine($"CustomMoveType: {mt.id}|{mt.displayName}|{mc}|{mt.customTexturePath}|{(mt.useCustomTexture ? 1 : 0)}");
+            }
+            foreach (var tt in esExport.CustomTerrainTypes.Values)
+            {
+                var tc = string.Join(",", tt.moveCosts.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+                sb.AppendLine($"CustomTerrainType: {tt.id}|{tt.displayName}|{tc}|{tt.defenseBonus.ToString(System.Globalization.CultureInfo.InvariantCulture)}|{tt.terrainColorHex}|{tt.customTexturePath}|{(tt.useCustomTexture ? 1 : 0)}");
+            }
+        }
         sb.AppendLine();
 
         sb.AppendLine("=== Terrain Matrix [x,y]=Type ===");
@@ -121,8 +141,24 @@ public partial class TerrainEditor
                     int hy = grid.GridIndex.Y;
                     string typeName = grid.city.GetType().Name;
                     string team = grid.city.facilityTeam ?? "None";
-                    sb.AppendLine($"[{hx},{hy}] {typeName} {team}");
+                    string fDiff = GetFacilityDiffString(grid.city);   // ✅ 开创人2026-11-08：设施字段 diff 补导出（方向/生产/四态等，此前从未被调用=静默丢）
+                    sb.AppendLine($"[{hx},{hy}] {typeName} {team}{fDiff}");
                 }
+            }
+        }
+        sb.AppendLine();
+
+        // ✅ 开创人2026-11-08：格子自定义段（伤害/弹药/燃料/迷雾规则/视野塔/方向烘焙全套 [Export] 字段，
+        //    与 txt 导入及存档槽走同一 {Test:...} diff 格式；无自定义的格子不占行）
+        sb.AppendLine("=== Grid Customs ===");
+        if (gridManager?.grids != null)
+        {
+            foreach (var grid in gridManager.grids)
+            {
+                if (grid == null) continue;
+                string gDiff = GetGridCustomsDiff(grid);
+                if (!string.IsNullOrEmpty(gDiff))
+                    sb.AppendLine($"[{grid.GridIndex.X},{grid.GridIndex.Y}] {gDiff}");
             }
         }
         sb.AppendLine();
@@ -170,6 +206,9 @@ public partial class TerrainEditor
         sb.AppendLine();
 
         sb.AppendLine("=== Funds Statistics ===");
+        // ✅ 开创人2026-11-08：Funds 机器行=全体活跃势力（P-1/P0/P3~P8/自定义），导入以它为准；下列人类行仅展示
+        if (gameManager != null)
+            sb.AppendLine($"Funds: {string.Join(",", TeamHelper.GetActiveFactionIds().Select(id => $"{id}={gameManager.GetTeamFunds(id)}"))}");
         int realP1Funds = gameManager?.p1Funds ?? 0;
         int realP2Funds = gameManager?.p2Funds ?? 0;
         sb.AppendLine($"P1  (Red):     {realP1Funds} G");
@@ -267,6 +306,16 @@ public partial class TerrainEditor
         return instance;
     }
 
+    // ✅ 格子自定义 diff（开创人2026-11-08：txt 导出/导入与存档槽共用；new Grids() 模板 + IsSupportedType 过滤，
+    //    grid.tscn 只覆写 terrainIconTextures 一个 Dictionary 字段，过滤后无噪音）
+    public string GetGridCustomsDiff(Grids grid)
+    {
+        if (grid == null) return "";
+        var diffs = GetDiffs(grid, new Grids());
+        if (diffs.Count == 0) return "";
+        return "{Test:true;" + string.Join(";", diffs) + "}";
+    }
+
     private string GetUnitDiffString(Infantry unit)
     {
         string scenePath = GetScenePathForUnitType(unit.GetType().Name);
@@ -312,7 +361,7 @@ public partial class TerrainEditor
         var type = instance.GetType();
 
         var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance)
-            .Where(f => f.GetCustomAttribute<ExportAttribute>() != null);
+            .Where(f => f.GetCustomAttribute<ExportAttribute>() != null && IsSupportedType(f.FieldType));
         foreach (var field in fields)
         {
             var v1 = field.GetValue(instance);
@@ -322,7 +371,7 @@ public partial class TerrainEditor
         }
 
         var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.GetCustomAttribute<ExportAttribute>() != null && p.CanRead && p.CanWrite);
+            .Where(p => p.GetCustomAttribute<ExportAttribute>() != null && p.CanRead && p.CanWrite && IsSupportedType(p.PropertyType));
         foreach (var prop in props)
         {
             var v1 = prop.GetValue(instance);

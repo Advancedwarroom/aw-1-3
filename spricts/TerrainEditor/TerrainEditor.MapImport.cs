@@ -307,6 +307,21 @@ public partial class TerrainEditor
                     if (m.Success && Enum.TryParse<WeatherType>(m.Groups[1].Value, out var wt))
                         WeatherSystem.SetWeather(wt, Math.Max(1, int.Parse(m.Groups[2].Value)));
                 }
+                // ✅ 开创人2026-11-08：随机屏映射 + 迷雾开关 + 自定义类型注册表（全部预扫描落位）
+                else if (wl.StartsWith("RandomLinks: "))
+                { if (gridManager != null) gridManager.randomScreenLinks = wl.EndsWith("On"); }
+                else if (wl.StartsWith("RandomLinkSeed: "))
+                { if (gridManager != null && int.TryParse(wl.Substring("RandomLinkSeed: ".Length).Trim(), out int rs)) gridManager.randomLinkSeed = rs; }
+                else if (wl.StartsWith("RandomLinksPerPair: "))
+                { if (gridManager != null && int.TryParse(wl.Substring("RandomLinksPerPair: ".Length).Trim(), out int rp)) gridManager.randomLinksPerPair = rp; }
+                else if (wl.StartsWith("RandomLinkInnerOnly: "))
+                { if (gridManager != null) gridManager.randomLinkInnerOnly = wl.EndsWith("On"); }
+                else if (wl.StartsWith("FogOfWar: "))
+                { if (gameManager?.fogOfWarManager != null) gameManager.fogOfWarManager.isFogOfWarEnabled = wl.Contains("Enabled"); }
+                else if (wl.StartsWith("CustomMoveType: "))
+                    ImportCustomMoveTypeLine(wl.Substring("CustomMoveType: ".Length));
+                else if (wl.StartsWith("CustomTerrainType: "))
+                    ImportCustomTerrainTypeLine(wl.Substring("CustomTerrainType: ".Length));
             }
 
             // ✅ 先扫描一遍计算地图尺寸
@@ -480,7 +495,7 @@ public partial class TerrainEditor
                 }
                 else if (section == "Facilities [x,y] Type Team")
                 {
-                    var m = System.Text.RegularExpressions.Regex.Match(line, @"\[(\d+),(\d+)\]\s+(\w+)\s+(\w+)");
+                    var m = System.Text.RegularExpressions.Regex.Match(line, @"\[(\d+),(\d+)\]\s+(\w+)\s+(\w+)(.*)");
                     if (m.Success)
                     {
                         int fx = int.Parse(m.Groups[1].Value);
@@ -493,7 +508,27 @@ public partial class TerrainEditor
                         {
                             var grid = gridManager.map[fx, fy];
                             if (grid != null)
+                            {
                                 SpawnFacilityAtGrid(grid, scenePath, fTeam);
+                                // ✅ 开创人2026-11-08：设施字段 diff 恢复（方向/生产/四态/自定义数值）
+                                var spawned = grid.city;
+                                if (spawned != null && IsInstanceValid(spawned))
+                                    ApplyDiffString(spawned, m.Groups[5].Value);
+                            }
+                        }
+                    }
+                }
+                else if (section == "Grid Customs")
+                {
+                    var m = System.Text.RegularExpressions.Regex.Match(line, @"\[(\d+),(\d+)\](.*)");
+                    if (m.Success && gridManager != null)
+                    {
+                        int gx = int.Parse(m.Groups[1].Value);
+                        int gy = int.Parse(m.Groups[2].Value);
+                        if (gx >= 0 && gx < gridManager.map.GetLength(0) && gy >= 0 && gy < gridManager.map.GetLength(1))
+                        {
+                            var g = gridManager.map[gx, gy];
+                            if (g != null) ApplyDiffString(g, m.Groups[3].Value);
                         }
                     }
                 }
@@ -521,7 +556,7 @@ public partial class TerrainEditor
         }
     }
 
-    private void ApplyDiffString(object target, string diffPart)
+    public void ApplyDiffString(object target, string diffPart)
     {
         if (target == null || string.IsNullOrWhiteSpace(diffPart)) return;
 
@@ -759,5 +794,59 @@ public partial class TerrainEditor
             return null;
         }
         return null;
+    }
+
+    // ✅ 自定义移动类型行：id|displayName|GROUND=1,SEA=1|texPath|useTex（开创人2026-11-08）
+    private void ImportCustomMoveTypeLine(string payload)
+    {
+        var parts = payload.Split('|');
+        if (parts.Length < 1 || string.IsNullOrWhiteSpace(parts[0])) return;
+        var es = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("extra_save") as ExtraSave;
+        if (es == null) return;
+        string id = parts[0].Trim();
+        string name = parts.Length > 1 ? parts[1].Trim() : id;
+        var costs = ParseCostPairs(parts.Length > 2 ? parts[2] : "");
+        es.AddCustomMoveType(id, name, costs);
+        if (parts.Length > 3 && es.CustomMoveTypes.TryGetValue(id, out var reg))
+        {
+            reg.customTexturePath = parts[3].Trim();
+            reg.useCustomTexture = parts.Length > 4 && parts[4].Trim() == "1";
+        }
+    }
+
+    // ✅ 自定义地形类型行：id|displayName|GROUND=1,...|defenseBonus|colorHex|texPath|useTex（开创人2026-11-08）
+    private void ImportCustomTerrainTypeLine(string payload)
+    {
+        var parts = payload.Split('|');
+        if (parts.Length < 1 || string.IsNullOrWhiteSpace(parts[0])) return;
+        var es = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("extra_save") as ExtraSave;
+        if (es == null) return;
+        string id = parts[0].Trim();
+        string name = parts.Length > 1 ? parts[1].Trim() : id;
+        var costs = ParseCostPairs(parts.Length > 2 ? parts[2] : "");
+        float def = parts.Length > 3 && float.TryParse(parts[3].Trim(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out float df) ? df : 0f;
+        Color color = new Color(1, 1, 1);
+        if (parts.Length > 4)
+        {
+            try { color = new Color(parts[4].Trim()); } catch { }
+        }
+        es.AddCustomTerrainType(id, name, costs, def, color);
+        if (es.CustomTerrainTypes.TryGetValue(id, out var reg))
+        {
+            reg.customTexturePath = parts.Length > 5 ? parts[5].Trim() : "";
+            reg.useCustomTexture = parts.Length > 6 && parts[6].Trim() == "1";
+        }
+    }
+
+    private Dictionary<string, int> ParseCostPairs(string csv)
+    {
+        var costs = new Dictionary<string, int>();
+        if (string.IsNullOrWhiteSpace(csv)) return costs;
+        foreach (var kv in csv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var kv2 = kv.Split(new[] { '=' }, 2);
+            if (kv2.Length == 2 && int.TryParse(kv2[1].Trim(), out int c)) costs[kv2[0].Trim()] = c;
+        }
+        return costs;
     }
 }

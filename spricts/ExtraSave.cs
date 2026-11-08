@@ -232,6 +232,37 @@ public partial class ExtraSave : Node
             gridMgr.RecalculateScreensFromCells();
         }
 
+        // ✅ 3.9 开创人2026-11-08：恢复自定义移动/地形类型注册表（先于一切实体——移动消耗/防御查询依赖它）
+        foreach (var mt in mapData.customMoveTypes)
+        {
+            if (string.IsNullOrEmpty(mt.id)) continue;
+            AddCustomMoveType(mt.id, mt.displayName, new Dictionary<string, int>(mt.moveCosts));
+            if (CustomMoveTypes.TryGetValue(mt.id, out var mreg))
+            {
+                mreg.customTexturePath = mt.customTexturePath;
+                mreg.useCustomTexture = mt.useCustomTexture;
+            }
+        }
+        foreach (var tt in mapData.customTerrainTypes)
+        {
+            if (string.IsNullOrEmpty(tt.id)) continue;
+            AddCustomTerrainType(tt.id, tt.displayName, new Dictionary<string, int>(tt.moveCosts), tt.defenseBonus, new Color(tt.terrainColorHex));
+            if (CustomTerrainTypes.TryGetValue(tt.id, out var treg))
+            {
+                treg.customTexturePath = tt.customTexturePath;
+                treg.useCustomTexture = tt.useCustomTexture;
+            }
+        }
+
+        // ✅ 3.95 开创人2026-11-08：恢复格子自定义（[x,y]{Test:...} 与 txt 导入同格式，走 terrainEditor.ApplyDiffString）
+        foreach (var gc in mapData.gridCustoms)
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(gc, @"\[(\d+),(\d+)\](.*)");
+            if (!m.Success) continue;
+            var g = FindGridByIndex(gridMgr, m.Groups[1].Value, m.Groups[2].Value);
+            if (g != null) terrainEditor.ApplyDiffString(g, m.Groups[3].Value);
+        }
+
         // 4. 加载设施
         foreach (var fData in mapData.facilities)
         {
@@ -262,6 +293,9 @@ public partial class ExtraSave : Node
         // 7. 加载资金
         gm.p1Funds = mapData.p1Funds;
         gm.p2Funds = mapData.p2Funds;
+        // ✅ 开创人2026-11-08：全体势力资金（P3/P4 等新增势力；P1/P2 与上面同值覆盖，幂等）
+        foreach (var kvp in mapData.teamFunds)
+            gm.SetTeamFunds(kvp.Key, kvp.Value);
 
         // 8. ✅ issue#1 恢复区域天气（开关/基底先落，DeserializeStacks 内部 ClearAllWeather+AddWeather 受开关门控）
         var wmLoad = WeatherManager.Instance;

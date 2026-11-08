@@ -315,6 +315,10 @@ public partial class ExtraSave
             d["screenYOffsets"] = new Godot.Collections.Array<int>(item.screenYOffsets);
             d["screenGap"] = item.screenGap;
             d["freeformScreens"] = item.freeformScreens;
+            d["gridCustoms"] = new Godot.Collections.Array(item.gridCustoms);
+            d["teamFunds"] = DictToGodot(item.teamFunds);
+            d["customMoveTypes"] = SerializeCustomMoveTypeList(item.customMoveTypes);
+            d["customTerrainTypes"] = SerializeCustomTerrainTypeList(item.customTerrainTypes);
             arr.Add(d);
         }
         return arr;
@@ -353,7 +357,11 @@ public partial class ExtraSave
                 screenHeights = ParseIntList(d.GetValueOrDefault("screenHeights", new Variant()).AsGodotArray()),
                 screenYOffsets = ParseIntList(d.GetValueOrDefault("screenYOffsets", new Variant()).AsGodotArray()),
                 screenGap = d.GetValueOrDefault("screenGap", 1).AsInt32(),
-                freeformScreens = d.GetValueOrDefault("freeformScreens", false).AsBool()
+                freeformScreens = d.GetValueOrDefault("freeformScreens", false).AsBool(),
+                gridCustoms = ParseStringList(d.GetValueOrDefault("gridCustoms", new Variant()).AsGodotArray()),
+                teamFunds = ParseStringIntDict(d.GetValueOrDefault("teamFunds", new Variant()).AsGodotDictionary()),
+                customMoveTypes = ParseCustomMoveTypeList(d.GetValueOrDefault("customMoveTypes", new Variant()).AsGodotArray()),
+                customTerrainTypes = ParseCustomTerrainTypeList(d.GetValueOrDefault("customTerrainTypes", new Variant()).AsGodotArray())
             };
 
             var terrainArr = d.GetValueOrDefault("terrainIds", new Variant()).AsGodotArray();
@@ -557,6 +565,103 @@ public partial class ExtraSave
         var dict = new Dictionary<string, int>();
         if (godotDict == null) return dict;
         foreach (var kvp in godotDict) dict[kvp.Key] = kvp.Value;
+        return dict;
+    }
+
+    // ✅ 开创人2026-11-08：自定义类型注册表/格子自定义/全势力资金 的序列化助手
+    private Godot.Collections.Array SerializeCustomMoveTypeList(List<CustomMoveTypeData> list)
+    {
+        var arr = new Godot.Collections.Array();
+        foreach (var item in list)
+        {
+            var d = new Godot.Collections.Dictionary();
+            d["id"] = item.id;
+            d["displayName"] = item.displayName;
+            d["isBuiltIn"] = item.isBuiltIn;
+            d["customTexturePath"] = item.customTexturePath;
+            d["useCustomTexture"] = item.useCustomTexture;
+            d["moveCosts"] = DictToGodot(item.moveCosts);
+            arr.Add(d);
+        }
+        return arr;
+    }
+
+    private List<CustomMoveTypeData> ParseCustomMoveTypeList(Godot.Collections.Array arr)
+    {
+        var list = new List<CustomMoveTypeData>();
+        if (arr == null) return list;
+        foreach (var item in arr)
+        {
+            var d = item.AsGodotDictionary();
+            if (d == null) continue;
+            list.Add(new CustomMoveTypeData
+            {
+                id = d.GetValueOrDefault("id", "").AsString(),
+                displayName = d.GetValueOrDefault("displayName", "").AsString(),
+                isBuiltIn = d.GetValueOrDefault("isBuiltIn", false).AsBool(),
+                customTexturePath = d.GetValueOrDefault("customTexturePath", "").AsString(),
+                useCustomTexture = d.GetValueOrDefault("useCustomTexture", false).AsBool(),
+                moveCosts = ParseStringIntDict(d.GetValueOrDefault("moveCosts", new Variant()).AsGodotDictionary())
+            });
+        }
+        return list;
+    }
+
+    private Godot.Collections.Array SerializeCustomTerrainTypeList(List<CustomTerrainTypeData> list)
+    {
+        var arr = new Godot.Collections.Array();
+        foreach (var item in list)
+        {
+            var d = new Godot.Collections.Dictionary();
+            d["id"] = item.id;
+            d["displayName"] = item.displayName;
+            d["isBuiltIn"] = item.isBuiltIn;
+            d["customTexturePath"] = item.customTexturePath;
+            d["useCustomTexture"] = item.useCustomTexture;
+            d["moveCosts"] = DictToGodot(item.moveCosts);
+            d["defenseBonus"] = item.defenseBonus;
+            d["terrainColorHex"] = item.terrainColorHex;
+            arr.Add(d);
+        }
+        return arr;
+    }
+
+    private List<CustomTerrainTypeData> ParseCustomTerrainTypeList(Godot.Collections.Array arr)
+    {
+        var list = new List<CustomTerrainTypeData>();
+        if (arr == null) return list;
+        foreach (var item in arr)
+        {
+            var d = item.AsGodotDictionary();
+            if (d == null) continue;
+            list.Add(new CustomTerrainTypeData
+            {
+                id = d.GetValueOrDefault("id", "").AsString(),
+                displayName = d.GetValueOrDefault("displayName", "").AsString(),
+                isBuiltIn = d.GetValueOrDefault("isBuiltIn", false).AsBool(),
+                customTexturePath = d.GetValueOrDefault("customTexturePath", "").AsString(),
+                useCustomTexture = d.GetValueOrDefault("useCustomTexture", false).AsBool(),
+                moveCosts = ParseStringIntDict(d.GetValueOrDefault("moveCosts", new Variant()).AsGodotDictionary()),
+                defenseBonus = (float)d.GetValueOrDefault("defenseBonus", 0.0).AsDouble(),
+                terrainColorHex = d.GetValueOrDefault("terrainColorHex", "#ffffff").AsString()
+            });
+        }
+        return list;
+    }
+
+    private List<string> ParseStringList(Godot.Collections.Array arr)
+    {
+        var list = new List<string>();
+        if (arr == null) return list;
+        foreach (var v in arr) list.Add(v.AsString());
+        return list;
+    }
+
+    private Dictionary<string, int> ParseStringIntDict(Godot.Collections.Dictionary gd)
+    {
+        var dict = new Dictionary<string, int>();
+        if (gd == null) return dict;
+        foreach (var k in gd.Keys) dict[k.ToString()] = gd[k].AsInt32();
         return dict;
     }
 }
