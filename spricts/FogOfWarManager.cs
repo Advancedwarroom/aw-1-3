@@ -474,9 +474,17 @@ public partial class FogOfWarManager : Node
                 if ((isTeamTower || isPublicTower) && TeamHelper.DoesFacilityProvideVision(grid.city.facilityTeam))
                 {
                     visible.Add(grid);
-                    int towerRange = 1 + grid.visionBonus;
-                    var towerVision = CalculateManhattanVision(grid.GridIndex, towerRange);
-                    visible.UnionWith(towerVision);
+                    if (grid.gridVisionMode != GridVisionMode.None)
+                    {
+                        // ✅ 方向性瞭望塔接线：锥形/射线视野（射程=gridVisionRange，尊重地形遮挡开关）
+                        visible.UnionWith(grid.CalculateTowerDirectionalVision(gameManager));
+                    }
+                    else
+                    {
+                        int towerRange = 1 + grid.visionBonus;
+                        var towerVision = CalculateManhattanVision(grid.GridIndex, towerRange);
+                        visible.UnionWith(towerVision);
+                    }
                 }
             }
         }

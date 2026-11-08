@@ -220,6 +220,22 @@ public partial class Grids : Node2D
         return visible;
     }
 
+    // ✅ 瞭望塔方向性视野（锥形/射线）——FogOfWarManager 接线专用；不含设施基础视野，避免重复合并
+    public HashSet<Grids> CalculateTowerDirectionalVision(GameManager gm)
+    {
+        var visible = new HashSet<Grids>();
+        switch (gridVisionMode)
+        {
+            case GridVisionMode.TowerCone:
+                visible.UnionWith(CalculateTowerConeVision(gm));
+                break;
+            case GridVisionMode.TowerRay:
+                visible.UnionWith(CalculateTowerRayVision(gm));
+                break;
+        }
+        return visible;
+    }
+
     private HashSet<Grids> CalculateTowerConeVision(GameManager gm)
     {
         var visible = new HashSet<Grids>();
