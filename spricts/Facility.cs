@@ -764,7 +764,8 @@ public partial class Facility : Node2D
 
     public int productionSuppressPercent = 0;   // 生产资金消耗压制百分比（负=降价 正=涨价）
     /// <summary>设施压制：生产实际造价（百分比乘区，下限1G）。UI显示与扣款、AI扣款三处共用。</summary>
-    public int GetProductionCost(int baseCost) => Mathf.Max(1, baseCost * (100 + productionSuppressPercent) / 100);
+    public int GetProductionCost(int baseCost)
+        => ProductionPricing.Calculate(baseCost, productionDiscountPercent, productionDiscountByUnit, "", productionSuppressPercent);
 
     public int incomeSuppressPercent = 0;    // 资金压制百分比（设施压制Export写入）
     public int defenseSuppressPercent = 0;   // 掩体压制百分比
