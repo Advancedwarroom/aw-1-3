@@ -9,7 +9,9 @@ public partial class Facility
     [Export] public int upkeepCostPerTurn = 0;
     [Export(PropertyHint.Enum, "无,势力失败,势力胜利,随机换队,中立化,自毁,变形并映射,仅执行Export事件")]
     public int upkeepFailureAction = 0;
-    [Export] public string upkeepFailureTransformUnitName = "";
+    [Export(PropertyHint.Enum, "单位,兵器,设施")] public int upkeepFailureTransformTargetType = 0;
+    [Export] public string upkeepFailureTransformUnitName = ""; // 目标为单位时使用，兼容旧配置。
+    [Export(PropertyHint.File, "*.tscn")] public string upkeepFailureTransformScenePath = ""; // 目标为兵器/设施时使用。
     [Export] public Godot.Collections.Dictionary<string, string> upkeepFailureExportOverrides = new();
     [Export] public Godot.Collections.Dictionary<string, float> upkeepFailureExportDeltas = new();
 }
@@ -20,7 +22,9 @@ public partial class Weapon
     [Export] public int upkeepCostPerTurn = 0;
     [Export(PropertyHint.Enum, "无,势力失败,势力胜利,随机换队,中立化,自毁,变形并映射,仅执行Export事件")]
     public int upkeepFailureAction = 0;
+    [Export(PropertyHint.Enum, "单位,兵器,设施")] public int upkeepFailureTransformTargetType = 0;
     [Export] public string upkeepFailureTransformUnitName = "";
+    [Export(PropertyHint.File, "*.tscn")] public string upkeepFailureTransformScenePath = "";
     [Export] public Godot.Collections.Dictionary<string, string> upkeepFailureExportOverrides = new();
     [Export] public Godot.Collections.Dictionary<string, float> upkeepFailureExportDeltas = new();
 }
@@ -31,7 +35,9 @@ public partial class Infantry
     [Export] public int upkeepCostPerTurn = 0;
     [Export(PropertyHint.Enum, "无,势力失败,势力胜利,随机换队,中立化,自毁,变形并映射,仅执行Export事件")]
     public int upkeepFailureAction = 0;
+    [Export(PropertyHint.Enum, "单位,兵器,设施")] public int upkeepFailureTransformTargetType = 0;
     [Export] public string upkeepFailureTransformUnitName = "";
+    [Export(PropertyHint.File, "*.tscn")] public string upkeepFailureTransformScenePath = "";
     [Export] public Godot.Collections.Dictionary<string, string> upkeepFailureExportOverrides = new();
     [Export] public Godot.Collections.Dictionary<string, float> upkeepFailureExportDeltas = new();
 }
@@ -49,7 +55,8 @@ public partial class GameManager
         {
             if (!IsInstanceValid(facility) || facility.facilityTeam != team || facility.upkeepCostPerTurn <= 0) continue;
             if (!TryPayUpkeep(team, facility.upkeepCostPerTurn))
-                ResolveUpkeepFailure(facility, team, facility.upkeepFailureAction, facility.upkeepFailureTransformUnitName,
+                ResolveUpkeepFailure(facility, team, facility.upkeepFailureAction, facility.upkeepFailureTransformTargetType,
+                    facility.upkeepFailureTransformUnitName, facility.upkeepFailureTransformScenePath,
                     facility.upkeepFailureExportOverrides, facility.upkeepFailureExportDeltas);
             if (gameEnded) return;
         }
@@ -58,7 +65,8 @@ public partial class GameManager
         {
             if (!IsInstanceValid(weapon) || weapon.team != team || weapon.upkeepCostPerTurn <= 0) continue;
             if (!TryPayUpkeep(team, weapon.upkeepCostPerTurn))
-                ResolveUpkeepFailure(weapon, team, weapon.upkeepFailureAction, weapon.upkeepFailureTransformUnitName,
+                ResolveUpkeepFailure(weapon, team, weapon.upkeepFailureAction, weapon.upkeepFailureTransformTargetType,
+                    weapon.upkeepFailureTransformUnitName, weapon.upkeepFailureTransformScenePath,
                     weapon.upkeepFailureExportOverrides, weapon.upkeepFailureExportDeltas);
             if (gameEnded) return;
         }
@@ -67,7 +75,8 @@ public partial class GameManager
         {
             if (!IsInstanceValid(unit) || unit.team != team || unit.upkeepCostPerTurn <= 0) continue;
             if (!TryPayUpkeep(team, unit.upkeepCostPerTurn))
-                ResolveUpkeepFailure(unit, team, unit.upkeepFailureAction, unit.upkeepFailureTransformUnitName,
+                ResolveUpkeepFailure(unit, team, unit.upkeepFailureAction, unit.upkeepFailureTransformTargetType,
+                    unit.upkeepFailureTransformUnitName, unit.upkeepFailureTransformScenePath,
                     unit.upkeepFailureExportOverrides, unit.upkeepFailureExportDeltas);
             if (gameEnded) return;
         }
@@ -85,8 +94,9 @@ public partial class GameManager
         return true;
     }
 
-    private void ResolveUpkeepFailure(Node target, string team, int action, string transformUnit,
-        Godot.Collections.Dictionary<string, string> overrides, Godot.Collections.Dictionary<string, float> deltas)
+    private void ResolveUpkeepFailure(Node target, string team, int action, int transformType, string transformUnit,
+        string transformScene, Godot.Collections.Dictionary<string, string> overrides,
+        Godot.Collections.Dictionary<string, float> deltas)
     {
         if (target == null || !IsInstanceValid(target)) return;
         switch (action)
@@ -108,7 +118,7 @@ public partial class GameManager
                 DestroyUpkeepTarget(target);
                 break;
             case 6:
-                TransformUpkeepTarget(target, transformUnit, overrides, deltas);
+                TransformUpkeepTarget(target, transformType, transformUnit, transformScene, overrides, deltas);
                 break;
             case 7:
                 ExportFieldMapper.ApplyOverrides(target, overrides);
@@ -149,34 +159,11 @@ public partial class GameManager
         }
     }
 
-    private void TransformUpkeepTarget(Node target, string unitName,
+    private void TransformUpkeepTarget(Node target, int targetType, string unitName, string scenePath,
         Godot.Collections.Dictionary<string, string> overrides, Godot.Collections.Dictionary<string, float> deltas)
     {
-        if (string.IsNullOrWhiteSpace(unitName) || !UnitProductionDatabase.HasUnit(unitName)) return;
-        Grids grid = target switch
-        {
-            Infantry unit => unit.grid,
-            Weapon weapon => weapon.grid,
-            Facility facility => gridManager.grids.FirstOrDefault(g => g?.city == facility),
-            _ => null
-        };
-        if (grid == null) return;
-        string newTeam = target switch
-        {
-            Infantry unit => unit.team,
-            Weapon weapon => weapon.team,
-            Facility facility => facility.facilityTeam,
-            _ => TeamHelper.Player0
-        };
-        var scene = GD.Load<PackedScene>(UnitProductionDatabase.GetInfo(unitName).ScenePath);
-        if (scene == null) return;
-
-        DestroyUpkeepTarget(target);
-        var replacement = unitManager.SpawnUnit(scene, grid.GridIndex, newTeam);
-        if (replacement == null) return;
-        ExportFieldMapper.ApplyOverrides(replacement, overrides);
-        ExportFieldMapper.ApplyNumericDeltas(replacement, deltas);
-        RefreshUpkeepVisual(replacement);
+        string newTeam = UniversalTransformRuntime.GetTeam(target);
+        UniversalTransformRuntime.Replace(target, targetType, unitName, scenePath, newTeam, overrides, deltas, false);
     }
 
     private void RefreshUpkeepVisual(Node target)
