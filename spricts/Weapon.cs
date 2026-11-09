@@ -57,7 +57,12 @@ public partial class Weapon : Node2D
     public bool ignoreForceField = false; 
 
     // ========== ✅ 新增：通用弹药系统（子类可覆盖）==========
-    [ExportGroup("弹药系统")]
+        [ExportGroup("兵器被击伤害表")]
+    [Export] public bool useWeaponDamageTable = false;
+    // 动态伤害表：键=攻击方单位类型ID，值=对本兵器的伤害值（-1=不覆盖，使用攻击方原始矩阵）
+    [Export] public Godot.Collections.Dictionary<string, int> damageFromUnits = new();
+
+[ExportGroup("弹药系统")]
     [Export] public bool useAmmoSystem = false;
     [Export] public int currentAmmo = 0;
     [Export] public int maxAmmo = 0;
@@ -411,12 +416,43 @@ public partial class Weapon : Node2D
         return any;
     }
 
-    public virtual void TakeDamage(int damage)
+    /// <summary>
+    /// 同步伤害表：运行时从UnitRegistry自动填充所有单位类型（默认-1=不覆盖）
+    /// </summary>
+    public void SyncDamageTable()
+    {
+        if (GameManager.Instance?.unitRegistry == null) return;
+        foreach (var unitId in GameManager.Instance.unitRegistry.Configs.Keys)
+        {
+            if (!damageFromUnits.ContainsKey(unitId))
+                damageFromUnits[unitId] = -1;
+        }
+    }
+
+    /// <summary>
+    /// 获取指定攻击方对本兵器的伤害值（-1=不覆盖，使用攻击方原始矩阵）
+    /// </summary>
+    public int GetDamageFrom(string attackerType)
+    {
+        if (!useWeaponDamageTable) return -1;
+        if (damageFromUnits.TryGetValue(attackerType, out int dmg))
+            return dmg;
+        return -1;
+    }
+
+    public virtual void TakeDamage(int damage, Infantry attacker = null)
     {
         if (healthLocked) return; // 力场锁血
         // ✅ 力场保护：被存活黑弧力场保护的地图目标物，攻击全部无效（坠落流程带bypass）
         if (!ignoreForceField && BlackArc.IsGridForceFieldProtected(grid)) return;
 
+        // ========== 兵器被击伤害表（具体数值覆盖攻击方原始矩阵）==========
+        if (useWeaponDamageTable && attacker != null)
+        {
+            int tableDamage = GetDamageFrom(attacker.unitTypeId);
+            if (tableDamage >= 0)
+                damage = tableDamage;
+        }
         health -= damage;
         health = Mathf.Max(0, health);
         UpdateHpLabel();
