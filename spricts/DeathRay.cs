@@ -244,6 +244,12 @@ public partial class DeathRay : BlackCannon
             }
         }
 
+        foreach (var facility in GetAllFacilitiesInLaserBeam())
+        {
+            if (!IsInstanceValid(facility)) continue;
+            facility.ApplyWeaponPercentDamage(this, fixedDamagePercent, CanDestroy, canOverMaxHp);
+        }
+
         // 播放激光特效
         PlayDeathRayEffect();
 
@@ -300,6 +306,33 @@ public partial class DeathRay : BlackCannon
             }
         }
 
+        return result;
+    }
+
+    private List<Facility> GetAllFacilitiesInLaserBeam()
+    {
+        var result = new List<Facility>();
+        var firePointGrid = GetFirePointGrid();
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (firePointGrid == null || gm?.gridManager?.map == null) return result;
+        Vector2I dir = DirectionVectors[(int)direction];
+        Vector2I start = firePointGrid.GridIndex;
+        Vector2I perpDir = dir.X != 0 ? new Vector2I(0, 1) : new Vector2I(1, 0);
+        int maxSteps = useInfiniteRange ? 100 : maxLaserLength;
+        for (int step = 1; step <= maxSteps; step++)
+        {
+            Vector2I center = start + dir * step;
+            for (int w = -1; w <= 1; w++)
+            {
+                Vector2I checkPos = center + perpDir * w;
+                if (checkPos.X < 0 || checkPos.X >= gm.gridManager.searchRange.X ||
+                    checkPos.Y < 0 || checkPos.Y >= gm.gridManager.searchRange.Y) continue;
+                var targetGrid = gm.gridManager.map[checkPos.X, checkPos.Y];
+                var facility = targetGrid?.city;
+                if (facility != null && facility.facilityTeam != team && facility.CanBeAttackedFrom(grid) && !result.Contains(facility))
+                    result.Add(facility);
+            }
+        }
         return result;
     }
 
@@ -597,7 +630,8 @@ public partial class DeathRay : BlackCannon
         {
             if (isFogEnabled && fog != null && !fog.IsGridVisible(g)) continue;
 
-            bool hasValidTarget = g.infantries.Any(i => IsInstanceValid(i) && i.team != team);
+            bool hasValidTarget = g.infantries.Any(i => IsInstanceValid(i) && i.team != team)
+                || (g.city != null && g.city.CanBeAttackedFrom(grid) && g.city.facilityTeam != team);
 
             if (hasValidTarget)
             {

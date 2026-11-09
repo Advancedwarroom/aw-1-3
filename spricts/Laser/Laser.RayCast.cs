@@ -146,9 +146,24 @@ public partial class Laser
         return allTargets;
     }
 
+    private bool CanSelectFacility(Grids g)
+    {
+        var facility = g?.city;
+        if (facility == null || !IsInstanceValid(facility) || !facility.CanBeAttackedFrom(grid)) return false;
+        if (team == TeamHelper.Player0) return true;
+        return targetSelectionMode switch
+        {
+            LaserTargetMode.AllSelect => true,
+            LaserTargetMode.OnlyEnemyUnits => facility.facilityTeam != team,
+            LaserTargetMode.OnlyUserUnits => facility.facilityTeam == team,
+            _ => false
+        };
+    }
+
     private List<Node2D> GetValidTargetsInGrid(Grids g)
     {
         var targets = new List<Node2D>();
+        if (CanSelectFacility(g)) targets.Add(g.city);
 
         // P0 兵器：无差别攻击，除了自己谁都能打，跳过友军/敌军判定
         if (team == TeamHelper.Player0)

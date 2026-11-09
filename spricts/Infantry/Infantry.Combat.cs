@@ -343,6 +343,22 @@ public virtual bool ConsumePrimaryAmmo()
 
             BattleTheater.Play(__theater, this);   // 战斗结算完成后开演
         }
+        else if (target is Facility facility)
+        {
+            if (!facility.CanBeAttackedBy(this)) return;
+            if (state == UnitState.Acted || (!canAttackAfterMoving && state == UnitState.Moved)) return;
+            WeaponType selectedWeapon;
+            if (hasPrimaryWeapon && CanUsePrimaryWeapon())
+            { selectedWeapon = WeaponType.Primary; ConsumePrimaryAmmo(); }
+            else if (hasSecondaryWeapon && CanUseSecondaryWeapon()) selectedWeapon = WeaponType.Secondary;
+            else return;
+            isAttacked = true; isMoved = true; originalGrid = null;
+            int damage = facility.CalculateDamageFrom(this, selectedWeapon);
+            facility.TakeDamage(damage, this);
+            state = UnitState.Acted; FreezeToIdleDark();
+            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            gm?.gridManager?.HideAttackRange(); gm?.ClearSelectedInfantry();
+        }
     }
 
     public virtual bool IsArmoredTarget(Infantry target)

@@ -45,6 +45,8 @@ public partial class Laser
                 ApplyDamageToTarget(infantry, targetInfo.BaseDamagePercent);
             else if (targetInfo.Target is Weapon weapon)
                 ApplyDamageToWeapon(weapon, targetInfo.BaseDamagePercent);
+            else if (targetInfo.Target is Facility facility)
+                ApplyDamageToFacility(facility, targetInfo.BaseDamagePercent);
         }
 
         PlayGlobalLaserEffect(newTargets);
@@ -142,6 +144,13 @@ public partial class Laser
             gm?.RemovePiece(target);
             target.CallDeferred(Node.MethodName.QueueFree);
         }
+    }
+
+    private void ApplyDamageToFacility(Facility target, float baseDamagePercent)
+    {
+        if (!IsInstanceValid(target) || IsScreenBlocked(target.ParentGrid)) return;
+        float percent = useModifiedDamage ? modifiedHealthPercent : baseDamagePercent;
+        target.ApplyWeaponPercentDamage(this, percent, CanDestroy, canOverMaxHp);
     }
 
     private void ApplyDamageToWeapon(Weapon target, float baseDamagePercent)

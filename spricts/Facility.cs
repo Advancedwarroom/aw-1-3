@@ -188,6 +188,7 @@ public partial class Facility : Node2D
         }
 
         UpdateCityVisual();
+        UpdateHpLabel();
         CreateStatusBarUI();
     }
 

@@ -33,6 +33,7 @@ public partial class ActionMenu
                         && (ringMode || !g.weapon.hasActed);
         if (weaponOk) return true;
         if (ringMode && g.weapon != null && g.weapon.isMultiTile && !g.weapon.IsWeakPointGrid(g)) return false;
+        if (g.HasAttackableFacility(unit)) return true;
         return g.HasAttackableEnemyInfantry(unit, all);
     }
 
@@ -49,7 +50,7 @@ public partial class ActionMenu
         // 重叠型单位可打同格（与 ShowAttackRange 同格分支一致）
         return !ring && unit.overlapType == UnitOverlapType.Overlapping
                && (fog == null || !fog.isFogOfWarEnabled || fog.IsGridVisible(unit.grid))
-               && unit.grid.HasAttackableEnemyInfantry(unit, all);
+               && (unit.grid.HasAttackableEnemyInfantry(unit, all) || unit.grid.HasAttackableFacility(unit));
     }
 
     private static int Dist(Grids a, Grids b) => Mathf.Abs(a.GridIndex.X - b.GridIndex.X) + Mathf.Abs(a.GridIndex.Y - b.GridIndex.Y);

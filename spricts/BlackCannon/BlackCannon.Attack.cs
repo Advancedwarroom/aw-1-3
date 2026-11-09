@@ -89,6 +89,15 @@ public override void TakeDamage(int damage, Infantry attacker = null)
     }
 }
 
+    private void PerformAttackOnFacility(Facility target)
+    {
+        if (remainingAttacks <= 0 || target == null || !IsInstanceValid(target)) return;
+        Vector2 targetPos = target.GlobalPosition;
+        float percent = useModifiedDamage ? modifiedHealthPercent : fixedDamagePercent;
+        target.ApplyWeaponPercentDamage(this, percent, CanDestroy, canOverMaxHp);
+        PlayHitEffectAt(targetPos); remainingAttacks--; HandlePostAttack();
+    }
+
     // 黑炮攻击兵器 - 完全重写，避免任何延迟调用
     private void PerformAttackOnWeapon(Weapon targetWeapon)
     {

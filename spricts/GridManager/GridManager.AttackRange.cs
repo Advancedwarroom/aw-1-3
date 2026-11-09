@@ -99,7 +99,7 @@ public partial class GridManager
         // 多格兵器：只有弱点格子可被攻击
         if (grid.weapon != null && grid.weapon.isMultiTile && !grid.weapon.IsWeakPointGrid(grid)) continue;
         
-        bool hasEnemyTarget = grid.HasAttackableEnemyInfantry(unit, grids) || grid.HasEnemyWeapon(unit.team);
+        bool hasEnemyTarget = grid.HasAttackableEnemyInfantry(unit, grids) || grid.HasEnemyWeapon(unit.team) || grid.HasAttackableFacility(unit);
         if (hasEnemyTarget)
         {
             if (isFogEnabled && !fog.IsGridVisible(grid)) continue;
@@ -149,7 +149,7 @@ public partial class GridManager
                 grid.OnMouseExitedAttackGrid = () => HideDamagePreview();
             }
             
-            bool hasEnemyTarget = grid.HasAttackableEnemyInfantry(unit, grids) || grid.HasEnemyWeapon(unit.team);
+            bool hasEnemyTarget = grid.HasAttackableEnemyInfantry(unit, grids) || grid.HasEnemyWeapon(unit.team) || grid.HasAttackableFacility(unit);
             if (hasEnemyTarget)
             {
                 // 多格兵器：只有弱点格子显示为可攻击
@@ -172,6 +172,12 @@ public partial class GridManager
             }
         }
         
+        if (unit.grid.HasAttackableFacility(unit) && (!isFogEnabled || fog.IsGridVisible(unit.grid)))
+        {
+            attackRange.Add(unit.grid); unit.grid.attackRangeIcon?.Show(); unit.grid.IsInAttackRangeMode = true;
+            unit.grid.OnClickGrid = to => OnAttackGridClicked(unit, to);
+        }
+
         if (attackRange.Count == 0)
         {
             unit.actionMenu?.Hide();
@@ -230,7 +236,7 @@ public partial class GridManager
                 neighbor.OnMouseExitedAttackGrid = () => HideDamagePreview();
             }
             
-            if (neighbor.HasAttackableEnemyInfantry(unit, grids))
+            if (neighbor.HasAttackableEnemyInfantry(unit, grids) || neighbor.HasAttackableFacility(unit))
             {
                 if (isFogEnabled && fog != null && !fog.IsGridVisible(neighbor)) continue;
                 attackRange.Add(neighbor);
@@ -249,7 +255,7 @@ public partial class GridManager
             }
         }
 
-        if (unit.overlapType == UnitOverlapType.Overlapping && unit.grid.HasAttackableEnemyInfantry(unit, grids))
+        if ((unit.overlapType == UnitOverlapType.Overlapping && unit.grid.HasAttackableEnemyInfantry(unit, grids)) || unit.grid.HasAttackableFacility(unit))
         {
             if (isFogEnabled && fog != null && !fog.IsGridVisible(unit.grid)) { /* 不添加 */ }
             else
@@ -349,6 +355,10 @@ public partial class GridManager
         {
             attacker.AttackTarget(targetWeapon); 
         }
+        else if (to.city != null && IsInstanceValid(to.city) && to.city.CanBeAttackedBy(attacker))
+        {
+            attacker.AttackTarget(to.city);
+        }
         else
         {
             Infantry target = null;
@@ -426,7 +436,7 @@ public partial class GridManager
             }
 
             // 检查敌方单位
-            if (grid.HasEnemyInfantry(unit))
+            if (grid.HasEnemyInfantry(unit) || grid.HasAttackableFacility(unit))
             {
                 if (isFogEnabled && fog != null && !fog.IsGridVisible(grid)) continue;
                 attackRange.Add(grid);
@@ -445,7 +455,7 @@ public partial class GridManager
         }
 
         // Overlapping 单位检查同格敌人
-        if (unit.overlapType == UnitOverlapType.Overlapping && unit.grid.HasEnemyInfantry(unit))
+        if ((unit.overlapType == UnitOverlapType.Overlapping && unit.grid.HasEnemyInfantry(unit)) || unit.grid.HasAttackableFacility(unit))
         {
             if (isFogEnabled && fog != null && !fog.IsGridVisible(unit.grid)) { /* 不添加 */ }
             else

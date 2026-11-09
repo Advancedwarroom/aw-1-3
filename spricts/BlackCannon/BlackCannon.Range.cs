@@ -189,8 +189,23 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
 
 
 
+    private bool CanSelectFacility(Grids targetGrid)
+    {
+        var facility = targetGrid?.city;
+        if (facility == null || !IsInstanceValid(facility) || !facility.CanBeAttackedFrom(grid)) return false;
+        if (team == TeamHelper.Player0) return true;
+        return targetSelectionMode switch
+        {
+            TargetSelectionMode.AllSelect => true,
+            TargetSelectionMode.OnlyEnemyUnits => facility.facilityTeam != team,
+            TargetSelectionMode.OnlyUserUnits => facility.facilityTeam == team,
+            _ => false
+        };
+    }
+
     public bool HasValidTargetInGrid(Grids targetGrid)
     {
+        if (CanSelectFacility(targetGrid)) return true;
         // P0 兵器：无差别攻击，除了自己谁都能打，跳过友军/敌军判定
         if (team == TeamHelper.Player0)
         {
@@ -262,16 +277,15 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
         else if (target is Weapon weapon)
         {
             // ✅ 关键修复：攻击前检查兵器是否已被销毁
-            if (IsInstanceValid(weapon))
-            {
-                PerformAttackOnWeapon(weapon);
-            }
+            if (IsInstanceValid(weapon)) PerformAttackOnWeapon(weapon);
         }
+        else if (target is Facility facility && IsInstanceValid(facility)) PerformAttackOnFacility(facility);
     }
 
     private List<Node2D> GetValidTargetsInGrid(Grids targetGrid)
     {
         var targets = new List<Node2D>();
+        if (CanSelectFacility(targetGrid)) targets.Add(targetGrid.city);
 
         // P0 兵器：无差别攻击，除了自己谁都能打，跳过友军/敌军判定
         if (team == TeamHelper.Player0)

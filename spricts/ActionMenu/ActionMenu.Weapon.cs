@@ -56,7 +56,9 @@ public partial class ActionMenu
                     if (isFogEnabled && fog != null && !fog.IsGridVisible(g)) return false;
                     if (weapon is BlackCannon cannon)
                         return cannon.HasValidTargetInGrid(g);
-                    return g.HasEnemyInfantry(weapon.team) || (weapon.CanAttackWeapon && g.weapon != null && g.weapon.team != weapon.team);
+                    return g.HasEnemyInfantry(weapon.team)
+                        || (weapon.CanAttackWeapon && g.weapon != null && g.weapon.team != weapon.team)
+                        || (g.city != null && g.city.CanBeAttackedFrom(weapon.grid) && g.city.facilityTeam != weapon.team);
                 });
             }
 
