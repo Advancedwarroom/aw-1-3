@@ -60,6 +60,16 @@ public static class ExportFieldMapper
         }
     }
 
+    // 读取“若再施加 delta 后的值”，但不改实例；供存档反推出模块介入前的底值。
+    public static object GetNumberAfterDelta(object target, string fieldName, float delta)
+    {
+        var field = FindExportedField(target, fieldName);
+        if (field == null || !IsNumeric(field.FieldType)) return null;
+        object old = field.GetValue(target);
+        double result = Convert.ToDouble(old, CultureInfo.InvariantCulture) + delta;
+        return ConvertNumber(result, field.FieldType);
+    }
+
     public static void ApplyOverrides(object target, Godot.Collections.Dictionary<string, string> overrides)
     {
         if (target == null || overrides == null) return;
