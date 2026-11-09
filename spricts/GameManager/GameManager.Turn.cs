@@ -94,6 +94,7 @@ public partial class GameManager
         if (!string.IsNullOrEmpty(fundTeam))
         {
             AddFundsForTeam(fundTeam);
+            ProcessUpkeepForTeam(fundTeam);
         }
 
         // ✅ P0 AI：在当前phase结束后（最后一个大回合阶段）执行 P0 和 P-1 兵器 AI
