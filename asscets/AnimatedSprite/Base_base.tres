@@ -1,34 +1,22 @@
-[gd_resource type="SpriteFrames" load_steps=15 format=3]
+[gd_resource type="SpriteFrames" load_steps=3 format=3]
 
-[ext_resource type="Texture2D" path="res://art/Base/Base13_base.png" id="1"]
-[ext_resource type="Texture2D" path="res://art/Base/Base14_base.png" id="2"]
-[ext_resource type="Texture2D" path="res://art/Base/Base1_base.png" id="3"]
-[ext_resource type="Texture2D" path="res://art/Base/Base2_base.png" id="4"]
-[ext_resource type="Texture2D" path="res://art/Base/Base3_base.png" id="5"]
-[ext_resource type="Texture2D" path="res://art/Base/Base4_base.png" id="6"]
-[ext_resource type="Texture2D" path="res://art/Base/Base5_base.png" id="7"]
-[ext_resource type="Texture2D" path="res://art/Base/Base6_base.png" id="8"]
-[ext_resource type="Texture2D" path="res://art/Base/Base7_base.png" id="9"]
-[ext_resource type="Texture2D" path="res://art/Base/Base8_base.png" id="10"]
-[ext_resource type="Texture2D" path="res://art/Base/Base9_base.png" id="11"]
-[ext_resource type="Texture2D" path="res://art/Base/Base10_base.png" id="12"]
-[ext_resource type="Texture2D" path="res://art/Base/Base11_base.png" id="13"]
-[ext_resource type="Texture2D" path="res://art/Base/Base12_base.png" id="14"]
+[ext_resource type="Texture2D" path="res://art/official/Base_dark_base.png" id="1"]
+[ext_resource type="Texture2D" path="res://art/official/Base_light_base.png" id="2"]
 
 [resource]
 animations = [{
-"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 1.0, "texture": ExtResource("2")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 3.0, "texture": ExtResource("2")}],
 "loop": true,
 "name": &"P0Base",
-"speed": 5.0
+"speed": 1.0
 }, {
-"frames": [{"duration": 1.0, "texture": ExtResource("3")}, {"duration": 1.0, "texture": ExtResource("4")}, {"duration": 1.0, "texture": ExtResource("5")}, {"duration": 1.0, "texture": ExtResource("6")}, {"duration": 1.0, "texture": ExtResource("7")}, {"duration": 1.0, "texture": ExtResource("8")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 3.0, "texture": ExtResource("2")}],
 "loop": true,
 "name": &"baseteam1",
-"speed": 5.0
+"speed": 1.0
 }, {
-"frames": [{"duration": 1.0, "texture": ExtResource("9")}, {"duration": 1.0, "texture": ExtResource("10")}, {"duration": 1.0, "texture": ExtResource("11")}, {"duration": 1.0, "texture": ExtResource("12")}, {"duration": 1.0, "texture": ExtResource("13")}, {"duration": 1.0, "texture": ExtResource("14")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 3.0, "texture": ExtResource("2")}],
 "loop": true,
 "name": &"baseteam2",
-"speed": 5.0
+"speed": 1.0
 }]
