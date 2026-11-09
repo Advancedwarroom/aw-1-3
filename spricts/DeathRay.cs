@@ -229,6 +229,8 @@ public partial class DeathRay : BlackCannon
 
             int damage = Mathf.RoundToInt(t.maxHealth * fixedDamagePercent);
             damage = Mathf.Max(1, damage);
+            damage = Mathf.Max(0, damage - t.fixedDefense);
+            if (damage <= 0) continue;
 
             if (!CanDestroy)
                 t.health = Mathf.Max(1, t.health - damage);
@@ -236,7 +238,7 @@ public partial class DeathRay : BlackCannon
                 t.health -= damage;
 
             t.UpdateHpLabel();
-            if (t.health <= 0 && CanDestroy)
+            if (t.health <= 0 && CanDestroy && !t.TryFlee())
             {
                 var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
                 gm?.RemovePiece(t);
