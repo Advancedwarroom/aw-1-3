@@ -335,7 +335,7 @@ public bool CanMoveTo(Vector2I gridPos, Infantry unit)
     }
 
     // ✅ 兵器阻挡（非Oozium不能通过兵器格子）
-    if (unit is not Oozium && grid.weapon != null && !grid.weapon.AllowsPassage(unit))
+    if (unit is not Oozium && grid.weapon != null && !grid.weapon.AllowsPassage(unit) && !grid.weapon.CanShelterUnit(unit))
         return false;
     // ✅ issue#1 多格机动单位：他方多格足印占据格一律不可进入（敌我皆挡；死亡残留惰性失效）
     if (grid.multiTileOccupant != null && grid.multiTileOccupant != unit
