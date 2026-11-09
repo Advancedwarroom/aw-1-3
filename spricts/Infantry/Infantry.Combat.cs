@@ -26,6 +26,7 @@ public int GetEffectiveDefense(Grids targetGrid)
         : 0f;
     int result = Mathf.RoundToInt(dynamicDefense * (1.0f + terrainBonus));
     if (FogActive()) result = Mathf.Max(0, result + fogFlatDefenseBonus);   // ✅ 雾战固定防御（可负）
+    result += fixedDefense; // 固定防御不参与血量衰减；攻击不超过阈值时伤害为0
     return result;
 }
 
