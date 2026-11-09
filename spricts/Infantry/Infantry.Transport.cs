@@ -203,6 +203,7 @@ public virtual bool LoadUnit(Infantry unit)
     
     transportedUnits.Add(unit);
     unit.isTransported = true;
+    ApplyInternalExportService(unit);
     MarkCargoBoardedThisTurn(unit);
     
     unit.Hide();
@@ -306,6 +307,7 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
         u.overlapType == UnitOverlapType.NonOverlapping);
     if (blockingUnit != null) return false;
     
+    RemoveInternalExportService(unit);
     transportedUnits.Remove(unit);
     unit.isTransported = false;
     
