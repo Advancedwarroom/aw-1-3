@@ -54,10 +54,10 @@ public partial class GrandBoltModule : Weapon
         ApplyFrame();
     }
 
-    public override void TakeDamage(int damage)
+    public override void TakeDamage(int damage, Infantry attacker = null)
     {
         if (dead) return;
-        base.TakeDamage(damage);
+        base.TakeDamage(damage, attacker);
         if (health <= 0) SetModuleDead(true);
     }
 

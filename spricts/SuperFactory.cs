@@ -559,11 +559,11 @@ public partial class SuperFactory : Weapon
     }
 
     // ========== 免疫一切伤害（原作：包括导弹井和CO技能）==========
-    public override void TakeDamage(int damage)
+    public override void TakeDamage(int damage, Infantry attacker = null)
     {
         // 原作 Factory 免疫一切伤害——失效只能靠摧毁管道接缝；开启血量Export后才可被攻击（开创人规矩）
         if (!hasHealth) return;
-        base.TakeDamage(damage);
+        base.TakeDamage(damage, attacker);
     }
 
     // ========== 摧毁（编辑器删除/脚本）：通知 ==========
