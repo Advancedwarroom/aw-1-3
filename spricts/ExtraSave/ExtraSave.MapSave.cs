@@ -81,6 +81,9 @@ public partial class ExtraSave
                     saveGrid = unitHost?.grid ?? weaponHost?.grid;
                     if (unitHost != null) { uData.fieldValues["transportHostKind"] = "Unit"; uData.fieldValues["transportHostName"] = unitHost.Name; }
                     if (weaponHost != null) { uData.fieldValues["transportHostKind"] = "Weapon"; uData.fieldValues["transportHostName"] = weaponHost.Name; }
+                    Node serviceHost = unitHost != null ? unitHost : weaponHost;
+                    foreach (var pair in InternalServiceMapper.GetBaseValuesForSave(serviceHost, unit))
+                        uData.fieldValues[pair.Key] = ValueToString(pair.Value);
                 }
                 if (saveGrid == null) continue;
                 uData.fieldValues["gridX"] = saveGrid.GridIndex.X.ToString();
