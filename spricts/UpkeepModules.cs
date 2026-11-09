@@ -136,7 +136,11 @@ public partial class GameManager
     private void DestroyUpkeepTarget(Node target)
     {
         if (target is Infantry unit) unitManager.RemoveUnit(unit);
-        else if (target is Weapon weapon) weaponManager.UnregisterWeapon(weapon);
+        else if (target is Weapon weapon)
+        {
+            weapon.ClearShelterOnDestroyed();
+            weaponManager.RemoveWeapon(weapon); // 清除多格兵器全部占据格，而非只清锚点。
+        }
         else if (target is Facility facility)
         {
             var grid = gridManager.grids.FirstOrDefault(g => g?.city == facility);
