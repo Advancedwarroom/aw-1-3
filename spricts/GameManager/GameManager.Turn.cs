@@ -119,7 +119,10 @@ public partial class GameManager
         {
             WeatherSystem.AdvanceDay();   // ✅ 天气系统（模块15）：新一天按出现率轮换天气
             WeatherManager.Instance?.OnTurnStart();   // ✅ issue#1：区域天气层（格子栈）回合递减（大回合一次，非每阶段）
-            ProcessSurvivalCountdowns();              // ✅ 开创人2026-11-10：单位/兵器/设施 存活胜负倒计时（默认关闭，0=不计）
+            foreach (var weapon in weaponManager?.AllWeapons ?? new List<Weapon>())
+            if (IsInstanceValid(weapon)) weapon.ProcessShelterServices();
+
+        ProcessSurvivalCountdowns();              // ✅ 开创人2026-11-10：单位/兵器/设施 存活胜负倒计时（默认关闭，0=不计）
         }
         selectedInfantry = null;
                         if (turnPhase == 1)
@@ -275,7 +278,7 @@ public partial class GameManager
             {
                 if (!IsInstanceValid(u)) continue;
                 u.ConsumeDailyFuel();
-                u.ProcessInternalServices();      // ✅ 内部补给/内部回血（舱内单位）
+                u.ProcessInternalServices();      // ✅ 内部补给/内部回血/Export服务（舱内单位）
                 u.ProcessTurnProduction();        // ✅ 生产模块：进度推进/完工/冷却
         u.ProcessTurnSupport();             // ✅ 力场支援模块：每回合扫描上锁
                 u.ProcessTurnConstruction();      // ✅ 建造模块：进度推进/完工/冷却
