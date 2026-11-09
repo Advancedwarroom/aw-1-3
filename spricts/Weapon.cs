@@ -44,6 +44,10 @@ public partial class Weapon : Node2D
     [Export] public bool contributesToVictory = false;
     [Export] public int victoryCountRequired = 1;
     [Export] public string victoryTargetTeam = "Player2";
+    // ✅ 开创人2026-11-10：兵器存活胜负倒计时（全部兵器通用，默认关闭=0）
+    [Export] public int surviveVictoryTurns = 0;   // 本兵器存活满 N 大回合 → 所属势力直接胜利（0=关闭）
+    [Export] public int surviveDefeatTurns = 0;    // 本兵器存活满 N 大回合 → 所属势力失败出局（0=关闭）
+    [Export] public int survivedTurns = 0;         // 已存活大回合数（计时器；[Export] 随存档槽/txt导出/导入自动带走）
 
     [ExportGroup("基础属性")]
     [Export] public string team = "Player1";
