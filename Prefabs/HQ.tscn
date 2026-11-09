@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" path="res://spricts/HQ.cs" id="1_hq"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/HQ_cow.tres" id="2_hq"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/HQ_base.tres" id="3_base"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/HQ_overlay.tres" id="4_over"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hq"]
 size = Vector2(33, 33)
@@ -19,5 +21,14 @@ shape = SubResource("RectangleShape2D_hq")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(16, 0)
 scale = Vector2(1.0, 1.0)
-sprite_frames = ExtResource("2_hq")
+sprite_frames = ExtResource("4_over")
 animation = &"P0HQ"
+
+[node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(16.5, 16.5)
+visible = false
+sprite_frames = ExtResource("3_base")
+
+[node name="NormalAnimSprite" type="AnimatedSprite2D" parent="BaseAnimSprite"]
+visible = false
+sprite_frames = ExtResource("4_over")
