@@ -165,7 +165,8 @@ public partial class ExtraSave : Node
 
         if (gm == null || gridMgr == null || terrainEditor == null) return false;
 
-        // 1. 清理现有实体
+        // 1. 清理现有实体；旧进驻快照不带入新地图。
+        InternalServiceMapper.Reset();
         terrainEditor.ClearAllMapEntities();
 
         // 2. 调整地图大小
