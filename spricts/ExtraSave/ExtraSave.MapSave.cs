@@ -69,6 +69,8 @@ public partial class ExtraSave
                     attackMatrix = ToSystemDict(unit.attackMatrix),
                     secondaryAttackMatrix = ToSystemDict(unit.secondaryAttackMatrix)
                 };
+                foreach (var pair in EmpowermentRuntime.GetBaseValuesForSave(unit))
+                    uData.fieldValues[pair.Key] = ValueToString(pair.Value);
                 EmpowermentPersistence.AddRuntimeFields(unit, uData.fieldValues);
                 // 普通单位记录自身格；舱内单位记录宿主格和宿主身份，读档生成后立即重新装载。
                 Grids saveGrid = unit.grid;
