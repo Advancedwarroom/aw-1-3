@@ -55,7 +55,9 @@ public partial class ExtraSave
         {
             foreach (var unit in gm.unitManager.AllUnits)
             {
-                if (unit == null || !IsInstanceValid(unit) || unit.grid == null) continue;
+                if (unit == null || !IsInstanceValid(unit)) continue;
+                bool carried = unit.grid == null && unit.isTransported;
+                if (unit.grid == null && !carried) continue;
                 var uData = new SavedUnitData
                 {
                     slotName = unit.Name,
@@ -67,9 +69,20 @@ public partial class ExtraSave
                     attackMatrix = ToSystemDict(unit.attackMatrix),
                     secondaryAttackMatrix = ToSystemDict(unit.secondaryAttackMatrix)
                 };
-                // 记录格子坐标用于加载
-                uData.fieldValues["gridX"] = unit.grid.GridIndex.X.ToString();
-                uData.fieldValues["gridY"] = unit.grid.GridIndex.Y.ToString();
+                EmpowermentPersistence.AddRuntimeFields(unit, uData.fieldValues);
+                // 普通单位记录自身格；舱内单位记录宿主格和宿主身份，读档生成后立即重新装载。
+                Grids saveGrid = unit.grid;
+                if (carried)
+                {
+                    var unitHost = gm.unitManager.AllUnits.FirstOrDefault(host => host != null && host.transportedUnits.Contains(unit));
+                    var weaponHost = gm.weaponManager?.AllWeapons.FirstOrDefault(host => host != null && host.shelteredUnits.Contains(unit));
+                    saveGrid = unitHost?.grid ?? weaponHost?.grid;
+                    if (unitHost != null) { uData.fieldValues["transportHostKind"] = "Unit"; uData.fieldValues["transportHostName"] = unitHost.Name; }
+                    if (weaponHost != null) { uData.fieldValues["transportHostKind"] = "Weapon"; uData.fieldValues["transportHostName"] = weaponHost.Name; }
+                }
+                if (saveGrid == null) continue;
+                uData.fieldValues["gridX"] = saveGrid.GridIndex.X.ToString();
+                uData.fieldValues["gridY"] = saveGrid.GridIndex.Y.ToString();
                 mapData.units.Add(uData);
             }
         }
@@ -89,6 +102,7 @@ public partial class ExtraSave
                     team = weapon.team,
                     fieldValues = SerializeObjectFields(weapon)
                 };
+                EmpowermentPersistence.AddRuntimeFields(weapon, wData.fieldValues);
                 // 记录格子坐标用于加载
                 wData.fieldValues["gridX"] = weapon.grid.GridIndex.X.ToString();
                 wData.fieldValues["gridY"] = weapon.grid.GridIndex.Y.ToString();
@@ -111,6 +125,7 @@ public partial class ExtraSave
                     team = grid.city.facilityTeam,
                     fieldValues = SerializeObjectFields(grid.city)
                 };
+                EmpowermentPersistence.AddRuntimeFields(facility: grid.city, fields: fData.fieldValues);
                 // 记录格子坐标用于加载
                 fData.fieldValues["gridX"] = grid.GridIndex.X.ToString();
                 fData.fieldValues["gridY"] = grid.GridIndex.Y.ToString();
