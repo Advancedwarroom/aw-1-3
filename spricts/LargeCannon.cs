@@ -176,12 +176,12 @@ public partial class LargeCannon : BlackCannon
         return range;
     }
 
-    public override void TakeDamage(int damage)
+    public override void TakeDamage(int damage, Infantry attacker = null)
     {
         // 如果被摧毁，不再接受伤害
         if (isDestroyed) return;
         
-        base.TakeDamage(damage);
+        base.TakeDamage(damage, attacker);
     }
 
     public override void OnDestroyed()
