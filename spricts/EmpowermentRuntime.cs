@@ -211,7 +211,7 @@ public static class EmpowermentRuntime
             Set(source, "empowermentManualTargetX", -1);
             Set(source, "empowermentManualTargetY", -1);
         }
-        DispelledSourceCells.Clear();
+        DispelledTargets.Clear();
         RefreshAll(gm);
     }
 
