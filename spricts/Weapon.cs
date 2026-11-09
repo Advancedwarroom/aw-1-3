@@ -497,6 +497,7 @@ public partial class Weapon : Node2D
             if (gm?.selectedWeapon == this) gm.selectedWeapon = null;
             // ✅ 护卫联动：任意兵器被毁后刷新黑弧护卫状态（护卫全毁→坠落）
             gm?.NotifyBlackArcEscortCheck();
+            if (TryDeathTransform()) return; // 尸化成功则新实例接替；失败才继续原销毁。
             ClearShelterOnDestroyed();
             CallDeferred(nameof(OnDestroyed));
         }
@@ -551,6 +552,7 @@ public partial class Weapon : Node2D
 
     public virtual void OnDestroyed()
     {
+        if (TryDeathTransform()) return; // 直接销毁入口同样支持尸化；attempted 防重入。
         isDestroyed = true; // ✅ 关键：标记为已摧毁，确保胜利判定正确识别
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         gm?.gridManager?.ClearWeaponRange();
