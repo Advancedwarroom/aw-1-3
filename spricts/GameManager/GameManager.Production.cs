@@ -70,7 +70,7 @@ public partial class GameManager
 
             var info = UnitProductionDatabase.GetInfo(unitName);
             // ✅ CO 模块系统·模块12（生产模块）：生产价格百分比增减（与实际扣费一致）
-            int prodCost = Mathf.Max(1, Mathf.RoundToInt(productionTargetFacility.GetProductionCost(info.Cost)
+            int prodCost = Mathf.Max(1, Mathf.RoundToInt(productionTargetFacility.GetProductionCost(info.Cost, unitName)
                 * (100f + CoModuleSystem.GetCostModifierPercent(currentTeam)) / 100f));
             if (productionTargetFacility.productionFree) prodCost = 0;
             bool isCoUnit = CoModuleSystem.IsExclusiveUnit(currentTeam, unitName);
@@ -283,7 +283,7 @@ public partial class GameManager
         {
             int currentFunds = GetTeamFunds(currentTeam);
             // ✅ CO 模块系统·模块12（生产模块）：价格增减与菜单显示/扣费一致
-            int prodCostUI = Mathf.Max(1, Mathf.RoundToInt(productionTargetFacility.GetProductionCost(info.Cost)
+            int prodCostUI = Mathf.Max(1, Mathf.RoundToInt(productionTargetFacility.GetProductionCost(info.Cost, unitName)
                 * (100f + CoModuleSystem.GetCostModifierPercent(currentTeam)) / 100f));
             if (productionTargetFacility.productionFree) prodCostUI = 0;
             if (!productionTargetFacility.productionFree && currentFunds < prodCostUI)
@@ -368,7 +368,7 @@ public partial class GameManager
         var info = UnitProductionDatabase.GetInfo(unitName);
         int currentFunds = GetTeamFunds(team);
         // ✅ CO 模块系统·模块12：AI 生产同样吃价格增减
-        int prodCostAI = Mathf.Max(1, Mathf.RoundToInt(facility.GetProductionCost(info.Cost)
+        int prodCostAI = Mathf.Max(1, Mathf.RoundToInt(facility.GetProductionCost(info.Cost, unitName)
             * (100f + CoModuleSystem.GetCostModifierPercent(team)) / 100f));
         if (facility.productionFree) prodCostAI = 0;
         if (!facility.productionFree && currentFunds < prodCostAI) return false;
