@@ -203,12 +203,8 @@ public static class EmpowermentRuntime
     {
         if (!Cells.TryGetValue(cell, out var state)) { state = new CellState(); Cells[cell] = state; }
         state.Layers.RemoveAll(l => l.Source.Node == layer.Source.Node);
+        if (state.Layers.Count >= layer.Source.MaxStacks) return; // 到顶后拒绝新来源，不挤掉旧层
         state.Layers.Add(layer);
-        while (state.Layers.Count > layer.Source.MaxStacks)
-        {
-            var lowest = state.Layers.OrderBy(l => l, new LayerPriority(currentTeam)).First();
-            state.Layers.Remove(lowest);
-        }
         state.Layers.Sort(new LayerPriority(currentTeam));
     }
 
