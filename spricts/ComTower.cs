@@ -44,16 +44,7 @@ public partial class ComTower : Facility
     protected override (string neutral, string red, string blue)? GetTeamAnimNames()
         => ("P0ComTower", "comtowerteam1", "comtowerteam2");
 
-    
-
-    // CoW LUT 单图层染色（MissileSilo 范式）：body 编码体贴图 + 势力色表直查，P-1 等全势力自动随色
-    protected override void ApplyPaletteMaterial()
-    {
-        if (animSprite == null || !IsInstanceValid(animSprite)) return;
-        var lut = FactionPaletteManager.GetCowLutMaterial(facilityTeam);
-        if (lut == null) return;
-        animSprite.Material = (ShaderMaterial)lut.Duplicate();
-    }public override void _Ready()
+    public override void _Ready()
     {
         base._Ready();
     }
