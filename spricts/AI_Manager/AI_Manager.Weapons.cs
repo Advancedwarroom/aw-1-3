@@ -265,7 +265,8 @@ public partial class AI_Manager
             {
                 if (!UnitProductionDatabase.HasUnit(name)) continue;
                 int cost = f.GetProductionCost(UnitProductionDatabase.GetInfo(name).Cost, f.instantMoveAfterProduction, name);
-                if (cost <= 0) continue;
+                // 免费/红利期价格为0，仍是合法候选；估价与真实生产保持一致。
+                if (cost < 0) continue;
                 if (!f.productionFree && cost > gameManager.GetTeamFunds(aiTeam)) continue;
                 if (f.isUpdatable && !UnitProductionWhitelist.CanProduce(name)) continue;
                 float s = ProductionScore(name, cost, known, myCounts, capturers);
