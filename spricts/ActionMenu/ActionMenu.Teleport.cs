@@ -135,7 +135,8 @@ public partial class ActionMenu
             ShowMenu(unit, false);
             return;
         }
-        if (unit.GetMoveCostOnGrid(to) >= 999)
+        // 默认保持原作式落点限制；地图作者可通过 GridManager Export 允许非法地形落点。
+        if (!gm.gridManager.teleportAllowImpassableDestinations && unit.GetMoveCostOnGrid(to) >= 999)
         {
             CancelTeleportSelect();
             ShowMenu(unit, false);

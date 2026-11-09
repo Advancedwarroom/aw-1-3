@@ -137,7 +137,8 @@ public partial class GridManager
                         return;
                     }
                     
-                    lastValidGrid = g;
+                    // 禁停格可以经过，但不能成为遇阻后的回退落点。
+                    if (CanStayOnGrid(g, infantry)) lastValidGrid = g;
                 }
             }
             
@@ -231,6 +232,10 @@ public partial class GridManager
 
     private bool CanStayOnGrid(Grids grid, Infantry requestingUnit)
     {
+        if (grid == null || requestingUnit == null) return false;
+        // 地形禁停优先于搭载/合流/重叠：可以穿过，但不能把这里当最终落点。
+        if (grid.PreventsUnitStop(this)) return false;
+
         var otherUnits = grid.infantries.Where(i => i != requestingUnit && IsInstanceValid(i)).ToList();
         if (otherUnits.Count == 0) return true;
 
@@ -269,6 +274,8 @@ public partial class GridManager
     public void MoveTo(Infantry infantry, Grids to, bool showMenu = true, System.Collections.Generic.List<Grids> forcedPath = null)
     {
         if (infantry == null || to == null) return;
+        // 最终安全门：任何调用路径都不能把单位停进禁停地形；经过禁停格不受影响。
+        if (to.PreventsUnitStop(this)) return;
         // ✅ forcedPath：手画路径模式——路程/绕圈以画线为准，不再重算最短路径
 
         if (infantry.overlapType == UnitOverlapType.NonOverlapping)

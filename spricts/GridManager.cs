@@ -32,6 +32,10 @@ public partial class GridManager : Node
     // ✅ 传送链路（编辑器传送列表维护；运行时TP按钮使用）
     public List<TeleportLink> teleportLinks = new List<TeleportLink>();
 
+    [ExportGroup("地形停靠与传送")]
+    [Export] public Godot.Collections.Array<GridType> cannotStopTerrainTypes = new(); // 全图按地形种类禁止停靠；仍可穿过
+    [Export] public bool teleportAllowImpassableDestinations = false;               // TP：是否允许传到该单位不可通行的落点
+
     public override void _Ready()
     {
     

@@ -397,10 +397,20 @@ public partial class MissileSilo : Weapon
     public override bool ResupplyAmmo()
     {
         if (!canBeResupplied) return false;
-        if (oneTimeUse) return false;
-        if (!useAmmoSystem) return false;
-        if (currentAmmo >= maxAmmo) return false;
-        currentAmmo = maxAmmo;
+        if (!oneTimeUse && !useAmmoSystem) return false;
+
+        // 一次性井不经过弹药池：发射只翻 hasFired，补给必须能把它重新装填。
+        // 带弹药池的一次性井也不能因“发射后弹药仍满”而拒绝恢复发射状态。
+        if (useAmmoSystem)
+        {
+            if (currentAmmo >= maxAmmo && !hasFired && !isDestroyed) return false;
+            currentAmmo = maxAmmo;
+        }
+        else if (!hasFired && !isDestroyed)
+        {
+            return false; // 未发射且未损毁：没有需要补给的状态
+        }
+
         hasFired = false;
         isDestroyed = false;
         UpdateSiloVisual();

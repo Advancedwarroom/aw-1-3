@@ -7,6 +7,14 @@ using System.Linq;
 
 public partial class Grids
 {
+    // ==================== 停靠限制（可穿过，但不可作为最终落点） ====================
+    [ExportGroup("停靠限制")]
+    [Export] public bool cannotStopOnThisGrid = false; // 当前格：所有单位均不可停靠；不影响路径穿过
+
+    /// <summary>格级开关 + GridManager 地形种类开关共同决定是否禁止最终停靠。</summary>
+    public bool PreventsUnitStop(GridManager manager)
+        => cannotStopOnThisGrid || (manager?.cannotStopTerrainTypes?.Contains(gridType) ?? false);
+
     // ==================== 地形隐蔽(对标CoW getVisionHide: REEF藏潜艇) ====================
     [Export] public bool terrainHidesUnits = false; // ✅ 地形提供隐蔽: 其上单位按隐身判定(走Infantry.terrainConcealment链)
 

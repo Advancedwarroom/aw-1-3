@@ -13,7 +13,7 @@ public partial class TerrainEditor
     private LineEdit destroyTerrainEdit, destroyUnitEdit, destroyBuildingEdit, destroyWeaponEdit;
     private LineEdit visionBlacklistEdit;
     private SpinBox spreadCooldownSpin, spreadCapSpin, spreadManhattanSpin, visionMinSpin, visionMaxSpin, visionAmountSpin;
-    private CheckBox spreadEnableCheck, spreadCapCheck, hideUnitsCheck, visionEnableCheck;
+    private CheckBox spreadEnableCheck, spreadCapCheck, hideUnitsCheck, visionEnableCheck, cannotStopCheck;
 
     private LineEdit MakeCsvRow(string label, string value, VBoxContainer parent)
     {
@@ -61,7 +61,7 @@ public partial class TerrainEditor
         moduleCsvTarget = grid;
         moduleCsvContainer = new VBoxContainer();
         moduleCsvContainer.Position = new Vector2(280, 60);
-        moduleCsvContainer.Size = new Vector2(260, 420);
+        moduleCsvContainer.Size = new Vector2(260, 450);
         moduleCsvContainer.AddThemeConstantOverride("separation", 3);
 
         var title = new Label();
@@ -87,6 +87,7 @@ public partial class TerrainEditor
 
                                 
         hideUnitsCheck = MakeCheckRow("地形隐蔽", grid.terrainHidesUnits, moduleCsvContainer);
+        cannotStopCheck = MakeCheckRow("单位不能停靠(可穿过)", grid.cannotStopOnThisGrid, moduleCsvContainer);
 
         visionEnableCheck = MakeCheckRow("视野加成开关", grid.visionBonusEnabled, moduleCsvContainer);
         visionBlacklistEdit = MakeCsvRow("势力黑名单csv", JoinInts(grid.visionBonusFactionBlacklist), moduleCsvContainer);
@@ -126,7 +127,8 @@ public partial class TerrainEditor
         g.destroyChainUnitWhitelist = destroyUnitEdit.Text.Trim();
         g.destroyChainBuildingWhitelist = destroyBuildingEdit.Text.Trim();
         g.destroyChainWeaponWhitelist = destroyWeaponEdit.Text.Trim();
-                                        g.terrainHidesUnits = hideUnitsCheck.ButtonPressed;
+        g.terrainHidesUnits = hideUnitsCheck.ButtonPressed;
+        g.cannotStopOnThisGrid = cannotStopCheck.ButtonPressed;
         g.visionBonusEnabled = visionEnableCheck.ButtonPressed;
         g.visionBonusFactionBlacklist = ParseInts(visionBlacklistEdit.Text);
         g.visionBonusMinRange = (int)visionMinSpin.Value;
