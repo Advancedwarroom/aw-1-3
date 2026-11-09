@@ -457,6 +457,8 @@ public partial class Weapon : Node2D
             if (tableDamage >= 0)
                 damage = tableDamage;
         }
+        damage = Mathf.Max(0, damage - fixedDefense);
+        if (damage <= 0) return;
         health -= damage;
         health = Mathf.Max(0, health);
         UpdateHpLabel();
