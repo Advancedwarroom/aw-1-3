@@ -279,6 +279,7 @@ public static class EmpowermentRuntime
         foreach (var layer in layers)
         {
             if (layer.Source.Overrides != null) overrideNames.AddRange(layer.Source.Overrides.Keys);
+            if (layer.Source.Deltas != null) overrideNames.AddRange(layer.Source.Deltas.Keys); // 数值也存底值，避免整数半值取整导致反向撤销漂移
             if (target is not Facility)
             {
                 if (layer.Source.StatusAdd != null) overrideNames.AddRange(layer.Source.StatusAdd);
