@@ -121,6 +121,7 @@ public static class ExportFieldMapper
     private static object ConvertString(string text, Type type)
     {
         text = text?.Trim() ?? "";
+        if (ExportPersistenceCodec.TryParse(text, type, out object encodedValue)) return encodedValue;
         if (type == typeof(string)) return text;
         if (type == typeof(bool)) return text == "1" || text.Equals("true", StringComparison.OrdinalIgnoreCase) || text.Equals("是", StringComparison.OrdinalIgnoreCase);
         if (type.IsEnum) return Enum.Parse(type, text, true);
