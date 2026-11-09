@@ -442,11 +442,11 @@ public partial class DeathRay : BlackCannon
 
     // ========== 伤害与摧毁 ==========
 
-    public override void TakeDamage(int damage)
+    public override void TakeDamage(int damage, Infantry attacker = null)
     {
         if (isDestroyed) return;
 
-        base.TakeDamage(damage);
+        base.TakeDamage(damage, attacker);
     }
 
     public override void OnDestroyed()
