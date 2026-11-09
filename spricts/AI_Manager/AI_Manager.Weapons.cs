@@ -264,7 +264,7 @@ public partial class AI_Manager
             foreach (var name in names)
             {
                 if (!UnitProductionDatabase.HasUnit(name)) continue;
-                int cost = UnitProductionDatabase.GetInfo(name).Cost;
+                int cost = f.GetProductionCost(UnitProductionDatabase.GetInfo(name).Cost, f.instantMoveAfterProduction, name);
                 if (cost <= 0) continue;
                 if (!f.productionFree && cost > gameManager.GetTeamFunds(aiTeam)) continue;
                 if (f.isUpdatable && !UnitProductionWhitelist.CanProduce(name)) continue;
