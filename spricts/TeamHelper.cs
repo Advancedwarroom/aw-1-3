@@ -248,8 +248,13 @@ public static class FactionPaletteManager
     /// </summary>
     public static ShaderMaterial GetCowLutMaterial(string factionId)
     {
-        string table = _cowLutTableByTeam.TryGetValue(factionId, out var t) ? t : "neutral";
-        return BattleAnimCatalog.GetRecolorMaterial(table);
+        if (_cowLutTableByTeam.TryGetValue(factionId, out var named))
+            return BattleAnimCatalog.GetRecolorMaterial(named);
+        // ✅ 注册色适配 CoW 路（开创人 2026-11-09）：未登记具名表的势力按注册主/副色现场生成色表
+        var f = GetFaction(factionId);
+        if (f != null)
+            return BattleAnimCatalog.GetRecolorMaterialForFaction(factionId, f.PrimaryColor, f.SecondaryColor);
+        return BattleAnimCatalog.GetRecolorMaterial("neutral");
     }
 
     /// <summary>

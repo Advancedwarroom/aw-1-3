@@ -309,6 +309,39 @@ public static class BattleAnimCatalog
         mat.SetShaderParameter("color_table", table);
         _matCache[tableName] = mat;
         return mat;
+    
+    /// <summary>
+    /// 按注册色现场生成 CoW 色表（开创人 2026-11-09：注册色适配 CoW 路）。
+    /// 以 neutral 表为底（固定色区全保留），G=130 梯道整行刷成 主/副色 正典坡道
+    /// （0-63 黑→暗、64-127 暗→主、128-191 主→副、192-255 副→白，与 palette_base 同构）。
+    /// 生成表按 cacheKey 缓存；适用于未登记具名表的任意注册势力。
+    /// </summary>
+    public static ShaderMaterial GetRecolorMaterialForFaction(string cacheKey, Color primary, Color secondary)
+    {
+        string key = "gen:" + cacheKey;
+        if (_matCache.TryGetValue(key, out var cached) && GodotObject.IsInstanceValid(cached)) return cached;
+        _recolorShader ??= GD.Load<Shader>(RecolorShaderPath);
+        var baseTable = GD.Load<Texture2D>($"{ColorTableDir}/neutral.png");
+        if (_recolorShader == null || baseTable == null) return null;
+        var img = baseTable.GetImage();
+        if (img == null) return null;
+        var dark = primary.Darkened(0.5f);
+        int row = 130; // CoW mask 梯道行（设施 mask 的 (R,G) 坐标 G 恒为 130）
+        int w = Mathf.Min(img.GetWidth(), 256);
+        for (int x = 0; x < w; x++)
+        {
+            Color c;
+            if (x < 64)       c = Colors.Black.Lerp(dark, x / 63f);
+            else if (x < 128) c = dark.Lerp(primary, (x - 64) / 63f);
+            else if (x < 192) c = primary.Lerp(secondary, (x - 128) / 63f);
+            else              c = secondary.Lerp(Colors.White, (x - 192) / 63f);
+            img.SetPixel(x, row, c);
+        }
+        var tex = ImageTexture.CreateFromImage(img);
+        var mat = new ShaderMaterial { Shader = _recolorShader };
+        mat.SetShaderParameter("color_table", tex);
+        _matCache[key] = mat;
+        return mat;
     }
 
     // ---------- 音效 ----------
