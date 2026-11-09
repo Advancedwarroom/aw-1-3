@@ -57,6 +57,18 @@ public partial class GameManager
         };
         productionMenuContainer.AddChild(moveCheckBox);
 
+        if (EmpowermentRuntime.CanManualUse(facility))
+        {
+            var empowerButton = new Button();
+            empowerButton.Text = facility.empowermentActionName;
+            empowerButton.Pressed += () =>
+            {
+                HideProductionMenu();
+                (GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu)?.BeginEmpowermentSelection(facility);
+            };
+            productionMenuContainer.AddChild(empowerButton);
+        }
+
         // 分隔线
         var sep = new HSeparator();
         sep.CustomMinimumSize = new Godot.Vector2(0, 8);
