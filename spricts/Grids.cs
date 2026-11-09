@@ -775,6 +775,16 @@ public partial class Grids : Node2D
                     }
                 }
 
+                // 非生产设施的手动赋能/解能入口；生产设施在生产菜单内显示同名按钮。
+                if (city != null && !(city.canProduce && city.producibleUnitNames.Count > 0)
+                    && gm?.selectedInfantry == null && TeamHelper.CanOperateTeam(gm.turnPhase, city.facilityTeam)
+                    && EmpowermentRuntime.CanManualUse(city))
+                {
+                    (GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu)?.BeginEmpowermentSelection(city);
+                    GetViewport().SetInputAsHandled();
+                    return;
+                }
+
                 // ✅ 检查设施生产功能
                 if (city != null && city.canProduce && city.producibleUnitNames.Count > 0 && gm?.selectedInfantry == null)
                 {
