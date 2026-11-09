@@ -312,8 +312,6 @@ public static class EmpowermentRuntime
 
     private static void ClearTarget(Node target, TargetState state)
     {
-        for (int i = state.AppliedDeltas.Count - 1; i >= 0; i--)
-            ExportFieldMapper.AddNumber(target, state.AppliedDeltas[i].Key, -state.AppliedDeltas[i].Value);
         state.AppliedDeltas.Clear();
         ExportFieldMapper.RestoreCaptured(target, state.OriginalOverrides);
         state.OriginalOverrides.Clear();
