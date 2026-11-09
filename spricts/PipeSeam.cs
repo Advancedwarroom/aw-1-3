@@ -6,7 +6,7 @@ using Godot;
 public partial class PipeSeam : Weapon
 {
     // ---------- 受击防御：≈中型坦克 ----------
-    public override void TakeDamage(int damage)
+    public override void TakeDamage(int damage, Infantry attacker = null)
     {
         // 原作：管道缝防御力≈中型坦克 → 实受伤害×0.45（向下取整保1）
         int actual = Mathf.Max(1, Mathf.RoundToInt(damage * 0.45f));
