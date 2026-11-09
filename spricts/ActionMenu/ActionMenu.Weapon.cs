@@ -79,6 +79,7 @@ public partial class ActionMenu
 
         // ✅ 大雷弹：显示"蠕动"按钮（新机制）
         UpdateWriggleButton();
+        UpdateShelterButtons(weapon);
 
         Position = weapon.GlobalPosition + new Vector2(-40, -100);
         Show();
