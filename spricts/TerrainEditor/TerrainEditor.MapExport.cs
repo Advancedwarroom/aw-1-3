@@ -388,6 +388,8 @@ public partial class TerrainEditor
         if (a == null && b == null) return true;
         if (a == null || b == null) return false;
         if (a.GetType() != b.GetType()) return false;
+        if (ExportPersistenceCodec.TrySerialize(a, out string encodedA) && ExportPersistenceCodec.TrySerialize(b, out string encodedB))
+            return encodedA == encodedB;
         if (a is Godot.Collections.Dictionary dictA && b is Godot.Collections.Dictionary dictB)
             return dictA.Count == dictB.Count;
         if (a is Godot.Collections.Array arrA && b is Godot.Collections.Array arrB)
@@ -401,6 +403,7 @@ public partial class TerrainEditor
         if (val is bool b) return b ? "true" : "false";
         if (val is float f) return f.ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (val is double d) return d.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (ExportPersistenceCodec.TrySerialize(val, out string encoded)) return encoded;
         return val.ToString();
     }
 
