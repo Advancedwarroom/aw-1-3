@@ -104,7 +104,7 @@ public static class EmpowermentRuntime
     private static readonly Dictionary<Grids, CellState> Cells = new();
     private static readonly Dictionary<Node, TargetState> Targets = new();
     private static readonly Dictionary<Node, long> SourceSequences = new();
-    private static readonly HashSet<string> DispelledSourceCells = new();
+    private static readonly HashSet<string> DispelledTargets = new();
     private static long nextSequence = 0;
     private static float timer = 0f;
     private static GameManager boundGame;
