@@ -35,6 +35,14 @@ public static class InternalServiceMapper
         unit.UpdateHpLabel();
     }
 
+    public static Dictionary<string, object> GetBaseValuesForSave(Node host, Infantry unit)
+    {
+        var state = States.FirstOrDefault(s => s.Host == host && s.Unit == unit);
+        return state == null ? new Dictionary<string, object>() : new Dictionary<string, object>(state.OriginalValues);
+    }
+
+    public static void Reset() => States.Clear();
+
     public static void Remove(Node host, Infantry unit)
     {
         for (int i = States.Count - 1; i >= 0; i--)
