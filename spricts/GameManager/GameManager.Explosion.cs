@@ -200,7 +200,7 @@ public partial class GameManager
             if (damage > 0)
             {
                 // 扣血
-                w.TakeDamage(damage);
+                w.TakeDamage(damage, null);
                 if (!source.explosionCanKill && w.health <= 0)
                     w.health = 1;
                 if (w.health <= 0)
