@@ -581,6 +581,31 @@ public static class TeamHelper
         return red;
     }
 
+    /// <summary>按阵营颜色取动画名（8 色槽位，色相就近匹配；槽位 null 则回退 红→中立）。P-1 恒紫。</summary>
+    public static string PickArtByFactionColor(string team, string neutral, string red, string blue,
+        string purple = null, string green = null, string yellow = null, string black = null, string pink = null)
+    {
+        if (team == Player0) return neutral;
+        if (team == Player) return purple ?? red;   // P-1 正典紫，不走色匹配
+        if (team == Player2) return blue ?? red;
+        var f = GetFaction(team);
+        if (f == null) return red ?? neutral;
+        Color c = f.PrimaryColor;
+        if (c.V < 0.25f) return black ?? red;       // 近黑（黑洞军一类）
+        float h = c.H;
+        (string slot, float hue)[] anchors = {
+            (red, 0.03f), (yellow, 0.14f), (green, 0.33f), (blue, 0.62f), (purple, 0.75f), (pink, 0.92f)
+        };
+        string best = null; float bestD = float.MaxValue;
+        foreach (var (slot, hue) in anchors)
+        {
+            if (slot == null) continue;
+            float d = Mathf.Abs(h - hue); if (d > 0.5f) d = 1f - d;
+            if (d < bestD) { bestD = d; best = slot; }
+        }
+        return best ?? red ?? neutral;
+    }
+
     /// <summary>原版贴图套编号：P2 → "2"，其余 → "1"</summary>
     public static string ArtSuffix(string team) => team == Player2 ? "2" : "1";
 
