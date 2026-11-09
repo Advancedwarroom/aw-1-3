@@ -8,8 +8,15 @@ using System.Linq;
 public partial class BlackCannon
 {
 
-public override void TakeDamage(int damage)
+public override void TakeDamage(int damage, Infantry attacker = null)
 {
+    // ========== 兵器被击伤害表（在扣血前应用）==========
+    if (useWeaponDamageTable && attacker != null)
+    {
+        int tableDamage = GetDamageFrom(attacker.unitTypeId);
+        if (tableDamage >= 0)
+            damage = tableDamage;
+    }
     health -= damage;
     health = Mathf.Max(0, health);
     UpdateHpLabel();
@@ -114,13 +121,21 @@ public override void TakeDamage(int damage)
 
                 if (modifiedHealthPercent > 0) // 扣血
                 {
+                    var gm2 = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+                    Infantry attacker2 = gm2?.selectedInfantry;
+
                     if (!CanDestroy)
                     {
-                        targetWeapon.health = Mathf.Max(1, targetWeapon.health - damage);
+                        int oldHealth2 = targetWeapon.health;
+                        targetWeapon.TakeDamage(damage, attacker2);
+                        if (targetWeapon.health <= 0)
+                        {
+                            targetWeapon.health = Mathf.Max(1, oldHealth2 - damage);
+                        }
                     }
                     else
                     {
-                        targetWeapon.health -= damage;
+                        targetWeapon.TakeDamage(damage, attacker2);
                         if (targetWeapon.health <= 0)
                         {
                             willDestroy = true;
@@ -152,13 +167,23 @@ public override void TakeDamage(int damage)
             damage = Mathf.RoundToInt(targetWeapon.maxHealth * fixedDamagePercent);
             damage = Mathf.Max(1, damage);
 
+            // 获取攻击者
+            var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+            Infantry attacker = gm?.selectedInfantry;
+
             if (!CanDestroy)
             {
-                targetWeapon.health = Mathf.Max(1, targetWeapon.health - damage);
+                // 使用TakeDamage走完整流程（包括伤害表）
+                int oldHealth = targetWeapon.health;
+                targetWeapon.TakeDamage(damage, attacker);
+                if (targetWeapon.health <= 0)
+                {
+                    targetWeapon.health = Mathf.Max(1, oldHealth - damage);
+                }
             }
             else
             {
-                targetWeapon.health -= damage;
+                targetWeapon.TakeDamage(damage, attacker);
                 if (targetWeapon.health <= 0)
                 {
                     willDestroy = true;
