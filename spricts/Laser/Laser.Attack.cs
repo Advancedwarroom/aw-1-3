@@ -102,7 +102,8 @@ public partial class Laser
     private void ApplyModifiedDamage(Infantry target, float baseDamagePercent)
     {
         int healthChange = Mathf.RoundToInt(target.maxHealth * Mathf.Abs(baseDamagePercent));
-        if (modifiedHealthPercent > 0)
+        if (modifiedHealthPercent > 0) healthChange = Mathf.Max(0, healthChange - target.fixedDefense);
+        if (modifiedHealthPercent > 0 && healthChange > 0)
         {
             if (!CanDestroy)
                 target.health = Mathf.Max(1, target.health - healthChange);
