@@ -28,8 +28,8 @@ public partial class ActionMenu
     {
         var field = source.GetType().GetField("empowermentActionName");
         string configured = field?.GetValue(source) as string;
-        if (!string.IsNullOrWhiteSpace(configured)) return configured;
         int operation = source.GetType().GetField("empowermentOperationType")?.GetValue(source) is int value ? value : 0;
+        if (!string.IsNullOrWhiteSpace(configured) && (operation == 0 || configured != "赋能")) return configured;
         return operation == 1 ? "解能" : "赋能";
     }
 
