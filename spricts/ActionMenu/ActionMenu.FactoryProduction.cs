@@ -133,7 +133,7 @@ public partial class ActionMenu
         foreach (var unitName in units)
         {
             var info = UnitProductionDatabase.GetInfo(unitName);
-            int cost = factoryTarget.GetProductionCost(info.Cost, factoryInstantMode);
+            int cost = factoryTarget.GetProductionCost(info.Cost, factoryInstantMode, unitName);
             string costText = cost <= 0 ? "免费" : $"{cost}G";
             var btn = new Button();
             btn.CustomMinimumSize = new Vector2(160, 30);
@@ -154,8 +154,8 @@ public partial class ActionMenu
             if (factoryTarget.dualProductionMode)
             {
                 // 双菜单模式：⚡立即(1.2×) / 😴待机(0.8×) 两按钮（开创人规矩：想产出来就玩多花钱，等一回合便宜）
-                int instantCost = factoryTarget.GetProductionCost(Mathf.RoundToInt(info.Cost * factoryTarget.instantCostMultiplier), true);
-                int standbyCost = factoryTarget.GetProductionCost(Mathf.RoundToInt(info.Cost * factoryTarget.standbyCostMultiplier), false);
+                int instantCost = factoryTarget.GetProductionCost(Mathf.RoundToInt(info.Cost * factoryTarget.instantCostMultiplier), true, unitName);
+                int standbyCost = factoryTarget.GetProductionCost(Mathf.RoundToInt(info.Cost * factoryTarget.standbyCostMultiplier), false, unitName);
                 var btnI = new Button();
                 btnI.CustomMinimumSize = new Vector2(160, 30);
                 TranslateGroup.SetText(btnI, $"⚡{info.DisplayName} 立即 [{instantCost}G]");
