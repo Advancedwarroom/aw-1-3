@@ -376,84 +376,6 @@ public partial class ExtraSave
         return list;
     }
 
-    private Godot.Collections.Array SerializeCustomMoveTypeList(List<CustomMoveTypeData> list)
-    {
-        var arr = new Godot.Collections.Array();
-        foreach (var item in list)
-        {
-            var d = new Godot.Collections.Dictionary();
-            d["id"] = item.id;
-            d["displayName"] = item.displayName;
-            d["isBuiltIn"] = item.isBuiltIn;
-            d["moveCosts"] = DictToGodot(item.moveCosts);
-            d["customTexturePath"] = item.customTexturePath;
-            d["useCustomTexture"] = item.useCustomTexture;
-            arr.Add(d);
-        }
-        return arr;
-    }
-
-    private List<CustomMoveTypeData> ParseCustomMoveTypeList(Godot.Collections.Array arr)
-    {
-        var list = new List<CustomMoveTypeData>();
-        foreach (var item in arr)
-        {
-            var d = item.AsGodotDictionary();
-            if (d == null) continue;
-            list.Add(new CustomMoveTypeData
-            {
-                id = d.GetValueOrDefault("id", "").AsString(),
-                displayName = d.GetValueOrDefault("displayName", "").AsString(),
-                isBuiltIn = d.GetValueOrDefault("isBuiltIn", false).AsBool(),
-                moveCosts = ParseIntDict(d.GetValueOrDefault("moveCosts", new Variant()).AsGodotDictionary()),
-                customTexturePath = d.GetValueOrDefault("customTexturePath", "").AsString(),
-                useCustomTexture = d.GetValueOrDefault("useCustomTexture", false).AsBool()
-            });
-        }
-        return list;
-    }
-
-    private Godot.Collections.Array SerializeCustomTerrainTypeList(List<CustomTerrainTypeData> list)
-    {
-        var arr = new Godot.Collections.Array();
-        foreach (var item in list)
-        {
-            var d = new Godot.Collections.Dictionary();
-            d["id"] = item.id;
-            d["displayName"] = item.displayName;
-            d["isBuiltIn"] = item.isBuiltIn;
-            d["moveCosts"] = DictToGodot(item.moveCosts);
-            d["defenseBonus"] = item.defenseBonus;
-            d["terrainColorHex"] = item.terrainColorHex;
-            d["customTexturePath"] = item.customTexturePath;
-            d["useCustomTexture"] = item.useCustomTexture;
-            arr.Add(d);
-        }
-        return arr;
-    }
-
-    private List<CustomTerrainTypeData> ParseCustomTerrainTypeList(Godot.Collections.Array arr)
-    {
-        var list = new List<CustomTerrainTypeData>();
-        foreach (var item in arr)
-        {
-            var d = item.AsGodotDictionary();
-            if (d == null) continue;
-            list.Add(new CustomTerrainTypeData
-            {
-                id = d.GetValueOrDefault("id", "").AsString(),
-                displayName = d.GetValueOrDefault("displayName", "").AsString(),
-                isBuiltIn = d.GetValueOrDefault("isBuiltIn", false).AsBool(),
-                moveCosts = ParseIntDict(d.GetValueOrDefault("moveCosts", new Variant()).AsGodotDictionary()),
-                defenseBonus = d.GetValueOrDefault("defenseBonus", 0f).AsSingle(),
-                terrainColorHex = d.GetValueOrDefault("terrainColorHex", "ffffff").AsString(),
-                customTexturePath = d.GetValueOrDefault("customTexturePath", "").AsString(),
-                useCustomTexture = d.GetValueOrDefault("useCustomTexture", false).AsBool()
-            });
-        }
-        return list;
-    }
-
     private Godot.Collections.Dictionary DictToGodot(Dictionary<string, string> dict)
     {
         var gd = new Godot.Collections.Dictionary();
@@ -480,13 +402,6 @@ public partial class ExtraSave
         var dict = new Dictionary<string, int>();
         foreach (var k in gd.Keys) dict[k.AsString()] = gd[k].AsInt32();
         return dict;
-    }
-
-    private List<string> ParseStringList(Godot.Collections.Array arr)
-    {
-        var list = new List<string>();
-        foreach (var item in arr) list.Add(item.AsString());
-        return list;
     }
 
     // ==================== 序列化辅助方法 ====================
