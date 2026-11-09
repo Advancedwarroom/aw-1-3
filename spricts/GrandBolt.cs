@@ -301,13 +301,13 @@ public partial class GrandBolt : Weapon
     }
 
     // ✅ 弱点伤害：按弱点单独扣血；全毁→困兽犹斗或摧毁
-    public override void TakeDamage(int damage)
+    public override void TakeDamage(int damage, Infantry attacker = null)
     {
         if (!IsInstanceValid(this)) return;
 
         // 3.5 护盾源保护：命中格对应弱点的绑定源全部存活→本次伤害无效
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm == null) { base.TakeDamage(damage); return; }
+        if (gm == null) { base.TakeDamage(damage, attacker); return; }
         var attackerGrid = gm.CurrentAttackerGrid;
         if (attackerGrid != null && weakPointsShieldedByCrystals)
         {
@@ -391,7 +391,7 @@ public partial class GrandBolt : Weapon
                 }
             }
         }
-        base.TakeDamage(damage);
+        base.TakeDamage(damage, attacker);
     }
 
     [Export] public float finalDeathDelay = 1.5f;   // 核心摧毁后终局演出时长（秒）
