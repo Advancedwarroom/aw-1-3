@@ -27,6 +27,12 @@ public partial class Watchtower : Facility
         return ("P0Watchtower", known ? "watchtowerred" : "watchtowerpurple", "watchtowerblue");
     }
 
+    // ✅ 按阵营颜色取图：八色烘焙（开创人定板 2026-11-09），未知队伍按注册色就近匹配、恒回退
+    protected override string PickArtForTeam(string neutral, string red, string blue)
+        => TeamHelper.PickArtByFactionColor(facilityTeam, neutral, red, blue,
+            purple: "watchtowerpurple", green: "watchtowergreen", yellow: "watchtoweryellow",
+            black: "watchtowerblack", pink: "watchtowerpink");
+
     public override HashSet<Grids> CalculateFacilityVision(GameManager gm)
     {
         var visible = base.CalculateFacilityVision(gm);

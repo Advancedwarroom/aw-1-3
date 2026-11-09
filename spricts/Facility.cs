@@ -416,12 +416,16 @@ public partial class Facility : Node2D
     /// </summary>
     protected virtual (string neutral, string red, string blue)? GetTeamAnimNames() => null;
 
+    // ✅ 按阵营取图钩子：默认旧三路（全家设施零变化）；多色烘焙的设施 override 后走 TeamHelper.PickArtByFactionColor
+    protected virtual string PickArtForTeam(string neutral, string red, string blue)
+        => TeamHelper.PickTeamArt(facilityTeam, neutral, red, blue);
+
     protected void PlayTeamAnimation()
     {
         var names = GetTeamAnimNames();
         if (names == null) return;
         var (neutral, red, blue) = names.Value;
-        string anim = TeamHelper.PickTeamArt(facilityTeam, neutral, red, blue);
+        string anim = PickArtForTeam(neutral, red, blue);
 
         // 单图层（原路径不变）
         if (animSprite != null && IsInstanceValid(animSprite) && animSprite.SpriteFrames != null)
