@@ -138,10 +138,10 @@ public partial class Gate : Weapon
         }
     }
 
-    public override void TakeDamage(int damage)
+    public override void TakeDamage(int damage, Infantry attacker = null)
     {
         if (isDestroyed) return; // 已摧毁的残骸不再受击
-        base.TakeDamage(damage);
+        base.TakeDamage(damage, attacker);
     }
 
     // ========== 被摧毁：残骸保留 + 门敞开（全通行）+ 地形恢复平原 ==========
