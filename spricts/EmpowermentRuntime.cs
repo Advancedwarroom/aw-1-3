@@ -109,6 +109,22 @@ public static class EmpowermentRuntime
     private static float timer = 0f;
     private static GameManager boundGame;
 
+    // 存档必须写模块介入前的底值；否则读档重建层时会把 delta 再叠一次。
+    public static Dictionary<string, object> GetBaseValuesForSave(Node target)
+    {
+        var result = new Dictionary<string, object>();
+        if (target == null || !Targets.TryGetValue(target, out var state)) return result;
+        foreach (var pair in state.OriginalOverrides) result[pair.Key] = pair.Value;
+        foreach (var group in state.AppliedDeltas.GroupBy(d => d.Key))
+        {
+            if (result.ContainsKey(group.Key)) continue;
+            float total = group.Sum(d => d.Value);
+            object value = ExportFieldMapper.GetNumberAfterDelta(target, group.Key, -total);
+            if (value != null) result[group.Key] = value;
+        }
+        return result;
+    }
+
     public static void Tick(GameManager gm, double delta)
     {
         if (gm == null) return;
