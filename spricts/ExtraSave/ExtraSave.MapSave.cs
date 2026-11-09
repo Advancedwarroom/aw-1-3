@@ -107,6 +107,8 @@ public partial class ExtraSave
                     team = weapon.team,
                     fieldValues = SerializeObjectFields(weapon)
                 };
+                foreach (var pair in EmpowermentRuntime.GetBaseValuesForSave(weapon))
+                    wData.fieldValues[pair.Key] = ValueToString(pair.Value);
                 EmpowermentPersistence.AddRuntimeFields(weapon, wData.fieldValues);
                 // 记录格子坐标用于加载
                 wData.fieldValues["gridX"] = weapon.grid.GridIndex.X.ToString();
