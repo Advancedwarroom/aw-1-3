@@ -59,7 +59,7 @@ public partial class AI_Manager
             foreach (var name in fg.city.producibleUnitNames)
             {
                 if (!UnitProductionDatabase.HasUnit(name)) continue;
-                int cost = UnitProductionDatabase.GetInfo(name).Cost;
+                int cost = fg.city.GetProductionCost(UnitProductionDatabase.GetInfo(name).Cost, name);
                 if (cost <= 0) continue;
                 if (cost > funds)
                 {
