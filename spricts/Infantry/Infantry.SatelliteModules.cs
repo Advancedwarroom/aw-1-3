@@ -481,7 +481,7 @@ public partial class Infantry
                 if (w.health <= 0)
                 {
                     if (w is MissileSilo ms) ms.BecomeEmptySilo();
-                    else w.TakeDamage(99999);
+                    else w.TakeDamage(99999, this);
                 }
             }
         }
