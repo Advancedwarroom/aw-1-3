@@ -390,6 +390,7 @@ public partial class TerrainEditor
 
             int lineIdx = 0;
             string section = "";
+            bool hasFundsMachineLine = false;
 
             while (lineIdx < lines.Length)
             {
@@ -534,10 +535,28 @@ public partial class TerrainEditor
                 }
                 else if (section == "Funds Statistics")
                 {
-                    var m = System.Text.RegularExpressions.Regex.Match(line, @"P1\s+\(Red\):\s*(\d+)");
-                    if (m.Success && gameManager != null) gameManager.p1Funds = int.Parse(m.Groups[1].Value);
-                    m = System.Text.RegularExpressions.Regex.Match(line, @"P2\s+\(Blue\):\s*(\d+)");
-                    if (m.Success && gameManager != null) gameManager.p2Funds = int.Parse(m.Groups[1].Value);
+                    if (line.StartsWith("Funds:"))
+                    {
+                        hasFundsMachineLine = true;
+                        if (gameManager != null)
+                        {
+                            string payload = line.Substring("Funds:".Length).Trim();
+                            foreach (string entry in payload.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                            {
+                                string[] pair = entry.Split('=', 2);
+                                if (pair.Length == 2 && int.TryParse(pair[1].Trim(), out int funds))
+                                    gameManager.SetTeamFunds(pair[0].Trim(), funds);
+                            }
+                        }
+                    }
+                    else if (!hasFundsMachineLine)
+                    {
+                        // 老 TXT 没有 Funds 机器行时，继续兼容原来的 P1/P2 人类可读行。
+                        var m = System.Text.RegularExpressions.Regex.Match(line, @"P1\s+\(Red\):\s*(\d+)");
+                        if (m.Success && gameManager != null) gameManager.p1Funds = int.Parse(m.Groups[1].Value);
+                        m = System.Text.RegularExpressions.Regex.Match(line, @"P2\s+\(Blue\):\s*(\d+)");
+                        if (m.Success && gameManager != null) gameManager.p2Funds = int.Parse(m.Groups[1].Value);
+                    }
                 }
             }
 

@@ -188,7 +188,7 @@ public static class CoModuleSystem
 
     // ---------- 模块取值核心 ----------
     /// <summary>取该势力当前 PowerMode 下某模块的全部数值（含 Zone 判定与 Tag 多 CO 合并）</summary>
-    static IEnumerable<CoModuleEntry> ActiveModules(string team, int moduleId, Infantry unit = null)
+    static IEnumerable<CoModuleEntry> ActiveModules(string team, int moduleId, Infantry unit = null, Grids terrainGrid = null)
     {
         var st = GetState(team);
         if (st?.profile == null) yield break;
@@ -205,7 +205,8 @@ public static class CoModuleSystem
                 if (unit != null)
                 {
                     if (m.unitTypes.Count > 0 && !m.unitTypes.Contains(unit.UnitTypeId)) continue;
-                    if (m.terrainTypes.Count > 0 && (unit.grid == null || !m.terrainTypes.Contains(unit.grid.gridType.ToString()))) continue;
+                    var conditionGrid = terrainGrid ?? unit.grid;
+                    if (m.terrainTypes.Count > 0 && (conditionGrid == null || !m.terrainTypes.Contains(conditionGrid.gridType.ToString()))) continue;
                     bool indirect = !unit.canAttackAfterMoving;   // 移动后不能攻击=间接攻击型（Artillery/Rocket 等）
                     if (m.directOnly && indirect) continue;
                     if (m.indirectOnly && !indirect) continue;
@@ -245,10 +246,12 @@ public static class CoModuleSystem
         return false;
     }
 
-    public static float Sum(string team, int moduleId, string key, Infantry unit = null, bool zoneOnly = false)
+    public static float Sum(string team, int moduleId, string key, Infantry unit = null, bool zoneOnly = false, Grids terrainGrid = null)
     {
         float sum = 0f;
-        foreach (var m in ActiveModules(team, moduleId, unit))
+        var modules = ActiveModules(team, moduleId, unit, terrainGrid).ToList();
+        int stackLimit = modules.Count == 0 ? 0 : modules.Max(m => Mathf.Max(1, m.maxStacks));
+        foreach (var m in modules.Take(stackLimit))
         {
             var st = GetState(team);
             if (zoneOnly) sum += m.zone.TryGetValue(key, out var zv) ? zv : 0;
@@ -299,7 +302,7 @@ public static class CoModuleSystem
         => unit == null ? 0 : Mathf.RoundToInt(Sum(unit.team, 5, "moveBonus", unit));
 
     public static int GetMovementCostReduction(Infantry unit, Grids to)
-        => unit == null ? 0 : Mathf.RoundToInt(Sum(unit.team, 5, "moveCostReduction", unit));
+        => unit == null ? 0 : Mathf.RoundToInt(Sum(unit.team, 5, "moveCostReduction", unit, false, to));
 
     public static int GetCaptureBonus(Infantry unit)
         => unit == null ? 0 : Mathf.RoundToInt(Sum(unit.team, 18, "captureBonus", unit));
@@ -769,16 +772,15 @@ public static class CoModuleSystem
                 g.weapon.remainingAttacks = g.weapon.maxAttacksPerTurn;
             }
 
-            // ✅ 设施行动状态（开创人2026-11-07：切换CO=全体恢复）——生产计数重置；中转口建造进度不动（防刷）
+            // 超级兵工厂属于 Weapon，必须在 Facility 的 continue 之前独立刷新生产口。
+            if (g.weapon is SuperFactory sf && sf.team == team)
+                sf.portUsedThisTurn = new bool[8];
+
+            // ✅ 设施行动状态：生产计数重置；中转口建造进度不动（防刷）
             if (g.city == null || g.city.facilityTeam != team) continue;
             g.city.productionsThisTurn = 0;
-            if (g.weapon is SuperFactory sf) sf.portUsedThisTurn = new bool[8];   // BHF三口重新充能（BHF是兵器不是设施）
         }
 
-        // ✅ 地形层操作刷新（开创人2026-11-07规矩：Tag=四层全刷）——重放回合切换时的六步地形结算（本队）
-        // ⚠️ 平衡注意：治疗地形会回第二次血、伤害地形会掉第二次血；要区分就进 ApplyTerrainDamageToAllUnits 加开关
-        var gm = tree.GetFirstNodeInGroup("game_manager") as GameManager;
-        gm?.ApplyTerrainDamageToAllUnits(team);
     }
 
     static int PowerDuration(CoTeamState st, CoPowerMode mode)
@@ -802,6 +804,7 @@ public static class CoModuleSystem
         if (st?.profile == null) return;
         st.powerUsedThisTurn = false;
         st.tagExtraTurnUsed = false;
+        st.switchedThisTurn.Clear();   // 每个己方回合结束，所有搭档重新获得一次切换机会。
         if (st.powerTurnsLeft > 0 && --st.powerTurnsLeft <= 0 && st.powerMode != CoPowerMode.Off)
         {
             GD.Print($"[CO] {team} 的 {st.profile.name} 大招效果结束");

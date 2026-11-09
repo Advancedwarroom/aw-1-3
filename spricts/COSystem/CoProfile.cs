@@ -246,6 +246,12 @@ public class CoProfile
                 foreach (var t in m.unitTypes) arr.Add(t);
                 md["unitTypes"] = arr;
             }
+            if (m.terrainTypes.Count > 0)
+            {
+                var arr = new Godot.Collections.Array();
+                foreach (var terrain in m.terrainTypes) arr.Add(terrain);
+                md["terrainTypes"] = arr;
+            }
             if (m.minCoLevel > 0) md["minCoLevel"] = m.minCoLevel;
             if (m.maxCoLevel < 99) md["maxCoLevel"] = m.maxCoLevel;
             if (m.directOnly) md["directOnly"] = true;
