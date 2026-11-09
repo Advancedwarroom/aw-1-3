@@ -364,10 +364,10 @@ public partial class MissileSilo : Weapon
         // 空井保留占格（不可再发射）
     }
 
-    public override void TakeDamage(int damage)
+    public override void TakeDamage(int damage, Infantry attacker = null)
     {
         if (!siloAttackable) return;   // 3.未开启=不可攻击（原作）
-        base.TakeDamage(damage);
+        base.TakeDamage(damage, attacker);
         if (health <= 0 && !isDestroyed) BecomeEmptySilo();
     }
 
