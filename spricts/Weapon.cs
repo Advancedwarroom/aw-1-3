@@ -425,9 +425,7 @@ public partial class Weapon : Node2D
     /// </summary>
     public void SyncDamageTable()
     {
-        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm?.unitRegistry == null) return;
-        foreach (var unitId in gm.unitRegistry.Configs.Keys)
+        foreach (var unitId in UnitRegistry.Configs.Keys)
         {
             if (!damageFromUnits.ContainsKey(unitId))
                 damageFromUnits[unitId] = -1;
