@@ -31,6 +31,8 @@ public partial class Infantry
     public bool empowermentManualActive = false;
     public Grids empowermentManualTarget = null;
     public int empowermentUsesThisTurn = 0;
+    public int empowermentManualTargetX = -1;
+    public int empowermentManualTargetY = -1;
 }
 
 public partial class Weapon
@@ -63,6 +65,8 @@ public partial class Weapon
     public bool empowermentManualActive = false;
     public Grids empowermentManualTarget = null;
     public int empowermentUsesThisTurn = 0;
+    public int empowermentManualTargetX = -1;
+    public int empowermentManualTargetY = -1;
 }
 
 public partial class Facility
@@ -95,4 +99,6 @@ public partial class Facility
     public bool empowermentManualActive = false;
     public Grids empowermentManualTarget = null;
     public int empowermentUsesThisTurn = 0;
+    public int empowermentManualTargetX = -1;
+    public int empowermentManualTargetY = -1;
 }
