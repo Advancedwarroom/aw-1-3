@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://spricts/Watchtower.cs" id="1_wt"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Watchtower.tres" id="2_wt"]
+
+[node name="Watchtower" type="Node2D"]
+script = ExtResource("1_wt")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(16, 0)
+scale = Vector2(0.34, 0.34)
+sprite_frames = ExtResource("2_wt")
+animation = &"P0Watchtower"

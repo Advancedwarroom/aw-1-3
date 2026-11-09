@@ -1,0 +1,33 @@
+[gd_resource type="SpriteFrames" load_steps=9 format=3]
+
+[ext_resource type="Texture2D" path="res://art/facilities/Watchtower/p0_lit.png" id="p0_lit"]
+[ext_resource type="Texture2D" path="res://art/facilities/Watchtower/p0_dark.png" id="p0_dark"]
+[ext_resource type="Texture2D" path="res://art/facilities/Watchtower/red_lit.png" id="red_lit"]
+[ext_resource type="Texture2D" path="res://art/facilities/Watchtower/red_dark.png" id="red_dark"]
+[ext_resource type="Texture2D" path="res://art/facilities/Watchtower/blue_lit.png" id="blue_lit"]
+[ext_resource type="Texture2D" path="res://art/facilities/Watchtower/blue_dark.png" id="blue_dark"]
+[ext_resource type="Texture2D" path="res://art/facilities/Watchtower/purple_lit.png" id="purple_lit"]
+[ext_resource type="Texture2D" path="res://art/facilities/Watchtower/purple_dark.png" id="purple_dark"]
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("p0_lit")}, {"duration": 3.0, "texture": ExtResource("p0_dark")}],
+"loop": true,
+"name": &"P0Watchtower",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("red_lit")}, {"duration": 3.0, "texture": ExtResource("red_dark")}],
+"loop": true,
+"name": &"watchtowerred",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("blue_lit")}, {"duration": 3.0, "texture": ExtResource("blue_dark")}],
+"loop": true,
+"name": &"watchtowerblue",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("purple_lit")}, {"duration": 3.0, "texture": ExtResource("purple_dark")}],
+"loop": true,
+"name": &"watchtowerpurple",
+"speed": 1.0
+}]

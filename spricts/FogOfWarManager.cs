@@ -465,28 +465,9 @@ public partial class FogOfWarManager : Node
             if (grid.city != null && (grid.city.facilityTeam == TeamHelper.Player || grid.city.isPublicFacility) && TeamHelper.DoesFacilityProvideVision(grid.city.facilityTeam)) 
                 visible.Add(grid);
 
-            // ✅ 瞭望塔：己方或P-1的都给视野
-            if (grid.isWatchtower && grid.city != null)
-            {
-                bool isTeamTower = grid.city.facilityTeam == team;
-                bool isPublicTower = grid.city.facilityTeam == TeamHelper.Player || grid.city.isPublicFacility;
-
-                if ((isTeamTower || isPublicTower) && TeamHelper.DoesFacilityProvideVision(grid.city.facilityTeam))
-                {
-                    visible.Add(grid);
-                    if (grid.gridVisionMode != GridVisionMode.None)
-                    {
-                        // ✅ 方向性瞭望塔接线：锥形/射线视野（射程=gridVisionRange，尊重地形遮挡开关）
-                        visible.UnionWith(grid.CalculateTowerDirectionalVision(gameManager));
-                    }
-                    else
-                    {
-                        int towerRange = 1 + grid.visionBonus;
-                        var towerVision = CalculateManhattanVision(grid.GridIndex, towerRange);
-                        visible.UnionWith(towerVision);
-                    }
-                }
-            }
+            // 🗑️ 旧格子瞭望塔系统已退役（2026-11-09 开创人裁决）：isWatchtower/gridVisionMode 字段保留存档兼容，
+            // 运行时不再被迷雾消费；环带/方向性视野由 Watchtower 设施（spricts/Watchtower.cs）经
+            // grid.CalculateGridVision → city.CalculateFacilityVision 接管（上方两个分支已覆盖）。
         }
         return visible;
     }
