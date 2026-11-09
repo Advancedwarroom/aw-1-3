@@ -409,17 +409,31 @@ public static class EmpowermentRuntime
     {
         foreach (var cell in cells)
         {
-            if (!Cells.TryGetValue(cell, out var state)) continue;
+            if (cell == null || !Cells.TryGetValue(cell, out var state)) continue;
             foreach (var layer in state.Layers.ToList())
             {
                 if (source.DispelScope == 0 && layer.Source.Node != source.Node) continue;
-                DispelledSourceCells.Add(DispelKey(layer.Source.Node, cell));
-                state.Layers.Remove(layer);
+                // 先取该层实际作用对象，再套解能方完全相同的目标类型/势力/黑名单/自身筛选。
+                foreach (var target in TargetsOnCell(gm, cell, layer.Source).ToList())
+                    if (PassesDispelTargetFilter(source, target))
+                        DispelledTargets.Add(DispelTargetKey(layer.Source.Node, cell, target));
             }
         }
     }
 
-    private static string DispelKey(Node source, Grids cell) => $"{source.GetInstanceId()}:{cell.GetInstanceId()}";
+    private static bool PassesDispelTargetFilter(SourceView source, Node target)
+    {
+        if (target is Infantry unit)
+            return source.TargetUnits && PassesTargetFilter(source, unit, unit.team, unit.UnitTypeId, unit.TemplateId);
+        if (target is Weapon weapon)
+            return source.TargetWeapons && PassesTargetFilter(source, weapon, weapon.team, weapon.GetType().Name, "");
+        if (target is Facility facility)
+            return source.TargetFacilities && PassesTargetFilter(source, facility, facility.facilityTeam, facility.GetType().Name, "");
+        return false;
+    }
+
+    private static string DispelTargetKey(Node source, Grids cell, Node target)
+        => $"{source.GetInstanceId()}:{cell.GetInstanceId()}:{target.GetInstanceId()}";
 
     private static string ComputeSignature(List<Layer> layers)
     {
