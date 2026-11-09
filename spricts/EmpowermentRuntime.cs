@@ -192,8 +192,8 @@ public static class EmpowermentRuntime
         Set(source, "empowermentManualActive", true);
         Set(source, "empowermentUsesThisTurn", view.Uses + 1);
         SourceSequences[source] = ++nextSequence;
-        foreach (string key in DispelledSourceCells.Where(k => k.StartsWith(source.GetInstanceId() + ":")).ToList())
-            DispelledSourceCells.Remove(key);
+        foreach (string key in DispelledTargets.Where(k => k.StartsWith(source.GetInstanceId() + ":")).ToList())
+            DispelledTargets.Remove(key);
         if (view.ConsumesAction) ConsumeAction(source);
         RefreshAll(gm);
         return true;
