@@ -497,6 +497,7 @@ public partial class Weapon : Node2D
             if (gm?.selectedWeapon == this) gm.selectedWeapon = null;
             // ✅ 护卫联动：任意兵器被毁后刷新黑弧护卫状态（护卫全毁→坠落）
             gm?.NotifyBlackArcEscortCheck();
+            ClearShelterOnDestroyed();
             CallDeferred(nameof(OnDestroyed));
         }
     }
