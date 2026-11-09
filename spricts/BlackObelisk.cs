@@ -352,10 +352,10 @@ public partial class BlackObelisk : BlackCannon
     }
 
     // ========== 摧毁处理（借鉴 LargeCannon：多格Broken形态，仍不可通行） ==========
-    public override void TakeDamage(int damage)
+    public override void TakeDamage(int damage, Infantry attacker = null)
     {
         if (isDestroyed) return;
-        base.TakeDamage(damage);
+        base.TakeDamage(damage, attacker);
     }
 
     public override void OnDestroyed()
