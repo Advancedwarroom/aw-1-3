@@ -27,6 +27,7 @@ public static class FacilityDatabase
         ["ComTower"] = "res://Prefabs/ComTower.tscn",
         // ✅ 实验室：占领后解锁单位生产白名单
         ["Lab"] = "res://Prefabs/Lab.tscn",
+        ["Watchtower"] = "res://Prefabs/Watchtower.tscn", // ✅ 瞭望塔（2026-11-09 设施化）
     };
 
     // ✅ 建筑地形要求（未登记=任意地形）：DoR 原作——临时机场只能建在平原，临时港口建在海滩
