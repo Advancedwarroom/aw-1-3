@@ -125,7 +125,7 @@ public partial class ExtraSave
                     team = grid.city.facilityTeam,
                     fieldValues = SerializeObjectFields(grid.city)
                 };
-                EmpowermentPersistence.AddRuntimeFields(facility: grid.city, fields: fData.fieldValues);
+                EmpowermentPersistence.AddRuntimeFields(source: grid.city, fields: fData.fieldValues);
                 // 记录格子坐标用于加载
                 fData.fieldValues["gridX"] = grid.GridIndex.X.ToString();
                 fData.fieldValues["gridY"] = grid.GridIndex.Y.ToString();
