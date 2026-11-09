@@ -442,6 +442,7 @@ public partial class TerrainEditor
 
     private object ParseValueFromString(string str, Type targetType)
     {
+        if (ExportPersistenceCodec.TryParse(str, targetType, out object encodedValue)) return encodedValue;
         if (targetType == typeof(string)) return str;
         if (targetType == typeof(int) && int.TryParse(str, out int i)) return i;
         if (targetType == typeof(float) && float.TryParse(str, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out float f)) return f;
