@@ -457,6 +457,29 @@ public partial class Facility : Node2D
         if (layer.Animation != anim || !layer.IsPlaying()) layer.Play(anim);
     }
     
+
+    // ✅ 色相旋转材质（2026-11-10 用户钦定：保饱和只换色）
+    // base 贴图已统一预旋正红基线；偏移 = 势力正典色色相角；P0 中立去饱和
+    private static Shader _hueShader;
+    protected ShaderMaterial GetHueMaterial(string team)
+    {
+        _hueShader ??= GD.Load<Shader>("res://asscets/shaders/hue_rotate.gdshader");
+        float hueDeg = 0f, sat = 1f;
+        if (team != TeamHelper.Player0)
+        {
+            var faction = TeamHelper.GetFaction(team);
+            if (faction != null) hueDeg = (float)(faction.PrimaryColor.H * 360.0);
+        }
+        else
+        {
+            sat = 0.12f;
+        }
+        var mat = new ShaderMaterial { Shader = _hueShader };
+        mat.SetShaderParameter("hue_shift", hueDeg);
+        mat.SetShaderParameter("saturation", sat);
+        return mat;
+    }
+
     /// <summary>
     /// ✅ 为设施应用调色板Shader（双图层 + 兼容模式）
     /// </summary>
@@ -466,12 +489,8 @@ public partial class Facility : Node2D
         if (baseAnimSprite != null && IsInstanceValid(baseAnimSprite) &&
             normalAnimSprite != null && IsInstanceValid(normalAnimSprite))
         {
-            var baseMat = FactionPaletteManager.GetBaseLayerMaterial(facilityTeam);
-            if (baseMat != null)
-            {
-                baseAnimSprite.Material = (ShaderMaterial)baseMat.Duplicate();
-                baseAnimSprite.Show();
-            }
+            baseAnimSprite.Material = GetHueMaterial(facilityTeam);
+            baseAnimSprite.Show();
             normalAnimSprite.Material = null;
             normalAnimSprite.Show();
             // 隐藏旧版单图层组件
@@ -485,12 +504,8 @@ public partial class Facility : Node2D
         if (baseSprite != null && IsInstanceValid(baseSprite) &&
             normalSprite != null && IsInstanceValid(normalSprite))
         {
-            var baseMat = FactionPaletteManager.GetBaseLayerMaterial(facilityTeam);
-            if (baseMat != null)
-            {
-                baseSprite.Material = (ShaderMaterial)baseMat.Duplicate();
-                baseSprite.Show();
-            }
+            baseSprite.Material = GetHueMaterial(facilityTeam);
+            baseSprite.Show();
             normalSprite.Material = null;
             normalSprite.Show();
             // 隐藏旧版单图层组件

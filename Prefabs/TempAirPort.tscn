@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" path="res://spricts/TempAirPort.cs" id="1_kxu4x"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/TempAirport.tres" id="2_kxu4x"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/TempAirport_base.tres" id="3_base"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/TempAirport_overlay.tres" id="4_over"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bx6pw"]
 size = Vector2(33, 33)
@@ -21,5 +23,14 @@ shape = SubResource("RectangleShape2D_bx6pw")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1513004313]
 position = Vector2(16, 16)
 scale = Vector2(1.3333334, 1.3333334)
-sprite_frames = ExtResource("2_kxu4x")
+sprite_frames = ExtResource("4_over")
 animation = &"P0AirPort"
+
+[node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(16.5, 16.5)
+visible = false
+sprite_frames = ExtResource("3_base")
+
+[node name="NormalAnimSprite" type="AnimatedSprite2D" parent="BaseAnimSprite"]
+visible = false
+sprite_frames = ExtResource("4_over")

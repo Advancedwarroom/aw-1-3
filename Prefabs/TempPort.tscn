@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" path="res://spricts/TempPort.cs" id="1_port"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/TempPort.tres" id="2_anim"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/TempPort_base.tres" id="3_base"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/TempPort_overlay.tres" id="4_over"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_port"]
 size = Vector2(33, 33)
@@ -21,5 +23,14 @@ shape = SubResource("RectangleShape2D_port")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1314300434]
 position = Vector2(16, 16)
 scale = Vector2(1.3333334, 1.3333334)
-sprite_frames = ExtResource("2_anim")
+sprite_frames = ExtResource("4_over")
 animation = &"P0Port"
+
+[node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(16.5, 16.5)
+visible = false
+sprite_frames = ExtResource("3_base")
+
+[node name="NormalAnimSprite" type="AnimatedSprite2D" parent="BaseAnimSprite"]
+visible = false
+sprite_frames = ExtResource("4_over")
