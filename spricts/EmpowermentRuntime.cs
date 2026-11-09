@@ -64,6 +64,14 @@ public static class EmpowermentRuntime
                 var gm = node.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
                 view.Grid = gm?.gridManager?.grids.FirstOrDefault(g => g?.city == facility);
             }
+            if (view.ManualTarget == null && view.ManualActive)
+            {
+                int x = Get(node, "empowermentManualTargetX", -1);
+                int y = Get(node, "empowermentManualTargetY", -1);
+                var gm = node.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+                if (gm?.unitManager != null && gm.unitManager.IsValidGrid(new Vector2I(x, y)))
+                    view.ManualTarget = gm.gridManager.map[x, y];
+            }
             return view;
         }
 
@@ -163,6 +171,8 @@ public static class EmpowermentRuntime
         int distance = Manhattan(view.Grid, target);
         if (distance < view.CastMin || distance > view.CastMax) return false;
         Set(source, "empowermentManualTarget", target);
+        Set(source, "empowermentManualTargetX", target.GridIndex.X);
+        Set(source, "empowermentManualTargetY", target.GridIndex.Y);
         Set(source, "empowermentManualActive", true);
         Set(source, "empowermentUsesThisTurn", view.Uses + 1);
         SourceSequences[source] = ++nextSequence;
@@ -182,6 +192,8 @@ public static class EmpowermentRuntime
             Set(source, "empowermentUsesThisTurn", 0);
             Set(source, "empowermentManualActive", false);
             Set(source, "empowermentManualTarget", (Grids)null);
+            Set(source, "empowermentManualTargetX", -1);
+            Set(source, "empowermentManualTargetY", -1);
         }
         DispelledSourceCells.Clear();
         RefreshAll(gm);
