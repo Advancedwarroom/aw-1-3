@@ -84,6 +84,8 @@ public partial class Laser
     {
         int damage = Mathf.RoundToInt(target.maxHealth * baseDamagePercent);
         damage = Mathf.Max(1, damage);
+        damage = Mathf.Max(0, damage - target.fixedDefense);
+        if (damage <= 0) return;
         if (!CanDestroy)
             target.health = Mathf.Max(1, target.health - damage);
         else
@@ -153,6 +155,8 @@ public partial class Laser
         if (IsScreenBlocked(target.grid)) return;
         int damage = Mathf.RoundToInt(target.maxHealth * baseDamagePercent);
         damage = Mathf.Max(1, damage);
+        damage = Mathf.Max(0, damage - target.fixedDefense);
+        if (damage <= 0) return;
         if (!CanDestroy)
             target.health = Mathf.Max(1, target.health - damage);
         else
