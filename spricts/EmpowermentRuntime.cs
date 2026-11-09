@@ -154,7 +154,7 @@ public static class EmpowermentRuntime
             var covered = GetCoveredCells(gm, view.Anchor, view.Shape, view.Direction, view.RangeMin, view.RangeMax);
             foreach (var cell in covered)
             {
-                if (cell == null || DispelledSourceCells.Contains(DispelKey(source, cell))) continue;
+                if (cell == null) continue;
                 AddLayer(cell, new Layer
                 {
                     Source = view,
