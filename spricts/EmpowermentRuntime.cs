@@ -488,6 +488,6 @@ public static class EmpowermentRuntime
     {
         foreach (var pair in Targets)
             if (pair.Key != null && GodotObject.IsInstanceValid(pair.Key)) ClearTarget(pair.Key, pair.Value);
-        Targets.Clear(); Cells.Clear(); SourceSequences.Clear(); DispelledSourceCells.Clear();
+        Targets.Clear(); Cells.Clear(); SourceSequences.Clear(); DispelledTargets.Clear();
     }
 }
