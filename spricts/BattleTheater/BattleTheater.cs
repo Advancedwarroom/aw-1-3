@@ -309,6 +309,7 @@ public static class BattleAnimCatalog
         mat.SetShaderParameter("color_table", table);
         _matCache[tableName] = mat;
         return mat;
+    }
     
     /// <summary>
     /// 按注册色现场生成 CoW 色表（开创人 2026-11-09：注册色适配 CoW 路）。
