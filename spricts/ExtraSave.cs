@@ -288,7 +288,9 @@ public partial class ExtraSave : Node
             var grid = FindGridByIndex(gridMgr, uData.fieldValues.GetValueOrDefault("gridX", "0"), uData.fieldValues.GetValueOrDefault("gridY", "0"));
             if (grid == null) continue;
             terrainEditor.SpawnSavedUnitAtGrid(grid, uData);
+            RestoreCarriedUnitAfterLoad(uData, gm);
         }
+        EmpowermentRuntime.RefreshAll(gm);
 
         // 7. 加载资金
         gm.p1Funds = mapData.p1Funds;
