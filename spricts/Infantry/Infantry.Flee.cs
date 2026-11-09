@@ -20,6 +20,8 @@ public partial class Infantry
     /// </summary>
     public virtual bool TryFlee()
     {
+        // 尸化优先于野化：旧单位死亡并在原格生成新兵种；生成失败才继续尝试野化/正常死亡。
+        if (deathTransformEnabled && TryDeathTransform()) return true;
         if (!canFleeOnDeath || grid == null) return false;
         var gm = gameManager;
         if (gm?.unitManager == null || gm?.gridManager == null) return false;
