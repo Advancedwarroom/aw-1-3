@@ -247,6 +247,7 @@ public static class EmpowermentRuntime
             {
                 foreach (var target in TargetsOnCell(gm, cellState.Key, layer.Source))
                 {
+                    if (DispelledTargets.Contains(DispelTargetKey(layer.Source.Node, cellState.Key, target))) continue;
                     if (!desired.TryGetValue(target, out var list)) { list = new List<Layer>(); desired[target] = list; }
                     list.Add(layer);
                 }
