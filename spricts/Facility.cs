@@ -91,6 +91,12 @@ public partial class Facility : Node2D
     /// 编辑模式放置、单位使用均不受影响——仅限制本建筑的【生产】。</summary>
     [Export] public bool isUpdatable = true;
     [Export] public string facilityTeam = "";
+
+    // ✅ 开创人2026-11-10：存活胜负倒计时（全部设施通用，默认关闭=0；与单位/兵器同机制同字段名）
+    [ExportGroup("存活胜负倒计时")]
+    [Export] public int surviveVictoryTurns = 0;   // 本设施存活满 N 大回合 → 所属势力直接胜利（0=关闭）
+    [Export] public int surviveDefeatTurns = 0;    // 本设施存活满 N 大回合 → 所属势力失败出局（0=关闭）
+    [Export] public int survivedTurns = 0;         // 已存活大回合数（计时器；[Export] 随存档/导出/导入自动带走）
     [Export] public int capturePointsRequired = 20;
     [Export] public int healMode = 0;
     [Export] public int healAmount = 0;

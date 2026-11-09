@@ -118,7 +118,7 @@ public partial class GameManager
         {
             WeatherSystem.AdvanceDay();   // ✅ 天气系统（模块15）：新一天按出现率轮换天气
             WeatherManager.Instance?.OnTurnStart();   // ✅ issue#1：区域天气层（格子栈）回合递减（大回合一次，非每阶段）
-            ProcessWeaponSurvivalCountdown();         // ✅ 开创人2026-11-10：兵器存活胜负倒计时（默认关闭，0=不计）
+            ProcessSurvivalCountdowns();              // ✅ 开创人2026-11-10：单位/兵器/设施 存活胜负倒计时（默认关闭，0=不计）
         }
         selectedInfantry = null;
                         if (turnPhase == 1)

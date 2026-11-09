@@ -13,6 +13,12 @@ public partial class Infantry : Node2D
     [Export] public bool canMerge = true;
     [Export] public bool canActAfterMerge = false;
 
+    // ✅ 开创人2026-11-10：存活胜负倒计时（全部单位通用，默认关闭=0；与兵器/设施同机制同字段名，GameManager.SurvivalCountdowns 统一驱动）
+    [ExportGroup("存活胜负倒计时")]
+    [Export] public int surviveVictoryTurns = 0;   // 本单位存活满 N 大回合 → 所属势力直接胜利（0=关闭）
+    [Export] public int surviveDefeatTurns = 0;    // 本单位存活满 N 大回合 → 所属势力失败出局（0=关闭）
+    [Export] public int survivedTurns = 0;           // 已存活大回合数（计时器；[Export] 随存档/导出/导入自动带走）
+
 // ✅ AI 档案（提案 docs/proposals/ai-brain.md）：全部默认=自动，AI 按单位实际能力字段推断行为；填写后覆盖推断
 [ExportGroup("AI 档案")]
 [Export(PropertyHint.Enum, "自动,突击,占点,守备,刺客")] public int aiRole = 0;   // 自动=按能力推断；突击=只找仗打；占点=优先占领；守备=守己方据点；刺客=打完就隐身/撤离
