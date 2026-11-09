@@ -17,8 +17,6 @@ public override void TakeDamage(int damage, Infantry attacker = null)
         if (tableDamage >= 0)
             damage = tableDamage;
     }
-    damage = Mathf.Max(0, damage - fixedDefense);
-    if (damage <= 0) return;
     health -= damage;
     health = Mathf.Max(0, health);
     UpdateHpLabel();
@@ -546,8 +544,6 @@ public override void TakeDamage(int damage, Infantry attacker = null)
     {
         int damage = Mathf.RoundToInt(target.maxHealth * fixedDamagePercent);
         damage = Mathf.Max(1, damage);
-        damage = Mathf.Max(0, damage - target.fixedDefense);
-        if (damage <= 0) return;
 
         if (!CanDestroy)
         {
@@ -573,7 +569,6 @@ public override void TakeDamage(int damage, Infantry attacker = null)
     {
         // ========== 1. 血量处理 ==========
         int healthChange = Mathf.RoundToInt(target.maxHealth * Mathf.Abs(modifiedHealthPercent));
-        if (modifiedHealthPercent > 0) healthChange = Mathf.Max(0, healthChange - target.fixedDefense);
 
         if (modifiedHealthPercent > 0 && healthChange > 0)
         {
