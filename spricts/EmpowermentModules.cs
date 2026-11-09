@@ -27,7 +27,7 @@ public partial class Infantry
     [Export] public Godot.Collections.Dictionary<string, float> empowermentExportDeltas = new();
     [Export] public Godot.Collections.Array<string> empowermentStatusAdd = new();
     [Export] public Godot.Collections.Array<string> empowermentStatusRemove = new();
-    [Export(PropertyHint.Enum, "仅自己施加,全部来源")] public int empowermentDispelScope = 0;
+    [Export(PropertyHint.Enum, "仅自己施加,全部来源")] public int empowermentDispelScope = 1;
     public bool empowermentManualActive = false;
     public Grids empowermentManualTarget = null;
     public int empowermentUsesThisTurn = 0;
@@ -61,7 +61,7 @@ public partial class Weapon
     [Export] public Godot.Collections.Dictionary<string, float> empowermentExportDeltas = new();
     [Export] public Godot.Collections.Array<string> empowermentStatusAdd = new();
     [Export] public Godot.Collections.Array<string> empowermentStatusRemove = new();
-    [Export(PropertyHint.Enum, "仅自己施加,全部来源")] public int empowermentDispelScope = 0;
+    [Export(PropertyHint.Enum, "仅自己施加,全部来源")] public int empowermentDispelScope = 1;
     public bool empowermentManualActive = false;
     public Grids empowermentManualTarget = null;
     public int empowermentUsesThisTurn = 0;
@@ -95,7 +95,7 @@ public partial class Facility
     [Export] public Godot.Collections.Dictionary<string, float> empowermentExportDeltas = new();
     [Export] public Godot.Collections.Array<string> empowermentStatusAdd = new();
     [Export] public Godot.Collections.Array<string> empowermentStatusRemove = new();
-    [Export(PropertyHint.Enum, "仅自己施加,全部来源")] public int empowermentDispelScope = 0;
+    [Export(PropertyHint.Enum, "仅自己施加,全部来源")] public int empowermentDispelScope = 1;
     public bool empowermentManualActive = false;
     public Grids empowermentManualTarget = null;
     public int empowermentUsesThisTurn = 0;
