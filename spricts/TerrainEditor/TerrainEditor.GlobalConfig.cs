@@ -637,6 +637,19 @@ private void RefreshAllUnitVision()
         localWeatherCheck.CustomMinimumSize = new Vector2(28, 28);
         localWeatherCheck.Toggled += (pressed) => { if (wm != null) wm.localWeatherEnabled = pressed; };
         localWeatherHBox.AddChild(localWeatherCheck);
+        var regionalWeatherEditBtn = new Button { CustomMinimumSize = new Vector2(112, 30) };
+        TranslateGroup.SetText(regionalWeatherEditBtn, "格子涂抹 / 删除");
+        regionalWeatherEditBtn.Pressed += () =>
+        {
+            if (!IsEditMode)
+            {
+                ShowImportHint(TranslateGroup.T("请先进入编辑模式，再使用区域天气画笔"));
+                return;
+            }
+            localWeatherCheck.ButtonPressed = true;
+            OpenRegionalWeatherEditor();
+        };
+        localWeatherHBox.AddChild(regionalWeatherEditBtn);
         globalConfigContainer.AddChild(localWeatherHBox);
 
         // 出现权重（晴/雨/雪/沙暴/雾）

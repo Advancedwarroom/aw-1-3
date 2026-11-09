@@ -78,7 +78,8 @@ public bool IsAnyMenuOpen()
         || propertyEditorPanel?.Visible == true 
         || spawnMenuPanel?.Visible == true
         || globalConfigPanel?.Visible == true
-        || batchTerrainPanel?.Visible == true;
+        || batchTerrainPanel?.Visible == true
+        || regionalWeatherPanel?.Visible == true;
 }
 public override void _Ready()
 {
@@ -107,6 +108,7 @@ public override void _Ready()
     CreatePropertyEditor();
     CreateSpawnMenu();
     CreateGlobalConfigPanel();
+    CreateRegionalWeatherPanel();
 
     var viewportSize = GetViewport().GetVisibleRect().Size;
     modeToggleButton.SetAnchorsPreset(LayoutPreset.TopLeft);
@@ -196,6 +198,12 @@ public override void _Input(InputEvent @event)
         }
     if (@event is InputEventKey keyEvent && keyEvent.Pressed && keyEvent.Keycode == Key.Escape)
     {
+        if (isRegionalWeatherEditMode || regionalWeatherPanel?.Visible == true)
+        {
+            CloseRegionalWeatherEditor();
+            return;
+        }
+
         if (globalConfigPanel?.Visible == true)
         {
             CloseGlobalConfigPanel();
@@ -497,6 +505,7 @@ private void DeferredCheckVictoryOnExitEdit()
         propertyEditorPanel.Visible = false;
         spawnMenuPanel.Visible = false;
         globalConfigPanel.Visible = false;
+        CloseRegionalWeatherEditor();
         if (batchTerrainPanel != null) batchTerrainPanel.Visible = false;
         isMenuOpen = false;
         selectedGrid = null;

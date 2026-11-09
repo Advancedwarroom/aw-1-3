@@ -24,6 +24,7 @@ public class RegionalWeatherType
     public int minFireRangeDelta = 0; // 最小射程增量
     public int visionDelta = 0;       // 视野增量
     public int fuelCostDelta = 0;     // 每格燃料消耗增量
+    public bool forceFog = false;     // 全球天气切换到本类型时强制开启迷雾
     // 该区域层是否把本格全球天气视为晴（issue：替代全球天气的晴选项）
     public bool replaceBaseWithSunny = false;
     // 生效/失效回调（mod 扩展用，可空）
@@ -63,14 +64,16 @@ public partial class WeatherManager : Node
     private void RegisterBuiltinTypes()
     {
         RegisterRegionalWeatherType(new RegionalWeatherType { id = 0, name = "晴" });
-        RegisterRegionalWeatherType(new RegionalWeatherType { id = 1, name = "雨", defensePercent = 1100, visionDelta = -1 });
-        RegisterRegionalWeatherType(new RegionalWeatherType { id = 2, name = "雪", moveCostDelta = 1, movePointsDelta = -1, fuelCostDelta = 1 });
-        RegisterRegionalWeatherType(new RegionalWeatherType { id = 3, name = "沙暴", attackPercent = 900, visionDelta = -2 });
-        RegisterRegionalWeatherType(new RegionalWeatherType { id = 4, name = "雾", visionDelta = -3, fireRangeDelta = -1 });
+        RegisterRegionalWeatherType(new RegionalWeatherType { id = 1, name = "雨", visionDelta = -1, forceFog = true });
+        RegisterRegionalWeatherType(new RegionalWeatherType { id = 2, name = "雪", moveCostDelta = 1 });
+        RegisterRegionalWeatherType(new RegionalWeatherType { id = 3, name = "沙暴", attackPercent = 850, fireRangeDelta = -1 });
+        RegisterRegionalWeatherType(new RegionalWeatherType { id = 4, name = "雾", visionDelta = -2, forceFog = true });
     }
 
     public void RegisterRegionalWeatherType(RegionalWeatherType t) => types[t.id] = t;
     public RegionalWeatherType GetRegionalWeatherType(int id) => types.TryGetValue(id, out var t) ? t : null;
+    public IReadOnlyList<RegionalWeatherType> GetRegisteredTypes()
+        => types.Values.OrderBy(t => t.id).ToList();
 
     // ========== 增删查 ==========
     /// <summary>给格子加一层天气：同类不叠（续时长），异类≤4层。turns=-1 永久。</summary>
@@ -87,7 +90,10 @@ public partial class WeatherManager : Node
         var existing = stack.FirstOrDefault(l => l.typeId == typeId);
         if (existing != null)
         {
-            existing.remainingTurns = Mathf.Max(existing.remainingTurns, turns);  // 同类不叠=续时长
+            // 同类不叠=续时长；任一层为永久时，永久不能被有限回合覆盖。
+            existing.remainingTurns = existing.remainingTurns < 0 || turns < 0
+                ? -1
+                : Mathf.Max(existing.remainingTurns, turns);
             existing.replaceBaseSunny |= replaceSunny;
             return true;
         }
@@ -105,6 +111,14 @@ public partial class WeatherManager : Node
         stack.Remove(layer);
         GetRegionalWeatherType(typeId)?.onDeactivate?.Invoke();
         if (stack.Count == 0) cellStacks.Remove(cell);
+    }
+
+    public void ClearWeather(Vector2I cell)
+    {
+        if (!cellStacks.TryGetValue(cell, out var stack)) return;
+        foreach (var layer in stack)
+            GetRegionalWeatherType(layer.typeId)?.onDeactivate?.Invoke();
+        cellStacks.Remove(cell);
     }
 
     public void ClearAllWeather()

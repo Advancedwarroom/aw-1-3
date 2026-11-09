@@ -29,6 +29,13 @@ public void OnGridClickedForEdit(Grids grid)
         }
     if (!IsEditMode || grid == null) return;
 
+    // 区域天气画笔独占本次点格，不触发生成、绑定、销毁或对象选择。
+    if (isRegionalWeatherEditMode)
+    {
+        ApplyRegionalWeatherBrush(grid);
+        return;
+    }
+
     var mapHelper = GetTree()?.GetFirstNodeInGroup("map_editor_helper") as MapEditorHelper;
 
     selectedGrid = grid;
