@@ -102,6 +102,11 @@ public partial class Watchtower : Facility
                         visible.Add(g);
                         if (!coneIgnoreTerrain && IsVisionBlockingTerrain(g.gridType)) break;
                     }
+                }
+            }
+        }
+        return visible;
+    }
 
     private HashSet<Grids> CalculateTowerRayVision(GameManager gm)
     {
@@ -145,6 +150,9 @@ public partial class Watchtower : Facility
                 steps++;
                 if (!rayIgnoreTerrain && IsVisionBlockingTerrain(targetGrid.gridType)) break;
             }
+        }
+        return visible;
+    }
 
     private bool IsValidGrid(Vector2I pos, GameManager gm)
     {
