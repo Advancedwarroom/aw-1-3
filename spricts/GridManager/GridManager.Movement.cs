@@ -39,6 +39,13 @@ public partial class GridManager
             return;
         }
 
+        var shelter = Weapon.FindShelterFor(to.weapons, infantry);
+        if (shelter != null)
+        {
+            MoveTo(infantry, to);
+            return;
+        }
+
         var otherUnits = to.infantries.Where(i => i != infantry && IsInstanceValid(i)).ToList();
         bool hasOtherUnits = otherUnits.Count > 0 || (to.infantry != null && to.infantry != infantry);
 
@@ -115,7 +122,7 @@ public partial class GridManager
                     }
                     
                     // 检查2: 兵器阻挡（非Oozium单位；宇宙战舰/空天战机可飞越；导弹井可站上发射）
-                    if (infantry is not Oozium && g.weapon != null && !g.weapon.AllowsPassage(infantry)
+                    if (infantry is not Oozium && g.weapon != null && !g.weapon.AllowsPassage(infantry) && !g.weapon.CanShelterUnit(infantry)
                         && infantry.moveType != MoveType.SpaceShiper && infantry.moveType != MoveType.AeroSpacer)
                     {
                         TruncateAndMove(infantry, lastValidGrid);
@@ -235,6 +242,8 @@ public partial class GridManager
         if (grid == null || requestingUnit == null) return false;
         // 地形禁停优先于搭载/合流/重叠：可以穿过，但不能把这里当最终落点。
         if (grid.PreventsUnitStop(this)) return false;
+
+        if (Weapon.FindShelterFor(grid.weapons, requestingUnit) != null) return true;
 
         var otherUnits = grid.infantries.Where(i => i != requestingUnit && IsInstanceValid(i)).ToList();
         if (otherUnits.Count == 0) return true;
@@ -381,7 +390,10 @@ public partial class GridManager
     }
     bool hasMountedToTransport = false;
 
-    if (transport != null && transport.CanTransportUnit(infantry))
+    var shelter = Weapon.FindShelterFor(to.weapons, infantry);
+    if (shelter != null && shelter.LoadShelterUnit(infantry)) hasMountedToTransport = true;
+
+    if (!hasMountedToTransport && transport != null && transport.CanTransportUnit(infantry))
     {
         var actionMenu = GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu;
         if (actionMenu != null)
@@ -484,7 +496,7 @@ public partial class GridManager
             { hardBlocked = true; break; }
 
             // ✅ 检查2: 兵器阻挡（非Oozium；宇宙战舰/空天战机可飞越；导弹井可站上发射）
-            if (infantry is not Oozium && g.weapon != null && !g.weapon.AllowsPassage(infantry)
+            if (infantry is not Oozium && g.weapon != null && !g.weapon.AllowsPassage(infantry) && !g.weapon.CanShelterUnit(infantry)
                 && infantry.moveType != MoveType.SpaceShiper && infantry.moveType != MoveType.AeroSpacer) { hardBlocked = true; break; }
 
             // ✅ 检查3: 地形不可移动
