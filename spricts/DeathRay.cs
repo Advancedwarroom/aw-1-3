@@ -229,8 +229,6 @@ public partial class DeathRay : BlackCannon
 
             int damage = Mathf.RoundToInt(t.maxHealth * fixedDamagePercent);
             damage = Mathf.Max(1, damage);
-            damage = Mathf.Max(0, damage - t.fixedDefense);
-            if (damage <= 0) continue;
 
             if (!CanDestroy)
                 t.health = Mathf.Max(1, t.health - damage);
