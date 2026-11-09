@@ -658,6 +658,7 @@ public partial class TerrainEditor
     private bool IsSupportedType(Type t)
     {
         if (t == null) return false;
+        if (ExportPersistenceCodec.IsSupportedType(t)) return true;
         if (t == typeof(bool)) return true;
         if (t == typeof(int)) return true;
         if (t == typeof(uint)) return true;
@@ -677,6 +678,7 @@ public partial class TerrainEditor
     private object ParseValue(string str, Type targetType)
     {
         if (targetType == null || str == null) return null;
+        if (ExportPersistenceCodec.TryParse(str, targetType, out object encodedValue)) return encodedValue;
 
         // ✅ 如果是字符串类型，直接返回（包括中文内容）
         if (targetType == typeof(string)) return str;
