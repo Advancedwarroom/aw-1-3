@@ -329,7 +329,7 @@ public virtual bool ConsumePrimaryAmmo()
             int damage = CalculateDamageAgainstWeapon(weapon, selectedWeapon);
             var gmAtk = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gmAtk != null) gmAtk.CurrentAttackerGrid = grid; // 巨雷弱点判定: 记录攻击来源格
-        weapon.TakeDamage(damage);
+        weapon.TakeDamage(damage, this);
         if (gmAtk != null) gmAtk.CurrentAttackerGrid = null;
             __theater?.AddVolley(true, damage, Math.Max(0, weapon.health), BattleAnimCatalog.GetFireClass(this, selectedWeapon, null));
 
