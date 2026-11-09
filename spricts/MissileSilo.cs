@@ -314,7 +314,7 @@ public partial class MissileSilo : Weapon
             if (w.health <= 0)
             {
                 if (w is MissileSilo ms) ms.BecomeEmptySilo();
-                else w.TakeDamage(99999, this);
+                else w.TakeDamage(99999);
             }
         }
         if (effectMaxHealthDelta != 0)

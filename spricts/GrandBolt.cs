@@ -984,7 +984,7 @@ public partial class GrandBolt : Weapon
                     if (empBurstWeaponDamage > 0 && t.weapons != null)
                         foreach (var wp in t.weapons.ToList())
                             if (wp != this && IsInstanceValid(wp) && wp.team != team)
-                                wp.TakeDamage(empBurstWeaponDamage, this);
+                                wp.TakeDamage(empBurstWeaponDamage);
                     if (empBurstInfantryDamage > 0 && t.infantry != null && t.infantry.team != team)
                     {
                         var u = t.infantry;

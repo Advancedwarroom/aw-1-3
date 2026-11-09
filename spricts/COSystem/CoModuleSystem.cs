@@ -245,7 +245,7 @@ public static class CoModuleSystem
         return false;
     }
 
-    static float Sum(string team, int moduleId, string key, Infantry unit = null, bool zoneOnly = false)
+    public static float Sum(string team, int moduleId, string key, Infantry unit = null, bool zoneOnly = false)
     {
         float sum = 0f;
         foreach (var m in ActiveModules(team, moduleId, unit))

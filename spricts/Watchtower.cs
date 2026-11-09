@@ -89,7 +89,7 @@ public partial class Watchtower : Facility
 
         for (int depth = 1; depth <= coneRange; depth++)
         {
-            Vector2I center = GridIndex + dir * depth;
+            Vector2I center = ParentGrid.GridIndex + dir * depth;
             int halfWidth = depth;
             for (int w = -halfWidth; w <= halfWidth; w++)
             {
@@ -119,7 +119,7 @@ public partial class Watchtower : Facility
         Godot.Vector2 startPos = Position + new Godot.Vector2(cellSize * 0.5f, cellSize * 0.5f);
 
         Godot.Vector2 currentPos = startPos;
-        int currentX = GridIndex.X, currentY = GridIndex.Y;
+        int currentX = ParentGrid.GridIndex.X, currentY = ParentGrid.GridIndex.Y;
         int stepX = dir.X > 0 ? 1 : (dir.X < 0 ? -1 : 0);
         int stepY = dir.Y > 0 ? 1 : (dir.Y < 0 ? -1 : 0);
         int steps = 0;
@@ -143,7 +143,7 @@ public partial class Watchtower : Facility
             if (tStep < 0.0001f) tStep = 0.0001f;
 
             var targetGrid = gm.gridManager.map[currentX, currentY];
-            if (targetGrid != null && !visited.Contains(targetGrid) && targetGrid != this)
+            if (targetGrid != null && !visited.Contains(targetGrid) && targetGrid != ParentGrid)
             {
                 visited.Add(targetGrid);
                 visible.Add(targetGrid);

@@ -33,11 +33,11 @@ public override void TakeDamage(int damage, Infantry attacker = null)
     var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
     if (gm?.selectedInfantry != null)
     {
-        var attacker = gm.selectedInfantry;
-        attacker.isAttacked = true;
-        attacker.state   = UnitState.Acted;
-        attacker.originalGrid = null;
-        attacker.SetWaitVisual(true);
+        var selectedAttacker = gm.selectedInfantry;
+        selectedAttacker.isAttacked = true;
+        selectedAttacker.state   = UnitState.Acted;
+        selectedAttacker.originalGrid = null;
+        selectedAttacker.SetWaitVisual(true);
         gm.gridManager.HideAttackRange();
         gm.ClearSelectedInfantry();
     }
@@ -45,6 +45,7 @@ public override void TakeDamage(int damage, Infantry attacker = null)
     // 3. 血量归零 → 延迟自毁
     if (health <= 0)
     {
+        if (TryDeathTransform()) return; // 黑炮覆写受伤入口，也必须先走尸化。
         // ✅ 修复：保存 grid 引用，不要在这里清空
         var destroyedGrid = grid;
         

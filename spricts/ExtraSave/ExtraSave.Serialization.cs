@@ -315,7 +315,7 @@ public partial class ExtraSave
             d["screenYOffsets"] = new Godot.Collections.Array<int>(item.screenYOffsets);
             d["screenGap"] = item.screenGap;
             d["freeformScreens"] = item.freeformScreens;
-            d["gridCustoms"] = new Godot.Collections.Array(item.gridCustoms);
+            d["gridCustoms"] = new Godot.Collections.Array<string>(item.gridCustoms);
             d["teamFunds"] = DictToGodot(item.teamFunds);
             d["customMoveTypes"] = SerializeCustomMoveTypeList(item.customMoveTypes);
             d["customTerrainTypes"] = SerializeCustomTerrainTypeList(item.customTerrainTypes);

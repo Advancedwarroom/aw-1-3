@@ -85,6 +85,7 @@ public partial class Weapon
     public virtual bool UnloadShelterUnit(Infantry unit, Grids targetGrid)
     {
         if (!CanUnloadShelterUnitToGrid(unit, targetGrid)) return false;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         RemoveShelterExportService(unit);
         shelteredUnits.Remove(unit);
         unit.isTransported = false;

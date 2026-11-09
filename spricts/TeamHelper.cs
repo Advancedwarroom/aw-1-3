@@ -251,7 +251,7 @@ public static class FactionPaletteManager
         if (_cowLutTableByTeam.TryGetValue(factionId, out var named))
             return BattleAnimCatalog.GetRecolorMaterial(named);
         // ✅ 注册色适配 CoW 路（开创人 2026-11-09）：未登记具名表的势力按注册主/副色现场生成色表
-        var f = GetFaction(factionId);
+        var f = TeamHelper.GetFaction(factionId);
         if (f != null)
             return BattleAnimCatalog.GetRecolorMaterialForFaction(factionId, f.PrimaryColor, f.SecondaryColor);
         return BattleAnimCatalog.GetRecolorMaterial("neutral");

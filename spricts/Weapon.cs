@@ -425,8 +425,9 @@ public partial class Weapon : Node2D
     /// </summary>
     public void SyncDamageTable()
     {
-        if (GameManager.Instance?.unitRegistry == null) return;
-        foreach (var unitId in GameManager.Instance.unitRegistry.Configs.Keys)
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.unitRegistry == null) return;
+        foreach (var unitId in gm.unitRegistry.Configs.Keys)
         {
             if (!damageFromUnits.ContainsKey(unitId))
                 damageFromUnits[unitId] = -1;
@@ -470,11 +471,11 @@ public partial class Weapon : Node2D
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.selectedInfantry != null)
         {
-            var attacker = gm.selectedInfantry;
-            attacker.isAttacked = true;
-            attacker.state = UnitState.Acted;
-            attacker.originalGrid = null;
-            attacker.SetWaitVisual(true);
+            var selectedAttacker = gm.selectedInfantry;
+            selectedAttacker.isAttacked = true;
+            selectedAttacker.state = UnitState.Acted;
+            selectedAttacker.originalGrid = null;
+            selectedAttacker.SetWaitVisual(true);
             gm.gridManager.HideAttackRange();
             gm.ClearSelectedInfantry();
         }

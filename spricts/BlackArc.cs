@@ -159,7 +159,7 @@ public partial class BlackArc : Weapon
                         if (!ArcTargetTeamOk(w.team)) continue;
                         w.health = Mathf.Max(0, w.health - arcStrikeDamage);
                         w.UpdateHpLabel();
-                        if (w.health <= 0) w.TakeDamage(99999, this);
+                        if (w.health <= 0) w.TakeDamage(99999);
                     }
                 }
             }
