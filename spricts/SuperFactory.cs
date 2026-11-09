@@ -440,7 +440,7 @@ public partial class SuperFactory : Weapon
     }
 
     /// <summary>计算生产成本：红利期免费；原作模式免费；双菜单模式按倍率</summary>
-    public int GetProductionCost(int baseCost, bool instantMode)
+    public int GetProductionCost(int baseCost, bool instantMode, string unitName = "")
     {
         // 红利期免费
         if (IsInDividend(TeamHelper.GetPhaseTeamName((GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager)?.turnPhase ?? 1)))
@@ -451,9 +451,9 @@ public partial class SuperFactory : Weapon
         if (dualProductionMode)
         {
             float mult = instantMode ? instantCostMultiplier : standbyCostMultiplier;
-            return Mathf.RoundToInt(baseCost * mult);
+            return Mathf.RoundToInt(GetInstanceProductionCost(baseCost, unitName) * mult);
         }
-        return baseCost;
+        return GetInstanceProductionCost(baseCost, unitName);
     }
 
     // ========== 执行生产：在指定出口格生成单位 ==========
@@ -491,7 +491,7 @@ public partial class SuperFactory : Weapon
         }
 
         // 费用
-        int cost = GetProductionCost(info.Cost, instantMode);
+        int cost = GetProductionCost(info.Cost, instantMode, unitName);
         int funds = gm.GetTeamFunds(payingTeam);
         if (cost > 0 && funds < cost) return TranslateGroup.T("资金不足");
 
