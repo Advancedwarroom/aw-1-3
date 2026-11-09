@@ -270,6 +270,7 @@ public void RestartGame()
     // ========== ✅ 生产菜单拖拽处理 ==========
     public override void _Process(double delta)
     {
+        EmpowermentRuntime.Tick(this, delta);
         if (isDraggingProductionMenu && currentDraggedProductionMenu != null)
         {
             Vector2 newPosition = currentDraggedProductionMenu.GetGlobalMousePosition() + dragOffsetProduction;
