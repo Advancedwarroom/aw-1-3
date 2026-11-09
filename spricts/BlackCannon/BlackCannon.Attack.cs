@@ -17,6 +17,8 @@ public override void TakeDamage(int damage, Infantry attacker = null)
         if (tableDamage >= 0)
             damage = tableDamage;
     }
+    damage = Mathf.Max(0, damage - fixedDefense);
+    if (damage <= 0) return;
     health -= damage;
     health = Mathf.Max(0, health);
     UpdateHpLabel();
@@ -544,6 +546,8 @@ public override void TakeDamage(int damage, Infantry attacker = null)
     {
         int damage = Mathf.RoundToInt(target.maxHealth * fixedDamagePercent);
         damage = Mathf.Max(1, damage);
+        damage = Mathf.Max(0, damage - target.fixedDefense);
+        if (damage <= 0) return;
 
         if (!CanDestroy)
         {
@@ -556,7 +560,7 @@ public override void TakeDamage(int damage, Infantry attacker = null)
 
         target.UpdateHpLabel();
 
-        if (target.health <= 0)
+        if (target.health <= 0 && !target.TryFlee())
         {
             var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
             gm?.RemovePiece(target);
@@ -656,7 +660,7 @@ public override void TakeDamage(int damage, Infantry attacker = null)
         }
 
         // ========== 4. 死亡检查 ==========
-        if (target.health <= 0)
+        if (target.health <= 0 && !target.TryFlee())
         {
             var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
             gm?.RemovePiece(target);
