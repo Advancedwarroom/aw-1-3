@@ -281,15 +281,15 @@ public partial class ExtraSave : Node
             terrainEditor.SpawnSavedWeaponAtGrid(grid, wData);
         }
 
-        // 6. 加载单位
+        // 6. 加载单位：先生成全部宿主与乘员，再统一恢复运输/庇护，避免乘员排在宿主前时恢复失败。
         foreach (var uData in mapData.units)
         {
             if (string.IsNullOrEmpty(uData.scenePath)) continue;
             var grid = FindGridByIndex(gridMgr, uData.fieldValues.GetValueOrDefault("gridX", "0"), uData.fieldValues.GetValueOrDefault("gridY", "0"));
             if (grid == null) continue;
             terrainEditor.SpawnSavedUnitAtGrid(grid, uData);
-            RestoreCarriedUnitAfterLoad(uData, gm);
         }
+        foreach (var uData in mapData.units) RestoreCarriedUnitAfterLoad(uData, gm);
         EmpowermentRuntime.RefreshAll(gm);
 
         // 7. 加载资金
