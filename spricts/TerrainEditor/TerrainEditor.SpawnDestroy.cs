@@ -583,7 +583,11 @@ private void ExecuteDestroy(object target)
             var oldUnit = grid != null && grid.infantry != null ? SerializeUnitForUndo(grid.infantry) : null;
             var oldWeapon = grid != null && grid.weapon != null ? SerializeWeaponForUndo(grid.weapon) : null;
             var oldFacility = grid != null && grid.city != null ? SerializeFacilityForUndo(grid.city) : null;
-            facility.OnDestroyed(); // 设施销毁统一入口：可尸化；失败则按原逻辑销毁。
+            if (grid != null)
+            {
+                grid.city = null;
+            }
+            facility.QueueFree(); // 编辑模式只删除摆图对象，不触发战斗死亡/尸化。
             if (grid != null)
                 PushEditorAction(EditorActionType.DeleteFacility, grid, grid.gridType, oldUnit, oldWeapon, oldFacility);
             spawnHintLabel.Text = $"💀 {TranslateGroup.T("已销毁设施")}: {name}";
@@ -874,7 +878,8 @@ private void DestroyFacilityAtGrid(Grids grid)
 {
     if (grid.city == null) return;
     
-    grid.city.OnDestroyed(); // 与设施选择销毁共用尸化/普通销毁入口。
+    grid.city.QueueFree(); // 编辑模式不触发尸化。
+    grid.city = null;
     
     
     // 刷新菜单
