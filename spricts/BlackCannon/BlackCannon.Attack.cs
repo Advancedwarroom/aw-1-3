@@ -573,8 +573,9 @@ public override void TakeDamage(int damage, Infantry attacker = null)
     {
         // ========== 1. 血量处理 ==========
         int healthChange = Mathf.RoundToInt(target.maxHealth * Mathf.Abs(modifiedHealthPercent));
+        if (modifiedHealthPercent > 0) healthChange = Mathf.Max(0, healthChange - target.fixedDefense);
 
-        if (modifiedHealthPercent > 0)
+        if (modifiedHealthPercent > 0 && healthChange > 0)
         {
             // 正数：扣血
             if (!CanDestroy)
