@@ -34,6 +34,7 @@ public partial class Infantry
         foreach (var u in transportedUnits.ToList())
         {
             if (u == null || !IsInstanceValid(u)) continue;
+            ApplyInternalExportService(u);
 
             // ① 内部补给：燃料+全弹药补满（统一弹药系统）
             if (internalSupplyEnabled && PassesInternalWhitelist(internalSupplyWhitelist, u))
