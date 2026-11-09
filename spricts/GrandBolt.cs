@@ -989,8 +989,7 @@ public partial class GrandBolt : Weapon
                     {
                         var u = t.infantry;
                         if (!u.healthLocked)
-                            int empDamage = Mathf.Max(0, empBurstInfantryDamage - u.fixedDefense);
-                            u.health = Mathf.Max(u.health - empDamage, 1); // ✅ 不击杀(保底1血), 固定防御可抵消
+                            u.health = Mathf.Max(u.health - empBurstInfantryDamage, 1); // ✅ 不击杀(保底1血)
                     }
                 }
     }
