@@ -322,7 +322,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
         UpdateForceSupportButtons();
         UpdateEmpowermentButton(unit);
         UpdateShelterButtons(null);
-        UpdateGrandBoltWriggleButtons();   // ✅ GrandBolt 手动蠕动（范围预览+曼哈顿步数）
+        UpdateWriggleButton();   // ✅ 统一蠕动更新器（原双生UpdateGrandBoltWriggleButtons已废弃）   // ✅ GrandBolt 手动蠕动（范围预览+曼哈顿步数）
 
         // ✅ N屏地图：传送按钮（站在有出链的格子上时显示）
         UpdateTeleportButtonVisibility(unit);
@@ -411,8 +411,8 @@ private List<Grids> GetAdjacentGrids(Grids center)
             currentUser = mountableUnit;
             canMountAPC = true;   // 复用装载按钮（OnLoadPressed 消费 currentUser/currentTransport）
         }
-        if (!afterMove && unit.transportedUnits != null && unit.transportedUnits.Count > 0)
-            ShowTransportUnloadButtonsOnly(unit);
+        if (unit.transportedUnits != null && unit.transportedUnits.Count > 0)
+            ShowTransportUnloadButtonsOnly(unit, afterMove);
     }
 
 
