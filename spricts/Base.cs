@@ -3,6 +3,9 @@ using System;
 
 public partial class Base : City
 {
+    // Base light/dark base frames share a near-zero-degree red source.
+    protected override float GetBaseArtHue() => 0.7f / 360.0f;
+
     protected override (string neutral, string red, string blue)? GetTeamAnimNames()
         => ("P0Base", "baseteam1", "baseteam2");
 
