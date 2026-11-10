@@ -177,6 +177,14 @@ public partial class Facility : Node2D
             baseSprite = GetNodeOrNull<Sprite2D>("BaseSprite");
         if (normalSprite == null)
             normalSprite = GetNodeOrNull<Sprite2D>("NormalSprite");
+
+        // 设施是像素画：显式锁定最近邻，避免父节点/Viewport 的线性过滤把小灯点糊开。
+        TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
+        ForceNearestTextureFilter(animSprite);
+        ForceNearestTextureFilter(baseAnimSprite);
+        ForceNearestTextureFilter(normalAnimSprite);
+        ForceNearestTextureFilter(baseSprite);
+        ForceNearestTextureFilter(normalSprite);
         
         // ✅ 双图层 Sprite2D：把 Normal 层挂到 Base 层下，继承所有变换
         if (baseSprite != null && normalSprite != null && normalSprite.GetParent() != baseSprite)
@@ -464,11 +472,22 @@ public partial class Facility : Node2D
     // ✅ 色相旋转材质（2026-11-10 用户钦定：保饱和只换色）
     // base 贴图已统一预旋正红基线；偏移 = 势力正典色色相角；P0 中立去饱和
     private static Shader _hueShader;
+    private static void ForceNearestTextureFilter(CanvasItem item)
+    {
+        if (item != null && GodotObject.IsInstanceValid(item))
+            item.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
+    }
+
     protected ShaderMaterial GetHueMaterial(string team)
     {
         _hueShader ??= GD.Load<Shader>("res://asscets/shaders/hue_rotate.gdshader");
         float hueDeg = 0f, sat = 1f;
-        if (team != TeamHelper.Player0)
+        if (team == TeamHelper.Player)
+        {
+            // P-1 是固定正典紫；不能依赖面板注册表/旧存档是否恰好已初始化。
+            hueDeg = new Color(0.7f, 0.4f, 0.9f).H * 360.0f;
+        }
+        else if (team != TeamHelper.Player0)
         {
             var faction = TeamHelper.GetFaction(team);
             if (faction != null) hueDeg = (float)(faction.PrimaryColor.H * 360.0);
