@@ -183,8 +183,14 @@ public partial class GridManager
 
     private bool CanMoveToGrid(Grids grid, Infantry requestingUnit, bool checkPassThrough = false)
     {
-        // ✅ 开创人2026-11-11：兵器格移动硬编码已废除——任何单位（含Oozium）均可踏上兵器所在格，
-        // 发射井"单位站上发射"玩法的前提。兵器与单位共存，互不影响。
+        // ✅ 开创人2026-11-11：兵器格移动硬编码已废除——默认可踏上兵器格（发射井站上发射玩法的前提）。
+        // 阻塞权下放给兵器自身：blocksUnitMovement=true 的兵器（炮族还原原作）占据格仍不可进入。
+        if (grid.weapons != null)
+        {
+            foreach (var wBlk in grid.weapons)
+                if (wBlk != null && wBlk.blocksUnitMovement)
+                    return false;
+        }
         // ✅ 宇宙战舰/空天战机：可飞越兵器（不 blocked）
             
         var otherUnits = grid.infantries.Where(i => i != requestingUnit && IsInstanceValid(i)).ToList();
