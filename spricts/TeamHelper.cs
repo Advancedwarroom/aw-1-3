@@ -238,8 +238,8 @@ public static class FactionPaletteManager
     {
         { TeamHelper.Player0, "neutral" }, { TeamHelper.Player1, "red" },
         { TeamHelper.Player2, "blue_moon" }, { TeamHelper.Player3, "yellow_comet" },
-        { TeamHelper.Player4, "green_earth" }, { TeamHelper.Player5, "purple" },
-        { TeamHelper.Player, "purple" },
+        { TeamHelper.Player4, "green_earth" }, { TeamHelper.Player5, "black_hole" },
+        { TeamHelper.Player6, "pink_frontier" }, { TeamHelper.Player, "purple" },
     };
 
     /// <summary>
