@@ -176,6 +176,7 @@ public override void _Input(InputEvent @event)
     }
 public override void _Ready()
 {
+    blocksUnitMovement = true;        // 原作：黑炮/MiniCannon占位不可通行（开创人2026-11-11 blocksUnitMovement）
     base._Ready();
     InitializeCooldownState();
     
