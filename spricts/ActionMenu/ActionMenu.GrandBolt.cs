@@ -6,6 +6,40 @@ public partial class ActionMenu
     private Button wriggleButton;
     private bool isWriggleTargeting = false;
 
+    private Button produceButton;
+    private bool produceWired = false;
+
+    // ✅ 生产方式②（开创人2026-11-11）：手动生产按钮——与蠕动按钮同位懒创建
+    private void EnsureProduceButton()
+    {
+        if (produceButton != null) return;
+        var parent = (wriggleButton?.GetParent() as Container) ?? (attackButton?.GetParent() as Container);
+        if (parent == null) return;
+        produceButton = new Button { Text = "生产" };
+        parent.AddChild(produceButton);
+        if (!produceWired)
+        {
+            produceButton.Pressed += OnProducePressed;
+            produceWired = true;
+        }
+    }
+
+    private void OnProducePressed()
+    {
+        if (currentWeapon is not GrandBolt gb) return;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        gb.ManualProduce(gm);
+        Hide();
+    }
+
+    // 由 ShowWeaponMenu 调用：模式②手动生产
+    public void UpdateGrandBoltProduceButton()
+    {
+        EnsureProduceButton();
+        if (produceButton == null) return;
+        produceButton.Visible = currentWeapon is GrandBolt gb && gb.CanManualProduce();
+    }
+
     private void EnsureWriggleButton()
     {
         if (wriggleButton != null) return;
