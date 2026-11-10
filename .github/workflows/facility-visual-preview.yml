@@ -1,0 +1,61 @@
+name: 设施运行时预览
+
+on:
+  push:
+    paths:
+      - "Prefabs/**"
+      - "asscets/AnimatedSprite/**"
+      - "art/official/**"
+      - "docs/*.png"
+      - "spricts/Facility.cs"
+      - "spricts/TempPort.cs"
+      - "spricts/RelayJunction.cs"
+      - "spricts/GridManager.cs"
+      - "tests/FacilityVisualPreview.cs"
+      - "tests/facility_visual_preview.tscn"
+      - ".github/workflows/facility-visual-preview.yml"
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: 4.7.1
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: 安装 .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: 安装 Xvfb 和软件 OpenGL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgl1-mesa-dri
+
+      - name: 下载 Godot 4.7.1 Mono
+        run: |
+          wget -q https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip
+          unzip -q Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip
+          sudo ln -s "$PWD/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64/Godot_v${GODOT_VERSION}-stable_mono_linux.x86_64" /usr/local/bin/godot
+
+      - name: 编译 C# 游戏程序集
+        run: dotnet build AWone1.csproj -nologo
+
+      - name: 导入 Godot 资源
+        run: godot --headless --import --path . --quit
+
+      - name: 使用实际 Godot 渲染器生成 P-1 / P2 设施预览
+        run: |
+          mkdir -p build
+          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a godot --path . --rendering-method gl_compatibility --resolution 1280x720 res://tests/facility_visual_preview.tscn
+          test -s build/facility-preview.png
+
+      - name: 上传运行时预览
+        uses: actions/upload-artifact@v4
+        with:
+          name: facility-runtime-preview
+          path: build/facility-preview.png
+          if-no-files-found: error
