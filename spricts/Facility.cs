@@ -444,23 +444,17 @@ public partial class Facility : Node2D
         var (neutral, red, blue) = names.Value;
         string anim = PickArtForTeam(neutral, red, blue);
 
-        // 单图层（原路径不变）。旧版节点没有该动画时，只跳过旧节点；
-        // 绝不能提前 return，否则 Base/Normal 双图层永远停在默认帧，灯光会与底图错帧。
+        // 单图层（原路径不变）
         if (animSprite != null && IsInstanceValid(animSprite) && animSprite.SpriteFrames != null)
         {
             var frames = animSprite.SpriteFrames;
-            string singleLayerAnim = anim;
-            if (!frames.HasAnimation(singleLayerAnim))
-                singleLayerAnim = frames.HasAnimation(red) ? red : neutral;
-            if (frames.HasAnimation(singleLayerAnim))
-            {
-                if (animSprite.Animation != singleLayerAnim || !animSprite.IsPlaying())
-                    animSprite.Play(singleLayerAnim);
-                animSprite.Modulate = Colors.White; // 旧版 P-1 用 Modulate 染色，现统一由 Shader 处理
-            }
+            if (!frames.HasAnimation(anim)) anim = frames.HasAnimation(red) ? red : neutral;
+            if (!frames.HasAnimation(anim)) return;
+            if (animSprite.Animation != anim || !animSprite.IsPlaying()) animSprite.Play(anim);
+            animSprite.Modulate = Colors.White; // 旧版 P-1 用 Modulate 染色，现统一由 Shader 处理
         }
 
-        // Base/Normal 各自按可用动画名回退，且每次视觉刷新时从同一动画起点播放。
+        // ✅ 双图层：Base/Normal 层用同名动画同步驱动（Base层灰阶mask随shader染势力色）
         PlayOnLayer(baseAnimSprite, anim, neutral, red);
         PlayOnLayer(normalAnimSprite, anim, neutral, red);
     }
@@ -476,7 +470,7 @@ public partial class Facility : Node2D
     
 
     // ✅ 色相旋转材质（2026-11-10 用户钦定：保饱和只换色）
-    // Base 贴图以红色为默认基线；少数例外（如临时港口）通过 GetBaseArtHue 提供源色相。
+    // base 贴图已统一预旋正红基线；偏移 = 势力正典色色相角；P0 中立去饱和
     private static Shader _hueShader;
     private static void ForceNearestTextureFilter(CanvasItem item)
     {
@@ -484,37 +478,27 @@ public partial class Facility : Node2D
             item.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
     }
 
-    // Base 贴图的主色相。默认资源已统一到红色基线；源色相不同的设施应覆盖此值。
-    protected virtual float GetBaseArtHue() => 0.014f;
-
     protected ShaderMaterial GetHueMaterial(string team)
     {
-        _hueShader ??= GD.Load<Shader>("res://asscets/shaders/hue_rotate.gdshader");
-        float sourceHue = GetBaseArtHue();
-        float targetHue = sourceHue;
-        float sat = 1f;
-
+        
+        team = TeamHelper.CanonicalId(team);   // ✅ 别名归一（开创人 2026-11-11）："P-1" 进来也命中正典紫_hueShader ??= GD.Load<Shader>("res://asscets/shaders/hue_rotate.gdshader");
+        float hueDeg = 0f, sat = 1f;
         if (team == TeamHelper.Player)
         {
-            // P-1 固定正典紫；不能依赖面板注册表/旧存档是否恰好已初始化。
-            targetHue = new Color(0.7f, 0.4f, 0.9f).H;
+            // P-1 是固定正典紫；不能依赖面板注册表/旧存档是否恰好已初始化。
+            hueDeg = new Color(0.7f, 0.4f, 0.9f).H * 360.0f;
         }
         else if (team != TeamHelper.Player0)
         {
             var faction = TeamHelper.GetFaction(team);
-            if (faction != null) targetHue = (float)faction.PrimaryColor.H;
+            if (faction != null) hueDeg = (float)(faction.PrimaryColor.H * 360.0);
         }
         else
         {
-            // 中立只降低饱和度，不改变原图明暗和透明度。
             sat = 0.12f;
         }
-
-        // 色相旋转必须是“目标色相 - 原图色相”，不能把目标色相直接加到任意源图上。
-        float hueDelta = targetHue - sourceHue;
-        hueDelta -= Mathf.Floor(hueDelta);
         var mat = new ShaderMaterial { Shader = _hueShader };
-        mat.SetShaderParameter("hue_shift", hueDelta * 360.0f);
+        mat.SetShaderParameter("hue_shift", hueDeg);
         mat.SetShaderParameter("saturation", sat);
         return mat;
     }
@@ -531,7 +515,6 @@ public partial class Facility : Node2D
             baseAnimSprite.Material = GetHueMaterial(facilityTeam);
             baseAnimSprite.Show();
             normalAnimSprite.Material = null;
-            normalAnimSprite.UseParentMaterial = false; // 灯光层保留原色，不继承 Base 的色相旋转。
             normalAnimSprite.Show();
             // 隐藏旧版单图层组件
             if (animSprite != null) animSprite.Hide();
@@ -547,7 +530,6 @@ public partial class Facility : Node2D
             baseSprite.Material = GetHueMaterial(facilityTeam);
             baseSprite.Show();
             normalSprite.Material = null;
-            normalSprite.UseParentMaterial = false;
             normalSprite.Show();
             // 隐藏旧版单图层组件
             if (animSprite != null) animSprite.Hide();
