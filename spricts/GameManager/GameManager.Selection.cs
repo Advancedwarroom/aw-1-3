@@ -102,7 +102,7 @@ public partial class GameManager
         attacker.Attack(target);
 
         gridManager.HideAttackRange();
-        attacker.actionMenu?.Hide();
+        (GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu)?.Hide();
         ClearSelectedInfantry();
 
         // ✅ 攻击后更新统计（可能有单位死亡）

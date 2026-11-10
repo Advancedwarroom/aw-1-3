@@ -57,7 +57,7 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
             gm?.UpdateUnitLists();
             // ✅ 开创人2026-11-11：编辑模式改完单位属性，立即结算非法地形策略——
             // 模式0(Warside)且脚下已非法 → 当场自毁（标准死亡管线），菜单体面退出、选中/范围/引用全部清零
-            gm?.EnforceIllegalTerrainAfterEdit(unit);
+            gm?.EnforceIllegalTerrainAfterEdit(target as Infantry);
         }
         else
         {
