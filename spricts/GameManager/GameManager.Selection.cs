@@ -254,4 +254,18 @@ private List<Grids> BuildPath(Grids from, Grids to, Infantry infantry = null, bo
             Infantry.ExecuteTruncationStrikes(mover, blocker, mover.truncCounterEnabled, false);
         };
     }
+
+        // ✅ 开创人2026-11-11：编辑模式修改单位属性后，立即结算非法地形存在策略。
+        // 模式0(Warside)且脚下已非法 → 当场自毁（标准死亡管线）；随后体面退出：关菜单、清选中、清范围，不留空引用。
+        public void EnforceIllegalTerrainAfterEdit(Infantry unit)
+        {
+            if (unit == null || !IsInstanceValid(unit)) return;
+            if (!unit.ApplyIllegalTerrainAutoCheck()) return;   // 未自毁（宽容模式 / 脚下合法）→ 无事发生
+            if (selectedInfantry == unit) selectedInfantry = null;
+            actionMenu?.Hide();
+            gridManager?.CloseRange();
+            gridManager?.HideAttackRange();
+            gridManager?.ClearWeaponRange();
+            CallDeferred(nameof(UpdateUnitLists));
+        }
 }
