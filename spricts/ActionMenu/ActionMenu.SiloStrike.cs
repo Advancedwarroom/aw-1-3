@@ -120,7 +120,7 @@ public partial class ActionMenu
         if (gmS != null && silo.siloLaunchFundsCost != 0)
         {
             string payerTeam = silo.siloLaunchPayer == 0 && firer != null ? firer.team : silo.team;
-            gmS.SetTeamFunds(payerTeam, Mathf.Max(0, (gmS.GetTeamFunds(payerTeam) ?? 0) - silo.siloLaunchFundsCost));
+            gmS.SetTeamFunds(payerTeam, Mathf.Max(0, gmS.GetTeamFunds(payerTeam) - silo.siloLaunchFundsCost));
         }
         isSiloTargeting = true;
         Hide();
