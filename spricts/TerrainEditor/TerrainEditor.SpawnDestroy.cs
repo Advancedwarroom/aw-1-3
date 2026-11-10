@@ -85,6 +85,23 @@ private void SpawnUnitAtGrid(Grids grid, string scenePath, string team)
         return;
     }
 
+    var unit = scene.Instantiate<Infantry>();
+    if (unit == null)
+    {
+        TranslateGroup.SetText(spawnHintLabel, "❌ 实例化失败");
+        return;
+    }
+
+    // ✅ 开创人2026-11-11：模式0（Warside 自毁模式）单位不允许放置在非法地形——
+    // 在移除旧单位「之前」检查：拒绝时地图原样。想做「山上的重坦」？把单位切宽容模式（默认即是）。
+    if (unit.illegalTerrainBehavior == 0 && unit.GetMoveCostOnGrid(grid) >= 999)
+    {
+        unit.QueueFree();
+        TranslateGroup.SetText(spawnHintLabel, "⛔ Warside 模式单位不能放置在非法地形（属性面板切「宽容」模式即可放置）");
+        spawnHintLabel.AddThemeColorOverride("font_color", Colors.Orange);
+        return;
+    }
+
     try
     {
         // ✅ 无视一切直接放：兵器/设施不挡单位；同种类（单位）直接覆盖替换
@@ -99,12 +116,6 @@ private void SpawnUnitAtGrid(Grids grid, string scenePath, string team)
             gameManager.RemoveUnit(old);
         }
 
-        var unit = scene.Instantiate<Infantry>();
-        if (unit == null)
-        {
-            TranslateGroup.SetText(spawnHintLabel, "❌ 实例化失败");
-            return;
-        }
 
         // ✅ 关键修复：强制重置所有回合状态，覆盖场景预设值
         unit.isMoved = false;
