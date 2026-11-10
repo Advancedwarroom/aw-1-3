@@ -379,9 +379,9 @@ public partial class TerrainEditor
                 if (gridManager != null)
                 {
                     gridManager.screenCount = mapScreens;
-                    if (mapSw != null && mapSw.Length == mapScreens) gridManager.screenWidths = mapSw;
-                    if (mapSh != null && mapSh.Length == mapScreens) gridManager.screenHeights = mapSh;
-                    if (mapSy != null && mapSy.Length == mapScreens) gridManager.screenYOffsets = mapSy;
+                    gridManager.screenWidths = (mapSw != null && mapSw.Length == mapScreens) ? mapSw : new int[0];   // ✅ 失配/缺行→显式均分，防旧图脏数组残留
+                    gridManager.screenHeights = (mapSh != null && mapSh.Length == mapScreens) ? mapSh : new int[0];
+                    gridManager.screenYOffsets = (mapSy != null && mapSy.Length == mapScreens) ? mapSy : new int[0];
                 }
                 gridManager?.ResizeMap(mapWidth, mapHeight);
                 gridManager?.Init();
