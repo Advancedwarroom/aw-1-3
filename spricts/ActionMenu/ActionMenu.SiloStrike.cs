@@ -115,6 +115,13 @@ public partial class ActionMenu
             silo = sw; firer = null;
         }
         if (silo == null) return;
+        // ✅ 发射代价（开创人2026-11-11）：按井的付费条款扣账，付款方=siloLaunchPayer
+        var gmS = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gmS != null && silo.siloLaunchFundsCost != 0)
+        {
+            string payerTeam = silo.siloLaunchPayer == 0 && firer != null ? firer.team : silo.team;
+            gmS.SetTeamFunds(payerTeam, Mathf.Max(0, (gmS.GetTeamFunds(payerTeam) ?? 0) - silo.siloLaunchFundsCost));
+        }
         isSiloTargeting = true;
         Hide();
         silo.BeginTargetSelection(firer);
