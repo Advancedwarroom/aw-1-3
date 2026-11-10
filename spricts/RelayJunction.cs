@@ -19,15 +19,18 @@ public partial class RelayJunction : Facility
         CallDeferred(nameof(TakeOverBoundFactories));
     }
 
-    /// <summary>中转口有队伍 → 全变色（用灰度重着色按势力主色染色）</summary>
+    /// <summary>中转口使用 docs/Lab.png 中的原始灰色精灵；不做灰度染色或半透明调制。</summary>
     protected override void ApplyPaletteMaterial()
     {
         if (animSprite == null || !IsInstanceValid(animSprite)) return;
-        var grayMat = FactionPaletteManager.GetGrayscaleMaterial(facilityTeam);
-        if (grayMat == null) return;
-        // 每实例独立副本：避免待机变暗 tone 污染共享缓存
-        animSprite.Material = (ShaderMaterial)grayMat.Duplicate();
+        animSprite.Material = null;
+        animSprite.Show();
+        baseAnimSprite?.Hide();
+        normalAnimSprite?.Hide();
     }
+
+    protected override (string neutral, string red, string blue)? GetTeamAnimNames()
+        => ("RelayJunction", "RelayJunction", "RelayJunction");
 
     /// <summary>建造完成落地：接管绑定的超级兵工厂</summary>
     public void TakeOverBoundFactories()
