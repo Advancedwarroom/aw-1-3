@@ -469,8 +469,8 @@ public partial class Facility : Node2D
     }
     
 
-    // ✅ 色相旋转材质（2026-11-10 用户钦定：保饱和只换色）
-    // base 贴图已统一预旋正红基线；偏移 = 势力正典色色相角；P0 中立去饱和
+    // Hue-only recoloring: preserve each source pixel's saturation, value and alpha.
+    // Facility base art is currently pink-red (about 352 degrees), not a zero-degree red.
     private static Shader _hueShader;
     private static void ForceNearestTextureFilter(CanvasItem item)
     {
@@ -478,29 +478,47 @@ public partial class Facility : Node2D
             item.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
     }
 
+    // Source hue of this facility's base artwork. Override only for assets with a different
+    // source palette (for example TempPort's cyan artwork).
+    protected virtual float GetBaseArtHue() => 352.0f / 360.0f;
+
     protected ShaderMaterial GetHueMaterial(string team)
     {
-        
-        team = TeamHelper.CanonicalId(team);   // ✅ 别名归一（开创人 2026-11-11）："P-1" 进来也命中正典紫_hueShader ??= GD.Load<Shader>("res://asscets/shaders/hue_rotate.gdshader");
-        float hueDeg = 0f, sat = 1f;
+        team = TeamHelper.CanonicalId(team);
+        if (_hueShader == null || !GodotObject.IsInstanceValid(_hueShader))
+            _hueShader = GD.Load<Shader>("res://asscets/shaders/hue_rotate.gdshader");
+        if (_hueShader == null)
+        {
+            GD.PushError("[Facility] Failed to load hue_rotate.gdshader.");
+            return null;
+        }
+
+        float targetHue = 0f;
+        float saturation = 1f;
         if (team == TeamHelper.Player)
         {
-            // P-1 是固定正典紫；不能依赖面板注册表/旧存档是否恰好已初始化。
-            hueDeg = new Color(0.7f, 0.4f, 0.9f).H * 360.0f;
+            // P-1 is fixed canonical purple, independent of saved faction palette state.
+            targetHue = new Color(0.7f, 0.4f, 0.9f).H;
         }
-        else if (team != TeamHelper.Player0)
+        else if (team == TeamHelper.Player0)
         {
-            var faction = TeamHelper.GetFaction(team);
-            if (faction != null) hueDeg = (float)(faction.PrimaryColor.H * 360.0);
+            // Neutral buildings retain their source brightness but lose most saturation.
+            saturation = 0.12f;
         }
         else
         {
-            sat = 0.12f;
+            var faction = TeamHelper.GetFaction(team);
+            if (faction != null)
+                targetHue = faction.PrimaryColor.H;
         }
-        var mat = new ShaderMaterial { Shader = _hueShader };
-        mat.SetShaderParameter("hue_shift", hueDeg);
-        mat.SetShaderParameter("saturation", sat);
-        return mat;
+
+        // Shader adds this delta to the source pixel hue. Subtract the source-art hue first;
+        // sending the target hue directly would rotate pink-red 352 degrees past the target.
+        float hueShift = Mathf.PosMod((targetHue - GetBaseArtHue()) * 360.0f, 360.0f);
+        var material = new ShaderMaterial { Shader = _hueShader };
+        material.SetShaderParameter("hue_shift", hueShift);
+        material.SetShaderParameter("saturation", saturation);
+        return material;
     }
 
     /// <summary>
