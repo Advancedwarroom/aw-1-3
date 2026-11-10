@@ -89,7 +89,7 @@ public partial class GridManager
                     foreach (var target in otherUnits)
                     {
                         if (!infantry.canDevourAllies && target.team == infantry.team) continue;
-                        DevourUnit(target);
+                        DevourUnit(target, infantry);
                     }
                     to.infantries.Clear();
                     to.infantry = null;
@@ -310,7 +310,7 @@ public partial class GridManager
         {
             var targetsToRemove = to.infantries.Where(i => i != infantry && IsInstanceValid(i) && (infantry.canDevourAllies || i.team != infantry.team)).ToList();
             foreach (var target in targetsToRemove)
-                DevourUnit(target);
+                DevourUnit(target, infantry);
             to.infantries.Clear();
             to.infantry = null;
         }
@@ -554,9 +554,11 @@ public partial class GridManager
         return cost >= 999 ? 999 : cost;
     }
 
-    private void DevourUnit(Infantry target)
+    private void DevourUnit(Infantry target, Infantry devourer = null)
     {
         if (target == null || !IsInstanceValid(target)) return;
+        // ✅ 吞噬回血/吞噬消耗（DevourModules）：在移除前结算，被吞物数据仍有效
+        devourer?.ApplyDevourEffects(target);
         if (target.grid != null)
         {
             target.grid.infantries.Remove(target);
