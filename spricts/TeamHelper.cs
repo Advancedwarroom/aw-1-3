@@ -89,6 +89,7 @@ public static class FactionPaletteManager
     
     private static int ExtractSortOrder(string factionId)
     {
+        factionId = CanonicalId(factionId);   // ✅ 别名归一（开创人 2026-11-11）
         if (factionId == TeamHelper.Player) return -1;
         if (factionId == TeamHelper.Player0) return 0;
         if (factionId.StartsWith("Player") && int.TryParse(factionId.Substring(6), out int n))
@@ -374,6 +375,24 @@ public static class TeamHelper
 {
     // ========== 内置默认势力（向后兼容）==========
     public const string Player = "Player";      // P-1
+
+    /// ✅ ID 归一化（开创人 2026-11-11）：显示名/别名 → 正典 ID。
+    /// 杜绝 "P-1" 等显示串被当 ID 写入后全链失联（紫防御/排序/选图全 miss → 幽灵色）。
+    public static string CanonicalId(string factionId)
+    {
+        if (string.IsNullOrEmpty(factionId)) return factionId;
+        if (factionId == "P-1" || factionId == "Player-1") return Player;
+        if (factionId == "P0") return Player0;
+        if (factionId == "P1") return Player1;
+        if (factionId == "P2") return Player2;
+        if (factionId == "P3") return Player3;
+        if (factionId == "P4") return Player4;
+        if (factionId == "P5") return Player5;
+        if (factionId == "P6") return Player6;
+        if (factionId == "P7") return Player7;
+        if (factionId == "P8") return Player8;
+        return factionId;
+    }
     public const string Player0 = "Player0";    // P0 中立
     public const string Player1 = "Player1";    // P1
     public const string Player2 = "Player2";    // P2
@@ -485,6 +504,7 @@ public static class TeamHelper
     /// </summary>
     public static FactionConfig GetFaction(string id)
     {
+        id = CanonicalId(id);   // ✅ 别名归一（开创人 2026-11-11）
         if (Factions.TryGetValue(id, out var config)) return config;
         return null;
     }
@@ -581,6 +601,7 @@ public static class TeamHelper
     /// </summary>
     public static string PickTeamArt(string team, string neutral, string red, string blue)
     {
+        team = CanonicalId(team);   // ✅ 别名归一（开创人 2026-11-11）
         if (team == Player0) return neutral;
         if (team == Player2) return blue;
         return red;
@@ -590,6 +611,7 @@ public static class TeamHelper
     public static string PickArtByFactionColor(string team, string neutral, string red, string blue,
         string purple = null, string green = null, string yellow = null, string black = null, string pink = null)
     {
+        team = CanonicalId(team);   // ✅ 别名归一（开创人 2026-11-11）
         if (team == Player0) return neutral;
         if (team == Player) return purple ?? red;   // P-1 正典紫，不走色匹配
         if (team == Player2) return blue ?? red;
