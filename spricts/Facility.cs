@@ -109,6 +109,7 @@ public partial class Facility : Node2D
     [Export] public int fuelSupply = 0;
     [Export] public int productionAmmoSupply = 0;     // ✅ 新弹药：生产弹补给（999=补满）
     [Export] public int constructionAmmoSupply = 0;   // ✅ 新弹药：建造弹补给（999=补满）
+    [Export] public int specialAmmoSupply = 0;      // ✅ 第11资源：特殊弹补给（999=补满；useSpecialAmmo=false的单位不收）
 
     [ExportGroup("补给支持兵种过滤（为空=不限制）")]
     [Export] public Godot.Collections.Array<string> supportedUnitTypesForHeal = new();
@@ -118,6 +119,7 @@ public partial class Facility : Node2D
     [Export] public Godot.Collections.Array<string> supportedUnitTypesForFuel = new();
     [Export] public Godot.Collections.Array<string> supportedUnitTypesForProductionAmmo = new();
     [Export] public Godot.Collections.Array<string> supportedUnitTypesForConstructionAmmo = new();
+    [Export] public Godot.Collections.Array<string> supportedUnitTypesForSpecialAmmo = new();
 
     // ========== P-1设施收入共享配置 ==========
     [ExportGroup("P-1公共设施配置")]
@@ -735,6 +737,28 @@ public partial class Facility : Node2D
                         {
                             supplied = true;
                             supplyParts.Add("Build+");
+                            if (supplyColor == Colors.Green) supplyColor = new Color(0.5f, 0.7f, 0.9f);
+                        }
+                    }
+                }
+            }
+
+            // ✅ 第11资源：特殊弹补给（开创人2026-11-11，useSpecialAmmo=false的单位自动跳过）
+            if (specialAmmoSupply != 0)
+            {
+                if (unit.useSpecialAmmo)
+                {
+                    if (supportedUnitTypesForSpecialAmmo.Count == 0 || supportedUnitTypesForSpecialAmmo.Contains(unitType))
+                    {
+                        int oldSpecial = unit.currentSpecialAmmo;
+                        if (specialAmmoSupply >= 999)
+                            unit.currentSpecialAmmo = unit.maxSpecialAmmo;
+                        else
+                            unit.currentSpecialAmmo = Mathf.Clamp(unit.currentSpecialAmmo + specialAmmoSupply, 0, Mathf.Max(unit.maxSpecialAmmo, unit.currentSpecialAmmo));
+                        if (unit.currentSpecialAmmo != oldSpecial)
+                        {
+                            supplied = true;
+                            supplyParts.Add("Special+");
                             if (supplyColor == Colors.Green) supplyColor = new Color(0.5f, 0.7f, 0.9f);
                         }
                     }
