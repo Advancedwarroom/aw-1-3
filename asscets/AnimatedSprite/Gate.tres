@@ -1,13 +1,9 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://art/Gate/Gate_NS.png" id="1"]
-[ext_resource type="Texture2D" path="res://art/Gate/Gate_EW.png" id="2"]
-[ext_resource type="Texture2D" path="res://art/Gate/Gate_Destroyed_NS.png" id="3"]
-[ext_resource type="Texture2D" path="res://art/Gate/Gate_Destroyed_EW.png" id="4"]
-[ext_resource type="Texture2D" path="res://art/Gate/CowGate_NS.png" id="5"]
-[ext_resource type="Texture2D" path="res://art/Gate/CowGate_EW.png" id="6"]
-[ext_resource type="Texture2D" path="res://art/Gate/CowGate_Destroyed_NS.png" id="7"]
-[ext_resource type="Texture2D" path="res://art/Gate/CowGate_Destroyed_EW.png" id="8"]
+[ext_resource type="Texture2D" path="res://art/Gate/gate+n+s.png" id="1"]
+[ext_resource type="Texture2D" path="res://art/Gate/gate+e+w.png" id="2"]
+[ext_resource type="Texture2D" path="res://art/Gate/destroyed_gate+n+s.png" id="3"]
+[ext_resource type="Texture2D" path="res://art/Gate/destroyed_gate+e+w.png" id="4"]
 
 [resource]
 animations = [{
@@ -22,16 +18,4 @@ animations = [{
 }, {
 "frames": [{"duration": 1.0, "texture": ExtResource("4")}],
 "loop": true, "name": &"GateHBroken", "speed": 1.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("5")}],
-"loop": true, "name": &"CowGate", "speed": 1.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("6")}],
-"loop": true, "name": &"CowGateH", "speed": 1.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("7")}],
-"loop": true, "name": &"CowGateBroken", "speed": 1.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("8")}],
-"loop": true, "name": &"CowGateHBroken", "speed": 1.0
 }]

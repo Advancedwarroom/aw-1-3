@@ -1,0 +1,21 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://art/Gate/gate+n+s+mask.png" id="1"]
+[ext_resource type="Texture2D" path="res://art/Gate/gate+e+w+mask.png" id="2"]
+[ext_resource type="Texture2D" path="res://art/Gate/destroyed_gate+n+s+mask.png" id="3"]
+[ext_resource type="Texture2D" path="res://art/Gate/destroyed_gate+e+w+mask.png" id="4"]
+
+[resource]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("1")}],
+"loop": true, "name": &"GateMask", "speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2")}],
+"loop": true, "name": &"GateHMask", "speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("3")}],
+"loop": true, "name": &"GateBrokenMask", "speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("4")}],
+"loop": true, "name": &"GateHBrokenMask", "speed": 1.0
+}]

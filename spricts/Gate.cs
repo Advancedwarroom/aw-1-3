@@ -16,6 +16,8 @@ public partial class Gate : Weapon
         All = 2    // 全：所有人可通过
     }
 
+    private AnimatedSprite2D maskSprite;
+
     // ========== 1. Export是否开启 ==========
     [ExportGroup("门 Gate 模块")]
     [Export] public bool gateOpen = true; // 1.是否开启（false=铁板一块：谁都过不去）
@@ -35,32 +37,64 @@ public partial class Gate : Weapon
 
     public override void _Ready()
     {
-        // ✅ 尺寸动态决定多格属性与贴图方向
-        if (gateSize.X * gateSize.Y > 1)
-        {
-            isMultiTile = true;
-            gateHorizontal = gateSize.X > gateSize.Y; // 多格门方向由尺寸推导
-        }
-        UpdateGateAnim();
+        // CoW 原版贴图为 16×16；本项目格子为 32×32，基础图与 mask 同步放大 2 倍。
+        maskSprite = GetNodeOrNull<AnimatedSprite2D>("GateMaskSprite");
+        isMultiTile = gateSize.X * gateSize.Y > 1;
+        if (isMultiTile) gateHorizontal = gateSize.X > gateSize.Y;
+
+        // 基类初始化期间会调用虚拟 ApplyPaletteMaterial，因此先缓存 maskSprite。
         base._Ready();
+        UpdateGateAnim();
     }
 
     // ========== 方向切换(1×1门纯视觉切换; 多格门同步交换尺寸) ==========
     public override void RotateDirection()
     {
         if (!canRotate || isDestroyed) return;
+        bool oldHorizontal = gateHorizontal;
+        Vector2I oldSize = gateSize;
+        var oldCells = occupiedGrids.Count > 0
+            ? occupiedGrids.ToList()
+            : (grid != null ? new List<Grids> { grid } : new List<Grids>());
+
         gateHorizontal = !gateHorizontal;
-        if (gateSize.X * gateSize.Y > 1)
-            gateSize = new Vector2I(gateSize.Y, gateSize.X);
+        if (oldSize.X * oldSize.Y > 1)
+        {
+            gateSize = new Vector2I(oldSize.Y, oldSize.X);
+            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (gm?.weaponManager == null || !gm.weaponManager.BindWeaponToGrid(this, true))
+            {
+                gateHorizontal = oldHorizontal;
+                gateSize = oldSize;
+                UpdateGateAnim();
+                return;
+            }
+
+            var newCells = new HashSet<Grids>(occupiedGrids);
+            foreach (var oldGrid in oldCells)
+            {
+                if (oldGrid == null || !IsInstanceValid(oldGrid) || newCells.Contains(oldGrid)) continue;
+                if (oldGrid.gridType == GridType.GATE)
+                {
+                    oldGrid.gridType = GridType.GROUND;
+                    oldGrid.UpdateTerrainIcon();
+                }
+            }
+            ApplyGateTerrain();
+        }
         UpdateGateAnim();
     }
 
-    // ========== ✅ CoW (R,G)编码贴图 → LUT解码(随势力换色) ==========
+    // CoW 原版 Gate 使用“固定基础图 + R/G 坐标 mask”双层贴图。
+    // 基础图保持原色；mask 层使用 battle_recolor.gdshader + 势力 colortable。
     protected override void ApplyPaletteMaterial()
     {
-        if (animSprite == null || !IsInstanceValid(animSprite)) return;
-        // ✅ 2026-11: Gate改固定彩画(黄黑防护栏+红门, 取自CoW gate双文件按官方shader反解, 用户预期图验收)——plain RGBA不再过LUT(mode2/LUT对固定画都是误判), Material=null直出
-        animSprite.Material = null;
+        if (animSprite != null && IsInstanceValid(animSprite))
+            animSprite.Material = null;
+        if (maskSprite == null || !IsInstanceValid(maskSprite)) return;
+        var lut = FactionPaletteManager.GetCowLutMaterial(team);
+        if (lut != null)
+            maskSprite.Material = (ShaderMaterial)lut.Duplicate();
     }
 
     /// <summary>通行判定：被毁/血尽→全通行；关闭→封死；否则按白名单</summary>
@@ -105,22 +139,38 @@ public partial class Gate : Weapon
 
     public override string GetBrokenAnimName()
     {
-        return gateHorizontal ? "GateDestroyedH" : "GateDestroyed"; // 对齐 Gate.tres 动画名
+        // 与原版 E/W、N/S 方向摧毁动画名称严格对应。
+        return gateHorizontal ? "GateHBroken" : "GateBroken";
     }
 
     /// <summary>按尺寸刷新贴图动画（尺寸/方向变更后可调用）</summary>
     public void UpdateGateAnim()
     {
-        if (animSprite == null) return;
-        string anim = GetIdleAnimName();
-        // ✅ CoW LUT: 优先Cow编码动画(换色), 无则回落原版
-        if (animSprite?.SpriteFrames != null)
-        {
-            string cowAnim = "Cow" + anim;
-            if (animSprite.SpriteFrames.HasAnimation(cowAnim)) anim = cowAnim;
-        }
-        if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(anim))
-            animSprite.Play(anim);
+        string baseAnim = isDestroyed ? GetBrokenAnimName() : GetIdleAnimName();
+        string maskAnim = isDestroyed
+            ? (gateHorizontal ? "GateHBrokenMask" : "GateBrokenMask")
+            : (gateHorizontal ? "GateHMask" : "GateMask");
+        if (animSprite?.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(baseAnim))
+            animSprite.Play(baseAnim);
+        if (maskSprite?.SpriteFrames != null && maskSprite.SpriteFrames.HasAnimation(maskAnim))
+            maskSprite.Play(maskAnim);
+    }
+
+    public override void SetVisualDark()
+    {
+        var dim = new Color(0.6f, 0.6f, 0.6f, 1f);
+        if (animSprite != null) animSprite.Modulate = dim;
+        if (maskSprite?.Material is ShaderMaterial mat)
+            mat.SetShaderParameter("tone", dim);
+        else if (maskSprite != null) maskSprite.Modulate = dim;
+    }
+
+    public override void SetVisualNormal()
+    {
+        if (animSprite != null) animSprite.Modulate = Colors.White;
+        if (maskSprite?.Material is ShaderMaterial mat)
+            mat.SetShaderParameter("tone", Colors.White);
+        else if (maskSprite != null) maskSprite.Modulate = Colors.White;
     }
 
     /// <summary>把占据格地形刷成 GATE（放置时由 WeaponManager.BindWeaponToGrid 调用）</summary>
@@ -171,17 +221,17 @@ public partial class Gate : Weapon
             if (g == null || !IsInstanceValid(g)) continue;
             if (!g.weapons.Contains(this)) g.weapons.Add(this);
             if (g.weapon == null) g.weapon = this;
-            if (g.gridType == GridType.GATE) g.gridType = GridType.GROUND;
+            if (g.gridType == GridType.GATE)
+            {
+                g.gridType = GridType.GROUND;
+                g.UpdateTerrainIcon();
+            }
         }
         if (occupiedGrids.Count > 0) grid = occupiedGrids[0];
 
-        if (animSprite != null)
-        {
-            animSprite.Modulate = Colors.White;
-            string brokenAnim = GetBrokenAnimName();
-            if (animSprite.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(brokenAnim))
-                animSprite.Play(brokenAnim);
-        }
+        if (animSprite != null) animSprite.Modulate = Colors.White;
+        if (maskSprite != null) maskSprite.Modulate = Colors.White;
+        UpdateGateAnim();
 
         // 胜利判定检查（门可作为过关目标）
         gm?.CheckVictoryCondition();

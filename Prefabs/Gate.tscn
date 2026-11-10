@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://spricts/Gate.cs" id="1_gate"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Gate.tres" id="2_anim"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/GateMask.tres" id="3_mask"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gate"]
 size = Vector2(32, 32)
@@ -21,9 +22,18 @@ animSprite = NodePath("AnimatedSprite2D")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=996334699]
 position = Vector2(16, 16)
+scale = Vector2(2, 2)
 sprite_frames = ExtResource("2_anim")
 animation = &"Gate"
 autoplay = "Gate"
+
+[node name="GateMaskSprite" type="AnimatedSprite2D" parent="."]
+z_index = 1
+position = Vector2(16, 16)
+scale = Vector2(2, 2)
+sprite_frames = ExtResource("3_mask")
+animation = &"GateMask"
+autoplay = "GateMask"
 
 [node name="Area2D" type="Area2D" parent="." unique_id=311364699]
 
