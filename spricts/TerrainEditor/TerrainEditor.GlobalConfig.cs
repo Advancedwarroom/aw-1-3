@@ -1255,8 +1255,6 @@ private void RefreshAllUnitVision()
                     ws[k] = sp != null ? (int)sp.Value : w;
                     hs[k] = sh != null ? (int)sh.Value : h;
                     if (sp == null || sh == null) ShowImportHint(TranslateGroup.T("⚠️ 部分屏未单独设置宽高，已用整体宽高兜底（分屏优先，整体仅缺省）"));
-                // 🔍 调试探针：生成分屏宽高的真实读取值（排查均分bug，验证后删）
-                ShowImportHint($"🔍 读取分屏宽=[{string.Join(",", ws)}] 高=[{string.Join(",", hs)}] 整体 {w}×{h} 屏数 {sc}");
                 }
             }
             var shapeOpt2 = mapGenHBox.GetNodeOrNull<OptionButton>("MapShapeOpt");
