@@ -1166,7 +1166,7 @@ private void RefreshAllUnitVision()
             int total = 0; var ws = new int[n];
             for (int i = 0; i < n; i++)
             {
-                var sp = perScreenWidthBox.GetNodeOrNull<SpinBox>($"ScreenW{i}");
+                var sp = perScreenWidthBox.FindChild($"ScreenW{i}", true, false) as SpinBox;   // ✅ GetNodeOrNull只搜直接子节点，SpinBox藏在行HBox里会永远null→整体宽兜底
                 ws[i] = sp != null ? (int)sp.Value : (int)widthSpin.Value;
                 total += ws[i];
             }
@@ -1250,11 +1250,13 @@ private void RefreshAllUnitVision()
                 ws = new int[sc]; hs = new int[sc];
                 for (int k = 0; k < sc; k++)
                 {
-                    var sp = perScreenWidthBox.GetNodeOrNull<SpinBox>($"ScreenW{k}");
-                    var sh = perScreenWidthBox.GetNodeOrNull<SpinBox>($"ScreenH{k}");
+                    var sp = perScreenWidthBox.FindChild($"ScreenW{k}", true, false) as SpinBox;   // ✅ 同上：递归查找
+                    var sh = perScreenWidthBox.FindChild($"ScreenH{k}", true, false) as SpinBox;   // ✅ 同上：递归查找
                     ws[k] = sp != null ? (int)sp.Value : w;
                     hs[k] = sh != null ? (int)sh.Value : h;
                     if (sp == null || sh == null) ShowImportHint(TranslateGroup.T("⚠️ 部分屏未单独设置宽高，已用整体宽高兜底（分屏优先，整体仅缺省）"));
+                // 🔍 调试探针：生成分屏宽高的真实读取值（排查均分bug，验证后删）
+                ShowImportHint($"🔍 读取分屏宽=[{string.Join(",", ws)}] 高=[{string.Join(",", hs)}] 整体 {w}×{h} 屏数 {sc}");
                 }
             }
             var shapeOpt2 = mapGenHBox.GetNodeOrNull<OptionButton>("MapShapeOpt");
