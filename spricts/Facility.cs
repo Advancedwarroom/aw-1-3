@@ -444,17 +444,23 @@ public partial class Facility : Node2D
         var (neutral, red, blue) = names.Value;
         string anim = PickArtForTeam(neutral, red, blue);
 
-        // 单图层（原路径不变）
+        // 单图层（原路径不变）。旧版节点没有该动画时，只跳过旧节点；
+        // 绝不能提前 return，否则 Base/Normal 双图层永远停在默认帧，灯光会与底图错帧。
         if (animSprite != null && IsInstanceValid(animSprite) && animSprite.SpriteFrames != null)
         {
             var frames = animSprite.SpriteFrames;
-            if (!frames.HasAnimation(anim)) anim = frames.HasAnimation(red) ? red : neutral;
-            if (!frames.HasAnimation(anim)) return;
-            if (animSprite.Animation != anim || !animSprite.IsPlaying()) animSprite.Play(anim);
-            animSprite.Modulate = Colors.White; // 旧版 P-1 用 Modulate 染色，现统一由 Shader 处理
+            string singleLayerAnim = anim;
+            if (!frames.HasAnimation(singleLayerAnim))
+                singleLayerAnim = frames.HasAnimation(red) ? red : neutral;
+            if (frames.HasAnimation(singleLayerAnim))
+            {
+                if (animSprite.Animation != singleLayerAnim || !animSprite.IsPlaying())
+                    animSprite.Play(singleLayerAnim);
+                animSprite.Modulate = Colors.White; // 旧版 P-1 用 Modulate 染色，现统一由 Shader 处理
+            }
         }
 
-        // ✅ 双图层：Base/Normal 层用同名动画同步驱动（Base层灰阶mask随shader染势力色）
+        // Base/Normal 各自按可用动画名回退，且每次视觉刷新时从同一动画起点播放。
         PlayOnLayer(baseAnimSprite, anim, neutral, red);
         PlayOnLayer(normalAnimSprite, anim, neutral, red);
     }
