@@ -183,13 +183,23 @@ public partial class GridManager
 
     private bool CanMoveToGrid(Grids grid, Infantry requestingUnit, bool checkPassThrough = false)
     {
-        // ✅ 开创人2026-11-11：兵器格移动硬编码已废除——默认可踏上兵器格（发射井站上发射玩法的前提）。
-        // 阻塞权下放给兵器自身：blocksUnitMovement=true 的兵器（炮族还原原作）占据格仍不可进入。
+        // ✅ 开创人2026-11-11 通行控制三件套：阻塞权完全下放兵器自身。
+        // ②全部通行开=零阻挡（①③失效）；关=按①队伍范围阻挡，③白名单豁免，留空全档。
         if (grid.weapons != null)
         {
             foreach (var wBlk in grid.weapons)
-                if (wBlk != null && wBlk.blocksUnitMovement)
-                    return false;
+            {
+                if (wBlk == null || wBlk.allowAllPass) continue;
+                bool teamHit = wBlk.movementBlockTeamPolicy == 2
+                    || (wBlk.movementBlockTeamPolicy == 0 && requestingUnit.team == wBlk.team)
+                    || (wBlk.movementBlockTeamPolicy == 1 && requestingUnit.team != wBlk.team);
+                if (!teamHit) continue;
+                if (wBlk.movementBlockWhitelist != null && wBlk.movementBlockWhitelist.Length > 0
+                    && (wBlk.movementBlockWhitelist.Contains(requestingUnit.UnitTypeId)
+                        || wBlk.movementBlockWhitelist.Contains(requestingUnit.GetType().Name)))
+                    continue;   // ③白名单豁免
+                return false;
+            }
         }
         // ✅ 宇宙战舰/空天战机：可飞越兵器（不 blocked）
             
