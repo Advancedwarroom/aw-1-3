@@ -90,7 +90,7 @@ public static class FactionPaletteManager
     
     private static int ExtractSortOrder(string factionId)
     {
-        factionId = CanonicalId(factionId);   // ✅ 别名归一（开创人 2026-11-11）
+        factionId = TeamHelper.CanonicalId(factionId);
         if (factionId == TeamHelper.Player) return -1;
         if (factionId == TeamHelper.Player0) return 0;
         if (factionId.StartsWith("Player") && int.TryParse(factionId.Substring(6), out int n))
