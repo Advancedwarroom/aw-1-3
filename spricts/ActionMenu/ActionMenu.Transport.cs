@@ -246,27 +246,10 @@ private void PerformSameGridMounting(Infantry transport, Infantry unit)
 }
 // ✅ 究极自由：通用运输菜单入口（自动判断装载/卸载）
 public void ShowTransportUnitMenu(Infantry transport, bool afterMove = false)
-{
-    // 有已装载单位 → 显示卸载菜单
-    if (transport.transportedUnits != null && transport.transportedUnits.Count > 0)
     {
-        ShowTransportUnloadMenu(transport, afterMove);
+        // ✅ 统一菜单（开创人 2026-11-11）：独立运输菜单链废弃，全部调用并入主 ShowMenu
+        ShowMenu(transport, afterMove, onlyShowMenu: true);
     }
-    else
-    {
-        // 没有装载单位，尝试显示装载菜单
-        // 需要 currentUnit 被设置
-        if (currentUnit != null && transport.CanTransportUnit(currentUnit))
-        {
-            ShowTransportLoadMenu(transport, currentUnit);
-        }
-        else
-        {
-            // ✅ 原作行为兜底：空舱且无可载对象时仍弹出标准菜单（移动/攻击/等待）
-            ShowMenu(transport, afterMove, onlyShowMenu: true);
-        }
-    }
-}
 
 // 新增：显示APC选择菜单（当范围内有多个APC时）
 private void ShowTransportSelectionMenu(List<Infantry> transports)
