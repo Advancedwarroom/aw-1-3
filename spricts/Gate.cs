@@ -92,6 +92,7 @@ public partial class Gate : Weapon
         if (animSprite != null && IsInstanceValid(animSprite))
             animSprite.Material = null;
         if (maskSprite == null || !IsInstanceValid(maskSprite)) return;
+        maskSprite.Material = null;
         var lut = FactionPaletteManager.GetCowLutMaterial(team);
         if (lut != null)
             maskSprite.Material = (ShaderMaterial)lut.Duplicate();
@@ -229,8 +230,7 @@ public partial class Gate : Weapon
         }
         if (occupiedGrids.Count > 0) grid = occupiedGrids[0];
 
-        if (animSprite != null) animSprite.Modulate = Colors.White;
-        if (maskSprite != null) maskSprite.Modulate = Colors.White;
+        SetVisualNormal();
         UpdateGateAnim();
 
         // 胜利判定检查（门可作为过关目标）
