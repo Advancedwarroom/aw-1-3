@@ -123,7 +123,8 @@ public partial class GameManager
             foreach (var weapon in weaponManager?.AllWeapons ?? new List<Weapon>())
             if (IsInstanceValid(weapon)) weapon.ProcessShelterServices();
 
-        ProcessSurvivalCountdowns();              // ✅ 开创人2026-11-10：单位/兵器/设施 存活胜负倒计时（默认关闭，0=不计）
+        ProcessSurvivalCountdowns();
+            ApplyIllegalTerrainAutoCheckToAllUnits();   // ✅ 开创人2026-11-11：模式0(Warside)单位脚下非法地形→标准死亡管线自毁              // ✅ 开创人2026-11-10：单位/兵器/设施 存活胜负倒计时（默认关闭，0=不计）
         }
         selectedInfantry = null;
                         if (turnPhase == 1)
@@ -377,4 +378,17 @@ public partial class GameManager
     {
         return TeamHelper.CanOperateTeam(turnPhase, team);
     }
+
+        /// <summary>
+        /// ✅ 开创人2026-11-11：非法地形自动检查（Warside 模式）。每个大回合结算一次，与地形伤害同一节拍。
+        /// 模式0单位站在非法地形（自身移动类型进入该格消耗≥999，港口等特例豁免）→ 走标准死亡管线（尸化/野化拦截生效）。
+        /// </summary>
+        private void ApplyIllegalTerrainAutoCheckToAllUnits()
+        {
+            foreach (var unit in unitManager?.AllUnits ?? new System.Collections.Generic.List<Infantry>())
+            {
+                if (!IsInstanceValid(unit)) continue;
+                unit.ApplyIllegalTerrainAutoCheck();
+            }
+        }
 }
