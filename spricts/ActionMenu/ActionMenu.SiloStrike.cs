@@ -46,22 +46,39 @@ public partial class ActionMenu
     {
         EnsureSiloStrikeButtons();
         if (siloFireButton != null) siloFireButton.Visible = false;
-        if (spaceStrikeButton != null) spaceStrikeButton.Visible = false;
-        if (currentUnit == null || !IsInstanceValid(currentUnit)) return;
 
-        // 发射导弹：单位站在导弹井上
-        var grid = currentUnit.grid;
-        if (grid != null && grid.weapons != null)
+        // ✅ 发射方式②（开创人2026-11-11）：n-m 范围内任一发井（0-0=仅站上；1-1=临格）
+        var siloGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (siloGm?.gridManager?.map != null && currentUnit != null && IsInstanceValid(currentUnit))
         {
-            foreach (var w in grid.weapons)
-            {
-                if (w is MissileSilo silo && silo.CanBeFiredBy(currentUnit))
+            int w = siloGm.gridManager.map.GetLength(0), h = siloGm.gridManager.map.GetLength(1);
+            for (int x = 0; x < w && siloFireButton != null && !siloFireButton.Visible; x++)
+                for (int y = 0; y < h; y++)
                 {
-                    if (siloFireButton != null) siloFireButton.Visible = true;
-                    break;
+                    var sg = siloGm.gridManager.map[x, y];
+                    if (sg?.weapons == null) continue;
+                    foreach (var sw in sg.weapons)
+                    {
+                        if (sw is MissileSilo s && s.siloLaunchMode == 1 && s.CanBeFiredBy(currentUnit))
+                        {
+                            siloFireButton.Visible = true;
+                            break;
+                        }
+                    }
+                    if (siloFireButton.Visible) break;
                 }
-            }
         }
+    }
+
+    // 由 ShowWeaponMenu 调用：发射方式①——点击兵器本身直接发射
+    public void UpdateSiloWeaponFireButton(Weapon weapon)
+    {
+        EnsureSiloStrikeButtons();
+        if (siloFireButton != null) siloFireButton.Visible = false;
+        if (weapon is MissileSilo silo && silo.siloLaunchMode == 0 && silo.CanBeFiredBy(null))
+            if (siloFireButton != null) siloFireButton.Visible = true;
+    }
+
 
         // 天基打击：开启模块且未行动且还有次数
         if (currentUnit.spaceStrikeEnabled && !currentUnit.hasActed
@@ -79,12 +96,28 @@ public partial class ActionMenu
     // ---------- 导弹井发射 ----------
     private void OnSiloFirePressed()
     {
-        if (currentUnit == null || !IsInstanceValid(currentUnit)) return;
-        var grid = currentUnit.grid;
-        if (grid == null) return;
-        MissileSilo silo = null;
-        foreach (var w in grid.weapons)
-            if (w is MissileSilo s && s.CanBeFiredBy(currentUnit)) { silo = s; break; }
+        // ✅ 双模（开创人2026-11-11）：模式②单位脚/邻程发井；模式①点击兵器本身（firer=null）
+        MissileSilo silo = null; Infantry firer = null;
+        if (currentUnit != null && IsInstanceValid(currentUnit) && currentUnit.grid != null)
+        {
+            foreach (var w in currentUnit.grid.weapons)
+            {
+                if (w is MissileSilo s && s.siloLaunchMode == 1 && s.CanBeFiredBy(currentUnit))
+                {
+                    silo = s; firer = currentUnit; break;
+                }
+            }
+        }
+        if (silo == null && currentWeapon is MissileSilo sw && sw.siloLaunchMode == 0 && sw.CanBeFiredBy(null))
+        {
+            silo = sw; firer = null;
+        }
+        if (silo == null) return;
+        isSiloTargeting = true;
+        Hide();
+        silo.BeginTargetSelection(firer);
+    }
+
         if (silo == null) return;
 
         isSiloTargeting = true;
