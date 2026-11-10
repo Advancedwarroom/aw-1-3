@@ -408,7 +408,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
         if (mountableUnit != null)
         {
             currentTransport = unit;
-            currentUser = mountableUnit;
+            currentUnit = mountableUnit;
             canMountAPC = true;   // 复用装载按钮（OnLoadPressed 消费 currentUser/currentTransport）
         }
         if (unit.transportedUnits != null && unit.transportedUnits.Count > 0)
