@@ -47,6 +47,8 @@ public partial class Infantry
     [Export] public int stealthForceRevealRevealBulletHigh = 0; [Export] public int stealthForceRevealRevealBulletLow = 0;
     [Export] public int stealthForceHideCamoBulletHigh = 0;   [Export] public int stealthForceHideCamoBulletLow = 0;
     [Export] public int stealthForceRevealCamoBulletHigh = 0; [Export] public int stealthForceRevealCamoBulletLow = 0;
+    [Export] public int stealthForceHideSpecialBulletHigh = 0;   [Export] public int stealthForceHideSpecialBulletLow = 0;      // 第11资源·特殊弹
+    [Export] public int stealthForceRevealSpecialBulletHigh = 0; [Export] public int stealthForceRevealSpecialBulletLow = 0;    // 第11资源·特殊弹
     // —— 感知规则 ——
     [Export] public bool stealthVisibleWhenAdjacent = true;           // 贴身可见（X-Y范围）
     [Export] public int stealthVisibleMinRange = 1;                   // 贴身范围X
@@ -241,6 +243,12 @@ public partial class Infantry
         if (stealthForceHideCamoBulletLow > 0 && currentCamoBullets <= stealthForceHideCamoBulletLow) hideHit = true;
         if (stealthForceRevealCamoBulletHigh > 0 && currentCamoBullets >= stealthForceRevealCamoBulletHigh) revealHit = true;
         if (stealthForceRevealCamoBulletLow > 0 && currentCamoBullets <= stealthForceRevealCamoBulletLow) revealHit = true;
+
+        // —— SpecialBullet（第11资源）：高阈≥触发 / 低阈≤触发，中间不触发 ——
+        if (stealthForceHideSpecialBulletHigh > 0 && currentSpecialAmmo >= stealthForceHideSpecialBulletHigh) hideHit = true;
+        if (stealthForceHideSpecialBulletLow > 0 && currentSpecialAmmo <= stealthForceHideSpecialBulletLow) hideHit = true;
+        if (stealthForceRevealSpecialBulletHigh > 0 && currentSpecialAmmo >= stealthForceRevealSpecialBulletHigh) revealHit = true;
+        if (stealthForceRevealSpecialBulletLow > 0 && currentSpecialAmmo <= stealthForceRevealSpecialBulletLow) revealHit = true;
 
         // ✅ 分方向一次性：该方向已触发过则不再生效（此前这两个开关未接线）
         if (stealthForceHideOneShot && forceHideTriggered) hideHit = false;
