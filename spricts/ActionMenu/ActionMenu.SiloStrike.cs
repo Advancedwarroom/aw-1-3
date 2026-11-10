@@ -59,7 +59,7 @@ public partial class ActionMenu
                     if (sg?.weapons == null) continue;
                     foreach (var sw in sg.weapons)
                     {
-                        if (sw is MissileSilo s && s.siloLaunchMode == 1 && s.CanBeFiredBy(currentUnit))
+                        if (sw is MissileSilo s && (s.siloLaunchMode == 1 || s.siloLaunchMode == 3) && s.CanBeFiredBy(currentUnit))
                         {
                             siloFireButton.Visible = true;
                             break;
@@ -75,7 +75,7 @@ public partial class ActionMenu
     {
         EnsureSiloStrikeButtons();
         if (siloFireButton != null) siloFireButton.Visible = false;
-        if (weapon is MissileSilo silo && silo.siloLaunchMode == 0 && silo.CanBeFiredBy(null))
+        if (weapon is MissileSilo silo && (silo.siloLaunchMode == 0 || silo.siloLaunchMode == 3) && silo.CanBeFiredBy(null))
             if (siloFireButton != null) siloFireButton.Visible = true;
     }
 
@@ -102,13 +102,13 @@ public partial class ActionMenu
         {
             foreach (var w in currentUnit.grid.weapons)
             {
-                if (w is MissileSilo s && s.siloLaunchMode == 1 && s.CanBeFiredBy(currentUnit))
+                if (w is MissileSilo s && (s.siloLaunchMode == 1 || s.siloLaunchMode == 3) && s.CanBeFiredBy(currentUnit))
                 {
                     silo = s; firer = currentUnit; break;
                 }
             }
         }
-        if (silo == null && currentWeapon is MissileSilo sw && sw.siloLaunchMode == 0 && sw.CanBeFiredBy(null))
+        if (silo == null && currentWeapon is MissileSilo sw && (sw.siloLaunchMode == 0 || sw.siloLaunchMode == 3) && sw.CanBeFiredBy(null))
         {
             silo = sw; firer = null;
         }
