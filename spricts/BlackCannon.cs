@@ -176,7 +176,7 @@ public override void _Input(InputEvent @event)
     }
 public override void _Ready()
 {
-    blocksUnitMovement = true;        // 原作：黑炮/MiniCannon占位不可通行（开创人2026-11-11 blocksUnitMovement）
+    // 原作不可通行由通行控制三件套默认值天然复现（policy=全部/总闸关/白名单空=全档），无需赋值
     base._Ready();
     InitializeCooldownState();
     
