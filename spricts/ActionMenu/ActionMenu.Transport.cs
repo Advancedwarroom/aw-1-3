@@ -12,97 +12,10 @@ public partial class ActionMenu
 
 // ✅ 究极自由：通用运输单位卸载菜单
 public void ShowTransportUnloadMenu(Infantry transport, bool afterMove = false)
-{
-        if (transport.hasActed || transport.state == UnitState.Acted)
     {
-        return; // ← 已行动的运输单位不能操作
+        // ✅ 统一菜单（开创人 2026-11-11）：独立卸载菜单废弃，全部调用并入主 ShowMenu
+        ShowMenu(transport, afterMove);
     }
-    currentUnit = transport;
-    currentTransport = transport;  // 兼容旧代码
-
-    // 武器按钮可见性（与普通单位统一判定）
-    attackButton.Visible = CanShowAttackButton(transport);
-
-    if (!IsNodeReady()) return;
-
-    // 补给按钮设置
-    bool canSupply = !transport.hasActed && HasSupplyableUnits(transport);
-    if (supplyButton != null)
-    {
-        supplyButton.Visible = canSupply;
-    }
-
-    moveButton.Visible = !afterMove && !transport.isMoved && transport.CanMove();
-    if (loadButton != null) loadButton.Visible = false;
-    rotateButton?.Hide();
-
-    var container = GetNodeOrNull<VBoxContainer>("unloadContainer");
-    if (container == null)
-    {
-        return;
-    }
-    container.Visible = true;
-
-    // 清空旧内容
-    foreach (var child in container.GetChildren())
-        child.QueueFree();
-
-    // ✅ P-1 公共运输单位：预计算当前回合势力
-    var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-    string currentTurnTeam = "";
-    if (transport.team == TeamHelper.Player)
-    {
-        currentTurnTeam = TeamHelper.GetPhaseTeamName(gm?.turnPhase ?? 1);
-    }
-
-    // 创建卸载按钮
-    foreach (var unit in transport.transportedUnits)
-    {
-        if (unit == null || !IsInstanceValid(unit)) continue;
-        if (transport.team == TeamHelper.Player && unit.team != currentTurnTeam)
-            continue;
-
-        if (unloadUnitButtonPreset != null)
-        {
-            var ubt = unloadUnitButtonPreset.Instantiate<UnloadUnitButton>();
-            ubt.SetupDisplay(unit);
-
-            var unloadBtn = ubt.GetUnLoadButton();
-            if (unloadBtn != null)
-            {
-                // 使用闭包捕获unit和afterMove
-                var capturedUnit = unit;
-                var capturedAfterMove = afterMove;
-                unloadBtn.Pressed += () => OnUnloadSpecificUnit(capturedUnit, capturedAfterMove);
-            }
-            else
-            {
-                // 备用点击方式
-                var capturedUnit = unit;
-                var capturedAfterMove = afterMove;
-                ubt.GuiInput += (e) => {
-                    if (e is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
-                        OnUnloadSpecificUnit(capturedUnit, capturedAfterMove);
-                };
-            }
-
-            ubt.CustomMinimumSize = new Vector2(140, 50);
-            container.AddChild(ubt);
-        }
-    }
-
-    // 设置空地回调
-    if (gm?.gridManager != null)
-    {
-        if (afterMove)
-            gm.gridManager.SetupEmptyClickForRollback(transport);
-        else
-            gm.gridManager.SetEmptyClickToCloseMenuOnly(transport);
-    }
-
-    Position = transport.GlobalPosition + new Vector2(-40, -120);
-    Show();
-}
 
     // ✅ 究极自由：通用运输单位装载菜单
     public void ShowTransportLoadMenu(Infantry transport, Infantry unit)
@@ -612,7 +525,7 @@ public void ShowTransportMenu(Infantry transport, bool afterMove)
 }
 
 
-private void ShowTransportUnloadButtonsOnly(Infantry transport)
+private void ShowTransportUnloadButtonsOnly(Infantry transport, bool afterMove = false)
 {
     // 获取容器
     var container = GetNodeOrNull<VBoxContainer>("unloadContainer");
@@ -624,7 +537,7 @@ private void ShowTransportUnloadButtonsOnly(Infantry transport)
     foreach (var child in container.GetChildren())
         child.QueueFree();
 
-    // 创建卸下单位按钮（afterMove = false，因为未移动）
+    // 创建卸下单位按钮（统一菜单：afterMove 由调用方透传，移动后卸载同样合法）
     foreach (var unit in transport.transportedUnits)
     {
         if (unit == null || !IsInstanceValid(unit)) continue;
@@ -644,14 +557,13 @@ private void ShowTransportUnloadButtonsOnly(Infantry transport)
             var unloadBtn = ubt.GetUnLoadButton();
             if (unloadBtn != null)
             {
-                // 未移动状态，传递 afterMove = false
-                unloadBtn.Pressed += () => OnUnloadSpecificUnit(unit, afterMove: false);
+                unloadBtn.Pressed += () => OnUnloadSpecificUnit(unit, afterMove: afterMove);
             }
             else
             {
                 ubt.GuiInput += (e) => {
                     if (e is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
-                        OnUnloadSpecificUnit(unit, afterMove: false);
+                        OnUnloadSpecificUnit(unit, afterMove: afterMove);
                 };
             }
 
