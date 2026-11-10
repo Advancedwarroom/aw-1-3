@@ -23,7 +23,8 @@ public partial class Watchtower : Facility
 
     protected override (string neutral, string red, string blue)? GetTeamAnimNames()
     {
-        bool known = facilityTeam == TeamHelper.Player0 || facilityTeam == TeamHelper.Player1 || facilityTeam == TeamHelper.Player2;
+        string team = TeamHelper.CanonicalId(facilityTeam);
+        bool known = team == TeamHelper.Player0 || team == TeamHelper.Player1 || team == TeamHelper.Player2;
         return ("P0Watchtower", known ? "watchtowerred" : "watchtowerpurple", "watchtowerblue");
     }
 
