@@ -20,36 +20,6 @@ shape = SubResource("RectangleShape2D_relay")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=151300501]
 position = Vector2(16, 16)
-scale = Vector2(1, 1)
+texture_filter = 1
 sprite_frames = ExtResource("2_relay")
 animation = &"RelayJunction"
-
-gd_scene format=3]
-
-[ext_resource type="Script" path="res://spricts/RelayJunction.cs" id="1_relay"]
-[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/RelayJunction.tres" id="2_relay"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_relay"]
-size = Vector2(33, 33)
-
-[node name="RelayJunction" type="Node2D" unique_id=607771401]
-z_index = 1
-script = ExtResource("1_relay")
-canProduce = false
-fundsPerTurn = 0
-
-[node name="Area2D" type="Area2D" parent="." unique_id=173658104]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=155228601]
-position = Vector2(16.5, 16.5)
-shape = SubResource("RectangleShape2D_relay")
-
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=151300501]
-position = Vector2(16, 16)
-scale = Vector2(1, 1)
-sprite_frames = ExtResource("2_relay")
-animation = &"RelayJunction"
-
-[node name="NormalAnimSprite" type="AnimatedSprite2D" parent="BaseAnimSprite"]
-visible = false
-sprite_frames = ExtResource("4_over")
