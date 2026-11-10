@@ -25,8 +25,8 @@ sprite_frames = ExtResource("2_lab")
 animation = &"P0Lab"
 
 [node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
-position = Vector2(16, 0)
-scale = Vector2(1.0, 1.12)
+position = Vector2(16, 16)
+scale = Vector2(1, 1)
 visible = false
 sprite_frames = ExtResource("dl_base")
 
