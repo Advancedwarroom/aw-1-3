@@ -13,6 +13,9 @@ using System.Linq;
 
 public partial class Lab : Facility
 {
+    // Laboratory base frames use a warm-red source palette.
+    protected override float GetBaseArtHue() => 7.9f / 360.0f;
+
     [ExportGroup("实验室模块")]
     /// <summary>1. 是否开启实验室模块</summary>
     [Export] public bool labEnabled = true;
