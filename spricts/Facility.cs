@@ -444,17 +444,23 @@ public partial class Facility : Node2D
         var (neutral, red, blue) = names.Value;
         string anim = PickArtForTeam(neutral, red, blue);
 
-        // 单图层（原路径不变）
+        // Legacy single-layer sprite is optional. A missing animation here must not abort
+        // playback on the independent Base/Normal layers below.
         if (animSprite != null && IsInstanceValid(animSprite) && animSprite.SpriteFrames != null)
         {
             var frames = animSprite.SpriteFrames;
-            if (!frames.HasAnimation(anim)) anim = frames.HasAnimation(red) ? red : neutral;
-            if (!frames.HasAnimation(anim)) return;
-            if (animSprite.Animation != anim || !animSprite.IsPlaying()) animSprite.Play(anim);
-            animSprite.Modulate = Colors.White; // 旧版 P-1 用 Modulate 染色，现统一由 Shader 处理
+            string singleLayerAnim = anim;
+            if (!frames.HasAnimation(singleLayerAnim))
+                singleLayerAnim = frames.HasAnimation(red) ? red : neutral;
+            if (frames.HasAnimation(singleLayerAnim))
+            {
+                if (animSprite.Animation != singleLayerAnim || !animSprite.IsPlaying())
+                    animSprite.Play(singleLayerAnim);
+                animSprite.Modulate = Colors.White;
+            }
         }
 
-        // ✅ 双图层：Base/Normal 层用同名动画同步驱动（Base层灰阶mask随shader染势力色）
+        // Drive Base and Normal independently; each layer has its own safe animation fallback.
         PlayOnLayer(baseAnimSprite, anim, neutral, red);
         PlayOnLayer(normalAnimSprite, anim, neutral, red);
     }
@@ -527,8 +533,8 @@ public partial class Facility : Node2D
     protected virtual void ApplyPaletteMaterial()
     {
         // ✅ 双图层 AnimatedSprite2D 方案（优先）
-        if (baseAnimSprite != null && IsInstanceValid(baseAnimSprite) &&
-            normalAnimSprite != null && IsInstanceValid(normalAnimSprite))
+        if (baseAnimSprite != null && IsInstanceValid(baseAnimSprite) && baseAnimSprite.SpriteFrames != null &&
+            normalAnimSprite != null && IsInstanceValid(normalAnimSprite) && normalAnimSprite.SpriteFrames != null)
         {
             baseAnimSprite.Material = GetHueMaterial(facilityTeam);
             baseAnimSprite.Show();
