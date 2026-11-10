@@ -38,6 +38,7 @@ public static class FactionPaletteManager
     /// </summary>
     private static FactionConfig GetOrCreateFaction(string factionId)
     {
+        factionId = TeamHelper.CanonicalId(factionId);
         var faction = TeamHelper.GetFaction(factionId);
         if (faction != null)
         {
@@ -184,7 +185,7 @@ public static class FactionPaletteManager
     public static readonly Color NativeBlueArtColor = new Color(0.2f, 0.4f, 1f);
 
     /// <summary>该势力使用哪套原版贴图作为染色模板：P2 → 蓝色模板，其余 → 红色模板</summary>
-    public static bool UsesBlueTemplate(string factionId) => factionId == TeamHelper.Player2;
+    public static bool UsesBlueTemplate(string factionId) => TeamHelper.CanonicalId(factionId) == TeamHelper.Player2;
 
     /// <summary>
     /// 该势力是否可直接显示原版贴图（P1/P2 主色未改动时）。
@@ -192,6 +193,7 @@ public static class FactionPaletteManager
     /// </summary>
     public static bool IsNativeArt(string factionId, FactionConfig faction)
     {
+        factionId = TeamHelper.CanonicalId(factionId);
         if (faction == null) return false;
         if (factionId == TeamHelper.Player1) return ColorClose(faction.PrimaryColor, NativeRedArtColor);
         if (factionId == TeamHelper.Player2) return ColorClose(faction.PrimaryColor, NativeBlueArtColor);
@@ -208,6 +210,7 @@ public static class FactionPaletteManager
     /// </summary>
     public static ShaderMaterial GetMaterial(string factionId)
     {
+        factionId = TeamHelper.CanonicalId(factionId);
         var faction = GetOrCreateFaction(factionId);
         
         if (Materials.TryGetValue(factionId, out var mat) && GodotObject.IsInstanceValid(mat))
@@ -249,6 +252,7 @@ public static class FactionPaletteManager
     /// </summary>
     public static ShaderMaterial GetCowLutMaterial(string factionId)
     {
+        factionId = TeamHelper.CanonicalId(factionId);
         if (_cowLutTableByTeam.TryGetValue(factionId, out var named))
             return BattleAnimCatalog.GetRecolorMaterial(named);
         // ✅ 注册色适配 CoW 路（开创人 2026-11-09）：未登记具名表的势力按注册主/副色现场生成色表
@@ -264,6 +268,7 @@ public static class FactionPaletteManager
     /// </summary>
     public static ShaderMaterial GetGrayscaleMaterial(string factionId)
     {
+        factionId = TeamHelper.CanonicalId(factionId);
         string cacheKey = factionId + "::gray";
         if (GrayMaterials.TryGetValue(cacheKey, out var mat) && GodotObject.IsInstanceValid(mat))
             return mat;
@@ -327,6 +332,7 @@ public static class FactionPaletteManager
     /// </summary>
     public static ShaderMaterial GetBaseLayerMaterial(string factionId)
     {
+        factionId = TeamHelper.CanonicalId(factionId);
         var faction = GetOrCreateFaction(factionId);
         
         if (BaseMaterials.TryGetValue(factionId, out var mat) && GodotObject.IsInstanceValid(mat))
@@ -634,7 +640,7 @@ public static class TeamHelper
     }
 
     /// <summary>原版贴图套编号：P2 → "2"，其余 → "1"</summary>
-    public static string ArtSuffix(string team) => team == Player2 ? "2" : "1";
+    public static string ArtSuffix(string team) => CanonicalId(team) == Player2 ? "2" : "1";
 
     public static Color GetTeamColor(string team)
     {
