@@ -216,6 +216,10 @@ public partial class GridManager : Node
                         grid.city.facilityTeam = "Player1";
                     else
                         grid.city.facilityTeam = "Player2";
+
+                    // 设施 _Ready 早于地图默认队伍分配；必须在赋队后刷新一次视觉，
+                    // 否则场景初始空队伍时生成的材质会一直留在屏幕上。
+                    grid.city.UpdateCityVisual();
                 }
             }
             else
