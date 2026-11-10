@@ -178,7 +178,7 @@ public partial class ExtraSave : Node
         if (hasScreens && !freeform)
         {
             gridMgr.screenCount = Mathf.Max(1, mapData.screenCount);
-            gridMgr.screenWidths = mapData.screenWidths.ToArray();
+            gridMgr.screenWidths = mapData.screenWidths.Count == gridMgr.screenCount ? mapData.screenWidths.ToArray() : new int[0];   // ✅ 长度失配→显式均分（与高度/偏移同规矩）
             gridMgr.screenHeights = mapData.screenHeights.Count == gridMgr.screenCount ? mapData.screenHeights.ToArray() : Enumerable.Repeat(mapData.height, gridMgr.screenCount).ToArray();
             gridMgr.screenYOffsets = mapData.screenYOffsets.Count == gridMgr.screenCount ? mapData.screenYOffsets.ToArray() : new int[gridMgr.screenCount];
             gridMgr.screenGap = mapData.screenGap;
