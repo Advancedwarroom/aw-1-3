@@ -56,6 +56,7 @@ public partial class Infantry
     [Export] public bool devourHealAmmoCamo = false;
     [Export] public bool devourHealAmmoProduction = false;
     [Export] public bool devourHealAmmoConstruction = false;
+    [Export] public bool devourHealAmmoSpecial = false;              // 第11资源·特殊弹
     [ExportGroup("吞噬消耗模块")]
     [Export] public bool devourCostEnabled = false;                   // ⑤ 是否开启（吞一次付代价）
     [Export(PropertyHint.Enum, "资金价值换算,自身当前量百分比,固定值")]
@@ -73,6 +74,8 @@ public partial class Infantry
     [Export] public bool devourCostAmmoCamo = false;
     [Export] public bool devourCostAmmoProduction = false;
     [Export] public bool devourCostAmmoConstruction = false;
+    [Export] public bool devourCostAmmoSpecial = false;
+    [Export] public bool devourCostAmmoSpecial = false;
     [ExportGroup("吞噬效果·共享")]
     [Export] public bool devourOverflowAllowed = false;             // ⑨ 回血④与消耗⑨合并：可否超出上限（回血超满 / 消耗扣穿0）
     [Export] public bool devourHpFloorLocked = true;              // ⑩ 血量下限是否锁死：true=保1不自杀（与隐身日耗同约定）；false=解锁，吞噬代价/反扣血可致死（走尸化/野化→标准死亡管线）
@@ -120,6 +123,8 @@ public partial class Infantry
             DevourHealRes(devourHealMode, devourHealValue, money, devoured.health, currentProductionAmmo, maxProductionAmmo, cost, isHp: false, v => currentProductionAmmo = v);
         if (devourHealAmmoConstruction)
             DevourHealRes(devourHealMode, devourHealValue, money, devoured.health, currentConstructionAmmo, maxConstructionAmmo, cost, isHp: false, v => currentConstructionAmmo = v);
+        if (devourHealAmmoSpecial)
+            DevourHealRes(devourHealMode, devourHealValue, money, devoured.health, currentSpecialAmmo, maxSpecialAmmo, cost, isHp: false, v => currentSpecialAmmo = v);
     }
 
     private void DevourHealRes(int mode, int value, long money, int devouredHp, int cur, int max, int selfCost, bool isHp, Action<int> set)
@@ -158,6 +163,8 @@ public partial class Infantry
             DevourCostRes(devourCostMode, devourCostValue, money, currentProductionAmmo, maxProductionAmmo, cost, isHp: false, v => currentProductionAmmo = v);
         if (devourCostAmmoConstruction)
             DevourCostRes(devourCostMode, devourCostValue, money, currentConstructionAmmo, maxConstructionAmmo, cost, isHp: false, v => currentConstructionAmmo = v);
+        if (devourCostAmmoSpecial)
+            DevourCostRes(devourCostMode, devourCostValue, money, currentSpecialAmmo, maxSpecialAmmo, cost, isHp: false, v => currentSpecialAmmo = v);
     }
 
     private void DevourCostRes(int mode, int value, long money, int cur, int max, int selfCost, bool isHp, Action<int> set)
@@ -193,6 +200,7 @@ public partial class Weapon
     [Export] public bool devourHealAmmoCamo = false;
     [Export] public bool devourHealAmmoProduction = false;            // 兵器无生产弹字段→勾选无效
     [Export] public bool devourHealAmmoConstruction = false;          // 兵器无建造弹字段→勾选无效
+    [Export] public bool devourHealAmmoSpecial = false;              // 第11资源·特殊弹（兵器槽 wSpecialCurrent）
     [ExportGroup("吞噬消耗模块")]
     [Export] public bool devourCostEnabled = false;
     [Export(PropertyHint.Enum, "资金价值换算,自身当前量百分比,固定值")]
@@ -241,6 +249,8 @@ public partial class Weapon
             DevourHealRes(devourHealMode, devourHealValue, money, devoured.health, wRevealBulletCurrent, wRevealBulletMax, cost, isHp: false, v => wRevealBulletCurrent = v);
         if (devourHealAmmoCamo)
             DevourHealRes(devourHealMode, devourHealValue, money, devoured.health, wCamoBulletCurrent, wCamoBulletMax, cost, isHp: false, v => wCamoBulletCurrent = v);
+        if (devourHealAmmoSpecial)
+            DevourHealRes(devourHealMode, devourHealValue, money, devoured.health, wSpecialCurrent, wSpecialMax, cost, isHp: false, v => wSpecialCurrent = v);
         // Fuel / Production / Construction：兵器无对应字段，勾选静默无效
     }
 
@@ -274,6 +284,8 @@ public partial class Weapon
             DevourCostRes(devourCostMode, devourCostValue, money, wRevealBulletCurrent, wRevealBulletMax, cost, isHp: false, v => wRevealBulletCurrent = v);
         if (devourCostAmmoCamo)
             DevourCostRes(devourCostMode, devourCostValue, money, wCamoBulletCurrent, wCamoBulletMax, cost, isHp: false, v => wCamoBulletCurrent = v);
+        if (devourCostAmmoSpecial)
+            DevourCostRes(devourCostMode, devourCostValue, money, wSpecialCurrent, wSpecialMax, cost, isHp: false, v => wSpecialCurrent = v);
     }
 
     private void DevourCostRes(int mode, int value, long money, int cur, int max, int selfCost, bool isHp, Action<int> set)
