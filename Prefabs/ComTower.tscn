@@ -31,4 +31,3 @@ sprite_frames = ExtResource("3_base")
 
 [node name="NormalAnimSprite" type="AnimatedSprite2D" parent="BaseAnimSprite"]
 visible = false
-sprite_frames = ExtResource("4_over")
