@@ -49,7 +49,7 @@ public partial class TerrainEditor
             bool wMismatch = screenWidths != null && screenWidths.Length != gridManager.screenCount;
             bool hMismatch = screenHeights != null && screenHeights.Length != gridManager.screenCount;
             if (wMismatch || hMismatch)
-                GD.PrintErr($"[多屏] ⚠️ 分屏设置数量与屏数不符（宽:{screenWidths?.Length ?? 0}/{gridManager.screenCount} 高:{screenHeights?.Length ?? 0}/{gridManager.screenCount}），已回退均分");
+                ShowImportHint($"⚠️ {TranslateGroup.T("分屏宽高数量与屏数不符，已均分兜底")}（宽:{screenWidths?.Length ?? 0}/{gridManager.screenCount} 高:{screenHeights?.Length ?? 0}/{gridManager.screenCount}）");
             gridManager.screenWidths = (screenWidths != null && screenWidths.Length == gridManager.screenCount) ? screenWidths : new int[0];
             gridManager.screenHeights = (screenHeights != null && screenHeights.Length == gridManager.screenCount) ? screenHeights : new int[0];
 
