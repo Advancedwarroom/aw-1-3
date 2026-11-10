@@ -37,6 +37,7 @@ public partial class Weapon : Node2D
     [ExportGroup("多格占据")]
     [Export] public Vector2I size = new Vector2I(1, 1);
     [Export] public bool isMultiTile = false;
+    [Export] public bool blocksUnitMovement = false;           // 可否移动到其上：true=单位（含Oozium/空军）不可进入该兵器占据格。默认false不阻塞；炮族在_Ready还原原作不可通行
     public List<Grids> occupiedGrids = new List<Grids>();
     public bool isDestroyed = false;
 
