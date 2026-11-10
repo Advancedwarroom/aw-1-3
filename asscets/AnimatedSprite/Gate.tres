@@ -2,8 +2,6 @@
 
 [ext_resource type="Texture2D" path="res://docs/南北上下.png" id="1"]
 [ext_resource type="Texture2D" path="res://docs/左右东西.png" id="2"]
-[ext_resource type="Texture2D" path="res://art/Gate/destroyed_gate+n+s.png" id="3"]
-[ext_resource type="Texture2D" path="res://art/Gate/destroyed_gate+e+w.png" id="4"]
 
 [resource]
 animations = [{
@@ -13,9 +11,9 @@ animations = [{
 "frames": [{"duration": 1.0, "texture": ExtResource("2")}],
 "loop": true, "name": &"GateH", "speed": 1.0
 }, {
-"frames": [{"duration": 1.0, "texture": ExtResource("3")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1")}],
 "loop": true, "name": &"GateBroken", "speed": 1.0
 }, {
-"frames": [{"duration": 1.0, "texture": ExtResource("4")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("2")}],
 "loop": true, "name": &"GateHBroken", "speed": 1.0
 }]
