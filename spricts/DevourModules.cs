@@ -75,8 +75,7 @@ public partial class Infantry
     [Export] public bool devourCostAmmoProduction = false;
     [Export] public bool devourCostAmmoConstruction = false;
     [Export] public bool devourCostAmmoSpecial = false;
-    [Export] public bool devourCostAmmoSpecial = false;
-    [ExportGroup("吞噬效果·共享")]
+        [ExportGroup("吞噬效果·共享")]
     [Export] public bool devourOverflowAllowed = false;             // ⑨ 回血④与消耗⑨合并：可否超出上限（回血超满 / 消耗扣穿0）
     [Export] public bool devourHpFloorLocked = true;              // ⑩ 血量下限是否锁死：true=保1不自杀（与隐身日耗同约定）；false=解锁，吞噬代价/反扣血可致死（走尸化/野化→标准死亡管线）
 
@@ -218,6 +217,7 @@ public partial class Weapon
     [Export] public bool devourCostAmmoCamo = false;
     [Export] public bool devourCostAmmoProduction = false;
     [Export] public bool devourCostAmmoConstruction = false;
+    [Export] public bool devourCostAmmoSpecial = false;
     [ExportGroup("吞噬效果·共享")]
     [Export] public bool devourOverflowAllowed = false;
     [Export] public bool devourHpFloorLocked = true;              // 血量下限是否锁死：false=解锁后吞噬自伤致死（走 TakeDamage 销毁管线，护盾/锁血拦截天然生效）
