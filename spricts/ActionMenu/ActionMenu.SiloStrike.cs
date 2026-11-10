@@ -68,6 +68,20 @@ public partial class ActionMenu
                     if (siloFireButton.Visible) break;
                 }
         }
+
+        // ✅ 天基打击按钮（残片归位：开启模块且未行动且还有次数）
+        if (spaceStrikeButton != null) spaceStrikeButton.Visible = false;
+        if (currentUnit != null && IsInstanceValid(currentUnit)
+            && currentUnit.spaceStrikeEnabled && !currentUnit.hasActed
+            && currentUnit.state != UnitState.Acted
+            && currentUnit.spaceStrikeUsesThisTurn < currentUnit.spaceStrikeMaxUses)
+        {
+            if (spaceStrikeButton != null)
+            {
+                spaceStrikeButton.Visible = true;
+                TranslateGroup.SetText(spaceStrikeButton, isStrikeTargeting ? "确认打击目标" : "天基打击");
+            }
+        }
     }
 
     // 由 ShowWeaponMenu 调用：发射方式①——点击兵器本身直接发射
@@ -80,18 +94,6 @@ public partial class ActionMenu
     }
 
 
-        // 天基打击：开启模块且未行动且还有次数
-        if (currentUnit.spaceStrikeEnabled && !currentUnit.hasActed
-            && currentUnit.state != UnitState.Acted
-            && currentUnit.spaceStrikeUsesThisTurn < currentUnit.spaceStrikeMaxUses)
-        {
-            if (spaceStrikeButton != null)
-            {
-                spaceStrikeButton.Visible = true;
-                TranslateGroup.SetText(spaceStrikeButton, isStrikeTargeting ? "确认打击目标" : "天基打击");
-            }
-        }
-    }
 
     // ---------- 导弹井发射 ----------
     private void OnSiloFirePressed()
@@ -118,12 +120,6 @@ public partial class ActionMenu
         silo.BeginTargetSelection(firer);
     }
 
-        if (silo == null) return;
-
-        isSiloTargeting = true;
-        Hide();
-        silo.BeginTargetSelection(currentUnit);
-    }
 
     // ---------- 天基打击 ----------
     private void OnSpaceStrikePressed()
