@@ -156,14 +156,12 @@ public partial class Gate : Weapon
 
         // Fit the new non-recolorable base art to one 32x32 tile.
         // The recolor mask remains the original 16x16 texture at 2x.
-        // Destroyed frames still use the original 16x16 CoW textures at 2x.
+        // Both intact and broken base frames use the new art fitted to one 32x32 tile.
         if (animSprite != null)
         {
-            animSprite.Scale = isDestroyed
-                ? new Vector2(2f, 2f)
-                : gateHorizontal
-                    ? new Vector2(32f / 213f, 32f / 208f) // East-West source: 213x208
-                    : new Vector2(32f / 190f, 32f / 208f); // North-South source: 190x208
+            animSprite.Scale = gateHorizontal
+                ? new Vector2(32f / 213f, 32f / 208f) // East-West source: 213x208
+                : new Vector2(32f / 190f, 32f / 208f); // North-South source: 190x208
         }
 
         if (maskSprite?.SpriteFrames != null && maskSprite.SpriteFrames.HasAnimation(maskAnim))
