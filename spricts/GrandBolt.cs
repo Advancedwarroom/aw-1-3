@@ -86,7 +86,12 @@ public partial class GrandBolt : Weapon
 
     // ========== 9. Oozium 生产（困兽犹斗模式）==========
     [ExportGroup("Oozium生产（困兽犹斗）")]
-    [Export] public bool ooziumProductionEnabled = true;       // 9.困兽犹斗时是否生产Oozium
+    [Export] public bool ooziumProductionEnabled = true;
+
+    // ========== 生产方式（开创人2026-11-11：玩家侧原本只有AI能动，生产永不发生）==========
+    [ExportGroup("生产方式")]
+    [Export] public bool autoProduceOnTurnStart = false;        // ①回合开始自动生产：逐器官产至配额尽（原作"六日一吐"的电子化基座）
+    [Export] public bool manualProduceEnabled = true;           // ②菜单手动生产按钮：玩家点一次产一胎（占用该器官本回合配额）       // 9.困兽犹斗时是否生产Oozium
     [Export] public string ooziumUnitName = "Oozium";         // 9.生产的单位名
     [Export] public int ooziumProductionPerTurn = 3;          // 9.每回合生产次数
     [Export] public int ooziumProductionCooldown = 1;        // 9.生产冷却（困兽犹斗时冷却减少）
@@ -639,6 +644,19 @@ public partial class GrandBolt : Weapon
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm == null) return;
 
+        // ✅ 生产方式①（开创人2026-11-11）：回合开始自动生产——逐器官产至配额尽/容量尽
+        if (autoProduceOnTurnStart && ooziumProductionEnabled)
+        {
+            for (int guard = 0; guard < 64; guard++)
+            {
+                var cell = FirstAvailableOrganCell(gm);
+                if (cell == null) break;
+                int before = TotalOoziumCapacityLeft();
+                ProduceOozium(cell, gm);
+                if (TotalOoziumCapacityLeft() >= before) break;   // 产能未消耗→防死循环
+            }
+        }
+
         // ✅ 卡死规则：扫描内洞困敌（先摘全部旧标记再重挂，防足印挪动后残留）
         if (holesTrapEnemies)
         {
@@ -858,6 +876,19 @@ public partial class GrandBolt : Weapon
             return gm.gridManager.GetGridAt(baseIdx + centerWeakPointOffset);
         }
         return null;
+    }
+
+    // ✅ 手动生产（开创人2026-11-11）：菜单按钮触发，自动选首个有配额且冷却就绪的器官
+    public bool CanManualProduce()
+    {
+        if (!manualProduceEnabled || !grandBoltEnabled || !ooziumProductionEnabled) return false;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        return TotalOoziumCapacityLeft() > 0 && FirstAvailableOrganCell(gm) != null;
+    }
+    public void ManualProduce(GameManager gm)
+    {
+        var target = FirstAvailableOrganCell(gm);
+        if (target != null) ProduceOozium(target, gm);
     }
 
     // ========== AI：蠕动 + Oozium生产（全适配：中立/玩家方走自带AI，AI阵营由 AI_Manager 带视野操作）==========
