@@ -341,8 +341,10 @@ public partial class ActionMenu
             btn.AddThemeFontSizeOverride("font_size", 13);
             // 地形建造条目显示友好名（Terrain:PIPESEAM → 管道接缝）
             var terrainEntry = Infantry.ParseTerrainBuildEntry(facilityType);
+            string weaponKey = Infantry.ParseWeaponBuildEntry(facilityType);
             string display = terrainEntry.HasValue
                 ? TranslateGroup.T(terrainEntry.Value == GridType.PIPESEAM ? "管道接缝" : terrainEntry.Value.ToString())
+                : weaponKey != null ? $"{TranslateGroup.T("兵器")}:{weaponKey}"
                 : facilityType;
             TranslateGroup.SetText(btn, display);
             btn.Pressed += () =>

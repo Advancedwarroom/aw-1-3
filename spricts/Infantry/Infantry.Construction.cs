@@ -34,6 +34,9 @@ public partial class Infantry
     // ⑫ 可建造地形白名单：写地形名（如 "BEACH"）=对所有建筑生效；写 "建筑:地形"（如 "TempPort:BEACH"）=只对该建筑生效。
     //    留空=未配置，按 FacilityDatabase 默认规则（临时机场=平原，临时港口=海滩，其余任意）。
     [Export] public Godot.Collections.Array<string> constructionAllowedTerrains = new();
+    // ⑬ 建造产物归属势力：0=仅友方(建造者势力)；1=仅敌方(就近敌方势力，找不到回退中立)；2=中立/全部(无队伍，类似管道接缝)。
+    //    同时作用于设施与兵器；内部建造(舱内携带)在部署那一刻才解析势力。
+    [Export(PropertyHint.Enum, "仅友方,仅敌方,中立(全部)")] public int constructionTargetTeamPolicy = 0;
 
     // ===== 运行时状态（不导出） =====
     public bool isConstructing = false;                 // 建造中
@@ -61,6 +64,20 @@ public partial class Infantry
 
     public static bool IsTerrainBuildEntry(string entry) => ParseTerrainBuildEntry(entry) != null;
 
+    // ---------- 兵器建造条目（"Weapon:模板键"，键全集见 WeaponBuildDatabase）----------
+    /// <summary>"Weapon:black_cannon" → "black_cannon"；兼容 "Weapon:键:TERRAIN" 地形尾缀（尾缀在 CanBuildFacilityOnTerrain 单独剥离）</summary>
+    public static string ParseWeaponBuildEntry(string entry)
+    {
+        if (string.IsNullOrEmpty(entry)) return null;
+        if (!entry.StartsWith("Weapon:", System.StringComparison.OrdinalIgnoreCase)) return null;
+        string rest = entry["Weapon:".Length..].Trim();
+        int sep = rest.LastIndexOf(':');
+        if (sep > 0) rest = rest[..sep].Trim();
+        return string.IsNullOrEmpty(rest) ? null : rest;
+    }
+
+    public static bool IsWeaponBuildEntry(string entry) => ParseWeaponBuildEntry(entry) != null;
+
     /// <summary>能否开始一次建造（按钮显示条件）</summary>
     public bool CanStartConstruction(bool internalMode)
     {
@@ -78,8 +95,8 @@ public partial class Infantry
     public bool StartConstruction(string facilityType, bool internalMode, Grids externalTargetGrid = null)
     {
         if (!CanStartConstruction(internalMode)) return false;
-        // 支持两类条目：① FacilityDatabase 建筑；② "Terrain:地形名"（管道构造者建管道接缝）
-        if (FacilityDatabase.GetScenePath(facilityType) == null && !IsTerrainBuildEntry(facilityType)) return false;
+        // 支持三类条目：① FacilityDatabase 建筑；② "Terrain:地形名"；③ "Weapon:模板键"（兵器建造）
+        if (FacilityDatabase.GetScenePath(facilityType) == null && !IsTerrainBuildEntry(facilityType) && !IsWeaponBuildEntry(facilityType)) return false;
 
         if (!TryConsumeAmmo(AmmoKind.Construction)) return false;  // 开工消耗 1 发建造弹药
 
@@ -146,6 +163,26 @@ public partial class Infantry
             return;
         }
 
+        // ✅ 兵器建造条目（Weapon:模板键）：内部=存舱内携带，外部=直接落子（多格兵器足印被挡则返还弹药）
+        if (IsWeaponBuildEntry(facilityType))
+        {
+            if (internalMode)
+            {
+                carriedFacilityTypes.Add(facilityType);
+                return;
+            }
+            var wTarget = target;
+            if (wTarget == null || !IsInstanceValid(wTarget))
+                wTarget = FindValidExternalConstructionGrid(facilityType);
+            if (wTarget == null) return;
+            if (!SpawnWeaponOnGrid(facilityType, wTarget))
+            {
+                currentConstructionAmmo = Math.Min(maxConstructionAmmo, currentConstructionAmmo + 1);
+                GD.PushWarning($"[建造] 兵器 {facilityType} 落子失败：足印格被占用，建造弹药已返还");
+            }
+            return;
+        }
+
         if (internalMode)
         {
             // 内部建造与搭载模块无绑定：建好的建筑存进舱内数据，之后「部署」到场上
@@ -198,7 +235,7 @@ public partial class Infantry
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm == null) { facility.QueueFree(); return false; }
 
-        facility.facilityTeam = team;
+        facility.facilityTeam = ResolveConstructionTargetTeam();   // ⑬ 产物势力策略
         target.AddChild(facility);   // Facility._Ready 会以父节点 Grids 自动绑定 ParentGrid
         return true;
     }
@@ -208,6 +245,12 @@ public partial class Infantry
     {
         if (carriedFacilityTypes.Count == 0) return false;
         if (target == null || !CanBuildFacilityOnTerrain(carriedFacilityTypes[0], target.gridType)) return false;   // ⑫ 部署也受地形限制
+        if (IsWeaponBuildEntry(carriedFacilityTypes[0]))
+        {
+            if (SpawnWeaponOnGrid(carriedFacilityTypes[0], target)) { carriedFacilityTypes.RemoveAt(0); return true; }
+            GD.PushWarning($"[建造] 兵器 {carriedFacilityTypes[0]} 部署失败：足印格被占用");
+            return false;
+        }
         if (!SpawnFacilityOnGrid(carriedFacilityTypes[0], target)) return false;
         carriedFacilityTypes.RemoveAt(0);
         return true;
@@ -223,6 +266,22 @@ public partial class Infantry
             if (terrainBuild.Value == GridType.PIPESEAM)
                 return terrain is GridType.GROUND or GridType.BROKENPIPE or GridType.PIPE;
             return terrain == GridType.GROUND;   // 其他地形条目：默认平原
+        }
+
+        // ✅ 兵器建造条目：默认不限地形；写 "Weapon:键:TERRAIN"（如 "Weapon:black_cannon:SEA"）限定。键含冒号，单独剥离尾缀。
+        if (IsWeaponBuildEntry(facilityType) && constructionAllowedTerrains != null && constructionAllowedTerrains.Count > 0)
+        {
+            bool weaponRule = false;
+            foreach (var raw in constructionAllowedTerrains)
+            {
+                if (string.IsNullOrWhiteSpace(raw)) continue;
+                string entry = raw.Trim();
+                if (!entry.StartsWith(facilityType + ":", StringComparison.OrdinalIgnoreCase)) continue;
+                weaponRule = true;
+                string ter = entry[facilityType.Length..].TrimStart(':').Trim();
+                if (Enum.TryParse<GridType>(ter, true, out var gt) && gt == terrain) return true;
+            }
+            return !weaponRule;   // 白名单没提该兵器 = 不限地形（与建筑规则一致）
         }
 
         if (constructionAllowedTerrains == null || constructionAllowedTerrains.Count == 0)
@@ -284,6 +343,56 @@ public partial class Infantry
             }
         }
         return result;
+    }
+
+    // ==================== 兵器建造 / ⑬ 势力策略 ====================
+
+    /// ⑬ 解析建造产物归属势力：0=仅友方(建造者) 1=仅敌方(就近敌方势力，找不到回退中立) 2=中立/全部(Player0)
+    public string ResolveConstructionTargetTeam()
+    {
+        switch (constructionTargetTeamPolicy)
+        {
+            case 1: return FindNearestEnemyTeam() ?? TeamHelper.Player0;
+            case 2: return TeamHelper.Player0;
+            default: return team;
+        }
+    }
+
+    /// 就近搜索与建造者敌对的势力（曼哈顿距离最近的敌方单位/设施所属队伍；无敌方则 null）
+    private string FindNearestEnemyTeam()
+    {
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var grids = gm?.gridManager?.grids;
+        if (grids == null || grid == null) return null;
+        string best = null;
+        int bestDist = int.MaxValue;
+        Vector2I origin = grid.GridIndex;
+        foreach (var g in grids)
+        {
+            string t = null;
+            if (g.unit != null && IsInstanceValid(g.unit) && g.unit.team != team && g.unit.team != TeamHelper.Player0)
+                t = g.unit.team;
+            else if (g.city != null && IsInstanceValid(g.city) && g.city.facilityTeam != team && g.city.facilityTeam != TeamHelper.Player0)
+                t = g.city.facilityTeam;
+            if (t == null) continue;
+            int d = Math.Abs(g.GridIndex.X - origin.X) + Math.Abs(g.GridIndex.Y - origin.Y);
+            if (d < bestDist) { bestDist = d; best = t; }
+        }
+        return best;
+    }
+
+    /// 生成建造产物兵器（与 SpawnFacilityOnGrid 对称的兵器版；多格兵器足印被挡时 SpawnWeapon 返回 null）
+    public bool SpawnWeaponOnGrid(string weaponEntry, Grids target)
+    {
+        if (target == null || !IsInstanceValid(target)) return false;
+        string key = ParseWeaponBuildEntry(weaponEntry);
+        string scenePath = key == null ? null : WeaponBuildDatabase.GetScenePath(key);
+        if (scenePath == null) return false;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.weaponManager == null) return false;
+        var scene = GD.Load<PackedScene>(scenePath);
+        if (scene == null) return false;
+        return gm.weaponManager.SpawnWeapon(scene, target.GridIndex, ResolveConstructionTargetTeam()) != null;
     }
 
 }
