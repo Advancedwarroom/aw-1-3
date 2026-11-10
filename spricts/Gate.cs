@@ -37,7 +37,7 @@ public partial class Gate : Weapon
 
     public override void _Ready()
     {
-        // CoW 原版贴图为 16×16；本项目格子为 32×32，基础图与 mask 同步放大 2 倍。
+        // New base art is fitted to one 32x32 map tile; the original recolor mask remains unchanged.
         maskSprite = GetNodeOrNull<AnimatedSprite2D>("GateMaskSprite");
         isMultiTile = gateSize.X * gateSize.Y > 1;
         if (isMultiTile) gateHorizontal = gateSize.X > gateSize.Y;
@@ -153,6 +153,19 @@ public partial class Gate : Weapon
             : (gateHorizontal ? "GateHMask" : "GateMask");
         if (animSprite?.SpriteFrames != null && animSprite.SpriteFrames.HasAnimation(baseAnim))
             animSprite.Play(baseAnim);
+
+        // Fit the new non-recolorable base art to one 32x32 tile.
+        // The recolor mask remains the original 16x16 texture at 2x.
+        // Destroyed frames still use the original 16x16 CoW textures at 2x.
+        if (animSprite != null)
+        {
+            animSprite.Scale = isDestroyed
+                ? new Vector2(2f, 2f)
+                : gateHorizontal
+                    ? new Vector2(32f / 213f, 32f / 208f) // East-West source: 213x208
+                    : new Vector2(32f / 190f, 32f / 208f); // North-South source: 190x208
+        }
+
         if (maskSprite?.SpriteFrames != null && maskSprite.SpriteFrames.HasAnimation(maskAnim))
             maskSprite.Play(maskAnim);
     }
