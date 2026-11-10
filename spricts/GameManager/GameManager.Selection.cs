@@ -48,7 +48,16 @@ public partial class GameManager
         }
             if (infantry.isAttacked || infantry.state == UnitState.Acted)
         {
-        HideProductionMenu();
+        // ✅ 开创人2026-11-11：已行动单位点击也弹菜单——按钮由ShowMenu内部自隐藏
+        // （CanShowAttackButton自带isAttacked守卫，实证于ActionMenu.Attack.cs），消灭静默死点
+        if (infantry.team == TeamHelper.GetPhaseTeamName(turnPhase))
+        {
+            var amActed = GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu;
+            selectedInfantry = infantry;
+            HideProductionMenu();
+            amActed?.ShowMenu(infantry);
+        }
+        else HideProductionMenu();
         return;
         }
 
@@ -76,6 +85,14 @@ public partial class GameManager
         }
         else
         {
+            // ✅ 开创人2026-11-11：已移动/相位不符的单位点击不再静默吞掉——弹菜单（仅我方，按钮自隐藏）
+            if (infantry.team == TeamHelper.GetPhaseTeamName(turnPhase))
+            {
+                var amMoved = GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu;
+                selectedInfantry = infantry;
+                HideProductionMenu();
+                amMoved?.ShowMenu(infantry);
+            }
         }
     }
 
