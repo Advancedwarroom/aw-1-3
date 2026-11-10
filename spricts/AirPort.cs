@@ -3,6 +3,9 @@ using System;
 
 public partial class AirPort : City
 {
+    // Source-art baseline measured from the Airport base layer (pink-red, not pure red).
+    protected override float GetBaseArtHue() => 352.0f / 360.0f;
+
     // ✅ 检查器优先：默认补给兵种列表重写为空军（仅当检查器未配置时才使用）
     protected override string[] DefaultSupplyUnitTypes() => new string[]
     {
