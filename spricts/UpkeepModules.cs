@@ -176,8 +176,8 @@ public partial class GameManager
         }
         else if (target is Facility facility)
         {
-            var method = facility.GetType().GetMethods().FirstOrDefault(m => (m.Name == "UpdateTeamVisual" || m.Name == "UpdateVisual") && m.GetParameters().Length == 0);
-            method?.Invoke(facility, null);
+            // Facility 的真实视觉入口是 UpdateCityVisual；旧反射查找不会命中它。
+            facility.UpdateCityVisual();
         }
     }
 }
