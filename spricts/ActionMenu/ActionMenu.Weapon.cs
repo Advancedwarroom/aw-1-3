@@ -83,7 +83,8 @@ public partial class ActionMenu
         UpdateWriggleButton();
         UpdateShelterButtons(weapon);
         UpdateEmpowermentButton(weapon)
-        UpdateForceSupportButtons();   // ✅ 统一菜单：力场支援按钮对兵器同样走主判定（空值守卫，非单位自动隐藏）;
+        UpdateForceSupportButtons();   // ✅ 统一菜单：力场支援按钮对兵器同样走主判定（空值守卫，非单位自动隐藏）
+        UpdateSiloWeaponFireButton(weapon);   // ✅ 发射方式①：点击兵器直接发射（模式0时点亮）;
 
         Position = weapon.GlobalPosition + new Vector2(-40, -100);
         Show();
