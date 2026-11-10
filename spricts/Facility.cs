@@ -476,7 +476,7 @@ public partial class Facility : Node2D
     
 
     // Hue-only recoloring: preserve each source pixel's saturation, value and alpha.
-    // Facility base art is currently pink-red (about 352 degrees), not a zero-degree red.
+    // Facility base art normalized to 0° red baseline (S/V preserved). Hue shift is pure.
     private static Shader _hueShader;
     private static void ForceNearestTextureFilter(CanvasItem item)
     {
@@ -486,7 +486,7 @@ public partial class Facility : Node2D
 
     // Source hue of this facility's base artwork. Override only for assets with a different
     // source palette (for example TempPort's cyan artwork).
-    protected virtual float GetBaseArtHue() => 352.0f / 360.0f;
+    protected virtual float GetBaseArtHue() => 0f;  // 2026-11-11: base art normalized to 0° red baseline
 
     protected ShaderMaterial GetHueMaterial(string team)
     {
