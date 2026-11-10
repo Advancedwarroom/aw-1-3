@@ -11,6 +11,14 @@ public partial class MissileSilo : Weapon
     [ExportGroup("发射台模块")]
     [Export] public bool siloEnabled = true;                    // 1.Export是否开启
 
+    // ========== 发射方式（开创人2026-11-11 定案四件套）==========
+    [ExportGroup("发射方式")]
+    [Export(PropertyHint.Enum, "点击兵器直接发射,单位菜单发射")]
+    public int siloLaunchMode = 1;                              // ① 0=点井本身弹发射；1=单位菜单内发射
+    [Export] public string[] siloLaunchUnitWhitelist = System.Array.Empty<string>();  // ② 模式1白名单（UnitTypeId/类名；空=默认全部非空军）
+    [Export] public int siloLaunchRangeMin = 0;               // ③ 模式1距离带下限（0=含正上方/同格）
+    [Export] public int siloLaunchRangeMax = 0;               // ④ 模式1距离带上限（0-0=仅站上；1-1=临格，均为n-m特例）
+
     // ========== 2. 是否按所属势力判定 ==========
     [Export] public bool factionLocked = false;                 // 2.按所属势力判定（颜色随势力；开启时仅所属势力能发射；Player0中立=不限制）
 
@@ -107,16 +115,35 @@ public partial class MissileSilo : Weapon
     public bool CanBeFiredBy(Infantry unit)
     {
         if (!siloEnabled || isDestroyed || hasFired) return false;
-        if (unit == null || !unit.hasPrimaryWeapon && !CanInfantryFire(unit)) { }
-        if (unit == null) return false;
-        // 原作：任意步兵系单位（Infantry/Mech等）站上即可发射；此处放宽为任意地面单位
-        if (unit.moveType == MoveType.AirPlane || unit.moveType == MoveType.AirShip ||
-            unit.moveType == MoveType.HeliCopter || unit.moveType == MoveType.Drone ||
-            unit.moveType == MoveType.AeroSpacer || unit.moveType == MoveType.SpaceShiper)
-            return false; // 空中单位不能发射（原作只有地面步兵）
+        if (!HasAmmo()) return false;
+        if (unit == null)
+        {
+            // 模式0：点击兵器本身发射（距离/白名单不适用；发射权按当前操作方由调用方把关）
+            return siloLaunchMode == 0;
+        }
+        if (siloLaunchMode != 1) return false;
+        // 模式1——n-m 距离带（0-0=仅同格/正上方；1-1=临格；同格与临格均为n-m特例）
+        if (grid != null && unit.grid != null)
+        {
+            int d = Mathf.Abs(unit.grid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(unit.grid.GridIndex.Y - grid.GridIndex.Y);
+            if (d < siloLaunchRangeMin || d > siloLaunchRangeMax) return false;
+        }
+        // 白名单：空=默认全部非空军（原作：任意步兵系站上即可发射，此处默认放宽为任意地面单位）
+        if (siloLaunchUnitWhitelist != null && siloLaunchUnitWhitelist.Length > 0)
+        {
+            if (!siloLaunchUnitWhitelist.Contains(unit.UnitTypeId) && !siloLaunchUnitWhitelist.Contains(unit.GetType().Name))
+                return false;
+        }
+        else
+        {
+            if (unit.moveType == MoveType.AirPlane || unit.moveType == MoveType.AirShip ||
+                unit.moveType == MoveType.HeliCopter || unit.moveType == MoveType.Drone ||
+                unit.moveType == MoveType.AeroSpacer || unit.moveType == MoveType.SpaceShiper)
+                return false; // 空中单位不能发射
+        }
         if (!TargetUnitTeamOk(unit.team)) return false;
         if (!TeamCanFire(unit.team)) return false;
-        return HasAmmo();
+        return true;
     }
 
     private bool CanInfantryFire(Infantry u) => u != null;
