@@ -1,7 +1,7 @@
 [gd_resource type="SpriteFrames" format=3]
 
-[ext_resource type="Texture2D" path="res://art/Gate/gate+n+s.png" id="1"]
-[ext_resource type="Texture2D" path="res://art/Gate/gate+e+w.png" id="2"]
+[ext_resource type="Texture2D" path="res://docs/南北上下.png" id="1"]
+[ext_resource type="Texture2D" path="res://docs/左右东西.png" id="2"]
 [ext_resource type="Texture2D" path="res://art/Gate/destroyed_gate+n+s.png" id="3"]
 [ext_resource type="Texture2D" path="res://art/Gate/destroyed_gate+e+w.png" id="4"]
 
