@@ -444,7 +444,11 @@ public void ShowTransportMenu(Infantry transport, bool afterMove)
         if (transport.hasActed || transport.state == UnitState.Acted || 
         (transport.isMoved && transport.isAttacked))
     {
-        return;
+            // ✅ 开创人2026-11-11：已行动/麻痹/生产中/建造中 的运输单位不再静默死亡——
+            // 回退基础菜单（按钮由内部守卫自隐藏），与 GameManager.Selection 当日修复同一政策。
+            // 静默 return 曾是「点运输舰没反应」的元凶：stun/生产/建造会在回合开始把单位标成已行动。
+            ShowMenu(transport, afterMove, onlyShowMenu: true);
+            return;
     }
     currentUnit = transport;
     currentTransport = transport;
