@@ -70,6 +70,9 @@ public partial class ActionMenu
         gm.gridManager.HideAttackRange();
         foreach (var grid in gm.gridManager.grids) grid.OnClickEmpty = null;
         gm.gridManager.ShowMoveRange(unit);   // 无可达格也进入范围模式：再点本单位即原地菜单
+        // ✅ 开创人2026-11-11：移动范围为空（四周皆不可通行/脚下非法）不再吞首击——当场弹菜单，攻击/等待照常可操作
+        if (gm.gridManager.moveRange == null || gm.gridManager.moveRange.Count == 0)
+            ShowMenu(unit);
         return true;
     }
 
