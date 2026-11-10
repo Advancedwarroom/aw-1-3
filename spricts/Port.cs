@@ -6,6 +6,9 @@ using System;
 //    舰船可靠泊（海军移动开销覆盖见 Infantry.GetMoveCostOnGrid）。
 public partial class Port : City
 {
+    // Port base frames use a red source palette close to 353.5 degrees.
+    protected override float GetBaseArtHue() => 353.5f / 360.0f;
+
     // 港口默认可生产的舰船（含既有维修艇）
     private static readonly string[] DefaultNavalUnits =
     {
