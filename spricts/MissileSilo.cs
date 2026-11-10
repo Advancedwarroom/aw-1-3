@@ -13,9 +13,9 @@ public partial class MissileSilo : Weapon
 
     // ========== 发射方式（开创人2026-11-11 定案四件套）==========
     [ExportGroup("发射方式")]
-    [Export(PropertyHint.Enum, "点击兵器直接发射,单位菜单发射")]
-    public int siloLaunchMode = 1;                              // ① 0=点井本身弹发射；1=单位菜单内发射
-    [Export] public string[] siloLaunchUnitWhitelist = System.Array.Empty<string>();  // ② 模式1白名单（UnitTypeId/类名；空=默认全部非空军）
+    [Export(PropertyHint.Enum, "点击兵器直接发射,单位菜单发射,两者皆可")]
+    public int siloLaunchMode = 1;                              // ① 0=点井本身弹发射；1=单位菜单内发射；2位置保留；3=①②皆可
+    [Export] public string[] siloLaunchUnitWhitelist = new string[] { "Infantry", "Mech" };  // ② 模式1白名单（默认=原作AWDS：仅Infantry/Mech可发射；DoR风格加"Bike"；清空=放宽为全部非空军）
     [Export] public int siloLaunchRangeMin = 0;               // ③ 模式1距离带下限（0=含正上方/同格）
     [Export] public int siloLaunchRangeMax = 0;               // ④ 模式1距离带上限（0-0=仅站上；1-1=临格，均为n-m特例）
 
@@ -118,10 +118,10 @@ public partial class MissileSilo : Weapon
         if (!HasAmmo()) return false;
         if (unit == null)
         {
-            // 模式0：点击兵器本身发射（距离/白名单不适用；发射权按当前操作方由调用方把关）
-            return siloLaunchMode == 0;
+            // 模式0/3：点击兵器本身发射（距离/白名单不适用；发射权按当前操作方由调用方把关）
+            return siloLaunchMode == 0 || siloLaunchMode == 3;
         }
-        if (siloLaunchMode != 1) return false;
+        if (siloLaunchMode != 1 && siloLaunchMode != 3) return false;
         // 模式1——n-m 距离带（0-0=仅同格/正上方；1-1=临格；同格与临格均为n-m特例）
         if (grid != null && unit.grid != null)
         {
