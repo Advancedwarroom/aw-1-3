@@ -163,7 +163,7 @@ if (Input.IsKeyPressed(Key.Ctrl))
 
             bool isMyTurn = gm.IsTurnPhaseValid(team);
 
-            if (isMyTurn && !isMoved)
+            if (isMyTurn)   // ✅ 开创人2026-11-11：放开!isMoved——已移动单位点击交给OnSelectPiece统一处理
             {
                 // 取消之前的选中
                 if (gm.selectedInfantry != null && gm.selectedInfantry != this)
