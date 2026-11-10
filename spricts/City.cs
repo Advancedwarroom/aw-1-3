@@ -2,6 +2,9 @@ using Godot;
 
 public partial class City : Facility
 {
+    // City base art's dominant team-red pixels are approximately 1 degree.
+    protected override float GetBaseArtHue() => 1.0f / 360.0f;
+
 
     /// <summary>默认补给/维修的兵种列表（子类可重写；仅当检查器未配置时才使用）</summary>
     protected virtual string[] DefaultSupplyUnitTypes() => new string[]
