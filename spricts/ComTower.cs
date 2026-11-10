@@ -7,6 +7,9 @@ using System.Linq;
 
 public partial class ComTower : Facility
 {
+    // Communication Tower base frames use a warm-red source palette.
+    protected override float GetBaseArtHue() => 9.2f / 360.0f;
+
     // ========== 通信塔模块 ==========
     [ExportGroup("通信塔模块")]
     /// <summary>1. 是否开启通信塔模块</summary>
