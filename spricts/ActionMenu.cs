@@ -393,12 +393,27 @@ private List<Grids> GetAdjacentGrids(Grids center)
 
     bool canMountAPC = CheckCanMountTransport(unit);
 
-    // APC自身不显示装载按钮（保持不变）
-    if (isTransportUnit && !onlyShowMenu)
-{
-    ShowTransportMenu(unit, afterMove);
-    return;
-}
+    // ✅ 统一菜单（开创人 2026-11-11 裁决）：运输单位不再走独立运输菜单链。
+    // 装载/卸载并入主菜单——此后一切新功能按钮对运输单位自动生效，永不再双链适配饿死。
+    if (isTransportUnit)
+    {
+        var mountableUnit = unit.grid?.infantries?.FirstOrDefault(u =>
+            u != null && IsInstanceValid(u) && u != unit
+            && unit.CanTransportUnit(u)
+            && unit.transportedUnits != null
+            && unit.transportedUnits.Count < unit.maxTransportCapacity
+            && (u.team == unit.team || unit.team == TeamHelper.Player)
+            && (afterMove || !u.isMoved)
+            && u.state != UnitState.Acted);
+        if (mountableUnit != null)
+        {
+            currentTransport = unit;
+            currentUser = mountableUnit;
+            canMountAPC = true;   // 复用装载按钮（OnLoadPressed 消费 currentUser/currentTransport）
+        }
+        if (!afterMove && unit.transportedUnits != null && unit.transportedUnits.Count > 0)
+            ShowTransportUnloadButtonsOnly(unit);
+    }
 
 
     // 处理装载按钮显示逻辑
