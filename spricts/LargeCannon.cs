@@ -21,7 +21,6 @@ public partial class LargeCannon : BlackCannon
         // 在base._Ready之前设置多格属性
         isMultiTile = true;
         size = multiTileSize;
-        blocksUnitMovement = true;        // 原作：3×3全格不可通行（开创人2026-11-11）
         base._Ready();
         
         // 更新偏移（基于当前方向）
