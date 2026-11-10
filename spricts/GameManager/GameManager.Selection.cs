@@ -262,7 +262,7 @@ private List<Grids> BuildPath(Grids from, Grids to, Infantry infantry = null, bo
             if (unit == null || !IsInstanceValid(unit)) return;
             if (!unit.ApplyIllegalTerrainAutoCheck()) return;   // 未自毁（宽容模式 / 脚下合法）→ 无事发生
             if (selectedInfantry == unit) selectedInfantry = null;
-            actionMenu?.Hide();
+            (GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu)?.Hide();
             gridManager?.CloseRange();
             gridManager?.HideAttackRange();
             gridManager?.ClearWeaponRange();
