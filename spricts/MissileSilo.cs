@@ -19,6 +19,12 @@ public partial class MissileSilo : Weapon
     [Export] public int siloLaunchRangeMin = 0;               // ③ 模式1距离带下限（0=含正上方/同格）
     [Export] public int siloLaunchRangeMax = 0;               // ④ 模式1距离带上限（0-0=仅站上；1-1=临格，均为n-m特例）
 
+    // ========== 发射代价（开创人2026-11-11：自费补给联动·第一步资金，自身/献祭后续接入）==========
+    [ExportGroup("发射代价")]
+    [Export] public int siloLaunchFundsCost = 0;                    // 发射资金代价（0=免费；负=发射倒贴）
+    [Export(PropertyHint.Enum, "操作方步兵支付,目标方导弹井支付")]
+    public int siloLaunchPayer = 0;                                 // 付款方：0=操作方步兵所属势力 1=导弹井所属势力
+
     // ========== 2. 是否按所属势力判定 ==========
     [Export] public bool factionLocked = false;                 // 2.按所属势力判定（颜色随势力；开启时仅所属势力能发射；Player0中立=不限制）
 
