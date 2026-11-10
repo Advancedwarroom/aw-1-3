@@ -170,7 +170,7 @@ public partial class Infantry
 
         // 支付
         if (method == 0 && prUseFunds)
-            gm.SetTeamFunds(team, Math.Max(0, (gm.GetTeamFunds(team) ?? 0) - prFundsCost));  // 负价=退款
+            gm.SetTeamFunds(team, Math.Max(0, gm.GetTeamFunds(team) - prFundsCost));  // 负价=退款
         else if (method == 1 && prUseSelf)
         {
             for (int r = 0; r <= 10; r++)
@@ -179,7 +179,14 @@ public partial class Infantry
         }
         else if (method == 2 && prUseSacrifice)
         {
-            var origin = targetUnit?.grid ?? targetWeapon?.grid ?? targetFacility?.grid;
+            var origin = targetUnit?.grid ?? targetWeapon?.grid;
+            if (origin == null && targetFacility != null && gm.gridManager?.map != null)
+            {
+                int ow = gm.gridManager.map.GetLength(0), oh = gm.gridManager.map.GetLength(1);
+                for (int ox = 0; ox < ow && origin == null; ox++)
+                    for (int oy = 0; oy < oh; oy++)
+                        if (gm.gridManager.map[ox, oy]?.city == targetFacility) { origin = gm.gridManager.map[ox, oy]; break; }
+            }
             if (gm.gridManager?.map != null && origin != null)
             {
                 int w = gm.gridManager.map.GetLength(0), h = gm.gridManager.map.GetLength(1);
@@ -220,7 +227,7 @@ public partial class Infantry
                 tu.PrSet(r, Mathf.Clamp(cur + add, r == 0 ? 1 : 0, max));
                 if (r == 0) tu.UpdateHpLabel();
             }
-            else if (tw != null && IsInstanceValid(tw) && !tw.PrIsInfinite(r))
+            else if (tw != null && IsInstanceValid(tw) && !tw.PrIsInfiniteW(r))
             {
                 int cur = tw.PrGetW(r), max = Mathf.Max(cur, tw.PrMaxW(r));
                 int add = paidResupplyRefillAmount <= 0 ? max - cur : paidResupplyRefillAmount;
