@@ -2,9 +2,9 @@ shader_type canvas_item;
 render_mode blend_mix;
 
 // ✅ 色相旋转染色（2026-11-10 用户钦定：保饱和只换色）
-// base 贴图已统一预旋正红基线；hue_shift = 势力正典色色相角
-uniform float hue_shift = 0.0;    // 度
-uniform float saturation = 1.0;   // P0 中立 = 0.12（去饱和灰）
+// hue_shift is the delta from each source pixel hue to the faction's canonical hue.
+uniform float hue_shift = 0.0;    // degrees
+uniform float saturation = 1.0;   // P0 neutral = 0.12
 
 vec3 rgb2hsv(vec3 c) {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
