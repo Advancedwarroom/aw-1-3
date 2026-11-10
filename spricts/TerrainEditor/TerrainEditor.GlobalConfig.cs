@@ -1181,9 +1181,35 @@ private void RefreshAllUnitVision()
                 screenPreviewStrip.AddChild(pv);
             }
         }
+        // ✅ 屏数变更时三个数组同步重建：保留已有项，新屏宽度=剩余均分、高度=整体高、偏移=0
+        void SyncScreenArraysToCount(int newCount)
+        {
+            if (gridManager == null || newCount <= 0) return;
+            int ow = (int)widthSpin.Value, oh = (int)heightSpin.Value;
+            int gap = gridManager.screenGap;
+            var oldW = gridManager.screenWidths;
+            var oldH = gridManager.screenHeights;
+            var oldY = gridManager.screenYOffsets;
+            int sumW = 0, oldN = oldW?.Length ?? 0;
+            if (oldW != null) for (int i = 0; i < oldW.Length; i++) sumW += Math.Max(0, oldW[i]);
+            int remain = newCount - oldN;
+            int padW = remain > 0 ? Math.Max(1, (ow - gap * (newCount - 1) - sumW) / remain) : ow;
+            var w = new int[newCount]; var h = new int[newCount]; var yo = new int[newCount];
+            for (int i = 0; i < newCount; i++)
+            {
+                w[i] = (oldW != null && i < oldW.Length && oldW[i] > 0) ? oldW[i] : padW;
+                h[i] = (oldH != null && i < oldH.Length && oldH[i] > 0) ? oldH[i] : oh;
+                yo[i] = (oldY != null && i < oldY.Length) ? oldY[i] : 0;
+            }
+            gridManager.screenWidths = w;
+            gridManager.screenHeights = h;
+            gridManager.screenYOffsets = yo;
+        }
+
         void RebuildPerScreenWidthUI()
         {
-            foreach (var c in perScreenWidthBox.GetChildren()) c.QueueFree();
+            var staleKids = perScreenWidthBox.GetChildren();
+            foreach (var c in staleKids) { perScreenWidthBox.RemoveChild(c); c.Free(); }   // ✅ 立即释放：QueueFree帧内旧SpinBox同名存活会遮蔽新节点，genMapBtn读到整体宽缺省
             int n = (int)screensSpin.Value;
             if (n <= 1) { RebuildScreenPreview(); return; }
             for (int i = 0; i < n; i++)
@@ -1269,7 +1295,9 @@ private void RefreshAllUnitVision()
         applyScreensBtn.AddThemeFontSizeOverride("font_size", 12);
         applyScreensBtn.Pressed += () => {
             if (gridManager == null) return;
-            gridManager.screenCount = (int)curScreensSpin.Value;
+            int newCount = (int)curScreensSpin.Value;
+            SyncScreenArraysToCount(newCount);   // ✅ 数组同步重建：长度失配=全图静默均分（开创人2026-11-11严重错误修复）
+            gridManager.screenCount = newCount;
             gridManager.RefreshScreenIds();
             ShowImportHint($"✅ {TranslateGroup.T("已应用屏数")}: {gridManager.GetScreenCount()}");
         };
