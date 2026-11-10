@@ -554,6 +554,7 @@ public partial class GrandBolt : Weapon
             foreach (var u in (g.infantries ?? new List<Infantry>()).ToList())
             {
                 if (u == null || !IsInstanceValid(u)) continue;
+                ApplyDevourEffects(u);   // ✅ 吞噬回血/消耗（DevourModules）：蠕动压毁=吞噬
                 u.health = 0;
                 u.UpdateHpLabel();
                 if (!u.TryFlee())
@@ -690,6 +691,7 @@ public partial class GrandBolt : Weapon
                 foreach (var u in (targetGrid.infantries ?? new List<Infantry>()).ToList())
                 {
                     if (u == null || u == unit || !IsInstanceValid(u)) continue;
+                    ApplyDevourEffects(u);   // ✅ 吞噬回血/消耗（DevourModules）：生产覆盖=吞噬
                     u.health = 0;
                     u.UpdateHpLabel();
                     if (!u.TryFlee())
