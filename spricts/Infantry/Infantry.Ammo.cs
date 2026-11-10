@@ -20,7 +20,8 @@ public partial class Infantry
         RevealBullet,   // 显形弹（潜艇=上浮弹）
         CamoBullet,     // 迷彩弹
         Production,     // 生产弹药（生产模块）
-        Construction    // 建造弹药（建造模块）
+        Construction,   // 建造弹药（建造模块）
+        Special         // 特殊弹（第11资源，自费补给模块货币槽；useSpecialAmmo=false或上限0=无限）
     }
 
     public static readonly AmmoKind[] AllAmmoKinds =
@@ -38,6 +39,7 @@ public partial class Infantry
         AmmoKind.CamoBullet => currentCamoBullets,
         AmmoKind.Production => currentProductionAmmo,
         AmmoKind.Construction => currentConstructionAmmo,
+        AmmoKind.Special => currentSpecialAmmo,
         _ => 0
     };
 
@@ -51,6 +53,7 @@ public partial class Infantry
         AmmoKind.CamoBullet => GetEffectiveMaxCamoBullets(),
         AmmoKind.Production => maxProductionAmmo,
         AmmoKind.Construction => maxConstructionAmmo,
+        AmmoKind.Special => maxSpecialAmmo,
         _ => 0
     };
 
@@ -100,6 +103,7 @@ public partial class Infantry
         AmmoKind.CamoBullet => maxCamoBullets,
         AmmoKind.Production => maxProductionAmmo,
         AmmoKind.Construction => maxConstructionAmmo,
+        AmmoKind.Special => maxSpecialAmmo,
         _ => 0,
     };
 
@@ -117,6 +121,7 @@ public partial class Infantry
             case AmmoKind.CamoBullet: maxCamoBullets = value; break;
             case AmmoKind.Production: maxProductionAmmo = value; break;
             case AmmoKind.Construction: maxConstructionAmmo = value; break;
+            case AmmoKind.Special: maxSpecialAmmo = value; break;
         }
     }
 
@@ -132,6 +137,7 @@ public partial class Infantry
             case AmmoKind.CamoBullet: currentCamoBullets = value; break;
             case AmmoKind.Production: currentProductionAmmo = value; break;
             case AmmoKind.Construction: currentConstructionAmmo = value; break;
+            case AmmoKind.Special: currentSpecialAmmo = value; break;
         }
     }
 }
