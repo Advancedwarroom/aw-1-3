@@ -401,6 +401,7 @@ public partial class TranslateGroup
     public void ReleaseRuntimeResources()
     {
         SaveMissingReport();
+        Facility.ReleaseCowPaletteCaches();   // ✅ 开创人2026-11-12: 设施色板静态缓存随运行时一并释放
 
         // Release controls individually as well as their CanvasLayer. The controls
         // can be detached by shutdown/test scene teardown, so freeing only the layer
