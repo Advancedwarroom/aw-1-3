@@ -1,15 +1,22 @@
 extends Node
 # 开创人2026-11-11: 设施换色冒烟断言——CI 直接炸，不靠手机截图（ScreenErrorLogger 哲学）
 # 结构对齐 selfplay.gd 已验证模式：extends Node + _ready + .tscn 场景进入
-# City 是锚点灾难当事设施：P-1 必须挂上色相材质且 hue_shift 落在紫色带 [200°,340°]
+# 关键：Facility._Ready 要求父节点是 Grids（res://Prefabs/grid.tscn），否则早退、精灵全空、材质挂不上
 
 func _ready() -> void:
+	var grid_scene = load("res://Prefabs/grid.tscn")
+	if grid_scene == null:
+		_fail("grid.tscn 加载失败")
+		return
+	var grids = grid_scene.instantiate()
+	add_child(grids)
+
 	var packed = load("res://Prefabs/City.tscn")
 	if packed == null:
 		_fail("City.tscn 加载失败")
 		return
 	var fac = packed.instantiate()
-	add_child(fac)
+	grids.add_child(fac)
 	fac.set("facilityTeam", "P-1")
 	if fac.has_method("UpdateCityVisual"):
 		fac.UpdateCityVisual()
