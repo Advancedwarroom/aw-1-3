@@ -717,12 +717,12 @@ public static class TeamHelper
         return true;
     }
     
-    public static bool IsEnemyForAttacker(string attackerTeam, string defenderTeam, bool includeFriendly = false)
+    public static bool IsEnemyForAttacker(string attackerTeam, string defenderTeam, bool includeFriendly = false, bool includeAllies = false)
     {
         if (attackerTeam == Player || attackerTeam == Player0)
             return true;
-        // ✅ 盟友机制：同盟势力不算敌人（不能互攻、AI不视为目标）
-        if (AreAllied(attackerTeam, defenderTeam)) return false;
+        // ✅ 盟友机制：同盟势力不算敌人（勾选友军火力·扩展后放行互攻）
+        if (AreAllied(attackerTeam, defenderTeam)) return includeAllies;
         // ✅ 友军火力：勾选后可攻击同队目标（默认关=原味；盟友仍受保护）
         return attackerTeam != defenderTeam || (includeFriendly && attackerTeam == defenderTeam);
     }
