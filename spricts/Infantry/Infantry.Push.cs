@@ -85,6 +85,9 @@ public partial class Infantry
     [Export] public PushDirectionMode pushDirectionMode = PushDirectionMode.AwayFromPusher;
     [Export] public Vector2I fixedPushDirection = Vector2I.Right;
     [Export] public PushTargetClass pushTargetClass = PushTargetClass.InfantryOnly;
+    [Export] public bool pushCanTargetInfantry = true;
+    [Export] public bool pushCanTargetWeapons = false;
+    [Export] public bool pushCanTargetFacilities = false;
     [Export] public int pushMaxChainStacks = 0; // 0 = unlimited
     [Export] public int pushMaxChainUnits = 0; // 0 = unlimited; co-located stacks are never split
     [Export] public PushChainWeightMode pushChainWeightMode = PushChainWeightMode.Constant;
