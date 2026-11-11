@@ -32,7 +32,7 @@ private void BuildGridPropertyEditor(Grids grid)
         propertyContainer.AddChild(cityLabel);
 
         CreateMemberControl(grid.city, "facilityTeam", typeof(string),
-            () => grid.city.facilityTeam, (v) => { grid.city.facilityTeam = (string)v; });
+            () => grid.city.facilityTeam, (v) => { grid.city.facilityTeam = (string)v; grid.city.UpdateCityVisual(); }); // ✅ 开创人2026-11-11: 编辑模式改势力即时刷新贴图(P-1正典紫)——与PropertyEditor.wrappedSetter同权
         CreateMemberControl(grid.city, "healAmount", typeof(int),
             () => grid.city.healAmount, (v) => { grid.city.healAmount = (int)v; });
         CreateMemberControl(grid.city, "flareAmmoSupply", typeof(int),
