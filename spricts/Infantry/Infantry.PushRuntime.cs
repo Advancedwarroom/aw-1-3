@@ -1588,7 +1588,7 @@ public partial class Infantry
                     Math.Max(0, CalculateFinalDamage(unit, WeaponType.Primary)),
                 PushFragileDamageMode.HealthAndFunds =>
                     CalculateFragileHealthFundsDamage(unit, gm),
-                _ => Math.Max(0, unit.pushFragileDamage)
+                _ => unit.pushFragileDamage
             };
             if (unit.pushFragileLockOneHp) unit.health = 1;
             else if (fragileDamage > 0)
@@ -1605,17 +1605,34 @@ public partial class Infantry
                 }
                 unit.health = (int)Math.Max(1L, remainingHealth);
             }
+            else if (fragileDamage < 0)
+            {
+                long healing = -(long)fragileDamage;
+                long healthMax = unit.pushFragileCanOverMaxHealth
+                    ? int.MaxValue : unit.GetEffectiveMaxHealth();
+                unit.health = (int)Math.Min(healthMax, (long)unit.health + healing);
+            }
             int fragileFuelDelta = MitigatePushDelta(unit, unit.pushFragileFuelDelta,
                 unit.pushMitigationProtectFuel);
             mitigationUsed |= fragileFuelDelta != unit.pushFragileFuelDelta;
             if (fragileFuelDelta != 0)
-                unit.fuel = (int)Math.Clamp((long)unit.fuel + fragileFuelDelta, 0L, int.MaxValue);
+            {
+                long fuelMax = unit.pushFragileFuelCanOverMax
+                    ? int.MaxValue : Math.Max(0, unit.maxFuel);
+                unit.fuel = (int)Math.Clamp((long)unit.fuel + fragileFuelDelta, 0L, fuelMax);
+            }
             int fragileAmmoDelta = MitigatePushDelta(unit, unit.pushFragileAmmoDelta,
                 unit.pushMitigationProtectAmmo
                 && unit.pushMitigationProtectAmmoKind == unit.pushFragileAmmoKind);
             mitigationUsed |= fragileAmmoDelta != unit.pushFragileAmmoDelta;
             if (fragileAmmoDelta != 0)
-                unit.AddAmmo(unit.pushFragileAmmoKind, fragileAmmoDelta);
+            {
+                long ammoMax = unit.pushFragileAmmoCanOverMax
+                    ? int.MaxValue : Math.Max(0, unit.GetMaxAmmo(unit.pushFragileAmmoKind));
+                long ammoValue = Math.Clamp((long)unit.GetAmmo(unit.pushFragileAmmoKind)
+                    + fragileAmmoDelta, 0L, ammoMax);
+                unit.SetAmmoRaw(unit.pushFragileAmmoKind, (int)ammoValue);
+            }
             if (mitigationUsed) PayMitigationAmmoCostForUnit(unit);
             unit.UpdateHpLabel();
         }
