@@ -533,12 +533,19 @@ public partial class Infantry
         // sum of each member's health-adjusted weight.
         var chain = new List<List<Infantry>>();
         var cursor = firstGrid;
+        int chainUnitCount = 0;
         while (cursor != null)
         {
             var stack = GetLivingStack(cursor);
             if (stack.Count == 0 || !CanPushTargetTeam(stack)) break;
+            if (pushMaxChainUnits > 0 && chainUnitCount + stack.Count > pushMaxChainUnits)
+                break;
             chain.Add(stack);
-            if (!pushChainEnabled || (pushMaxChainStacks > 0 && chain.Count >= pushMaxChainStacks)) break;
+            chainUnitCount += stack.Count;
+            if (!pushChainEnabled
+                || (pushMaxChainStacks > 0 && chain.Count >= pushMaxChainStacks)
+                || (pushMaxChainUnits > 0 && chainUnitCount >= pushMaxChainUnits))
+                break;
             cursor = gridManager.GetGridAt(cursor.GridIndex + direction);
         }
         if (chain.Count == 0) return false;
@@ -548,11 +555,27 @@ public partial class Infantry
         // ahead are not independently pushed through the failed link.
         List<Infantry> pusherStack = GetLivingStack(grid);
         if (pusherStack.Count == 0) pusherStack.Add(this);
+        float transmittedForce = GetStackWeight(pusherStack) * GetPushForceMultiplier();
         for (int i = 0; i < chain.Count; i++)
         {
-            if (!CanPushStack(pusherStack, chain[i], GetPushForceMultiplier()))
+            if (!CanPushStackWithForce(pusherStack, transmittedForce, chain[i]))
                 return false;
-            pusherStack = chain[i];
+
+            // The initiating unit's Export controls force transmission through the
+            // entire chain. Constant preserves the original force; Accumulate adds
+            // each displaced stack's mass; Decrease consumes force by that mass.
+            float targetMass = GetStackWeight(chain[i]);
+            switch (pushChainWeightMode)
+            {
+                case PushChainWeightMode.Accumulate:
+                    transmittedForce += targetMass;
+                    if (pushChainMaxAccumulatedWeight > 0.0f)
+                        transmittedForce = Mathf.Min(transmittedForce, pushChainMaxAccumulatedWeight);
+                    break;
+                case PushChainWeightMode.Decrease:
+                    transmittedForce = Mathf.Max(0.0f, transmittedForce - targetMass);
+                    break;
+            }
         }
 
         // Keep each stack's original tile so rebound is resolved once, after the
@@ -737,17 +760,22 @@ public partial class Infantry
 
     private bool CanPushStack(List<Infantry> pusher, List<Infantry> target, float forceMultiplier = 1.0f)
     {
+        return CanPushStackWithForce(pusher, GetStackWeight(pusher) * forceMultiplier, target);
+    }
+
+    private bool CanPushStackWithForce(List<Infantry> pusherRules, float pusherWeight,
+        List<Infantry> target)
+    {
         if (!pushUsesWeight) return true;
-        float pusherWeight = GetStackWeight(pusher) * forceMultiplier;
         float targetWeight = GetStackWeight(target);
         if (pusherWeight > targetWeight && !Mathf.IsEqualApprox(pusherWeight, targetWeight))
             return true;
         if (!Mathf.IsEqualApprox(pusherWeight, targetWeight))
             return false;
 
-        bool pusherAllows = StackAllowsSimultaneous(pusher);
+        bool pusherAllows = StackAllowsSimultaneous(pusherRules);
         bool targetAllows = StackAllowsSimultaneous(target);
-        bool pusherStops = StackStopsOnEqual(pusher);
+        bool pusherStops = StackStopsOnEqual(pusherRules);
         bool targetStops = StackStopsOnEqual(target);
         if (pusherAllows && targetAllows) return true;
         if (pusherStops && targetStops) return false;
