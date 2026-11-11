@@ -16,6 +16,36 @@ public partial class Infantry
         AllowSimultaneous
     }
 
+    public enum PushDirectionMode
+    {
+        AwayFromPusher,
+        Fixed,
+        OppositeSides
+    }
+
+    public enum PushTargetClass
+    {
+        InfantryOnly,
+        AnyPushableEntity
+    }
+
+    public enum PushTargetTeamMode
+    {
+        EnemiesOnly,
+        FriendliesOnly,
+        AlliesOnly,
+        Everyone
+    }
+
+    public enum PushResourceType
+    {
+        None,
+        Funds,
+        Health,
+        Fuel,
+        PrimaryAmmo
+    }
+
     [ExportGroup("推动模块")]
     [Export] public bool pushEnabled = false;
     [Export] public PushTriggerMode pushTriggerMode = PushTriggerMode.Disabled;
@@ -35,6 +65,30 @@ public partial class Infantry
     [Export] public bool pushCanTargetEnemies = true;
     [Export] public bool pushCanTargetFriendlies = false;
     [Export] public bool pushCanTargetAllies = false;
+
+    [ExportSubgroup("方向与目标")]
+    [Export] public PushDirectionMode pushDirectionMode = PushDirectionMode.AwayFromPusher;
+    [Export] public Vector2I fixedPushDirection = Vector2I.Right;
+    [Export] public PushTargetClass pushTargetClass = PushTargetClass.InfantryOnly;
+    [Export] public int pushMaxChainStacks = 0; // 0 = unlimited
+
+    [ExportSubgroup("推力与资源")]
+    [Export] public bool pushForceScalesWithDistance = false;
+    [Export] public float pushForcePerTile = 1.0f;
+    [Export] public PushResourceType pushCostResource = PushResourceType.None;
+    [Export] public int pushCostAmount = 0;
+    [Export] public int pushCooldownTurns = 0;
+
+    [ExportSubgroup("目标状态效果")]
+    [Export] public int pushTargetDamage = 0;
+    [Export] public bool pushDamageCanDestroy = false;
+    [Export] public bool pushLockTargetToOneHp = false;
+    [Export] public int pushTargetFuelDelta = 0;
+    [Export] public int pushTargetAmmoDelta = 0;
+
+    [ExportSubgroup("推动者行为")]
+    [Export] public bool pushPusherFollowsChain = false;
+    [Export] public bool pushSelfDestructOnInvalidIntermediateTile = true;
 
     // Runtime-only turn limiter. It is reset by GameManager when this unit's turn refreshes.
     private bool hasUsedPushThisTurn = false;
