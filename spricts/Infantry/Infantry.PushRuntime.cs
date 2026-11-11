@@ -8,6 +8,26 @@ public partial class Infantry
 {
     private PopupMenu pushDistancePopup;
 
+    public bool TryPushTargetOnMovement(Grids targetGrid, Vector2I movementDirection)
+    {
+        if (!CanUseMovementPush() || targetGrid == null || grid == null
+            || movementDirection == Vector2I.Zero || GetRequestedPushDistance() <= 0)
+            return false;
+
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager == null) return false;
+        var targetStack = GetLivingStack(targetGrid);
+        if (!CanPushTargetTeam(targetStack) || !CanPayPushCost(gm))
+            return false;
+
+        if (!ResolvePushChain(targetGrid, movementDirection, GetRequestedPushDistance(),
+            gm.gridManager, gm, fromMovement: true))
+            return false;
+        if (!TryMarkMovementPushUsed()) return false;
+        PayPushCost(gm);
+        return true;
+    }
+
     public void TryPushTargetOnAttack(Infantry target)
     {
         int distance = GetRequestedPushDistance();
@@ -589,7 +609,7 @@ public partial class Infantry
     }
 
     private bool ResolvePushChain(Grids firstGrid, Vector2I direction, int distance,
-        GridManager gridManager, GameManager gameManager)
+        GridManager gridManager, GameManager gameManager, bool fromMovement = false)
     {
         // A stack is all living infantry occupying one tile. Its effective mass is the
         // sum of each member's health-adjusted weight.
@@ -698,11 +718,11 @@ public partial class Infantry
             ApplyPushTargetEffects(stack, gameManager);
         }
 
-        if (pushDirectionMode == PushDirectionMode.OppositeSides && movedStacks.Count > 0)
+        if (!fromMovement && pushDirectionMode == PushDirectionMode.OppositeSides && movedStacks.Count > 0)
         {
             MovePusherOppositeDirection(direction, distance, gridManager, gameManager);
         }
-        else if (pushPusherFollowsChain && firstGrid != null && grid != null)
+        else if (!fromMovement && pushPusherFollowsChain && firstGrid != null && grid != null)
         {
             var followDestination = firstGrid;
             bool canOverlapStatic = (followDestination.city == null || !followDestination.city.pushBlocksInfantryWhenOverlapped)
