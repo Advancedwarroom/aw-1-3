@@ -24,12 +24,6 @@ public partial class Infantry
         OppositeSides
     }
 
-    public enum PushTargetClass
-    {
-        InfantryOnly,
-        AnyPushableEntity
-    }
-
     public enum PushTargetTeamMode
     {
         EnemiesOnly,
@@ -87,7 +81,6 @@ public partial class Infantry
     [Export] public int pushRamDamage = 0;
     [Export] public PushDirectionMode pushDirectionMode = PushDirectionMode.AwayFromPusher;
     [Export] public Vector2I fixedPushDirection = Vector2I.Right;
-    [Export] public PushTargetClass pushTargetClass = PushTargetClass.InfantryOnly;
     [Export] public bool pushCanTargetInfantry = true;
     [Export] public bool pushCanTargetWeapons = false;
     [Export] public bool pushCanTargetFacilities = false;
