@@ -17,6 +17,7 @@ var stall_frames: int = 3000
 var max_hp: float = 100.0
 var timeout_frames: int = 200000
 var fail_fast: int = 50
+var diag_dumped: bool = false
 
 var game_manager: Node = null
 var ai_manager: Node = null
@@ -73,13 +74,19 @@ func _process(_delta: float) -> void:
 		phase_changes += 1
 		frames_since_phase = 0
 		last_phase = phase
+		diag_dumped = false
 		print("[SELFPLAY] 阶段 #%d -> %s" % [phase_changes, str(phase)])
+		_log_phase_brief()
 		if phase_changes >= max_phases:
 			print("[SELFPLAY] 达到 max_phases，正常收工")
 			_finish()
 			return
 
 	_check_invariants()
+
+	if frames_since_phase == int(stall_frames * 0.3) and not diag_dumped:
+		diag_dumped = true
+		_dump_stall_diag()
 
 	if frames_since_phase > stall_frames:
 		_fail("卡死：%d 帧未换阶段（encounterPause=%s，当前阶段=%s）——若是遭遇战在等待玩家裁定，需要给 harness 接自动裁定" % [stall_frames, str(game_manager.get("encounterPause")), str(phase)])
@@ -130,6 +137,50 @@ func _check_invariants() -> void:
 		var v = game_manager.get(prop)
 		if v != null and (typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT) and v < 0:
 			_fail("%s = %s（资金为负）" % [prop, str(v)])
+
+func _log_phase_brief() -> void:
+	var parts := []
+	for prop in ["turnPhase", "currentTeam", "activeTeam", "CurrentWeather", "currentWeather"]:
+		var v = game_manager.get(prop)
+		if v != null:
+			parts.append("%s=%s" % [prop, str(v)])
+	var um = game_manager.get("unitManager")
+	if um != null:
+		var units = um.get("AllUnits")
+		if units != null:
+			parts.append("units=%d" % units.size())
+	for prop in ["p1Funds", "p2Funds"]:
+		var v = game_manager.get(prop)
+		if v != null:
+			parts.append("%s=%s" % [prop, str(v)])
+	print("[SELFPLAY-STATE] " + " | ".join(parts))
+
+func _dump_stall_diag() -> void:
+	print("[SELFPLAY-DIAG] ===== 卡死现场 dump =====")
+	print("[DIAG] encounterPause=%s gameEnded=%s" % [str(game_manager.get("encounterPause")), str(game_manager.get("gameEnded"))])
+	print("[DIAG] ai: p1=%s p2=%s autoEndTurn=%s" % [str(ai_manager.get("p1AIEnabled")), str(ai_manager.get("p2AIEnabled")), str(ai_manager.get("autoEndTurn"))])
+	for prop in ["currentTeam", "currentTeamIndex", "activeTeam", "teamIndex", "currentStep", "aiState", "state", "thinking", "isThinking", "busy"]:
+		var v1 = game_manager.get(prop)
+		if v1 != null:
+			print("[DIAG] gm.%s = %s" % [prop, str(v1)])
+		var v2 = ai_manager.get(prop)
+		if v2 != null:
+			print("[DIAG] ai.%s = %s" % [prop, str(v2)])
+	var popups := get_tree().root.find_children("*", "ConfirmationDialog", true, false)
+	var accepts := get_tree().root.find_children("*", "AcceptDialog", true, false)
+	print("[DIAG] 弹窗 ConfirmationDialog=%d AcceptDialog=%d" % [popups.size(), accepts.size()])
+	for p in popups:
+		print("[DIAG]   弹窗 visible=%s title=%s" % [str(p.visible), str(p.get("title"))])
+	var menus := get_tree().root.find_children("*ActionMenu*", "Control", true, false)
+	print("[DIAG] ActionMenu节点=%d" % menus.size())
+	for m in menus:
+		print("[DIAG]   菜单 visible=%s pos=%s" % [str(m.visible), str(m.get("global_position"))])
+	var um = game_manager.get("unitManager")
+	if um != null:
+		var units = um.get("AllUnits")
+		if units != null:
+			print("[DIAG] 单位总数=%d" % units.size())
+	print("[SELFPLAY-DIAG] ===== dump 结束 =====")
 
 func _fail(msg: String) -> void:
 	if done or failures.size() >= fail_fast:
