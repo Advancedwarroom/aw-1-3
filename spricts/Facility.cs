@@ -545,7 +545,10 @@ public partial class Facility : Node2D
             string probe = null;
             var names = GetTeamAnimNames();
             if (names.HasValue && frames.HasAnimation(names.Value.red)) probe = names.Value.red;
-            else if (frames.GetAnimationCount() > 0) probe = frames.GetAnimationNames()[0];
+            else
+            {
+                foreach (var animName in frames.GetAnimationNames()) { probe = animName; break; }
+            }
             if (probe == null) return;
             var tex = frames.GetFrameTexture(probe, 0);
             var img = tex?.GetImage();
