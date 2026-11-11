@@ -35,7 +35,7 @@ public partial class Infantry
                 target.equalWeightPushMode, target.isDestroyed))
         {
             var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-            if (gm?.gridManager == null || target.isMultiTile) return;
+            if (gm?.gridManager == null || target == null) return;
             Vector2I direction = GetPushDirection(target.grid);
             if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
             var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
