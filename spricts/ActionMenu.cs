@@ -21,6 +21,7 @@ public partial class ActionMenu : Control
     [Export] public Button repairButton; // ✅ 修复按钮
     [Export] public Button stealthButton; // ✅ 隐身按钮
     [Export] public Button scentButton; // ✅ 嗅探按钮
+    private Button pushButton;
 
     [Export] public Button healButton; // ✅ Crystal 黑水晶治疗按钮
 
@@ -96,12 +97,28 @@ public override void _Ready()
         }
     }
 
+    // Push is created dynamically so existing ActionMenu scenes remain compatible.
+    var buttonContainer = GetNodeOrNull<VBoxContainer>("ButtonContainer");
+    if (buttonContainer != null)
+    {
+        pushButton = new Button { Name = "PushButton", Text = "Push", Visible = false };
+        pushButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+        pushButton.Pressed += OnPushPressed;
+        buttonContainer.AddChild(pushButton);
+    }
+
     // ✅ 订阅语言切换信号
     if (TranslateGroup.Instance != null)
     {
         TranslateGroup.Instance.LanguageChanged += OnLanguageChanged;
     }
 }
+
+    // Separate push action entry point. Target selection is handled by Infantry.PushRuntime.\n    private void OnPushPressed()
+    {
+        if (currentUnit == null || !IsInstanceValid(currentUnit)) return;
+        currentUnit.BeginSeparatePushTargetSelection();
+    }
 
     // ✅ 菜单拖动支持
     public override void _Input(InputEvent @event)
@@ -265,6 +282,9 @@ private List<Grids> GetAdjacentGrids(Grids center)
         }
 
         currentUnit = unit;
+        if (pushButton != null)
+            pushButton.Visible = unit.pushEnabled && unit.pushTriggerMode == Infantry.PushTriggerMode.SeparateAction
+                && unit.CanUseSeparatePushAction();
 
         if (!IsNodeReady()) return;
         if (currentUnit == null) return;
