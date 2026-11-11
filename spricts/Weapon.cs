@@ -14,7 +14,7 @@ public partial class Weapon : Node2D
 
     [ExportGroup("攻击准入")]
     [Export] public string[] excludedAttackerTypes = System.Array.Empty<string>();  // ⚔ 不能被这些单位类型攻击（填类名，如 "Fighter"）
-    [Export] public bool canCrossScreens = false;   // ✅ N屏：能否跨图（跨屏攻击；全屏导弹默认仅限己图，开此Export才可跨图）
+    [Export] public bool canCrossScreens = false;   // 普通兵器射程是否允许跨屏；专用武器可使用独立Export
 
     // ✅ N屏：目标格是否被屏隔离挡住（canCrossScreens=true 时忽略屏界）
     public bool IsScreenBlocked(Grids target)
