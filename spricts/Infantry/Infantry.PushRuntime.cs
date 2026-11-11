@@ -1325,7 +1325,8 @@ public partial class Infantry
             var stack = chain[i].Where(IsLivingUnit).ToList();
             if (stack.Count == 0) continue;
             var origin = originalTiles[i];
-            TryResolveStackDisplacement(stack, origin, direction, gridManager, gameManager);
+            if (TryResolveStackDisplacement(stack, origin, direction, gridManager, gameManager))
+                continue;
             ApplyPushTargetEffects(stack, gameManager);
         }
 
