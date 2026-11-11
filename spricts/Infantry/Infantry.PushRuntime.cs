@@ -104,14 +104,22 @@ public partial class Infantry
     {
         if (target == null || !GodotObject.IsInstanceValid(target) || target.isDestroyed) return;
         if (pushLockTargetToOneHp) target.health = 1;
-        else if (pushTargetDamage > 0) target.TakeDamage(pushTargetDamage, this);
+        else
+        {
+            int damage = (int)Math.Clamp((long)pushTargetDamage + pushRamDamage, 0L, int.MaxValue);
+            if (damage > 0) target.TakeDamage(damage, this);
+        }
     }
 
     private void ApplyStaticPushEffects(Facility target)
     {
         if (target == null || !GodotObject.IsInstanceValid(target) || target.health <= 0) return;
         if (pushLockTargetToOneHp) target.health = 1;
-        else if (pushTargetDamage > 0) target.TakeDamage(pushTargetDamage, this);
+        else
+        {
+            int damage = (int)Math.Clamp((long)pushTargetDamage + pushRamDamage, 0L, int.MaxValue);
+            if (damage > 0) target.TakeDamage(damage, this);
+        }
     }
 
     private bool CanPushNonInfantryTarget(Grids targetGrid, bool? pushable, float? targetWeight,
@@ -124,6 +132,7 @@ public partial class Infantry
         var pusherStack = GetLivingStack(grid);
         if (pusherStack.Count == 0) pusherStack.Add(this);
         float ownWeight = GetStackWeight(pusherStack) * GetPushForceMultiplier();
+        if (!pushUsesWeight) return true;
         if (ownWeight > targetWeight.Value && !Mathf.IsEqualApprox(ownWeight, targetWeight.Value))
             return true;
         if (!Mathf.IsEqualApprox(ownWeight, targetWeight.Value)) return false;
@@ -425,9 +434,10 @@ public partial class Infantry
             else if (pushTargetHealAmount > 0)
                 unit.health = (int)Math.Min(unit.pushTargetCanOverMaxHealth ? int.MaxValue : unit.GetEffectiveMaxHealth(),
                     Math.Min(int.MaxValue, (long)unit.health + pushTargetHealAmount));
-            else if (pushTargetDamage > 0)
+            else if (pushTargetDamage > 0 || pushRamDamage > 0)
             {
-                long damagedHealth = (long)unit.health - pushTargetDamage;
+                long totalDamage = Math.Max(0L, (long)pushTargetDamage + pushRamDamage);
+                long damagedHealth = (long)unit.health - totalDamage;
                 if (damagedHealth <= 0 && pushDamageCanDestroy)
                 {
                     DestroyPushedUnit(unit, gm);
@@ -501,7 +511,7 @@ public partial class Infantry
             var stack = GetLivingStack(cursor);
             if (stack.Count == 0 || !CanPushTargetTeam(stack)) break;
             chain.Add(stack);
-            if (pushMaxChainStacks > 0 && chain.Count >= pushMaxChainStacks) break;
+            if (!pushChainEnabled || (pushMaxChainStacks > 0 && chain.Count >= pushMaxChainStacks)) break;
             cursor = gridManager.GetGridAt(cursor.GridIndex + direction);
         }
         if (chain.Count == 0) return;
@@ -618,18 +628,20 @@ public partial class Infantry
         if (blockingWeapon != null)
         {
             float obstacleWeight = blockingWeapon.GetEffectiveWeight();
-            if (!blockingWeapon.pushableByPhysics || (movingWeight < obstacleWeight
-                && !Mathf.IsEqualApprox(movingWeight, obstacleWeight))) return false;
-            if (Mathf.IsEqualApprox(movingWeight, obstacleWeight)
+            if (!blockingWeapon.pushableByPhysics) return false;
+            if (pushUsesWeight && movingWeight < obstacleWeight
+                && !Mathf.IsEqualApprox(movingWeight, obstacleWeight)) return false;
+            if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
                 && !CanResolveEqualWeight(movingStack, blockingWeapon.equalWeightPushMode)) return false;
         }
 
         if (blockingFacility != null)
         {
             float obstacleWeight = blockingFacility.GetEffectiveWeight();
-            if (!blockingFacility.pushableByPhysics || (movingWeight < obstacleWeight
-                && !Mathf.IsEqualApprox(movingWeight, obstacleWeight))) return false;
-            if (Mathf.IsEqualApprox(movingWeight, obstacleWeight)
+            if (!blockingFacility.pushableByPhysics) return false;
+            if (pushUsesWeight && movingWeight < obstacleWeight
+                && !Mathf.IsEqualApprox(movingWeight, obstacleWeight)) return false;
+            if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
                 && !CanResolveEqualWeight(movingStack, blockingFacility.equalWeightPushMode)) return false;
         }
 
@@ -695,8 +707,9 @@ public partial class Infantry
     private static bool StackStopsOnEqual(List<Infantry> stack) =>
         stack.Count > 0 && stack.All(u => u.equalWeightPushMode == EqualWeightPushMode.Stop);
 
-    private static bool CanPushStack(List<Infantry> pusher, List<Infantry> target, float forceMultiplier = 1.0f)
+    private bool CanPushStack(List<Infantry> pusher, List<Infantry> target, float forceMultiplier = 1.0f)
     {
+        if (!pushUsesWeight) return true;
         float pusherWeight = GetStackWeight(pusher) * forceMultiplier;
         float targetWeight = GetStackWeight(target);
         if (pusherWeight > targetWeight && !Mathf.IsEqualApprox(pusherWeight, targetWeight))
