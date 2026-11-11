@@ -29,7 +29,16 @@ jobs:
       - name: 杀掉 MSBuild 服务进程
         run: dotnet build-server shutdown
       - name: 主场景无头跑 600 帧
-        run: timeout 300 godot --headless --path . --quit-after 600
+        run: |
+          mkdir -p build
+          set -o pipefail
+          timeout 300 godot --headless --path . res://tests/smoke.tscn 2>&1 | tee build/smoke.log
+      - name: 检查主场景运行时错误与资源泄漏
+        run: |
+          if grep -E "SCRIPT ERROR|ERROR:|WARNING: .* leaked|Failed to load hue" build/smoke.log; then
+            echo "发现主场景运行时错误或退出资源泄漏"; exit 1
+          fi
+          grep -q "SMOKE_PASS: 600 frames" build/smoke.log || { echo "主场景 600 帧测试未完成"; exit 1; }
 
   selfplay:
     name: 双AI自对弈回归（60阶段）
@@ -58,7 +67,7 @@ jobs:
           timeout 900 godot --headless --path . res://tests/selfplay.tscn -- --max-phases 60 2>&1 | tee build/selfplay.log
       - name: 运行时错误检查（适配开创人 ScreenErrorLogger：CI 直接炸）
         run: |
-          if grep -E "SCRIPT ERROR|Failed to load hue" build/selfplay.log; then
+          if grep -E "SCRIPT ERROR|ERROR:|WARNING: .* leaked|Failed to load hue" build/selfplay.log; then
             echo "发现运行时错误（见上方匹配行）"; exit 1
           fi
       - name: 失败时开issue带日志（recolor同款通道）

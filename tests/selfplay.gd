@@ -21,6 +21,7 @@ var diag_dumped: bool = false
 
 var game_manager: Node = null
 var ai_manager: Node = null
+var game_instance: Node = null
 var failures: Array = []
 var phase_changes: int = 0
 var last_phase = null
@@ -35,8 +36,8 @@ func _ready() -> void:
 		_fail("无法加载 res://scene/main.tscn")
 		_finish()
 		return
-	var game := main_scene.instantiate()
-	add_child(game)
+	game_instance = main_scene.instantiate()
+	add_child(game_instance)
 
 	game_manager = get_tree().get_first_node_in_group("game_manager")
 	ai_manager = get_tree().get_first_node_in_group("ai_manager")
@@ -203,7 +204,18 @@ func _finish() -> void:
 	if f:
 		f.store_string(JSON.stringify(report, "  "))
 	print("[SELFPLAY] 结果: %s | 阶段: %d | 失败: %d" % [report["result"], phase_changes, failures.size()])
-	get_tree().quit(0 if failures.is_empty() else 1)
+	var exit_code := 0 if failures.is_empty() else 1
+	var tree := get_tree()
+	# Free the full game scene before quitting; otherwise Godot reports hundreds of
+	# live CanvasItems, physics RIDs and ObjectDB instances as shutdown leaks.
+	if game_instance != null and is_instance_valid(game_instance):
+		game_instance.queue_free()
+	game_instance = null
+	game_manager = null
+	ai_manager = null
+	await tree.process_frame
+	await tree.process_frame
+	tree.quit(exit_code)
 
 func _parse_args() -> void:
 	var args := OS.get_cmdline_user_args()
