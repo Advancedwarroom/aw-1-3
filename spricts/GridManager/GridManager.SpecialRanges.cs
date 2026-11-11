@@ -36,8 +36,8 @@ public partial class GridManager
         HideExplosionRange();
         if (unit?.grid == null) return;
 
-        var allRangeGrids = FindRange(unit.grid, maxR, false);
-        List<Grids> innerGrids = minR > 0 ? FindRange(unit.grid, minR - 1, false) : new List<Grids>();
+        var allRangeGrids = FindRange(unit.grid, maxR, false, unit.explosionCanCrossScreens);
+        List<Grids> innerGrids = minR > 0 ? FindRange(unit.grid, minR - 1, false, unit.explosionCanCrossScreens) : new List<Grids>();
 
         foreach (var grid in allRangeGrids)
         {
@@ -70,8 +70,8 @@ public partial class GridManager
         HideFlareRange();
         if (unit?.grid == null) return;
 
-        var allRangeGrids = FindRange(unit.grid, maxR, false);
-        List<Grids> innerGrids = minR > 0 ? FindRange(unit.grid, minR - 1, false) : new List<Grids>();
+        var allRangeGrids = FindRange(unit.grid, maxR, false, unit.flareLaunchCanCrossScreens);
+        List<Grids> innerGrids = minR > 0 ? FindRange(unit.grid, minR - 1, false, unit.flareLaunchCanCrossScreens) : new List<Grids>();
 
         foreach (var grid in allRangeGrids)
         {
