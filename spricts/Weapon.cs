@@ -64,12 +64,12 @@ public partial class Weapon : Node2D
     [Export] public int cost = 0;
 
     [ExportGroup("推动模块")]
-    [Export] public float weight = 1.0f;
+    [Export(PropertyHint.Range, "0,9999,0.01")] public float weight = 1.0f;
     [Export] public bool weightScalesWithHealth = false;
     [Export] public bool pushableByPhysics = false;
     [Export] public bool pushBlocksInfantryWhenOverlapped = true;
     [Export] public Infantry.EqualWeightPushMode equalWeightPushMode = Infantry.EqualWeightPushMode.Stop;
-    public virtual float GetEffectiveWeight() => Mathf.Max(0f, weight) * (weightScalesWithHealth ? Mathf.Clamp((float)health / Mathf.Max(1, maxHealth), 0f, 1f) : 1f);
+    public virtual float GetEffectiveWeight() => Mathf.Clamp(weight, 0f, 9999f) * (weightScalesWithHealth ? Mathf.Clamp((float)health / Mathf.Max(1, maxHealth), 0f, 1f) : 1f);
 
     public virtual bool MoveByPhysicsPush(Grids destination, WeaponManager manager)
     {
