@@ -997,6 +997,9 @@ public partial class Facility : Node2D
 
     private void ShowGridSupplyEffectNew() { var effect = new GridSupplyEffect(); AddChild(effect); }
 
+    [ExportGroup("多屏幕范围")]
+    [Export] public bool facilityVisionCanCrossScreens = false; // 设施视野/侦测范围是否允许跨屏
+
     // ========== 设施视野（P-1设施给所有势力共享） ==========
 
     public virtual HashSet<Grids> CalculateFacilityVision(GameManager gm)
