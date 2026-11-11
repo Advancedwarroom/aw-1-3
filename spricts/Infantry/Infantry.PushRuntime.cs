@@ -236,7 +236,45 @@ public partial class Infantry
         rebounder.fuel = Mathf.Max(0, rebounder.fuel - rebounder.pushReboundFuelCost);
         if (rebounder.pushReboundFundsCost > 0 && gm != null)
             gm.SetTeamFunds(rebounder.team, gm.GetTeamFunds(rebounder.team) - rebounder.pushReboundFundsCost);
-        MoveStackByPush(stack, origin);
+        var reboundDestination = rebounder.pushReboundToOrigin
+            ? origin
+            : gm?.gridManager?.GetGridAt(origin.GridIndex - direction);
+        if (reboundDestination == null || GetLivingStack(reboundDestination).Count > 0)
+            return false;
+        MoveStackByPush(stack, reboundDestination);
+        return true;
+    }
+
+    private bool TryTransferStack(List<Infantry> stack, Vector2I pushDirection,
+        GridManager gridManager, GameManager gm)
+    {
+        var transferUnit = stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushTransferEnabled);
+        if (transferUnit == null || transferUnit.pushTransferDirection == Vector2I.Zero)
+            return false;
+        int ammoCost = Mathf.Max(0, transferUnit.pushTransferAmmoCost);
+        int fuelCost = Mathf.Max(0, transferUnit.pushTransferFuelCost);
+        int healthCost = Mathf.Max(0, transferUnit.pushTransferHealthCost);
+        int fundsCost = Mathf.Max(0, transferUnit.pushTransferFundsCost);
+        if (transferUnit.GetAmmo(AmmoKind.Primary) < ammoCost || transferUnit.fuel < fuelCost
+            || transferUnit.health <= healthCost || (gm != null && gm.GetTeamFunds(transferUnit.team) < fundsCost))
+            return false;
+
+        Vector2I direction = transferUnit.pushTransferDirection;
+        direction = Mathf.Abs(direction.X) >= Mathf.Abs(direction.Y)
+            ? new Vector2I(Math.Sign(direction.X), 0)
+            : new Vector2I(0, Math.Sign(direction.Y));
+        var origin = stack[0].grid;
+        var destination = origin == null ? null : gridManager.GetGridAt(origin.GridIndex + direction);
+        if (destination == null || GetLivingStack(destination).Count > 0
+            || destination.city != null || destination.weapon != null)
+            return false;
+
+        if (ammoCost > 0) transferUnit.TryConsumeAmmo(AmmoKind.Primary, ammoCost);
+        transferUnit.fuel -= fuelCost;
+        transferUnit.health -= healthCost;
+        if (fundsCost > 0 && gm != null)
+            gm.SetTeamFunds(transferUnit.team, gm.GetTeamFunds(transferUnit.team) - fundsCost);
+        MoveStackByPush(stack, destination);
         return true;
     }
 
@@ -378,6 +416,8 @@ public partial class Infantry
                 var origin = stack[0].grid;
                 MoveStackByPush(stack, destination);
                 if (TryReboundStack(stack, origin, direction, gameManager))
+                    continue;
+                if (TryTransferStack(stack, direction, gridManager, gameManager))
                     continue;
                 ApplyPushTargetEffects(stack, gameManager);
             }
