@@ -43,7 +43,7 @@ For a separate action:
 
 - Multi-tile weapons cannot yet be moved by push.
 - Facility/weapon chain stacks and mixed infantry/weapon/facility mass transmission are not yet unified into one chain solver.
-- Facility and weapon target effects currently support their health damage/one-HP behavior only; infantry has the broader resource and healing effects.
+- Weapon and facility push targets support health damage, one-HP locking, healing, and maximum-health changes. Weapons also map the six compatible shared ammo kinds to their native ammo slots. Infantry additionally supports fuel and all nine shared ammo kinds.
 - Rebound/transfer are implemented for infantry stacks, not static entities.
 - Visual push animation, free-angle direction selection, fragile collision outcomes, and full simultaneous rebound/mitigation/transfer conflict arbitration remain future work.
 - Chain force and per-link policy now apply to infantry stacks; a single unified solver for mixed infantry/weapon/facility chains is still outstanding.
