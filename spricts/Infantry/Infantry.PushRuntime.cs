@@ -423,7 +423,10 @@ public partial class Infantry
             for (int i = chain.Count - 1; i >= 0; i--)
             {
                 var stack = chain[i].Where(IsLivingUnit).ToList();
-                if (stack.Count == 0 || step >= GetMitigatedPushDistance(stack, distance)) continue;
+                if (stack.Count == 0) continue;
+                int stackDistance = GetMitigatedPushDistance(stack, distance);
+                if (step >= stackDistance) continue;
+                bool finalStepForStack = step == stackDistance - 1;
                 var currentGrid = stack[0].grid;
                 if (currentGrid == null) continue;
                 var destination = gridManager.GetGridAt(currentGrid.GridIndex + direction);
@@ -436,7 +439,7 @@ public partial class Infantry
                 foreach (var unit in stack.ToList())
                 {
                     bool invalidTerrain = unit.GetMoveCostOnGrid(destination) >= 999;
-                    if (invalidTerrain && (unit.pushSelfDestructOnInvalidIntermediateTile || step == distance - 1))
+                    if (invalidTerrain && (unit.pushSelfDestructOnInvalidIntermediateTile || finalStepForStack))
                         DestroyPushedUnit(unit, gameManager);
                 }
                 stack = stack.Where(IsLivingUnit).ToList();
