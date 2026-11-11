@@ -27,7 +27,7 @@ For a separate action:
 - `pushChainRules` is an indexed Resource array. Entry 0 controls the first displaced tile, entry 1 the second, and so on; each entry can override team policy, target classes, whitelist, and blacklist. Missing entries inherit the global Export settings. These rules are included in the shared Export persistence codec.
 - `pushMaxChainUnits` limits the number of infantry in a chain without splitting co-located stacks. `pushMaxChainStacks` continues to limit occupied tiles.
 - `pushChainWeightMode` controls force transmission from the initiating pusher: constant force, add each displaced stack's mass, or subtract each displaced stack's mass. `pushChainMaxAccumulatedWeight` caps accumulated force when positive.
-- Weapon and facility weights use the same health-scaling model. They can be pushed when `pushableByPhysics` is enabled. Multi-tile weapons are intentionally excluded from displacement until footprint-safe movement is implemented.
+- Weapon and facility weights use the same health-scaling model. They can be pushed when `pushableByPhysics` is enabled. Direct multi-tile weapon pushes validate the complete destination footprint.
 
 ## Direction, chain, costs and effects
 
@@ -38,9 +38,9 @@ For a separate action:
 - Resource costs can use funds, HP, fuel, primary ammo, or any configured `AmmoKind` through `pushCostAmmoKind`.
 - Push uses three dedicated shared ammunition kinds: `PushRebound`, `PushMitigation`, and `AntiGravityTransfer`. They are part of the unit ammo read/write/refill API, paid resupply/sacrifice, facility supply, devour effects, terrain per-turn ammo/max-ammo changes, and generic Export saves.
 - Push costs and target ammo changes can select any `AmmoKind`; rebound, mitigation, and transfer default to their dedicated ammo types.
-- Infantry target effects include damage, one-HP locking, healing, max-HP changes, fuel changes, and changes to any configured `AmmoKind`. Health, fuel, and ammo each have their own over-max control.
-- Infantry stacks support configurable rebound, distance mitigation, and anti-gravity transfer Export settings. Mitigation ammo is charged only when its mitigation reduces displacement and the stack actually moves; only one module that supplied the strongest reduction is charged per stack.
-- Rebound checks the pusher's original distance from the rebounder, team filters, and a fresh weight comparison against the initiating stack. It can restore the target to its origin or retreat the pusher one tile to let the target rebound into the pusher's old tile. Rebound supports enemy/friendly/ally filters, health/fuel/funds/ammo costs and reflected damage/fuel/ammo effects on the pusher. Mitigation ammo is charged only when its mitigation actually reduces the displacement and the stack moves.
+- Infantry target effects include damage, one-HP locking, healing, max-HP changes, fuel/ammo changes, and team-funds deltas. Health, fuel, ammo, and funds have independent over-max controls.
+- Infantry stacks support configurable rebound, distance mitigation, and anti-gravity transfer Export settings. Mitigation can protect HP, funds, fuel, and a selected ammo type using fixed and percentage reductions. Its ammo is charged once per unit per push action when it actually reduces displacement or a resource loss.
+- Rebound checks the pusher's original distance from the rebounder, team filters, and a fresh weight comparison against the initiating stack. It can restore the target to its origin or retreat the pusher one tile to let the target rebound into the pusher's old tile. Rebound supports enemy/friendly/ally filters, health/fuel/funds/ammo costs and reflected damage/fuel/ammo effects on the pusher.
 - `pushSelfDestructOnInvalidIntermediateTile` is checked on each displaced infantry entity: enabled destroys it on any invalid intermediate tile; disabled only destroys it if the final requested tile is invalid. The pusher's `pushDestroyOnProperty` option destroys displaced units on any property tile, regardless of ownership.
 
 ## Current limitations
@@ -52,7 +52,7 @@ For a separate action:
 - Moving weapons/facilities can overlap infantry when `pushBlocksInfantryWhenOverlapped=false`. When enabled, the moving static entity resolves the occupied destination by weight/equal-weight rules; the stationary tile occupant is not treated as the moving entity.
 - Infantry `pushFragileEnabled` applies health/fuel/ammo impact to survivors of unit-stack and static-obstacle collisions. Health supports fixed damage (including negative healing), primary-attack damage calculation, or a health/funds conversion; the attack-calculation mode uses the initiating pusher's primary damage formula. Fragile health, fuel, and ammo effects have independent over-max controls.
 - Rebound/transfer are implemented for infantry stacks, not static entities.
-- Visual push animation, continuous free-angle 0–360° direction selection (the current grid solver is eight-way), attack/funds-based fragile damage, and full simultaneous rebound/mitigation/transfer conflict arbitration remain future work.
+- Visual push animation, continuous free-angle 0–360° direction selection (the current grid solver is eight-way), manual rebound/transfer selection, and full simultaneous rebound/mitigation/transfer conflict arbitration remain future work.
 - Chain force and per-link policy now apply to infantry stacks; a single unified solver for mixed infantry/weapon/facility chains is still outstanding.
 
 This is a staged implementation; run the Android CI workflow and in-game scenarios before merging.
