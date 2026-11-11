@@ -73,8 +73,13 @@ public partial class MissileSilo : Weapon
 
     // ========== 14. 支持队伍（如开启势力限制）==========
     [ExportGroup("队伍与目标")]
-    [Export] public int siloTeamPolicy = 2;                     // 14.0=仅友军 1=仅敌军 2=全部
-    [Export] public int targetUnitPolicy = 2;                   // 14.目标：0=仅友军 1=仅敌军 2=全部
+    [ExportGroup("队伍筛选")]
+    [Export] public bool siloIncludeFriendly = true;
+    [Export] public bool siloIncludeEnemy = true;
+    [Export] public bool siloIncludeAllied = true;
+    [Export] public bool targetUnitIncludeFriendly = true;
+    [Export] public bool targetUnitIncludeEnemy = true;
+    [Export] public bool targetUnitIncludeAllied = true;
     [Export] public bool affectsWeapons = true;                // 打击是否影响兵器
     [Export] public bool affectsFacilities = false;            // 打击是否影响设施
     // ========== 15. 不支持单位种类黑名单（导弹井全部沿用原作，不做黑名单）==========
@@ -90,14 +95,8 @@ public partial class MissileSilo : Weapon
     }
 
     // ---------- 队伍判定 ----------
-    // 友军判定：同队；或其中一方为P-1公共势力（TeamHelper.Player）时视为友军
     private static bool AreFriendly(string a, string b)
-    {
-        if (a == b) return true;
-        if (a == TeamHelper.Player || b == TeamHelper.Player) return true;
-        if (a == TeamHelper.Player0 || b == TeamHelper.Player0) return true; // 中立=不视为敌
-        return false;
-    }
+        => TeamHelper.IsFriendlyTeam(a, b) || TeamHelper.IsAlliedTeam(a, b);
 
     private bool TeamCanFire(string firingTeam)
     {
@@ -108,14 +107,14 @@ public partial class MissileSilo : Weapon
 
     public bool TargetTeamOk(string targetTeam)
     {
-        bool friendly = AreFriendly(team, targetTeam);
-        return siloTeamPolicy switch { 0 => friendly, 1 => !friendly, _ => true };
+        return TeamHelper.MatchesTeamRelation(team, targetTeam,
+            siloIncludeFriendly, siloIncludeEnemy, siloIncludeAllied);
     }
 
     public bool TargetUnitTeamOk(string targetTeam)
     {
-        bool friendly = AreFriendly(team, targetTeam);
-        return targetUnitPolicy switch { 0 => friendly, 1 => !friendly, _ => true };
+        return TeamHelper.MatchesTeamRelation(team, targetTeam,
+            targetUnitIncludeFriendly, targetUnitIncludeEnemy, targetUnitIncludeAllied);
     }
 
     // ---------- 井上发射（原作：步兵站上井口）----------

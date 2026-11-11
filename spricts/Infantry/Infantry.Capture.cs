@@ -275,7 +275,7 @@ public partial class Infantry
         if (grid == null || grid.city == null) return false;
         if (grid.city.facilityTeam == team) return false;
         if (grid.infantries != null && grid.infantries.Any(u => u != null && IsInstanceValid(u)
-            && u.team != team && u.tearingGrid == grid && u.currentTearProgress > 0)) return false;
+            && TeamHelper.IsEnemyTeam(team, u.team) && u.tearingGrid == grid && u.currentTearProgress > 0)) return false;
         return true;
     }
 
@@ -296,7 +296,7 @@ public partial class Infantry
         }
 
         var contest = grid.infantries.Where(u => u != null && IsInstanceValid(u)
-            && u.currentCaptureProgress > 0 && u.capturingGrid == grid && u.team != team).ToList();
+            && u.currentCaptureProgress > 0 && u.capturingGrid == grid && TeamHelper.IsEnemyTeam(team, u.team)).ToList();
         if (contest.Count > 0)
         {
             loadedCaptureProgress = 0;

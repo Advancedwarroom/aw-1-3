@@ -13,7 +13,9 @@ public partial class Infantry
     [Export] public bool packUseWhitelist = false;   // 是否启用检查单位白名单
     [Export] public Godot.Collections.Array<string> packWhitelist = new(); // 仅注册表单位种类（不看自定义Export）
     [Export] public bool packSameSpeciesOnly = false; // 特殊态：仅同种类（同类单位）
-    [Export] public int packFactionMode = 0;         // 0全部 1仅友军 2仅敌军
+    [Export] public bool packIncludeFriendly = true;
+    [Export] public bool packIncludeEnemy = true;
+    [Export] public bool packIncludeAllied = true;
     [Export] public int packMaxStacks = 3;           // 最大加成次数（看到7只也只享3次）
     [Export] public int packBonusPercent = 25;       // 加/减成百分比（负=减成）
     [Export] public bool packCanExceedCap = false;   // 是否超越上限
@@ -50,8 +52,8 @@ public partial class Infantry
                 foreach (var u in gm.gridManager.map[pos.X, pos.Y].infantries)
                 {
                     if (u == null || !IsInstanceValid(u) || u == this) continue;
-                    if (packFactionMode == 1 && u.team != team) continue;   // 仅友军
-                    if (packFactionMode == 2 && u.team == team) continue;   // 仅敌军
+                    if (!TeamHelper.MatchesTeamRelation(team, u.team,
+                        packIncludeFriendly, packIncludeEnemy, packIncludeAllied)) continue;
                     if (packSameSpeciesOnly)
                     { if (u.unitTypeId != unitTypeId) continue; }           // 同类特殊态
                     else if (packUseWhitelist && !packWhitelist.Contains(u.unitTypeId)) continue;

@@ -65,8 +65,9 @@ public partial class Infantry
     [ExportGroup("自费补给·代价③献祭（抽n-m内第三者的资源）")]
     [Export] public bool prUseSacrifice = false;
     [Export] public int prSacrificeAmount = 0;                      // 每个受害者被抽的量（负=反哺）
-    [Export(PropertyHint.Enum, "仅我方,仅敌方,全部")]
-    public int prSacrificeTeamPolicy = 0;                           // 受害势力筛选
+    [Export] public bool prSacrificeIncludeFriendly = true;
+    [Export] public bool prSacrificeIncludeEnemy = false;
+    [Export] public bool prSacrificeIncludeAllied = false;
     [Export] public bool prSacrificeHp = false;
     [Export] public bool prSacrificeFuel = false;
     [Export] public bool prSacrificeAmmoPrimary = false;
@@ -245,9 +246,8 @@ public partial class Infantry
     private void PrSacrificeDrainUnit(GameManager gm, Infantry u)
     {
         if (u == null || !IsInstanceValid(u) || u == this) return;
-        bool teamOk = prSacrificeTeamPolicy == 2
-            || (prSacrificeTeamPolicy == 0 && u.team == team)
-            || (prSacrificeTeamPolicy == 1 && u.team != team);
+        bool teamOk = TeamHelper.MatchesTeamRelation(team, u.team,
+            prSacrificeIncludeFriendly, prSacrificeIncludeEnemy, prSacrificeIncludeAllied);
         if (!teamOk) return;
         for (int r = 0; r <= 10; r++)
             if (PrSacrificeEnabled(r) && !u.PrIsInfinite(r))
@@ -257,9 +257,8 @@ public partial class Infantry
     private void PrSacrificeDrainWeapon(GameManager gm, Weapon wp)
     {
         if (wp == null || !IsInstanceValid(wp)) return;
-        bool teamOk = prSacrificeTeamPolicy == 2
-            || (prSacrificeTeamPolicy == 0 && wp.team == team)
-            || (prSacrificeTeamPolicy == 1 && wp.team != team);
+        bool teamOk = TeamHelper.MatchesTeamRelation(team, wp.team,
+            prSacrificeIncludeFriendly, prSacrificeIncludeEnemy, prSacrificeIncludeAllied);
         if (!teamOk) return;
         for (int r = 0; r <= 10; r++)
             if (PrSacrificeEnabled(r) && !wp.PrIsInfiniteW(r))
@@ -268,9 +267,8 @@ public partial class Infantry
     private void PrSacrificeDrainFacility(GameManager gm, Facility f)
     {
         if (f == null || !IsInstanceValid(f)) return;
-        bool teamOk = prSacrificeTeamPolicy == 2
-            || (prSacrificeTeamPolicy == 0 && f.facilityTeam == team)
-            || (prSacrificeTeamPolicy == 1 && f.facilityTeam != team);
+        bool teamOk = TeamHelper.MatchesTeamRelation(team, f.facilityTeam,
+            prSacrificeIncludeFriendly, prSacrificeIncludeEnemy, prSacrificeIncludeAllied);
         if (!teamOk) return;
         for (int r = 0; r <= 10; r++)
             if (PrSacrificeEnabled(r) && !f.PrIsInfiniteF(r))

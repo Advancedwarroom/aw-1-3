@@ -19,7 +19,9 @@ public partial class Crystal : Weapon
     [Export] public int crystalHealMinRange = 0;        // 治疗最小范围（盲区）
     [Export] public int crystalHealMaxRange = 3;        // 治疗最大范围
     [Export] public float crystalHealPercent = 0.2f;    // 治疗百分比（0.2=20%）
-    [Export] public int crystalHealTeamMode = 1;          // 0=不分敌我 1=仅我方 2=仅敌方
+    [Export] public bool crystalHealIncludeFriendly = true;
+    [Export] public bool crystalHealIncludeEnemy = false;
+    [Export] public bool crystalHealIncludeAllied = false;
     [Export] public Godot.Collections.Array<string> crystalHealUnitTypes = new(); // 准许类型（空=所有类型）
     [Export] public bool crystalHealAffectsWeapons = true; // 能否给兵器回血
     [Export] public bool crystalHealCanOverMaxHp = false;  // 能否超过最大血量
@@ -28,7 +30,9 @@ public partial class Crystal : Weapon
     [ExportGroup("黑水晶 - 范围补给")]
     [Export] public int crystalSupplyMinRange = 0;      // 补给最小范围
     [Export] public int crystalSupplyMaxRange = 3;      // 补给最大范围
-    [Export] public int crystalSupplyTeamMode = 1;      // 0=不分敌我 1=仅我方 2=仅敌方
+    [Export] public bool crystalSupplyIncludeFriendly = true;
+    [Export] public bool crystalSupplyIncludeEnemy = false;
+    [Export] public bool crystalSupplyIncludeAllied = false;
     [Export] public Godot.Collections.Array<string> crystalSupplyUnitTypes = new(); // 准许类型（空=所有类型）
     [Export] public bool crystalSupplyAffectsWeapons = true; // 能否给兵器补给
 
@@ -262,7 +266,7 @@ public partial class Crystal : Weapon
     // 预检：单位是否会被补给（不实际修改）
     private bool WouldSupplyUnit(Infantry unit)
     {
-        if (!CheckTeamFilter(unit.team, crystalSupplyTeamMode)) return false;
+        if (!CheckTeamFilter(unit.team, crystalSupplyIncludeFriendly, crystalSupplyIncludeEnemy, crystalSupplyIncludeAllied)) return false;
         if (!CheckTypeFilter(unit.UnitTypeId, crystalSupplyUnitTypes)) return false;
         // 检查是否有任何一种补给会实际改变数值
         if (crystalSupplyFlareAmmo != 0 && unit.canIlluminate)
@@ -282,7 +286,7 @@ public partial class Crystal : Weapon
 
     private bool WouldSupplyWeapon(Weapon weapon)
     {
-        if (!CheckTeamFilter(weapon.team, crystalSupplyTeamMode)) return false;
+        if (!CheckTeamFilter(weapon.team, crystalSupplyIncludeFriendly, crystalSupplyIncludeEnemy, crystalSupplyIncludeAllied)) return false;
         if (!weapon.useAmmoSystem) return false;
         if (crystalSupplyPrimaryAmmo != 0)
             if (ApplySupplyPreview(weapon.currentAmmo, weapon.maxAmmo, crystalSupplyPrimaryAmmo, crystalSupplyPrimaryCanOverMax, crystalSupplyPrimaryMaxCap) != weapon.currentAmmo) return true;
@@ -304,7 +308,7 @@ public partial class Crystal : Weapon
     private void TryHealUnit(Infantry unit)
     {
         // 队伍判定
-        if (!CheckTeamFilter(unit.team, crystalHealTeamMode)) return;
+        if (!CheckTeamFilter(unit.team, crystalHealIncludeFriendly, crystalHealIncludeEnemy, crystalHealIncludeAllied)) return;
         // 类型判定
         if (!CheckTypeFilter(unit.UnitTypeId, crystalHealUnitTypes)) return;
         // 治疗量
@@ -343,7 +347,7 @@ public partial class Crystal : Weapon
 
     private void TryHealWeapon(Weapon weapon)
     {
-        if (!CheckTeamFilter(weapon.team, crystalHealTeamMode)) return;
+        if (!CheckTeamFilter(weapon.team, crystalHealIncludeFriendly, crystalHealIncludeEnemy, crystalHealIncludeAllied)) return;
         if (Mathf.Abs(crystalHealPercent) < 0.001f) return;
 
         int healAmount = Mathf.RoundToInt(weapon.maxHealth * crystalHealPercent);
@@ -509,16 +513,8 @@ public partial class Crystal : Weapon
     }
 
     // ========== 过滤判定 ==========
-    private bool CheckTeamFilter(string targetTeam, int mode)
-    {
-        return mode switch
-        {
-            0 => true,                                    // 不分敌我
-            1 => targetTeam == this.team,                  // 仅我方
-            2 => targetTeam != this.team && !string.IsNullOrEmpty(targetTeam), // 仅敌方
-            _ => true
-        };
-    }
+    private bool CheckTeamFilter(string targetTeam, bool includeFriendly, bool includeEnemy, bool includeAllied)
+        => TeamHelper.MatchesTeamRelation(this.team, targetTeam, includeFriendly, includeEnemy, includeAllied);
 
     private bool CheckTypeFilter(string typeName, Godot.Collections.Array<string> allowedTypes)
     {
@@ -598,7 +594,7 @@ public partial class Crystal : Weapon
     /// <summary>单位若站在治疗范围内，本次脉冲的血量变化（正=回血，负=扣血，0=无效）</summary>
     public int AIPreviewHealDelta(Infantry unit)
     {
-        if (unit == null || !CheckTeamFilter(unit.team, crystalHealTeamMode)) return 0;
+        if (unit == null || !CheckTeamFilter(unit.team, crystalHealIncludeFriendly, crystalHealIncludeEnemy, crystalHealIncludeAllied)) return 0;
         if (!CheckTypeFilter(unit.UnitTypeId, crystalHealUnitTypes)) return 0;
         int amt = Mathf.RoundToInt(unit.maxHealth * crystalHealPercent);
         if (amt > 0)

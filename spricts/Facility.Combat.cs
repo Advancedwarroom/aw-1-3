@@ -10,6 +10,8 @@ public partial class Facility
  [Export] public bool canBeAttackedFromAdjacent = true;
  [Export(PropertyHint.Range,"0,99,1")] public int attackableMinRange = 0;
  [Export(PropertyHint.Range,"0,99,1")] public int attackableMaxRange = 1;
+ [ExportGroup("摧毁地形")]
+ [Export] public bool changeTerrainToRuinsOnDestroyed = false;
  [ExportGroup("设施伤害表")]
  [Export] public Godot.Collections.Dictionary<string,int> unitDamageTable = new();
  [Export] public Godot.Collections.Dictionary<string,int> weaponDamageTable = new();
@@ -48,7 +50,16 @@ public partial class Facility
   if (!canBeAttacked || isDestroyed || health<=0 || damage<=0) return;
   health=canDestroy ? Mathf.Max(0,health-damage) : Mathf.Max(1,health-damage);
   UpdateHpLabel();
-  if (health<=0) { isDestroyed=true; OnDestroyed(); }
+  if (health<=0)
+  {
+   isDestroyed=true;
+   if (changeTerrainToRuinsOnDestroyed && ParentGrid!=null && IsInstanceValid(ParentGrid))
+   {
+    ParentGrid.gridType=GridType.RUINS;
+    ParentGrid.UpdateTileSprite();
+   }
+   OnDestroyed();
+  }
  }
  public void ApplyWeaponPercentDamage(Weapon attacker,float healthPercent,bool canDestroy,bool canOverMax=false)
  {

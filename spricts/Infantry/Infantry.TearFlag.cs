@@ -143,7 +143,7 @@ public partial class Infantry
             grid.city?.OnCaptureStarted(loaded);
         }
         var contestUnits = grid.infantries
-            .Where(u => u != null && IsInstanceValid(u) && u.team != team
+            .Where(u => u != null && IsInstanceValid(u) && TeamHelper.IsEnemyTeam(team, u.team)
                 && u.currentCaptureProgress > 0 && u.capturingGrid == grid).ToList();
         if (contestUnits.Count > 0)
         {

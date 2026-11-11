@@ -63,6 +63,7 @@ public partial class AI_Manager : Node
         public Infantry target;
         public Weapon weaponTarget;
         public Grids actGrid;                    // 照明中心 / 卸载格
+        public Grids tpVia;                      // 传送方案：先到源格，再传送至 dest
         public List<(Infantry cargo, Grids to)> unloads;
         public bool preReveal;                   // 行动前先显形（免费切换）
         public bool postHide;                    // 行动后隐身（免费切换）

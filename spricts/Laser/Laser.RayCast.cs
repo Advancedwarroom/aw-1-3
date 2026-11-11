@@ -154,8 +154,8 @@ public partial class Laser
         return targetSelectionMode switch
         {
             LaserTargetMode.AllSelect => true,
-            LaserTargetMode.OnlyEnemyUnits => facility.facilityTeam != team,
-            LaserTargetMode.OnlyUserUnits => facility.facilityTeam == team,
+            LaserTargetMode.OnlyEnemyUnits => TeamHelper.IsEnemyTeam(team, facility.facilityTeam),
+            LaserTargetMode.OnlyUserUnits => TeamHelper.IsFriendlyTeam(team, facility.facilityTeam),
             _ => false
         };
     }
@@ -182,8 +182,8 @@ public partial class Laser
                     targets.Add(g.weapon);
                 break;
             case LaserTargetMode.OnlyEnemyUnits:
-                targets.AddRange(g.infantries.Where(i => IsInstanceValid(i) && i.team != team).Cast<Node2D>());
-                if (canAttackWeapons && g.weapon != null && IsInstanceValid(g.weapon) && g.weapon.team != team && g.weapon != this)
+                targets.AddRange(g.infantries.Where(i => IsInstanceValid(i) && TeamHelper.IsEnemyTeam(team, i.team)).Cast<Node2D>());
+                if (canAttackWeapons && g.weapon != null && IsInstanceValid(g.weapon) && TeamHelper.IsEnemyTeam(team, g.weapon.team) && g.weapon != this)
                     targets.Add(g.weapon);
                 break;
             case LaserTargetMode.OnlyUserUnits:

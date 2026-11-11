@@ -18,7 +18,9 @@ public partial class Infantry
     [Export] public bool empowermentTargetUnits = true;
     [Export] public bool empowermentTargetWeapons = true;
     [Export] public bool empowermentTargetFacilities = true;
-    [Export(PropertyHint.Enum, "仅我方,仅敌方,全部")] public int empowermentTeamPolicy = 0;
+    [Export] public bool empowermentIncludeFriendly = true;
+    [Export] public bool empowermentIncludeEnemy = false;
+    [Export] public bool empowermentIncludeAllied = false;
     [Export] public Godot.Collections.Array<string> empowermentBlacklist = new();
     [Export] public bool empowermentIncludeSelf = true;
     [Export(PropertyHint.Range, "1,99,1")] public int empowermentMaxStacksPerCell = 1;
@@ -52,8 +54,10 @@ public partial class Weapon
     [Export] public bool empowermentTargetUnits = true;
     [Export] public bool empowermentTargetWeapons = true;
     [Export] public bool empowermentTargetFacilities = true;
-    [Export(PropertyHint.Enum, "仅我方,仅敌方,全部")] public int empowermentTeamPolicy = 0;
-    [Export] public Godot.Collections.Array<string> empowermentBlacklist = new();
+    [Export] public bool empowermentIncludeFriendly = true;
+    [Export] public bool empowermentIncludeEnemy = false;
+    [Export] public bool empowermentIncludeAllied = false;
+[Export] public Godot.Collections.Array<string> empowermentBlacklist = new();
     [Export] public bool empowermentIncludeSelf = true;
     [Export(PropertyHint.Range, "1,99,1")] public int empowermentMaxStacksPerCell = 1;
     [Export(PropertyHint.Range, "0,9999,1")] public int empowermentWeight = 0;
@@ -86,8 +90,10 @@ public partial class Facility
     [Export] public bool empowermentTargetUnits = true;
     [Export] public bool empowermentTargetWeapons = true;
     [Export] public bool empowermentTargetFacilities = true;
-    [Export(PropertyHint.Enum, "仅我方,仅敌方,全部")] public int empowermentTeamPolicy = 0;
-    [Export] public Godot.Collections.Array<string> empowermentBlacklist = new();
+    [Export] public bool empowermentIncludeFriendly = true;
+    [Export] public bool empowermentIncludeEnemy = false;
+    [Export] public bool empowermentIncludeAllied = false;
+[Export] public Godot.Collections.Array<string> empowermentBlacklist = new();
     [Export] public bool empowermentIncludeSelf = true;
     [Export(PropertyHint.Range, "1,99,1")] public int empowermentMaxStacksPerCell = 1;
     [Export(PropertyHint.Range, "0,9999,1")] public int empowermentWeight = 0;

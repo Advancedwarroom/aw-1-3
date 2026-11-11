@@ -15,7 +15,8 @@ public static class EmpowermentRuntime
         public bool Enabled, Automatic, ConsumesAction, IncludeSelf;
         public bool TargetUnits, TargetWeapons, TargetFacilities;
         public int OperationType, Shape, RangeMin, RangeMax, CastMin, CastMax;
-        public int TeamPolicy, MaxStacks, Weight, DispelScope;
+        public bool IncludeFriendly, IncludeEnemy, IncludeAllied;
+        public int MaxStacks, Weight, DispelScope;
         public Vector2I Direction;
         public Godot.Collections.Array<string> Blacklist;
         public Godot.Collections.Dictionary<string, string> Overrides;
@@ -43,7 +44,9 @@ public static class EmpowermentRuntime
             view.TargetUnits = Get(node, "empowermentTargetUnits", true);
             view.TargetWeapons = Get(node, "empowermentTargetWeapons", true);
             view.TargetFacilities = Get(node, "empowermentTargetFacilities", true);
-            view.TeamPolicy = Get(node, "empowermentTeamPolicy", 0);
+            view.IncludeFriendly = Get(node, "empowermentIncludeFriendly", true);
+            view.IncludeEnemy = Get(node, "empowermentIncludeEnemy", false);
+            view.IncludeAllied = Get(node, "empowermentIncludeAllied", false);
             view.Blacklist = Get(node, "empowermentBlacklist", new Godot.Collections.Array<string>());
             view.IncludeSelf = Get(node, "empowermentIncludeSelf", true);
             view.MaxStacks = Math.Max(1, Get(node, "empowermentMaxStacksPerCell", 1));
@@ -362,9 +365,8 @@ public static class EmpowermentRuntime
     {
         if (target == null || !GodotObject.IsInstanceValid(target)) return false;
         if (!source.IncludeSelf && target == source.Node) return false;
-        bool friendly = source.Team == targetTeam || source.Team == TeamHelper.Player || targetTeam == TeamHelper.Player;
-        if (source.TeamPolicy == 0 && !friendly) return false;
-        if (source.TeamPolicy == 1 && friendly) return false;
+        if (!TeamHelper.MatchesTeamRelation(source.Team, targetTeam,
+            source.IncludeFriendly, source.IncludeEnemy, source.IncludeAllied)) return false;
         string type = target.GetType().Name;
         return source.Blacklist == null || (!source.Blacklist.Contains(id) && !source.Blacklist.Contains(template) && !source.Blacklist.Contains(type));
     }

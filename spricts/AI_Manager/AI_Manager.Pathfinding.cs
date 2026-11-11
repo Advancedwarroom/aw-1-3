@@ -93,7 +93,7 @@ public partial class AI_Manager
         foreach (var o in g.infantries)
         {
             if (o == null || o == mover || !IsInstanceValid(o) || o.isTransported) continue;
-            if (o.team == mover.team || o.team == TeamHelper.Player) continue;
+            if (!TeamHelper.IsEnemyTeam(mover.team, o.team)) continue;
             if (enemyView) { if (o.team == aiTeam) return true; continue; }
             if (ctx.enemies.Contains(o)) return true;   // 只有"看得见"的敌军才会被 AI 绕开
         }
@@ -114,7 +114,7 @@ public partial class AI_Manager
         if (known.Any(o => IsEnemy(o.team))) return EndKind.None;
         if (u.isStealthed && u.stealthOverlapMode == 2) return EndKind.None;
 
-        partner = known.FirstOrDefault(o => o.canTransportUnits && (o.team == u.team || o.team == TeamHelper.Player) && o.CanTransportUnit(u));
+        partner = known.FirstOrDefault(o => o.canTransportUnits && (TeamHelper.IsFriendlyTeam(u.team, o.team) || TeamHelper.IsAlliedTeam(u.team, o.team)) && o.CanTransportUnit(u));
         if (partner != null && !(u.isStealthed && !u.canLoadUnloadWhileStealthed)) return EndKind.Load;
 
         partner = known.FirstOrDefault(o => o.team == u.team && o.UnitTypeId == u.UnitTypeId);
@@ -131,7 +131,7 @@ public partial class AI_Manager
         if (g == u.grid) return true;
         var others = g.infantries.Where(o => o != null && o != u && IsInstanceValid(o) && !o.isTransported).ToList();
         if (others.Count == 0) return g.weapon == null || !IsInstanceValid(g.weapon) || u.overlapType == UnitOverlapType.Oozium || g.weapon.AllowsPassage(u); // ✦适配
-        if (others.Any(o => o.team != u.team && o.team != TeamHelper.Player)) return false;
+        if (others.Any(o => TeamHelper.IsEnemyTeam(u.team, o.team))) return false;
         return u.overlapType == UnitOverlapType.Overlapping || u.overlapType == UnitOverlapType.Oozium;
     }
 
@@ -145,6 +145,7 @@ public partial class AI_Manager
         var goals = goalsFn();
         f = new Dictionary<Grids, int>();
         var open = new PriorityQueue<Grids, int>();
+        var reverseTeleport = ReverseTeleportMap();
         foreach (var g in goals.Where(x => x != null).Distinct()) { f[g] = 0; open.Enqueue(g, 0); }
         while (open.TryDequeue(out var cur, out int cc))
         {
@@ -154,10 +155,21 @@ public partial class AI_Manager
             foreach (var d in Dirs)
             {
                 var n = At(cur.GridIndex.X + d.X, cur.GridIndex.Y + d.Y);
-                if (n == null || StepCost(u, n) < 0) continue;
+                if (n == null || n.screenId != cur.screenId || StepCost(u, n) < 0) continue;
                 int nc = cc + Math.Max(1, enter < 0 ? 1 : enter);
                 if (f.TryGetValue(n, out int old) && old <= nc) continue;
                 f[n] = nc; open.Enqueue(n, nc);
+            }
+            if (reverseTeleport.TryGetValue(cur.GridIndex, out var sources))
+            {
+                foreach (var source in sources)
+                {
+                    var n = gameManager?.gridManager?.GetGridAt(source);
+                    if (n == null || StepCost(u, n) < 0) continue;
+                    int nc = cc + 1;
+                    if (f.TryGetValue(n, out int old) && old <= nc) continue;
+                    f[n] = nc; open.Enqueue(n, nc);
+                }
             }
         }
         ctx.distCache[k] = f;

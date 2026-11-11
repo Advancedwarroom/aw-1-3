@@ -69,7 +69,7 @@ public partial class RepairBoat : Infantry
     if (unit == null || !IsInstanceValid(unit)) return false;
     if (transportedUnits.Count >= maxTransportCapacity) return false;
     // ✅ P-1 公共单位可以搭载任何势力
-    if (this.team != TeamHelper.Player && unit.team != this.team) return false;
+    if (!TeamHelper.IsFriendlyTeam(this.team, unit.team) && !TeamHelper.IsAlliedTeam(this.team, unit.team)) return false;
 
     // 只允许 Infantry / Mech / Bike
     bool isAllowedType = unit.GetType() == typeof(Infantry) || unit is Mech || unit is Bike;

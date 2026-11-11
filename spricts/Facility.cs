@@ -165,7 +165,9 @@ public partial class Facility : Node2D
     // ========== 通行控制三件套（照兵器同构，开创人2026-11-11）==========
     // allowAllPass 默认 true=AW 经典（单位可站上城市/基地）；false=Warside 模式（建筑正上方不能呆着）。
     [ExportGroup("通行控制")]
-    [Export(PropertyHint.Enum, "仅我方,仅敌方,全部")] public int movementBlockTeamPolicy = 2;
+    [Export] public bool movementBlockIncludeFriendly = true;
+    [Export] public bool movementBlockIncludeEnemy = true;
+    [Export] public bool movementBlockIncludeAllied = true;
     [Export] public bool allowAllPass = true;
     [Export] public string[] movementBlockWhitelist = System.Array.Empty<string>();
 

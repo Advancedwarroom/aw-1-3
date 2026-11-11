@@ -385,7 +385,7 @@ public partial class GridManager
                 if (curVisible)
                 {
                     cur.infantries.RemoveAll(u => u == null || !IsInstanceValid(u));
-                    var enemyOnCur = cur.infantries.FirstOrDefault(u => u != infantry && u.team != infantry.team && u.team != TeamHelper.Player
+                    var enemyOnCur = cur.infantries.FirstOrDefault(u => u != infantry && TeamHelper.IsEnemyTeam(infantry.team, u.team)
                         && Infantry.IsVisibleTo(u, infantry.team, grids));   // ✅ 隐身敌军不阻挡范围计算（否则范围出现空洞=暴露位置），实际移动时由截断逻辑触发遭遇
                     if (enemyOnCur != null)
                         continue;
@@ -433,8 +433,7 @@ public partial class GridManager
                         neighbor.infantries.RemoveAll(u => u == null || !IsInstanceValid(u));
                         var enemyOnNeighbor = neighbor.infantries.FirstOrDefault(u =>
                             u != infantry
-                            && u.team != infantry.team
-                            && u.team != TeamHelper.Player // ✅ P-1 公共单位不算敌方
+                            && TeamHelper.IsEnemyTeam(infantry.team, u.team)
                             && Infantry.IsVisibleTo(u, infantry.team, grids)); // ✅ 看不见的隐身敌军不剔除（防暴露位置）
                         if (enemyOnNeighbor != null)
                             continue;

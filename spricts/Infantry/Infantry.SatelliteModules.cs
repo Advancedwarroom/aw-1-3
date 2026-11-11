@@ -15,7 +15,9 @@ public partial class Infantry
     [Export] public bool forceSupportToWeapons = false;          // 目标：兵器（力场卫星默认只选兵器）
     [Export] public bool forceSupportToFacilities = false;       // 目标：设施
     // 3.支援势力
-    [Export] public int forceSupportTeamPolicy = 0;               // 0=仅友军 1=仅敌军 2=全部（力场卫星选仅友军）
+    [Export] public bool forceSupportIncludeFriendly = true;
+    [Export] public bool forceSupportIncludeEnemy = false;
+    [Export] public bool forceSupportIncludeAllied = false;
     // 4.作用效果（均为锁死当前值）
     [Export] public bool forceSupportLockHP = true;              // 锁血（力场卫星按锁血填）
     [Export] public int forceSupportLockAmmoType = 0;            // 锁弹药弹种：0=不锁 1=普通 2=自爆 3=照明 4=隐身 5=显形 6=迷彩
@@ -53,7 +55,9 @@ public partial class Infantry
     [Export] public int spaceStrikeEffectMinRadius = 0;          // 3.选择目标后效果范围（以目标点为核心）
     [Export] public int spaceStrikeEffectMaxRadius = 1;          // 3.效果最大半径
     [Export] public float spaceStrikeDamagePercent = 0.5f;       // 固定伤害百分比（攻击卫星固定50%）
-    [Export] public int spaceStrikeTargetPolicy = 1;              // 0=仅友军 1=仅敌军 2=全部
+    [Export] public bool spaceStrikeIncludeFriendly = false;
+    [Export] public bool spaceStrikeIncludeEnemy = true;
+    [Export] public bool spaceStrikeIncludeAllied = false;
     [Export] public bool spaceStrikeDestroysSelf = false;        // 打击是否摧毁自身（卫星=false）
     [Export] public bool spaceStrikeAffectsWeapons = true;       // 是否影响兵器
     [Export] public bool spaceStrikeAffectsFacilities = false;   // 是否影响设施
@@ -61,17 +65,10 @@ public partial class Infantry
     [Export] public int spaceStrikeUsesThisTurn = 0;
     [Export] public string spaceStrikeBlacklist = "ForceSatellite,AttackSatellite";  // 打击黑名单：类名逗号分隔（默认双卫星——打不着）
 
-    private static bool FsFriendly(string a, string b)
-    {
-        if (a == b) return true;
-        if (a == TeamHelper.Player || b == TeamHelper.Player) return true;
-        return false;
-    }
-
     private bool FsTargetTeamOk(string targetTeam)
     {
-        bool friendly = FsFriendly(team, targetTeam);
-        return forceSupportTeamPolicy switch { 0 => friendly, 1 => !friendly, _ => true };
+        return TeamHelper.MatchesTeamRelation(team, targetTeam,
+            forceSupportIncludeFriendly, forceSupportIncludeEnemy, forceSupportIncludeAllied);
     }
 
     private bool FsBlacklisted(string name)
@@ -451,8 +448,8 @@ public partial class Infantry
 
     private bool SsTargetTeamOk(string targetTeam)
     {
-        bool friendly = FsFriendly(team, targetTeam);
-        return spaceStrikeTargetPolicy switch { 0 => friendly, 1 => !friendly, _ => true };
+        return TeamHelper.MatchesTeamRelation(team, targetTeam,
+            spaceStrikeIncludeFriendly, spaceStrikeIncludeEnemy, spaceStrikeIncludeAllied);
     }
 
     private void ApplySpaceStrikeEffects(Grids g, GameManager gm)

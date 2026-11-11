@@ -9,12 +9,7 @@ using System.Linq;
 public partial class Gate : Weapon
 {
     // ========== 4. 白名单：所属势力为基准 ==========
-    public enum GatePassPolicy
-    {
-        Ally = 0,  // 友：仅友军可通过（同队 + P-1公共 + P0中立，沿用导弹井惯例）
-        Enemy = 1, // 敌：仅敌军可通过（非本方势力）
-        All = 2    // 全：所有人可通过
-    }
+    // 通行关系由三个独立勾选项决定。
 
     private AnimatedSprite2D maskSprite;
 
@@ -29,7 +24,10 @@ public partial class Gate : Weapon
     // 继承基类 maxHealth/health（默认999）——血量耗尽前白名单生效；耗尽=门被摧毁
 
     // ========== 4. 白名单 ==========
-    [Export] public GatePassPolicy passPolicy = GatePassPolicy.Ally; // 4.白名单：0=友 1=敌 2=全
+    [ExportGroup("通行队伍关系")]
+    [Export] public bool passFriendly = true;
+    [Export] public bool passEnemy = false;
+    [Export] public bool passAllied = true;
 
     // ========== 高度全自由度 ==========
     [Export] public Vector2I gateSize = new Vector2I(1, 1); // 宽×高任意（默认1×1单格；1×N=竖墙门[南北走向]；N×1=横墙门[东西走向]）
@@ -104,23 +102,10 @@ public partial class Gate : Weapon
         if (isDestroyed || health <= 0) return true; // 门被摧毁→敞开（残骸不挡路）
         if (!gateOpen) return false;                  // 关闭=封死，谁都过不去
         if (mover == null) return false;
-        switch (passPolicy)
-        {
-            case GatePassPolicy.All: return true;
-            case GatePassPolicy.Enemy: return !IsFriendlyTo(mover.team);
-            default: return IsFriendlyTo(mover.team); // 友
-        }
+        return TeamHelper.MatchesTeamRelation(team, mover.team, passFriendly, passEnemy, passAllied);
     }
 
-    /// <summary>友军判定：同队；或任一方为P-1公共/P0中立（沿用导弹井惯例）</summary>
-    private bool IsFriendlyTo(string otherTeam)
-    {
-        if (string.IsNullOrEmpty(otherTeam)) return false;
-        if (otherTeam == team) return true;
-        if (team == TeamHelper.Player || otherTeam == TeamHelper.Player) return true;  // P-1公共
-        if (team == TeamHelper.Player0 || otherTeam == TeamHelper.Player0) return true; // P0中立
-        return false;
-    }
+    // 队伍关系统一由 TeamHelper 判定；Gate 的旧 Ally 选项包含同队与盟军。
 
     // ========== 高度全自由度：占据格索引 ==========
     public override List<Vector2I> GetOccupiedIndices(Vector2I anchorIndex)

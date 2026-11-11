@@ -189,9 +189,8 @@ public partial class GridManager
             foreach (var wBlk in grid.weapons)
             {
                 if (wBlk == null || wBlk.allowAllPass) continue;
-                bool teamHit = wBlk.movementBlockTeamPolicy == 2
-                    || (wBlk.movementBlockTeamPolicy == 0 && requestingUnit.team == wBlk.team)
-                    || (wBlk.movementBlockTeamPolicy == 1 && requestingUnit.team != wBlk.team);
+                bool teamHit = TeamHelper.MatchesTeamRelation(wBlk.team, requestingUnit.team,
+                    wBlk.movementBlockIncludeFriendly, wBlk.movementBlockIncludeEnemy, wBlk.movementBlockIncludeAllied);
                 if (!teamHit) continue;
                 if (wBlk.movementBlockWhitelist != null && wBlk.movementBlockWhitelist.Length > 0
                     && (wBlk.movementBlockWhitelist.Contains(requestingUnit.UnitTypeId)
@@ -204,9 +203,8 @@ public partial class GridManager
         if (grid.city != null && IsInstanceValid(grid.city) && !grid.city.allowAllPass)
         {
             var fBlk = grid.city;
-            bool fTeamHit = fBlk.movementBlockTeamPolicy == 2
-                || (fBlk.movementBlockTeamPolicy == 0 && requestingUnit.team == fBlk.facilityTeam)
-                || (fBlk.movementBlockTeamPolicy == 1 && requestingUnit.team != fBlk.facilityTeam);
+            bool fTeamHit = TeamHelper.MatchesTeamRelation(fBlk.facilityTeam, requestingUnit.team,
+                fBlk.movementBlockIncludeFriendly, fBlk.movementBlockIncludeEnemy, fBlk.movementBlockIncludeAllied);
             if (fTeamHit)
             {
                 if (fBlk.movementBlockWhitelist == null || fBlk.movementBlockWhitelist.Length == 0
@@ -224,8 +222,8 @@ public partial class GridManager
         switch (requestingUnit.overlapType)
         {
             case UnitOverlapType.NonOverlapping:
-                bool hasEnemy = otherUnits.Any(u => u.team != requestingUnit.team && u.team != TeamHelper.Player);
-                bool hasAlly = otherUnits.Any(u => u.team == requestingUnit.team);
+                bool hasEnemy = otherUnits.Any(u => TeamHelper.IsEnemyTeam(requestingUnit.team, u.team));
+                bool hasAlly = otherUnits.Any(u => TeamHelper.IsFriendlyTeam(requestingUnit.team, u.team) || TeamHelper.IsAlliedTeam(requestingUnit.team, u.team));
                 
                 if (hasEnemy)
                 {
@@ -265,7 +263,7 @@ public partial class GridManager
         if (grid == null || mover == null) return false;
         var others = grid.infantries.Where(u => u != null && IsInstanceValid(u) && u != mover).ToList();
         if (others.Count == 0) return false;
-        return others.All(u => u.team != mover.team && !Infantry.IsVisibleTo(u, mover.team, grids));
+        return others.All(u => TeamHelper.IsEnemyTeam(mover.team, u.team) && !Infantry.IsVisibleTo(u, mover.team, grids));
     }
 
     private bool CanStayOnGrid(Grids grid, Infantry requestingUnit)
@@ -339,7 +337,7 @@ public partial class GridManager
 
         if (infantry.overlapType == UnitOverlapType.Oozium)   // ✅ 选Oozium覆盖方式即自动覆盖+吞噬   // ✅ canDevour：可进入占用格之外，是否吞噬占用者
         {
-            var targetsToRemove = to.infantries.Where(i => i != infantry && IsInstanceValid(i) && (infantry.canDevourAllies || i.team != infantry.team)).ToList();
+            var targetsToRemove = to.infantries.Where(i => i != infantry && IsInstanceValid(i) && (infantry.canDevourAllies || TeamHelper.IsEnemyTeam(infantry.team, i.team))).ToList();
             foreach (var target in targetsToRemove)
                 DevourUnit(target, infantry);
             to.infantries.Clear();

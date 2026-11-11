@@ -60,6 +60,8 @@ public partial class AI_Manager
             EvalStealthAndWait(u, g, moved, stealthAtDest, reveal, freeToggle, plans);
         }
 
+        if (mayMove) EvalTeleports(u, dests, stealthed, preRevealForMove, freeToggle, plans);
+
         Plan best = null;
         foreach (var p in plans)
         {
@@ -73,7 +75,7 @@ public partial class AI_Manager
         return best;
     }
 
-    private void PathFor(Plan p, Reach r) { p.path = BuildPath(r, p.unit.grid, p.dest); }
+    private void PathFor(Plan p, Reach r) { p.path = BuildPath(r, p.unit.grid, p.tpVia ?? p.dest); }
 
     private List<Grids> BuildPath(Reach r, Grids start, Grids dest)
     {
@@ -109,6 +111,7 @@ public partial class AI_Manager
 
         foreach (var e in ctx.enemies)
         {
+            if (e.grid == null || e.grid.screenId != g.screenId) continue;
             int d = Dist(g, e.grid);
             if (d > maxR || !CanHitAtDistance(u, d)) continue;
             if (ctx.fogOn && !Infantry.IsVisibleTo(e, u.team, null)) continue;   // ✅ 公平性：AI不攻击看不见的单位（含隐身+林地隐蔽）
@@ -145,6 +148,7 @@ public partial class AI_Manager
             Grids hitGrid = null;
             foreach (var wg in WeaponGrids(w))
             {
+                if (wg.screenId != g.screenId) continue;
                 if (w.occupiedGrids.Count > 1 && !w.IsWeakPointGrid(wg)) continue;
                 int d = Dist(g, wg);
                 if (CanHitAtDistance(u, d)) { hitGrid = wg; break; }

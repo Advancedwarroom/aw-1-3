@@ -370,14 +370,14 @@ public partial class Infantry
         foreach (var g in grids)
         {
             string t = null;
-            if (g.infantry != null && IsInstanceValid(g.infantry) && g.infantry.team != team && g.infantry.team != TeamHelper.Player0)
+            if (g.infantry != null && IsInstanceValid(g.infantry) && TeamHelper.IsEnemyTeam(team, g.infantry.team))
                 t = g.infantry.team;
             else if (g.infantries != null)
             {
                 foreach (var other in g.infantries)
-                    if (other != null && IsInstanceValid(other) && other.team != team && other.team != TeamHelper.Player0) { t = other.team; break; }
+                    if (other != null && IsInstanceValid(other) && TeamHelper.IsEnemyTeam(team, other.team)) { t = other.team; break; }
             }
-            if (t == null && g.city != null && IsInstanceValid(g.city) && g.city.facilityTeam != team && g.city.facilityTeam != TeamHelper.Player0)
+            if (t == null && g.city != null && IsInstanceValid(g.city) && TeamHelper.IsEnemyTeam(team, g.city.facilityTeam))
                 t = g.city.facilityTeam;
             if (t == null) continue;
             int d = Math.Abs(g.GridIndex.X - origin.X) + Math.Abs(g.GridIndex.Y - origin.Y);

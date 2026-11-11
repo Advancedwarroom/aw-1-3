@@ -29,7 +29,9 @@ forceSupportEnabled = true
 forceSupportToUnits = false
 forceSupportToWeapons = true
 forceSupportLockHP = true
-forceSupportTeamPolicy = 0
+forceSupportIncludeFriendly = true
+forceSupportIncludeEnemy = false
+forceSupportIncludeAllied = false
 forceSupportMaxRange = 1
 
 [node name="Area2D" type="Area2D" parent="."]

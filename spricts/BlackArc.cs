@@ -41,7 +41,10 @@ public partial class BlackArc : Weapon
     [Export] public bool arcStrikeAffectsWeapons = true;    // 6.是否影响兵器（同原作）
 
     // ========== 7. 目标策略 ==========
-    [Export] public int arcStrikeTargetPolicy = 1;          // 7.0=仅友军 1=仅敌军 2=全部
+    [ExportGroup("打击目标势力")]
+    [Export] public bool arcStrikeIncludeFriendly = false;
+    [Export] public bool arcStrikeIncludeEnemy = true;
+    [Export] public bool arcStrikeIncludeAllied = false;
 
     // ========== 8. 血量（继承基类 maxHealth/health 千分制）==========
     // 可被攻击扣血（原作可被攻击）
@@ -172,14 +175,8 @@ public partial class BlackArc : Weapon
 
     private bool ArcTargetTeamOk(string targetTeam)
     {
-        bool friendly = team == targetTeam ||
-            (team == TeamHelper.Player || targetTeam == TeamHelper.Player);
-        return arcStrikeTargetPolicy switch
-        {
-            0 => friendly,
-            1 => !friendly,
-            _ => true
-        };
+        return TeamHelper.MatchesTeamRelation(team, targetTeam,
+            arcStrikeIncludeFriendly, arcStrikeIncludeEnemy, arcStrikeIncludeAllied);
     }
 
     /// <summary>回合开始：冷却递减 + 护卫联动检查</summary>

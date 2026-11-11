@@ -708,31 +708,74 @@ public static class TeamHelper
         return "";
     }
     
-    // ========== 攻击/反击逻辑 ==========
-    public static bool CanAttackTarget(string attackerTeam, string defenderTeam)
+    // ========== 统一队伍关系 ==========
+    public enum TeamRelation { Friendly, Allied, Enemy }
+
+    /// <summary>
+    /// 统一关系语义：同一势力=友军；不同但显式结盟=盟军；其余=敌军。
+    /// P-1 是公共势力，按盟军待遇；P0 是中立势力，不会因中立身份自动成为友军。
+    /// 所有 ID 先归一化，避免 P1/Player1 等别名绕过关系表。
+    /// </summary>
+    public static TeamRelation GetTeamRelation(string sourceTeam, string targetTeam)
     {
-        if (attackerTeam == Player || attackerTeam == Player0)
-            return true;
-        if (attackerTeam == defenderTeam) return false;
-        return true;
-    }
-    
-    public static bool IsEnemyForAttacker(string attackerTeam, string defenderTeam, bool includeFriendly = false, bool includeAllies = false)
-    {
-        if (attackerTeam == Player || attackerTeam == Player0)
-            return true;
-        // ✅ 盟友机制：同盟势力不算敌人（勾选友军火力·扩展后放行互攻）
-        if (AreAllied(attackerTeam, defenderTeam)) return includeAllies;
-        // ✅ 友军火力：勾选后可攻击同队目标（默认关=原味；盟友仍受保护）
-        return attackerTeam != defenderTeam || (includeFriendly && attackerTeam == defenderTeam);
+        sourceTeam = CanonicalId(sourceTeam);
+        targetTeam = CanonicalId(targetTeam);
+        if (string.IsNullOrEmpty(sourceTeam) || string.IsNullOrEmpty(targetTeam))
+            return TeamRelation.Enemy;
+        if (sourceTeam == targetTeam)
+            return TeamRelation.Friendly;
+        if (sourceTeam == Player || targetTeam == Player)
+            return TeamRelation.Allied;
+        if (sourceTeam == Player0 || targetTeam == Player0)
+            return TeamRelation.Enemy;
+        return AreAllied(sourceTeam, targetTeam) ? TeamRelation.Allied : TeamRelation.Enemy;
     }
 
-    // ========== ✅ 盟友机制（俩势力一伙）：运行时API，全局生效 ==========
+    public static bool IsFriendlyTeam(string sourceTeam, string targetTeam)
+        => GetTeamRelation(sourceTeam, targetTeam) == TeamRelation.Friendly;
+
+    public static bool IsAlliedTeam(string sourceTeam, string targetTeam)
+        => GetTeamRelation(sourceTeam, targetTeam) == TeamRelation.Allied;
+
+    public static bool IsEnemyTeam(string sourceTeam, string targetTeam)
+        => GetTeamRelation(sourceTeam, targetTeam) == TeamRelation.Enemy;
+
+    /// <summary>三勾选筛选器；全部关闭=无目标，全部开启=所有关系。</summary>
+    public static bool MatchesTeamRelation(string sourceTeam, string targetTeam,
+        bool includeFriendly, bool includeEnemy, bool includeAllied)
+    {
+        return GetTeamRelation(sourceTeam, targetTeam) switch
+        {
+            TeamRelation.Friendly => includeFriendly,
+            TeamRelation.Enemy => includeEnemy,
+            TeamRelation.Allied => includeAllied,
+            _ => false
+        };
+    }
+
+    // ========== 攻击/反击逻辑 ==========
+    public static bool CanAttackTarget(string attackerTeam, string defenderTeam)
+        => IsEnemyTeam(attackerTeam, defenderTeam);
+
+    public static bool IsEnemyForAttacker(string attackerTeam, string defenderTeam, bool includeFriendly = false, bool includeAllies = false)
+    {
+        return GetTeamRelation(attackerTeam, defenderTeam) switch
+        {
+            TeamRelation.Friendly => includeFriendly,
+            TeamRelation.Allied => includeAllies,
+            TeamRelation.Enemy => true,
+            _ => false
+        };
+    }
+
+    // ========== 盟友机制（双向） ==========
     private static readonly List<(string A, string B)> alliances = new();
 
     /// <summary>设置/解除同盟（双向）</summary>
     public static void SetAlliance(string teamA, string teamB, bool allied)
     {
+        teamA = CanonicalId(teamA);
+        teamB = CanonicalId(teamB);
         if (string.IsNullOrEmpty(teamA) || string.IsNullOrEmpty(teamB) || teamA == teamB) return;
         var key = teamA.CompareTo(teamB) <= 0 ? (teamA, teamB) : (teamB, teamA);
         if (allied) { if (!alliances.Contains(key)) alliances.Add(key); }
@@ -742,7 +785,9 @@ public static class TeamHelper
     /// <summary>是否同盟（含同势力）</summary>
     public static bool AreAllied(string teamA, string teamB)
     {
-        if (teamA == teamB) return true;
+        teamA = CanonicalId(teamA);
+        teamB = CanonicalId(teamB);
+        if (teamA == teamB) return !string.IsNullOrEmpty(teamA);
         if (string.IsNullOrEmpty(teamA) || string.IsNullOrEmpty(teamB)) return false;
         var key = teamA.CompareTo(teamB) <= 0 ? (teamA, teamB) : (teamB, teamA);
         return alliances.Contains(key);

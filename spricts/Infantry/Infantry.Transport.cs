@@ -114,8 +114,8 @@ public List<Infantry> transportedUnits = new List<Infantry>();
         if (!canTransportUnits || maxTransportCapacity <= 0) return false;
         if (unit == null || unit == this || !IsInstanceValid(unit) || unit.isTransported) return false;
         if (transportedUnits.Count >= maxTransportCapacity) return false;
-        // 同队可搭；P-1 公共运输单位任何队都可搭
-        if (unit.team != this.team && this.team != TeamHelper.Player) return false;
+        // 同队或盟军可搭；P-1 公共队由 TeamHelper 统一视为盟军关系
+        if (!TeamHelper.IsFriendlyTeam(this.team, unit.team) && !TeamHelper.IsAlliedTeam(this.team, unit.team)) return false;
         // 载着人的运输单位不能再被装（套娃会丢失内部单位）
         if (unit.canTransportUnits && unit.transportedUnits.Count > 0) return false;
 
@@ -147,19 +147,16 @@ public List<Infantry> transportedUnits = new List<Infantry>();
         return true;
     }
 
-    /// <summary>✅ 统一搭载查找：格上第一个“确实能装下 rider”的运输单位（同队优先，其次 P-1 公共）。
-    /// 所有入口（点击移动/移动范围/拖动路径/AI）都走这里，避免“取到第一个运输单位却装不下”而误判。</summary>
+    /// <summary>统一搭载查找：同队或盟军运输单位，只返回确实能装下 rider 的对象。</summary>
     public static Infantry FindTransportFor(System.Collections.Generic.IEnumerable<Infantry> units, Infantry rider)
     {
         if (units == null || rider == null) return null;
-        Infantry p1 = null;
         foreach (var u in units)
         {
             if (u == null || u == rider || !IsInstanceValid(u) || !u.CanTransportUnit(rider)) continue;
-            if (u.team == rider.team) return u;
-            if (p1 == null && u.team == TeamHelper.Player) p1 = u;
+            if (TeamHelper.IsFriendlyTeam(rider.team, u.team) || TeamHelper.IsAlliedTeam(rider.team, u.team)) return u;
         }
-        return p1;
+        return null;
     }
 
     /// <summary>

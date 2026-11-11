@@ -208,7 +208,7 @@ public partial class BlackObelisk : BlackCannon
             foreach (var unit in g.infantries.ToList())
             {
                 if (!IsInstanceValid(unit)) continue;
-                if (unit.team != team) continue; // 仅我方（原作：黑洞单位）
+                if (!TeamHelper.IsFriendlyTeam(team, unit.team)) continue; // 仅同队（盟军由独立筛选配置决定）
                 if (TryHealUnit(unit)) affected++;
             }
             if (obeliskHealWeapons && g.weapon != null && IsInstanceValid(g.weapon) && g.weapon != this)

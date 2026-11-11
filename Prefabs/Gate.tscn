@@ -16,7 +16,9 @@ contributesToVictory = false
 maxHealth = 999
 health = 999
 gateOpen = true
-passPolicy = 0
+passFriendly = true
+passEnemy = false
+passAllied = true
 gateSize = Vector2(1, 1)
 animSprite = NodePath("AnimatedSprite2D")
 

@@ -28,7 +28,7 @@ public partial class Weapon
         if (!canShelterUnits || shelterCapacity <= 0 || unit == null || !IsInstanceValid(unit)) return false;
         if (unit.isTransported || unit.shelteredByWeapon != null || unit.isMultiTileUnit) return false;
         if (shelteredUnits.Count >= shelterCapacity) return false;
-        if (unit.team != team && team != TeamHelper.Player) return false;
+        if (!TeamHelper.IsFriendlyTeam(team, unit.team) && !TeamHelper.IsAlliedTeam(team, unit.team)) return false;
         if (unit.canTransportUnits && unit.transportedUnits.Count > 0) return false;
         if (shelterUnitTypes.Count > 0)
             return shelterUnitTypes.Contains(unit.UnitTypeId) || shelterUnitTypes.Contains(unit.TemplateId) || shelterUnitTypes.Contains(unit.GetType().Name);

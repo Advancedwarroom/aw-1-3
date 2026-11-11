@@ -30,7 +30,23 @@ public partial class AI_Manager
             if (p.preReveal && u.isStealthed && CanToggle(u)) u.ToggleStealth();
 
             bool ambushed = false;
-            if (p.dest != null && p.dest != u.grid)
+            if (p.tpVia != null)
+            {
+                if (p.tpVia != u.grid)
+                {
+                    var (viaFinal, viaAmb, viaSteps) = MoveAlong(u, p.path, false);
+                    ambushed = viaAmb || viaFinal != p.tpVia;
+                    extra = viaSteps * moveStepTime;
+                    if (extra > 0)
+                    {
+                        await ToSignal(GetTree().CreateTimer(extra), SceneTreeTimer.SignalName.Timeout);
+                        if (!IsInstanceValid(this) || !isRunningAI) return;
+                    }
+                    if (!IsInstanceValid(u)) return;
+                }
+                if (!ambushed && !TryTeleport(u, p.dest)) ambushed = true;
+            }
+            else if (p.dest != null && p.dest != u.grid)
             {
                 var (final, amb, steps) = MoveAlong(u, p.path, p.act == Act.Load || p.act == Act.Merge);
                 ambushed = amb || final != p.dest;
