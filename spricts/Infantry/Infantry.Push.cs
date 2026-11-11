@@ -53,6 +53,7 @@ public partial class Infantry
     [ExportGroup("推动模块")]
     [Export] public bool pushEnabled = false;
     [Export] public PushTriggerMode pushTriggerMode = PushTriggerMode.Disabled;
+    [Export] public bool pushRequiresPrimaryWeapon = false;
     [Export(PropertyHint.Range, "0,9999,0.01")] public float weight = 1.0f;
     [Export] public bool weightScalesWithHealth = false;
     [Export] public EqualWeightPushMode equalWeightPushMode = EqualWeightPushMode.Stop;
