@@ -213,7 +213,11 @@ public partial class GridManager
         }
         
         if (unit.attackType == AttackType.NoAttack) return;
-        var neighbors = GetAttackNeighbours(unit.grid, unit.attackCanCrossScreens);
+        var neighbors = unit.attackRange <= 1
+            ? GetAttackNeighbours(unit.grid, unit.attackCanCrossScreens)
+            : grids.Where(g => g != null && g != unit.grid
+                && Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) <= unit.attackRange
+                && IsRangeAllowed(unit.grid, g, unit.attackCanCrossScreens)).ToList();
         
         // ✅ 禁用所有单位选择，防止误选己方未行动单位
         foreach (var grid in grids)
