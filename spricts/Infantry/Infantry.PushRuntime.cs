@@ -1513,10 +1513,18 @@ public partial class Infantry
         foreach (var unit in survivingStack.Where(IsLivingUnit).ToList())
         {
             if (!unit.pushFragileEnabled) continue;
-            if (unit.pushFragileLockOneHp) unit.health = 1;
-            else if (unit.pushFragileDamage > 0)
+            int fragileDamage = unit.pushFragileDamageMode switch
             {
-                long remainingHealth = (long)unit.health - unit.pushFragileDamage;
+                PushFragileDamageMode.AttackCalculation =>
+                    Math.Max(0, CalculateFinalDamage(unit, WeaponType.Primary)),
+                PushFragileDamageMode.HealthAndFunds =>
+                    CalculateFragileHealthFundsDamage(unit, gm),
+                _ => Math.Max(0, unit.pushFragileDamage)
+            };
+            if (unit.pushFragileLockOneHp) unit.health = 1;
+            else if (fragileDamage > 0)
+            {
+                long remainingHealth = (long)unit.health - fragileDamage;
                 if (remainingHealth <= 0 && unit.pushFragileCanDestroy)
                 {
                     DestroyPushedUnit(unit, gm);
@@ -1530,6 +1538,20 @@ public partial class Infantry
                 unit.AddAmmo(unit.pushFragileAmmoKind, unit.pushFragileAmmoDelta);
             unit.UpdateHpLabel();
         }
+    }
+
+    private int CalculateFragileHealthFundsDamage(Infantry survivor, GameManager gm)
+    {
+        float healthPart = Math.Max(0.0f, (health + survivor.health) * survivor.pushFragileHealthScale);
+        double fundsPart = 0.0;
+        if (gm != null)
+        {
+            long ownFunds = Math.Max(0, gm.GetTeamFunds(team));
+            long targetFunds = Math.Max(0, gm.GetTeamFunds(survivor.team));
+            int divisor = Math.Max(1, survivor.pushFragileFundsPerDamage);
+            fundsPart = ((double)ownFunds + targetFunds) / 2.0 / divisor;
+        }
+        return (int)Math.Clamp(Math.Round(healthPart + fundsPart), 0.0, int.MaxValue);
     }
 
     private static bool CanResolveEqualWeight(List<Infantry> movingStack,
