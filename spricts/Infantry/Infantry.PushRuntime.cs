@@ -324,13 +324,13 @@ public partial class Infantry
                     Math.Min(int.MaxValue, (long)unit.health + pushTargetHealAmount));
             else if (pushTargetDamage > 0)
             {
-                unit.health -= pushTargetDamage;
-                if (unit.health <= 0 && pushDamageCanDestroy)
+                long damagedHealth = (long)unit.health - pushTargetDamage;
+                if (damagedHealth <= 0 && pushDamageCanDestroy)
                 {
                     DestroyPushedUnit(unit, gm);
                     continue;
                 }
-                unit.health = Mathf.Max(1, unit.health);
+                unit.health = (int)Math.Max(1L, damagedHealth);
             }
             if (pushTargetFuelDelta != 0)
                 unit.fuel = (int)Math.Clamp((long)unit.fuel + pushTargetFuelDelta, 0L, int.MaxValue);
