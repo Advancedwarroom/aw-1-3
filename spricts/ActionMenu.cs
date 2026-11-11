@@ -114,7 +114,8 @@ public override void _Ready()
     }
 }
 
-    // Separate push action entry point. Target selection is handled by Infantry.PushRuntime.\n    private void OnPushPressed()
+    // Separate push action entry point. Target selection is handled by Infantry.PushRuntime.
+    private void OnPushPressed()
     {
         if (currentUnit == null || !IsInstanceValid(currentUnit)) return;
         currentUnit.BeginSeparatePushTargetSelection();
