@@ -35,6 +35,7 @@ useConfigVision = false
 cost = 16000
 pushEnabled = true
 pushTriggerMode = 1
+weight = 10.0
 pushDistance = 2
 
 [sub_resource type="RectangleShape2D" id="RhinoCollision"]
