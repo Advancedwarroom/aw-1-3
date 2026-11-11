@@ -26,7 +26,7 @@ public partial class Facility
   return true;
  }
  public bool CanBeAttackedBy(Infantry attacker)
- { return attacker!=null && CanBeAttackedFrom(attacker.grid) && TeamHelper.IsEnemyForAttacker(attacker.team,facilityTeam); }
+ { return attacker!=null && CanBeAttackedFrom(attacker.grid) && TeamHelper.IsEnemyForAttacker(attacker.team,facilityTeam,attacker.canAttackFriendlies); }
  private static int FindTableValue(Godot.Collections.Dictionary<string,int> table,params string[] keys)
  { foreach(string key in keys) if (!string.IsNullOrEmpty(key) && table.TryGetValue(key,out int damage)) return damage; return -1; }
  public int CalculateDamageFrom(Infantry attacker,WeaponType weaponType)
