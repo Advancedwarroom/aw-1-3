@@ -278,6 +278,8 @@ public partial class BlackArc : Weapon
             {
                 int dist = Mathf.Abs(tx - cx) + Mathf.Abs(ty - cy);
                 if (dist < arcStrikeMinRange || dist > arcStrikeMaxRange) continue;
+                var targetGrid = gm.gridManager.map[tx, ty];
+                if (targetGrid == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, arcStrikeCanCrossScreens)) continue;
                 int score = AIStrikeScore(gm, tx, ty, visibleFilter);
                 if (score > bestScore) { bestScore = score; best = gm.gridManager.map[tx, ty]; }
             }
@@ -288,6 +290,8 @@ public partial class BlackArc : Weapon
     private int AIStrikeScore(GameManager gm, int tx, int ty, System.Func<Infantry, bool> visibleFilter)
     {
         int score = 0;
+        var targetGrid = gm.gridManager.map[tx, ty];
+        if (targetGrid == null) return 0;
         for (int dx = -arcEffectRangeX; dx <= arcEffectRangeX; dx++)
         {
             for (int dy = -arcEffectRangeY; dy <= arcEffectRangeY; dy++)
@@ -295,7 +299,7 @@ public partial class BlackArc : Weapon
                 int x = tx + dx, y = ty + dy;
                 if (x < 0 || y < 0 || x >= gm.gridManager.searchRange.X || y >= gm.gridManager.searchRange.Y) continue;
                 var g = gm.gridManager.map[x, y];
-                if (g == null) continue;
+                if (g == null || !gm.gridManager.IsRangeAllowed(targetGrid, g, arcEffectCanCrossScreens)) continue;
                 foreach (var u in g.infantries)
                 {
                     if (u == null || !IsInstanceValid(u)) continue;
