@@ -206,23 +206,13 @@ func _finish() -> void:
 	print("[SELFPLAY] 结果: %s | 阶段: %d | 失败: %d" % [report["result"], phase_changes, failures.size()])
 	var exit_code := 0 if failures.is_empty() else 1
 	var tree := get_tree()
-	# Free the game scene and every root-level runtime/autoload node before shutdown.
-	# TranslateGroup._ExitTree clears its static UI registry and unregisters translations.
-	if game_instance != null and is_instance_valid(game_instance):
-		game_instance.free()
-	game_instance = null
-	print("[TEST_CLEANUP] found TranslateGroup: ", is_instance_valid(TranslateGroup))
+	# 只释放 TranslateGroup 静态注册表（防跨测试污染）；节点树交给 quit() 自然拆卸。
+	# 手动 free() 在树中节点会导致 C# 静态引用悬空 → "Cannot get path of node"+退出泄漏 ERROR 洪灾（CI grep 判挂）。
+	# 参考 tests/facility_recolor_check.gd：quit(0) 自然拆卸即干净退出（该断言 45 秒绿）。
 	if is_instance_valid(TranslateGroup):
 		TranslateGroup.ReleaseRuntimeResources()
-		print("[TEST_CLEANUP] called ReleaseRuntimeResources")
 	game_manager = null
 	ai_manager = null
-	for child in tree.root.get_children(true):
-		if child == self:
-			continue
-		child.free()
-	await tree.process_frame
-	await tree.process_frame
 	tree.quit(exit_code)
 
 func _parse_args() -> void:
