@@ -119,7 +119,7 @@ public partial class Infantry
         return true;
     }
 
-    // ===== 十资源读写（资源索引：0血 1油 2普通 3自爆 4照明 5隐身 6显形 7迷彩 8生产 9建造 10特殊）=====
+    // ===== 十三资源读写（资源索引：0血 1油 2普通 3自爆 4照明 5隐身 6显形 7迷彩 8生产 9建造 10特殊）=====
     public int PrGet(int res) => res switch
     {
         0 => health, 1 => fuel, 2 => currentPrimaryAmmo, 3 => currentExplodeAmmo,
