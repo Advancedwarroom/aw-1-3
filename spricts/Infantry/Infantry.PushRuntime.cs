@@ -242,12 +242,20 @@ public partial class Infantry
 
     private int GetMitigatedPushDistance(List<Infantry> stack, int requestedDistance)
     {
-        int tiles = stack.Where(u => u.pushMitigationEnabled)
-            .Select(u => Mathf.Max(0, u.pushMitigationTiles)).DefaultIfEmpty(0).Max();
-        float percent = stack.Where(u => u.pushMitigationEnabled)
-            .Select(u => Mathf.Clamp(u.pushMitigationPercent, 0f, 100f)).DefaultIfEmpty(0f).Max();
-        int remaining = Mathf.Max(0, requestedDistance - tiles);
-        return Mathf.Clamp(Mathf.FloorToInt(remaining * (1f - percent / 100f)), 0, requestedDistance);
+        // A co-located stack shares one displacement result. Evaluate each member's
+        // complete mitigation profile independently and use the strongest valid
+        // profile; do not accidentally combine the best flat and percentage values
+        // from two different units into a mitigation configuration neither owns.
+        return stack.Where(u => IsLivingUnit(u) && u.pushMitigationEnabled)
+            .Select(u =>
+            {
+                int remaining = Mathf.Max(0, requestedDistance - Mathf.Max(0, u.pushMitigationTiles));
+                float percent = Mathf.Clamp(u.pushMitigationPercent, 0f, 100f);
+                return Mathf.Clamp(Mathf.FloorToInt(remaining * (1f - percent / 100f)),
+                    0, requestedDistance);
+            })
+            .DefaultIfEmpty(requestedDistance)
+            .Min();
     }
 
     // Rebound and transfer compete for the same stack displacement. Resolve the
