@@ -8,7 +8,8 @@ public partial class Infantry
 {
 
     [ExportGroup("补给")]
-    [Export] public string[] supplyBlacklist = System.Array.Empty<string>();  // 雾战独立攻防表（固定数值，禁小数）
+    [Export] public string[] supplyBlacklist = System.Array.Empty<string>();
+    [Export] public bool supplyCanCrossScreens = false; // 补给范围是否允许跨屏  // 雾战独立攻防表（固定数值，禁小数）
     [Export] public bool useDefaultConfig = true;           // ✅ 是否使用代码默认值（false=完全由Inspector控制，不执行ApplyUnitSpecificDefaults）
     [Export] public bool canDevour = false;
     [Export] public bool canDevourAllies = true;   // 吞噬友军（AW原作史莱姆不分敌我；关掉则只吞噬敌军）                // 是否能吞噬敌人（Oozium特性）
@@ -24,11 +25,11 @@ public virtual List<Grids> CalculateSupplyRange()
     var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
     if (gm?.gridManager == null || grid == null) return result;
 
-    var allRange = gm.gridManager.FindRange(grid, maxSupplyRange, false);
+    var allRange = gm.gridManager.FindRange(grid, maxSupplyRange, false, supplyCanCrossScreens);
 
     if (minSupplyRange > 1)
     {
-        var blindZone = gm.gridManager.FindRange(grid, minSupplyRange - 1, false);
+        var blindZone = gm.gridManager.FindRange(grid, minSupplyRange - 1, false, supplyCanCrossScreens);
         allRange = allRange.Where(g => !blindZone.Contains(g)).ToList();
     }
 
