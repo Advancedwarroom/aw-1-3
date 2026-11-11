@@ -9,7 +9,7 @@ using System.Linq;
 public partial class Radar : Facility
 {
     // Radar base frames use a muted red source palette.
-    protected override float GetBaseArtHue() => 354.0f / 360.0f;
+    protected override float GetBaseArtHue() => 58.0f / 360.0f;
 
     // ========== 雷达模块 ==========
     [ExportGroup("雷达模块")]
