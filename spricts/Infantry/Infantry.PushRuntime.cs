@@ -54,20 +54,29 @@ public partial class Infantry
         }
         if (chain.Count == 0) return;
 
+        // Decide weight links once per attack. A mixed equal-weight pair gets one 50/50
+        // result for the entire push, rather than rerolling independently on each tile.
+        int firstBlockedLink = chain.Count;
+        for (int i = 0; i < chain.Count; i++)
+        {
+            var pusher = i == 0 ? this : chain[i - 1];
+            if (!CanPushByWeight(pusher, chain[i]))
+            {
+                firstBlockedLink = i;
+                break;
+            }
+        }
+
         // Resolve each tile-step from the front backwards so a vacated cell is available
-        // to the unit behind it during the same step.
+        // to the unit behind it during the same step. A blocked link also blocks the units
+        // behind it, while units farther forward can still complete their own displacement.
         for (int step = 0; step < distance; step++)
         {
-            for (int i = chain.Count - 1; i >= 0; i--)
+            for (int i = chain.Count - 1; i >= firstBlockedLink; i--)
             {
                 var unit = chain[i];
                 if (unit == null || !GodotObject.IsInstanceValid(unit)
                     || unit.IsQueuedForDeletion() || unit.grid == null)
-                    continue;
-
-                var pusher = i == 0 ? this : chain[i - 1];
-                if (pusher == null || !GodotObject.IsInstanceValid(pusher)
-                    || !CanPushByWeight(pusher, unit))
                     continue;
 
                 var destination = gridManager.GetGridAt(unit.grid.GridIndex + direction);
