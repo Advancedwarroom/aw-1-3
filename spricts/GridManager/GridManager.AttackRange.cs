@@ -99,7 +99,7 @@ public partial class GridManager
         // 多格兵器：只有弱点格子可被攻击
         if (grid.weapon != null && grid.weapon.isMultiTile && !grid.weapon.IsWeakPointGrid(grid)) continue;
         
-        bool hasEnemyTarget = grid.HasAttackableEnemyInfantry(unit, grids) || grid.HasEnemyWeapon(unit.team, unit.canAttackFriendlies) || grid.HasAttackableFacility(unit);
+        bool hasEnemyTarget = grid.HasAttackableEnemyInfantry(unit, grids) || grid.HasEnemyWeapon(unit.team, unit.canAttackFriendlies, unit.canAttackAllies) || grid.HasAttackableFacility(unit);
         if (hasEnemyTarget)
         {
             if (isFogEnabled && !fog.IsGridVisible(grid)) continue;
@@ -118,7 +118,7 @@ public partial class GridManager
         foreach (var grid in allRangeGrids)
         {
             if (blindZoneGrids.Contains(grid)) continue;
-            if (grid.weapon != null && TeamHelper.IsEnemyForAttacker(unit.team, grid.weapon.team, unit.canAttackFriendlies))
+            if (grid.weapon != null && TeamHelper.IsEnemyForAttacker(unit.team, grid.weapon.team, unit.canAttackFriendlies, unit.canAttackAllies))
             {
                 // 多格兵器：只有弱点格子显示为可攻击
                 if (grid.weapon.isMultiTile && !grid.weapon.IsWeakPointGrid(grid))
@@ -132,7 +132,7 @@ public partial class GridManager
                 grid.OnMouseExitedAttackGrid = () => HideDamagePreview();
                 continue;
             }
-            if (grid.weapon != null && TeamHelper.IsEnemyForAttacker(unit.team, grid.weapon.team, unit.canAttackFriendlies) && !grid.weapon.hasActed)
+            if (grid.weapon != null && TeamHelper.IsEnemyForAttacker(unit.team, grid.weapon.team, unit.canAttackFriendlies, unit.canAttackAllies) && !grid.weapon.hasActed)
             {
                 // 多格兵器：只有弱点格子显示为可攻击
                 if (grid.weapon.isMultiTile && !grid.weapon.IsWeakPointGrid(grid))
@@ -149,7 +149,7 @@ public partial class GridManager
                 grid.OnMouseExitedAttackGrid = () => HideDamagePreview();
             }
             
-            bool hasEnemyTarget = grid.HasAttackableEnemyInfantry(unit, grids) || grid.HasEnemyWeapon(unit.team, unit.canAttackFriendlies) || grid.HasAttackableFacility(unit);
+            bool hasEnemyTarget = grid.HasAttackableEnemyInfantry(unit, grids) || grid.HasEnemyWeapon(unit.team, unit.canAttackFriendlies, unit.canAttackAllies) || grid.HasAttackableFacility(unit);
             if (hasEnemyTarget)
             {
                 // 多格兵器：只有弱点格子显示为可攻击
@@ -221,7 +221,7 @@ public partial class GridManager
         
         foreach (var neighbor in neighbors)
         {
-            if (neighbor.weapon != null && TeamHelper.IsEnemyForAttacker(unit.team, neighbor.weapon.team, unit.canAttackFriendlies) && !neighbor.weapon.hasActed
+            if (neighbor.weapon != null && TeamHelper.IsEnemyForAttacker(unit.team, neighbor.weapon.team, unit.canAttackFriendlies, unit.canAttackAllies) && !neighbor.weapon.hasActed
                 && (!neighbor.weapon.isMultiTile || neighbor.weapon.IsWeakPointGrid(neighbor)))
             {
                 if (isFogEnabled && fog != null && !fog.IsGridVisible(neighbor)) continue;
@@ -347,7 +347,7 @@ public partial class GridManager
         
         Weapon targetWeapon = null;
         // 多格兵器兜底：非弱点部位不可作为攻击目标
-        if (to.weapon != null && TeamHelper.IsEnemyForAttacker(attacker.team, to.weapon.team, attacker.canAttackFriendlies)
+        if (to.weapon != null && TeamHelper.IsEnemyForAttacker(attacker.team, to.weapon.team, attacker.canAttackFriendlies, attacker.canAttackAllies)
             && (!to.weapon.isMultiTile || to.weapon.IsWeakPointGrid(to)))
             targetWeapon = to.weapon;
 
@@ -418,7 +418,7 @@ public partial class GridManager
             if (grid == null || grid == unit.grid) continue;
 
             // 检查敌方兵器
-            if (grid.weapon != null && TeamHelper.IsEnemyForAttacker(unit.team, grid.weapon.team, unit.canAttackFriendlies) && !grid.weapon.hasActed)
+            if (grid.weapon != null && TeamHelper.IsEnemyForAttacker(unit.team, grid.weapon.team, unit.canAttackFriendlies, unit.canAttackAllies) && !grid.weapon.hasActed)
             {
                 // 多格兵器：只有弱点格子显示为可攻击
                 if (grid.weapon.isMultiTile && !grid.weapon.IsWeakPointGrid(grid))
