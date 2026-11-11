@@ -7,6 +7,7 @@ The push system is configured per entity through Godot Export properties. The cu
 - `Disabled`: no push behavior.
 - `Attack`: resolve a push after the normal attack damage/counter/death pipeline.
 - `SeparateAction`: expose a Push button in the unit action menu and let the player select a target tile.
+- `Movement`: when moving along a path, push eligible infantry, weapons, or facilities out of blocking tiles in the direction of travel. The mover continues only when the blocking tile is cleared.
 
 For a separate action:
 - `pushActionCountsAsAction = false` records the per-turn push use without changing `hasActed` or `state`.
