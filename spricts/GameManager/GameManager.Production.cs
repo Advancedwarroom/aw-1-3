@@ -393,12 +393,48 @@ public partial class GameManager
 
     /// <summary>产能绑定（开创人2026-11-11）：出厂单位血量/燃油按设施产能活力缩放——厂子越残，出的单位越残次。
     /// 绑定未开=不缩放；血量托底 productionUnitMinHp，燃油钳在 [productionUnitMinFuel, maxFuel]。</summary>
+    /// <summary>产能绑定（开创人2026-11-12）：出厂资源按产能活力缩放——11资源（Health/Fuel+9弹种）各自独立配置，不统一。
+    /// 双模式：百分比（亏损度×基数×值/100）/固定（亏损度×值）；正负皆可：正=扣、负=倒加（残厂出超编资源）。
+    /// 旧配置兼容：productionVigorResValue 为空=血量/燃油按百分比100缩放（旧×vigor行为），弹药不动；
+    /// 字典非空时逐资源：有条目才缩放、无条目不动——可只扣燃油不扣弹药，每种弹药各自考虑。</summary>
     private void ApplyProductionVigor(Infantry unit, Facility facility)
     {
         if (facility == null || (!facility.productionHealthBound && !facility.productionCaptureBound)) return;
-        float vigor = facility.GetProductionVigor();
-        unit.health = Mathf.Max(facility.productionUnitMinHp, Mathf.RoundToInt(unit.health * vigor));
-        unit.fuel = Math.Clamp(Mathf.RoundToInt(unit.fuel * vigor), facility.productionUnitMinFuel, unit.maxFuel);
+        float deficit = 1f - facility.GetProductionVigor();
+
+        if (VigorShouldScale(facility, "Health"))
+            unit.health = Math.Clamp(VigorComputeScaled(unit.health, "Health", deficit, facility), VigorFloorOf(facility, "Health"), Math.Max(1, unit.maxHealth));
+        if (VigorShouldScale(facility, "Fuel"))
+            unit.fuel = Math.Clamp(VigorComputeScaled(unit.fuel, "Fuel", deficit, facility), VigorFloorOf(facility, "Fuel"), Math.Max(0, unit.maxFuel));
+        foreach (AmmoKind kind in Enum.GetValues<AmmoKind>())
+        {
+            string key = kind.ToString();
+            if (!VigorShouldScale(facility, key)) continue;
+            int scaled = VigorComputeScaled(unit.GetAmmo(kind), key, deficit, facility);
+            unit.SetAmmoRaw(kind, Math.Clamp(scaled, VigorFloorOf(facility, key), Math.Max(0, unit.GetMaxAmmo(kind))));
+        }
+    }
+
+    /// <summary>旧配置兼容：缩放值字典为空→血量/燃油按旧行为缩放、弹药不缩放；非空→有条目才缩放。</summary>
+    private bool VigorShouldScale(Facility f, string key)
+        => f.productionVigorResValue.Count == 0 ? (key == "Health" || key == "Fuel") : f.productionVigorResValue.ContainsKey(key);
+
+    /// <summary>缩放计算：亏损度=1-活力。百分比：delta=-亏损×基数×值/100；固定：delta=-亏损×值。正=扣、负=倒加。</summary>
+    private int VigorComputeScaled(int baseVal, string key, float deficit, Facility f)
+    {
+        int value = f.productionVigorResValue.TryGetValue(key, out var v) ? v : 100;
+        bool flat = f.productionVigorResMode.TryGetValue(key, out var m) && m == 1;
+        int delta = flat ? -(int)Math.Round(deficit * value)
+                         : -(int)Math.Round(baseVal * deficit * value / 100f);
+        return baseVal + delta;
+    }
+
+    private int VigorFloorOf(Facility f, string key)
+    {
+        if (f.productionVigorResFloor.TryGetValue(key, out var fl)) return fl;
+        if (key == "Health") return f.productionUnitMinHp;
+        if (key == "Fuel") return f.productionUnitMinFuel;
+        return 0;
     }
 
     /// <summary>

@@ -71,8 +71,13 @@ public partial class Facility : Node2D
     [Export] public bool productionCaptureBound = false;     // 最高占领度绑定（GetCurrentCaptureState() 实际当前值：刚占领完临时低值，逐回合回满）
     [Export] public float productionSlotsPerPoint = 1f;      // 每点平均值=几个生产名额（1=一滴血一名额）
     [Export] public int productionMinSlots = 0;              // 产能下限（残血保底）
-    [Export] public int productionUnitMinHp = 1;             // 出厂血量下限（不至于出0血单位）
-    [Export] public int productionUnitMinFuel = 0;           // 出厂燃油下限
+    [Export] public int productionUnitMinHp = 1;             // 出厂血量下限（不至于出0血单位；Health资源未配Floor时的默认值）
+    [Export] public int productionUnitMinFuel = 0;           // 出厂燃油下限（Fuel资源未配Floor时的默认值）
+
+    // —— 出厂资源缩放·逐资源独立（开创人2026-11-12）：11资源=Health/Fuel+9弹种(Primary/Explode/Flare/StealthBullet/RevealBullet/CamoBullet/Production/Construction/Special) ——
+    [Export] public Godot.Collections.Dictionary<string, int> productionVigorResMode = new();    // 资源名→模式：0=百分比(默认) 1=固定加减
+    [Export] public Godot.Collections.Dictionary<string, int> productionVigorResValue = new();   // 资源名→数值：百分比=亏损度×基数×值/100；固定=亏损度×值。正=扣 负=倒加（残厂出超编资源）
+    [Export] public Godot.Collections.Dictionary<string, int> productionVigorResFloor = new();   // 资源名→该资源下限（未配置：血量=productionUnitMinHp，燃油=productionUnitMinFuel，弹药=0）
 
     // ========== 状态栏系统 ==========
     [ExportGroup("初始状态（运行时生效）")]

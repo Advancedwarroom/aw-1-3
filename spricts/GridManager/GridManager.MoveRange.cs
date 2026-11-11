@@ -378,8 +378,8 @@ public partial class GridManager
         {
             var (cur, accCost) = open.Dequeue();
 
-            // ✅ 可见格子或迷雾关闭时：当前格子有敌方单位则阻挡后续路径扩展（仅NonOverlapping）
-            if (cur != infantry.grid && infantry.overlapType == UnitOverlapType.NonOverlapping)
+            // ✅ 可见格子或迷雾关闭时：当前格子有敌方单位则阻挡后续路径扩展（仅NonOverlapping；可穿过敌方单位则豁免）
+            if (cur != infantry.grid && infantry.overlapType == UnitOverlapType.NonOverlapping && !infantry.canPassThroughEnemyUnits)
             {
                 bool curVisible = !isFogEnabled || fog.IsGridVisible(cur);
                 if (curVisible)
@@ -424,8 +424,8 @@ public partial class GridManager
                     && IsInstanceValid(neighbor.multiTileOccupant) && !neighbor.multiTileOccupant.IsQueuedForDeletion())
                     continue;
 
-                // ✅ 可见格子或迷雾关闭时：敌方单位所在格子不加入移动范围（仅NonOverlapping）
-                if (infantry.overlapType == UnitOverlapType.NonOverlapping)
+                // ✅ 可见格子或迷雾关闭时：敌方单位所在格子不加入移动范围（仅NonOverlapping；可穿过敌方单位则敌格入范围但不可停留）
+                if (infantry.overlapType == UnitOverlapType.NonOverlapping && !infantry.canPassThroughEnemyUnits)
                 {
                     bool neighborVisible = !isFogEnabled || fog.IsGridVisible(neighbor);
                     if (neighborVisible)

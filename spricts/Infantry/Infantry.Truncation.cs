@@ -27,6 +27,7 @@ public partial class Infantry
     public static bool IsTruncationBlocker(Infantry mover, Infantry other)
     {
         if (mover == null || other == null || other == mover) return false;
+        if (mover.canPassThroughEnemyUnits) return false;   // ✅ 可穿过敌方单位：谁也别想截断我（预览/移动/触屏/AI 八处调用此唯一口径）
         if (!IsInstanceValid(other) || other.IsQueuedForDeletion() || other.health <= 0 || other.isTransported) return false;
         if (other.team == mover.team) return false;
         if (other.team == TeamHelper.Player) return false;   // P-1 公共单位不截断
