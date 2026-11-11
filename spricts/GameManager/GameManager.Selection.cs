@@ -233,6 +233,14 @@ private List<Grids> BuildPath(Grids from, Grids to, Infantry infantry = null, bo
     // ✅ 回合中回合：人类伏击手的临场决策（确认=攻击 / 取消=放过）
     public void RequestEncounterDecision(Infantry mover, Infantry blocker)
     {
+        // ✅ 开创人2026-11-11: 无头环境(自对弈CI/专用服务器)无人点弹窗——直接按AI条令自动裁定；
+        // 否则 encounterPause 永久冻结、AI步进停摆、3000帧判卡死（SELFPLAY-FAIL 元凶）
+        if (DisplayServer.GetName() == "headless")
+        {
+            bool strike = Infantry.AIDecideEncounterStrike(blocker, mover);
+            Infantry.ExecuteTruncationStrikes(mover, blocker, mover.truncCounterEnabled, strike);
+            return;
+        }
         encounterPause = true;
         var dlg = new ConfirmationDialog();
         dlg.Title = "遭遇战！";
