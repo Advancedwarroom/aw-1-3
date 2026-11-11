@@ -142,6 +142,14 @@ public partial class GridManager : Node
  // ✅ N屏隔离核心：是否同一屏
     public bool IsSameScreen(Vector2I a, Vector2I b) => GetScreenId(a) == GetScreenId(b);
 
+    /// <summary>统一范围跨屏规则：只有对应行为的 Export 开启时才允许跨 screenId。</summary>
+    public bool IsRangeAllowed(Grids origin, Grids target, bool allowCrossScreens)
+    {
+        if (origin == null || target == null) return false;
+        if (allowCrossScreens || GetScreenCount() <= 1) return true;
+        return IsSameScreen(origin.GridIndex, target.GridIndex);
+    }
+
     // ✅ 按索引取格（越界安全）
     public Grids GetGridAt(Vector2I idx)
     {
@@ -436,7 +444,7 @@ public partial class GridManager : Node
         new Vector2I(1,0),
     };
 
-    public List<Grids> GetAttackNeighbours(Grids grid)
+    public List<Grids> GetAttackNeighbours(Grids grid, bool allowCrossScreens = false)
     {
         var neighbours = new List<Grids>();
         if (grid == null) return neighbours;
@@ -447,6 +455,7 @@ public partial class GridManager : Node
             if (vector.X < 0 || vector.X >= searchRange.X ||
                 vector.Y < 0 || vector.Y >= searchRange.Y) continue;
             if (map[vector.X, vector.Y] == null) continue;
+            if (!IsRangeAllowed(grid, map[vector.X, vector.Y], allowCrossScreens)) continue;
             neighbours.Add(map[vector.X, vector.Y]);
         }
         return neighbours;
