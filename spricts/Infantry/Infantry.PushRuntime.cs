@@ -97,6 +97,7 @@ public partial class Infantry
 
         if (!TryMarkPushActionUsed()) return;
         gridManager.HideAttackRange();
+        gridManager.ClearAllEmptyCallbacks();
         gm.isSelectingAttackTarget = false;
         actionMenu?.Hide();
         ResolvePushChain(targetGrid, direction, pushDistance, gridManager, gm);
