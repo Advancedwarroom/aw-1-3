@@ -118,8 +118,10 @@ private void BuildGridPropertyEditor(Grids grid)
         () => grid.fixedAttackPerTurn, (v) => { grid.fixedAttackPerTurn = (int)v; });
     CreateMemberControl(grid, "canOverMaxHealth", typeof(bool),
         () => grid.canOverMaxHealth, (v) => { grid.canOverMaxHealth = (bool)v; });
-    CreateMemberControl(grid, "fixedMaxHealthChangePerTurn", typeof(int), // ✦优化：最大血量增减
+    CreateMemberControl(grid, "fixedMaxHealthChangePerTurn", typeof(int), // 最大血量增减
         () => grid.fixedMaxHealthChangePerTurn, (v) => { grid.fixedMaxHealthChangePerTurn = (int)v; });
+    CreateMemberControl(grid, "fixedWeightChangePerTurn", typeof(float),
+        () => grid.fixedWeightChangePerTurn, (v) => { grid.fixedWeightChangePerTurn = Mathf.Clamp((float)v, -9999f, 9999f); });
 
     // 弹药/燃料
     var ammoLabel = new Label();
@@ -139,6 +141,10 @@ private void BuildGridPropertyEditor(Grids grid)
     CreateMemberControl(grid, "ammoChangeCamo", typeof(int), () => grid.ammoChangeCamo, (v) => { grid.ammoChangeCamo = (int)v; });
     CreateMemberControl(grid, "ammoChangeProduction", typeof(int), () => grid.ammoChangeProduction, (v) => { grid.ammoChangeProduction = (int)v; });
     CreateMemberControl(grid, "ammoChangeConstruction", typeof(int), () => grid.ammoChangeConstruction, (v) => { grid.ammoChangeConstruction = (int)v; });
+    CreateMemberControl(grid, "ammoChangeSpecial", typeof(int), () => grid.ammoChangeSpecial, (v) => { grid.ammoChangeSpecial = (int)v; });
+    CreateMemberControl(grid, "ammoChangePushRebound", typeof(int), () => grid.ammoChangePushRebound, (v) => { grid.ammoChangePushRebound = (int)v; });
+    CreateMemberControl(grid, "ammoChangePushMitigation", typeof(int), () => grid.ammoChangePushMitigation, (v) => { grid.ammoChangePushMitigation = (int)v; });
+    CreateMemberControl(grid, "ammoChangeAntiGravityTransfer", typeof(int), () => grid.ammoChangeAntiGravityTransfer, (v) => { grid.ammoChangeAntiGravityTransfer = (int)v; });
     CreateMemberControl(grid, "ammoMaxChangePrimary", typeof(int), () => grid.ammoMaxChangePrimary, (v) => { grid.ammoMaxChangePrimary = (int)v; });
     CreateMemberControl(grid, "ammoMaxChangeExplode", typeof(int), () => grid.ammoMaxChangeExplode, (v) => { grid.ammoMaxChangeExplode = (int)v; });
     CreateMemberControl(grid, "ammoMaxChangeFlare", typeof(int), () => grid.ammoMaxChangeFlare, (v) => { grid.ammoMaxChangeFlare = (int)v; });
@@ -147,6 +153,10 @@ private void BuildGridPropertyEditor(Grids grid)
     CreateMemberControl(grid, "ammoMaxChangeCamo", typeof(int), () => grid.ammoMaxChangeCamo, (v) => { grid.ammoMaxChangeCamo = (int)v; });
     CreateMemberControl(grid, "ammoMaxChangeProduction", typeof(int), () => grid.ammoMaxChangeProduction, (v) => { grid.ammoMaxChangeProduction = (int)v; });
     CreateMemberControl(grid, "ammoMaxChangeConstruction", typeof(int), () => grid.ammoMaxChangeConstruction, (v) => { grid.ammoMaxChangeConstruction = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangeSpecial", typeof(int), () => grid.ammoMaxChangeSpecial, (v) => { grid.ammoMaxChangeSpecial = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangePushRebound", typeof(int), () => grid.ammoMaxChangePushRebound, (v) => { grid.ammoMaxChangePushRebound = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangePushMitigation", typeof(int), () => grid.ammoMaxChangePushMitigation, (v) => { grid.ammoMaxChangePushMitigation = (int)v; });
+    CreateMemberControl(grid, "ammoMaxChangeAntiGravityTransfer", typeof(int), () => grid.ammoMaxChangeAntiGravityTransfer, (v) => { grid.ammoMaxChangeAntiGravityTransfer = (int)v; });
     CreateMemberControl(grid, "ammoCanOverMax", typeof(bool),
         () => grid.ammoCanOverMax, (v) => { grid.ammoCanOverMax = (bool)v; });
     CreateMemberControl(grid, "ammoCanReachZero", typeof(bool),
