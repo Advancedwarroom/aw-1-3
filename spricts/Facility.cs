@@ -208,10 +208,15 @@ public partial class Facility : Node2D
             normalAnimSprite = GetNodeOrNull<AnimatedSprite2D>("NormalAnimSprite");
         if (normalAnimSprite == null)
             normalAnimSprite = GetNodeOrNull<AnimatedSprite2D>("NormalAnimatedSprite");
+        // ✅ 开创人2026-11-11: 递归兜底——四件套场景把覆盖层挂在BaseAnimSprite子级，直接子级找不到会永久掉回旧单层路（Port能紫纯侥幸）
+        if (normalAnimSprite == null && baseAnimSprite != null)
+            normalAnimSprite = baseAnimSprite.GetNodeOrNull<AnimatedSprite2D>("NormalAnimSprite");
         if (baseSprite == null)
             baseSprite = GetNodeOrNull<Sprite2D>("BaseSprite");
         if (normalSprite == null)
             normalSprite = GetNodeOrNull<Sprite2D>("NormalSprite");
+        if (normalSprite == null && baseSprite != null)
+            normalSprite = baseSprite.GetNodeOrNull<Sprite2D>("NormalSprite");
 
         // ✅ 开创人2026-11-11: 底图色相运行时自测（自测优先，手写锚点兜底）
         MeasureBaseArtHue();
