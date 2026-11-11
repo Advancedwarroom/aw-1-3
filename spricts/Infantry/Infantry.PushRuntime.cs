@@ -218,7 +218,8 @@ public partial class Infantry
             return false;
         if (!weapon.pushBlocksInfantryWhenOverlapped) return true;
 
-        foreach (var index in weapon.GetOccupiedIndices(nextAnchor.GridIndex))
+        foreach (var index in weapon.GetOccupiedIndices(nextAnchor.GridIndex)
+            .OrderByDescending(index => index.X * direction.X + index.Y * direction.Y))
         {
             var tile = gm.gridManager.GetGridAt(index);
             if (tile == null) return false;
