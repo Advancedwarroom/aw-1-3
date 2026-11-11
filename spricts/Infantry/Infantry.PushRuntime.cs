@@ -1060,7 +1060,7 @@ public partial class Infantry
 
     private bool CanPushStack(List<Infantry> pusher, List<Infantry> target, float forceMultiplier = 1.0f)
     {
-        return CanPushStackWithForce(pusher, GetStackWeight(pusher) * forceMultiplier, target);
+        return CanPushStackWithForce(pusher, GetStackWeight(pusher) * forceMultiplier, target, out _);
     }
 
     private bool CanPushStackWithForce(List<Infantry> pusherRules, float pusherWeight,
