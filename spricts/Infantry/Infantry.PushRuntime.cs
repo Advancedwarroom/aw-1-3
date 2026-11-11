@@ -269,10 +269,10 @@ public partial class Infantry
             priority = GD.Randf() < 0.5f ? 1 : -1;
 
         if (priority > 0)
-            return TryReboundStack(stack, origin, pushDirection, gm)
-                || TryTransferStack(stack, pushDirection, gridManager, gm);
-        return TryTransferStack(stack, pushDirection, gridManager, gm)
-            || TryReboundStack(stack, origin, pushDirection, gm);
+            return TryReboundStack(stack, origin, pushDirection, gm, rebounder)
+                || TryTransferStack(stack, pushDirection, gridManager, gm, transferer);
+        return TryTransferStack(stack, pushDirection, gridManager, gm, transferer)
+            || TryReboundStack(stack, origin, pushDirection, gm, rebounder);
     }
 
     // Positive means first unit wins; negative means second unit wins.
@@ -297,9 +297,12 @@ public partial class Infantry
         return 0;
     }
 
-    private bool TryReboundStack(List<Infantry> stack, Grids origin, Vector2I direction, GameManager gm)
+    private bool TryReboundStack(List<Infantry> stack, Grids origin, Vector2I direction, GameManager gm,
+        Infantry preferredRebounder = null)
     {
-        var rebounder = stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushReboundEnabled);
+        var rebounder = preferredRebounder != null && IsLivingUnit(preferredRebounder)
+            ? preferredRebounder
+            : stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushReboundEnabled);
         if (rebounder == null || origin == null || GetLivingStack(origin).Count > 0)
             return false;
         int ammoCost = Mathf.Max(0, rebounder.pushReboundAmmoCost);
@@ -325,9 +328,11 @@ public partial class Infantry
     }
 
     private bool TryTransferStack(List<Infantry> stack, Vector2I pushDirection,
-        GridManager gridManager, GameManager gm)
+        GridManager gridManager, GameManager gm, Infantry preferredTransferer = null)
     {
-        var transferUnit = stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushTransferEnabled);
+        var transferUnit = preferredTransferer != null && IsLivingUnit(preferredTransferer)
+            ? preferredTransferer
+            : stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushTransferEnabled);
         if (transferUnit == null || transferUnit.pushTransferDirection == Vector2I.Zero)
             return false;
         int ammoCost = Mathf.Max(0, transferUnit.pushTransferAmmoCost);
