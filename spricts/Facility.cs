@@ -213,6 +213,9 @@ public partial class Facility : Node2D
         if (normalSprite == null)
             normalSprite = GetNodeOrNull<Sprite2D>("NormalSprite");
 
+        // ✅ 开创人2026-11-11: 底图色相运行时自测（自测优先，手写锚点兜底）
+        MeasureBaseArtHue();
+
         // 设施是像素画：显式锁定最近邻，避免父节点/Viewport 的线性过滤把小灯点糊开。
         TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
         ForceNearestTextureFilter(animSprite);
@@ -523,6 +526,65 @@ public partial class Facility : Node2D
     // source palette (for example TempPort's cyan artwork).
     protected virtual float GetBaseArtHue() => 0f;  // 2026-11-11: base art normalized to 0° red baseline
 
+    // ✅ 开创人2026-11-11: 底图色相运行时自测。手写锚点曾出现 300° 级灾难性错误
+    // （City 写 1° 实测 311°、Base 写 0.7° 实测 305°——昨晚"归一化"把底图转成品红却按红基线登记）。
+    // 自测优先：_Ready 时从将被染色的底图层真实纹理采样高饱和众数色相；手写值降级为兜底。
+    private float? _measuredBaseHue = null;
+
+    private float EffectiveBaseArtHue() => _measuredBaseHue ?? GetBaseArtHue();
+
+    private void MeasureBaseArtHue()
+    {
+        try
+        {
+            var frames = baseAnimSprite != null && IsInstanceValid(baseAnimSprite) ? baseAnimSprite.SpriteFrames
+                       : animSprite != null && IsInstanceValid(animSprite) ? animSprite.SpriteFrames
+                       : null;
+            if (frames == null) return;
+            // 只测"红色模板"动画——它是重染色的源画；混入 P0/蓝模会污染测量
+            string probe = null;
+            var names = GetTeamAnimNames();
+            if (names.HasValue && frames.HasAnimation(names.Value.red)) probe = names.Value.red;
+            else if (frames.GetAnimationCount() > 0) probe = frames.GetAnimationNames()[0];
+            if (probe == null) return;
+            var tex = frames.GetFrameTexture(probe, 0);
+            var img = tex?.GetImage();
+            if (img == null) return;
+            var tallies = new System.Collections.Generic.Dictionary<int, int>();
+            for (int y = 0; y < img.GetHeight(); y += 2)
+            {
+                for (int x = 0; x < img.GetWidth(); x += 2)
+                {
+                    var c = img.GetPixel(x, y);
+                    if (c.A < 0.8f) continue;
+                    float h = c.H, s = c.S, v = c.V;
+                    if (s < 0.45f || v < 0.35f) continue;
+                    int key = ((Mathf.RoundToInt(h * 360f) % 360) + 360) % 360;
+                    tallies[key] = tallies.TryGetValue(key, out var n) ? n + 1 : 1;
+                }
+            }
+            if (tallies.Count == 0) return;
+            // 色环圆形众数：±12° 包裹窗口内票数最多者
+            int best = -1, bestN = 0;
+            foreach (var kv in tallies)
+            {
+                int n = 0;
+                foreach (var kv2 in tallies)
+                {
+                    int d = Mathf.Abs(kv.Key - kv2.Key);
+                    d = Mathf.Min(d, 360 - d);
+                    if (d <= 12) n += kv2.Value;
+                }
+                if (n > bestN) { bestN = n; best = kv.Key; }
+            }
+            if (best >= 0) _measuredBaseHue = best / 360.0f;
+        }
+        catch (System.Exception e)
+        {
+            GD.PushWarning($"[Facility] 底图色相自测失败，退回手写 GetBaseArtHue: {e.Message}");
+        }
+    }
+
     protected ShaderMaterial GetHueMaterial(string team, bool guardSourceHue = false)
     {
         team = TeamHelper.CanonicalId(team);
@@ -555,14 +617,14 @@ public partial class Facility : Node2D
 
         // Shader adds this delta to the source pixel hue. Subtract the source-art hue first;
         // sending the target hue directly would rotate pink-red 352 degrees past the target.
-        float hueShift = Mathf.PosMod((targetHue - GetBaseArtHue()) * 360.0f, 360.0f);
+        float hueShift = Mathf.PosMod((targetHue - EffectiveBaseArtHue()) * 360.0f, 360.0f);  // ✅ 自测优先
         var material = new ShaderMaterial { Shader = _hueShader };
         material.SetShaderParameter("hue_shift", hueShift);
         material.SetShaderParameter("saturation", saturation);
         // ✅ 2026-11-11 单图层成品画: 只转源色带(队伍红)内像素, 其余原样——非编码画的"只染队伍色"守卫
         if (guardSourceHue)
         {
-            material.SetShaderParameter("guard_center", GetBaseArtHue());
+            material.SetShaderParameter("guard_center", EffectiveBaseArtHue());
             material.SetShaderParameter("guard_range", 0.10f);
         }
         return material;
