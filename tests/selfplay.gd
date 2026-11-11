@@ -213,10 +213,8 @@ func _finish() -> void:
 		TranslateGroup.ReleaseRuntimeResources()
 	game_manager = null
 	ai_manager = null
-	# 冲刷queue_free+让mono finalizer跑完，消除退出时假泄漏报告（228 CanvasItem/688 ObjectDB）
-	for i in 10:
-		await tree.process_frame
-	tree.quit(exit_code)
+	# 最简退出：对照组 facility_recolor_check.gd 同款——零拆卸操作（ReleaseRuntimeResources会留悬空引用,shutdown死锁）
+	get_tree().quit(exit_code)
 
 func _parse_args() -> void:
 	var args := OS.get_cmdline_user_args()
