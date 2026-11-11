@@ -63,7 +63,8 @@ public partial class Infantry
     private bool CanPushNonInfantryTarget(Grids targetGrid, bool? pushable, float? targetWeight,
         EqualWeightPushMode targetMode, bool invalid)
     {
-        if (!pushEnabled || pushTriggerMode != PushTriggerMode.Attack || pushDistance <= 0
+        if (!pushEnabled || (pushTriggerMode != PushTriggerMode.Attack
+            && pushTriggerMode != PushTriggerMode.SeparateAction) || pushDistance <= 0
             || targetGrid == null || invalid || pushable != true || targetWeight == null)
             return false;
         float ownWeight = GetEffectiveWeight();
@@ -98,7 +99,13 @@ public partial class Infantry
                 || !gridManager.IsRangeAllowed(grid, tile, attackCanCrossScreens))
                 continue;
             var stack = GetLivingStack(tile);
-            if (stack.Count == 0 || !CanPushTargetTeam(stack)) continue;
+            bool hasPushableStatic = pushTargetClass == PushTargetClass.AnyPushableEntity
+                && ((tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                    && w.pushableByPhysics && w.team != team) ?? false)
+                    || (tile.city != null && tile.city.pushableByPhysics
+                        && tile.city.facilityTeam != team));
+            if ((stack.Count == 0 || !CanPushTargetTeam(stack))
+                && !hasPushableStatic) continue;
             tile.attackRangeIcon?.Show();
             tile.IsInAttackRangeMode = true;
             gridManager.attackRange.Add(tile);
@@ -215,7 +222,25 @@ public partial class Infantry
         var gridManager = gm?.gridManager;
         if (targetGrid == null || grid == null || gridManager == null) return;
         var stack = GetLivingStack(targetGrid);
-        if (stack.Count == 0 || !CanPushTargetTeam(stack)) return;
+        bool staticTarget = stack.Count == 0 && pushTargetClass == PushTargetClass.AnyPushableEntity;
+        if (stack.Count > 0 && !CanPushTargetTeam(stack)) return;
+        if (staticTarget)
+        {
+            var weapon = targetGrid.weapons?.FirstOrDefault(w => w != null
+                && GodotObject.IsInstanceValid(w) && w.pushableByPhysics && w.team != team);
+            var facility = targetGrid.city != null && targetGrid.city.pushableByPhysics
+                && targetGrid.city.facilityTeam != team ? targetGrid.city : null;
+            if (weapon == null && facility == null) return;
+            if (!CanPayPushCost(gm) || !TryMarkPushActionUsed()) return;
+            PayPushCost(gm);
+            gridManager.HideAttackRange();
+            gridManager.ClearAllEmptyCallbacks();
+            gm.isSelectingAttackTarget = false;
+            actionMenu?.Hide();
+            if (weapon != null) TryPushWeaponOnAttack(weapon);
+            else TryPushFacilityOnAttack(facility);
+            return;
+        }
 
         Vector2I direction = GetPushDirection(targetGrid);
         if (direction == Vector2I.Zero || !CanPushStack(new List<Infantry> { this }, stack,
