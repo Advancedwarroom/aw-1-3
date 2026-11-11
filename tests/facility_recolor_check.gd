@@ -40,10 +40,14 @@ func _ready() -> void:
 		_fail("材质空|base存在:%s base帧:%s base材质:%s legacy存在:%s" % [base != null, base_frames != null, base_mat != null, legacy != null])
 		return
 	var shift = mat.get_shader_parameter("hue_shift")
-	print(which, " hue_shift = ", shift)
-	if shift == null or shift < 140.0 or shift > 340.0:
-		_fail("hue_shift 出紫色带: " + str(shift))
-		return
+	var mode = mat.get_shader_parameter("mode")
+	print(which, " hue_shift=", shift, " mode=", mode)
+	if mode != null and int(mode) == 2:
+		print("mode2模板色表材质——明暗阶路径, 通过")
+	else:
+		if shift == null or shift < 140.0 or shift > 340.0:
+			_fail("hue_shift 出紫色带: " + str(shift))
+			return
 	print("FACILITY_RECOLOR_CHECK_PASS")
 	get_tree().quit(0)
 
