@@ -585,27 +585,92 @@ public partial class Infantry
         var rebounder = preferredRebounder != null && IsLivingUnit(preferredRebounder)
             ? preferredRebounder
             : stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushReboundEnabled);
-        if (rebounder == null || origin == null || GetLivingStack(origin).Count > 0)
-            return false;
-        int ammoCost = Mathf.Max(0, rebounder.pushReboundAmmoCost);
-        int fuelCost = Mathf.Max(0, rebounder.pushReboundFuelCost);
-        int fundsCost = Mathf.Max(0, rebounder.pushReboundFundsCost);
-        var reboundDestination = rebounder.pushReboundToOrigin
-            ? origin
-            : gm?.gridManager?.GetGridAt(origin.GridIndex - direction);
-        if (reboundDestination == null || GetLivingStack(reboundDestination).Count > 0
-            || reboundDestination.city != null || (reboundDestination.weapons?.Count ?? 0) > 0
-            || rebounder.GetAmmo(rebounder.pushReboundAmmoKind) < ammoCost || rebounder.fuel < fuelCost
-            || (fundsCost > 0 && (gm == null || gm.GetTeamFunds(rebounder.team) < fundsCost)))
+        if (rebounder == null || origin == null || gm?.gridManager == null)
             return false;
 
-        // Validate the destination and every cost before charging anything.
-        if (ammoCost > 0 && !rebounder.HasAmmo(rebounder.pushReboundAmmoKind, ammoCost)) return false;
+        int ammoCost = Mathf.Max(0, rebounder.pushReboundAmmoCost);
+        int healthCost = Mathf.Max(0, rebounder.pushReboundHealthCost);
+        int fuelCost = Mathf.Max(0, rebounder.pushReboundFuelCost);
+        int fundsCost = Mathf.Max(0, rebounder.pushReboundFundsCost);
+        if (rebounder.GetAmmo(rebounder.pushReboundAmmoKind) < ammoCost
+            || rebounder.health <= healthCost || rebounder.fuel < fuelCost
+            || (fundsCost > 0 && gm.GetTeamFunds(rebounder.team) < fundsCost))
+            return false;
+
+        var reboundDestination = origin;
+        List<Infantry> pusherStack = null;
+        Grids pusherOrigin = null;
+        Grids pusherDestination = null;
+        bool destroyPusher = false;
+
+        if (!rebounder.pushReboundToOrigin)
+        {
+            // A direct rebound enters the pusher's old tile, so the pusher must
+            // retreat one tile first. A blocked retreat makes the rebound fail.
+            pusherOrigin = grid;
+            if (pusherOrigin == null) return false;
+            pusherStack = GetLivingStack(pusherOrigin);
+            if (pusherStack.Count == 0) pusherStack.Add(this);
+            pusherDestination = gm.gridManager.GetGridAt(pusherOrigin.GridIndex - direction);
+            if (pusherDestination == null
+                || GetLivingStack(pusherDestination).Count > 0
+                || HasForeignMultiTileOccupant(pusherDestination, pusherStack)
+                || (pusherDestination.city != null && pusherDestination.city.pushBlocksInfantryWhenOverlapped)
+                || (pusherDestination.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                    && w.pushBlocksInfantryWhenOverlapped) ?? false))
+                return false;
+
+            destroyPusher = pusherStack.Any(unit => unit.GetMoveCostOnGrid(pusherDestination) >= 999);
+            reboundDestination = pusherOrigin;
+        }
+
+        var destinationOccupants = GetLivingStack(reboundDestination);
+        if (destinationOccupants.Any(unit => pusherStack == null || !pusherStack.Contains(unit))
+            || reboundDestination.city != null || (reboundDestination.weapons?.Count ?? 0) > 0)
+            return false;
+
+        // All destination and cost checks have passed. Only now consume resources.
         if (ammoCost > 0) rebounder.TryConsumeAmmo(rebounder.pushReboundAmmoKind, ammoCost);
+        rebounder.health -= healthCost;
         rebounder.fuel -= fuelCost;
         if (fundsCost > 0)
             gm.SetTeamFunds(rebounder.team, gm.GetTeamFunds(rebounder.team) - fundsCost);
+        if (healthCost > 0) rebounder.UpdateHpLabel();
+
+        if (pusherStack != null)
+        {
+            if (destroyPusher)
+                foreach (var unit in pusherStack.ToList()) DestroyPushedUnit(unit, gm);
+            else
+                MoveStackByPush(pusherStack, pusherDestination);
+        }
         MoveStackByPush(stack, reboundDestination);
+
+        // Rebound impact is applied to the initiating pusher after the reverse
+        // displacement, using the rebounder's own Export settings.
+        if (pusherStack != null && !destroyPusher)
+        {
+            foreach (var unit in pusherStack.Where(IsLivingUnit).ToList())
+            {
+                if (rebounder.pushReboundTargetLockOneHp)
+                    unit.health = 1;
+                else if (rebounder.pushReboundTargetDamage > 0)
+                {
+                    long remainingHealth = (long)unit.health - rebounder.pushReboundTargetDamage;
+                    if (remainingHealth <= 0 && rebounder.pushReboundTargetCanDestroy)
+                    {
+                        DestroyPushedUnit(unit, gm);
+                        continue;
+                    }
+                    unit.health = (int)Math.Max(1L, remainingHealth);
+                }
+                if (rebounder.pushReboundTargetFuelDelta != 0)
+                    unit.fuel = (int)Math.Clamp((long)unit.fuel + rebounder.pushReboundTargetFuelDelta, 0L, int.MaxValue);
+                if (rebounder.pushReboundTargetAmmoDelta != 0)
+                    unit.AddAmmo(rebounder.pushReboundTargetAmmoKind, rebounder.pushReboundTargetAmmoDelta);
+                unit.UpdateHpLabel();
+            }
+        }
         return true;
     }
 
