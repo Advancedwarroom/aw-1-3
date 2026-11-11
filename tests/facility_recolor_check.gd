@@ -22,6 +22,8 @@ func _ready() -> void:
 
 	var base = fac.get_node_or_null("BaseAnimSprite")
 	var normal = fac.get_node_or_null("NormalAnimSprite")
+	if normal == null:
+		normal = fac.get_node_or_null("BaseAnimSprite/NormalAnimSprite")
 	var legacy = fac.get_node_or_null("AnimatedSprite2D")
 	var base_frames = base.get("sprite_frames") if base != null else "无节点"
 	var base_mat = base.get("material") if base != null else "无节点"
