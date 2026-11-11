@@ -1610,9 +1610,11 @@ public partial class Infantry
             DestroyPushedUnit(unit, gm);
     }
 
-    private void ApplyFragileCollisionEffects(List<Infantry> survivingStack)
+    private void ApplyFragileCollisionEffects(List<Infantry> survivingStack,
+        List<Infantry> opponentStack = null)
     {
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var opponent = opponentStack?.FirstOrDefault(IsLivingUnit) ?? this;
         foreach (var unit in survivingStack.Where(IsLivingUnit).ToList())
         {
             if (!unit.pushFragileEnabled) continue;
@@ -1620,9 +1622,9 @@ public partial class Infantry
             int fragileDamage = unit.pushFragileDamageMode switch
             {
                 PushFragileDamageMode.AttackCalculation =>
-                    Math.Max(0, CalculateFinalDamage(unit, WeaponType.Primary)),
+                    Math.Max(0, opponent.CalculateFinalDamage(unit, WeaponType.Primary)),
                 PushFragileDamageMode.HealthAndFunds =>
-                    CalculateFragileHealthFundsDamage(unit, gm),
+                    CalculateFragileHealthFundsDamage(unit, gm, opponent),
                 _ => unit.pushFragileDamage
             };
             if (unit.pushFragileLockOneHp) unit.health = 1;
@@ -1673,17 +1675,18 @@ public partial class Infantry
         }
     }
 
-    private int CalculateFragileHealthFundsDamage(Infantry survivor, GameManager gm)
+    private static int CalculateFragileHealthFundsDamage(Infantry survivor,
+        GameManager gm, Infantry opponent)
     {
-        double healthPart = Math.Max(0.0, ((double)health + survivor.health)
+        double healthPart = Math.Max(0.0, ((double)opponent.health + survivor.health)
             * Math.Max(0.0f, survivor.pushFragileHealthScale));
         double fundsPart = 0.0;
         if (gm != null)
         {
-            long ownFunds = Math.Max(0, gm.GetTeamFunds(team));
-            long targetFunds = Math.Max(0, gm.GetTeamFunds(survivor.team));
+            long opponentFunds = Math.Max(0, gm.GetTeamFunds(opponent.team));
+            long survivorFunds = Math.Max(0, gm.GetTeamFunds(survivor.team));
             int divisor = Math.Max(1, survivor.pushFragileFundsPerDamage);
-            fundsPart = ((double)ownFunds + targetFunds) / 2.0 / divisor;
+            fundsPart = ((double)opponentFunds + survivorFunds) / 2.0 / divisor;
         }
         return (int)Math.Clamp(Math.Round(healthPart + fundsPart), 0.0, int.MaxValue);
     }
