@@ -462,7 +462,9 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
         }
         else if (target is Weapon weapon)
         {
-            AddWeaponVisionFields(weapon);
+            // 防御：兵器专属字段段异常时保留通用行已建好的面板内容，只记日志。
+            try { AddWeaponVisionFields(weapon); }
+            catch (System.Exception wEx) { GD.PushError($"[编辑模式] 兵器专属字段段失败: {wEx}"); }
             if (weapon is DeathRay dr)
         {
             dr.direction = pendingCannonDirection;
