@@ -34,6 +34,7 @@ public partial class Radar : Facility
     [Export] public int illuminationRangeX = 5;
     /// <summary>照明塔 y 范围（可投放目标点范围）</summary>
     [Export] public int illuminationRangeY = 5;
+    [Export] public bool radarIlluminationCanCrossScreens = false; // 雷达照明效果范围是否允许跨屏
     /// <summary>照明塔是否自动化</summary>
     [Export] public bool illuminationAuto = false;
 
@@ -132,7 +133,7 @@ public partial class Radar : Facility
         var fog = gm?.GetTree()?.GetFirstNodeInGroup("fog_of_war") as FogOfWarManager;
         if (fog == null) return;
         // 目标点为新的核心，x-y 范围去雾（duration=1回合，如照明弹）
-        fog.AddIllumination(targetGrid, 0, Mathf.Max(illuminationRangeX, illuminationRangeY), 1, facilityVisionCanCrossScreens);
+        fog.AddIllumination(targetGrid, 0, Mathf.Max(illuminationRangeX, illuminationRangeY), 1, radarIlluminationCanCrossScreens);
     }
 
     /// <summary>照明塔是否可用（需开启+己方占领）</summary>
