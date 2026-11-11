@@ -186,17 +186,10 @@ public partial class Infantry
             int damage = (int)Math.Clamp((long)pushTargetDamage + pushRamDamage, 0L, int.MaxValue);
             if (damage > 0)
             {
-                long remainingHealth = (long)target.health - damage;
-                if (remainingHealth <= 0 && !pushDamageCanDestroy)
+                if (!pushDamageCanDestroy && (long)target.health - damage <= 0)
                     target.health = 1;
-                else if (remainingHealth <= 0)
-                {
-                    target.health = 0;
-                    var origin = target.ParentGrid;
-                    if (origin != null && origin.city == target) origin.city = null;
-                    target.QueueFree();
-                }
-                else target.health = (int)remainingHealth;
+                else
+                    target.TakeDamage(damage, this);
             }
         }
 
