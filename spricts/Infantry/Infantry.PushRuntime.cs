@@ -964,7 +964,12 @@ public partial class Infantry
                 if (blockers.Count > 0)
                 {
                     // With domino chaining disabled, a blocked link stops both sides.
-                    if (!pushChainEnabled || !pushUsesWeight) continue;
+                    if (!pushChainEnabled || !pushUsesWeight)
+                    {
+                        ApplyFragileCollisionEffects(stack);
+                        ApplyFragileCollisionEffects(blockers);
+                        continue;
+                    }
                     float movingWeight = GetStackWeight(stack);
                     float blockerWeight = GetStackWeight(blockers);
                     if (movingWeight > blockerWeight && !Mathf.IsEqualApprox(movingWeight, blockerWeight))
@@ -975,6 +980,7 @@ public partial class Infantry
                     else if (blockerWeight > movingWeight && !Mathf.IsEqualApprox(movingWeight, blockerWeight))
                     {
                         DestroyCollisionLoser(stack);
+                        ApplyFragileCollisionEffects(blockers);
                         continue;
                     }
                     else
@@ -985,7 +991,12 @@ public partial class Infantry
                         bool blockerStops = StackStopsOnEqual(blockers);
                         bool bothMove = movingAllows && blockerAllows
                             || !(movingStops && blockerStops) && GD.Randf() < 0.5f;
-                        if (!bothMove) continue;
+                        if (!bothMove)
+                        {
+                            ApplyFragileCollisionEffects(stack);
+                            ApplyFragileCollisionEffects(blockers);
+                            continue;
+                        }
 
                         var collisionNext = gridManager.GetGridAt(destination.GridIndex + direction);
                         if (collisionNext == null || GetLivingStack(collisionNext).Count > 0
