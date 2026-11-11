@@ -526,24 +526,35 @@ public partial class Infantry
     private bool TryResolveStackDisplacement(List<Infantry> stack, Grids origin,
         Vector2I pushDirection, GridManager gridManager, GameManager gm)
     {
-        var rebounder = stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushReboundEnabled);
-        var transferer = stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushTransferEnabled
-            && u.pushTransferDirection != Vector2I.Zero);
+        var candidates = new List<(Infantry unit, bool rebound)>();
+        foreach (var unit in stack.Where(IsLivingUnit))
+        {
+            if (unit.pushReboundEnabled) candidates.Add((unit, true));
+            if (unit.pushTransferEnabled && unit.pushTransferDirection != Vector2I.Zero)
+                candidates.Add((unit, false));
+        }
 
-        if (rebounder == null)
-            return TryTransferStack(stack, pushDirection, gridManager, gm);
-        if (transferer == null)
-            return TryReboundStack(stack, origin, pushDirection, gm);
+        // Resolve every eligible module, not just the first one in the stack. Weight,
+        // HP ratio, and funds ratio decide priority; exact ties are randomized.
+        while (candidates.Count > 0)
+        {
+            int bestIndex = 0;
+            for (int i = 1; i < candidates.Count; i++)
+            {
+                int priority = CompareDisplacementPriority(
+                    candidates[i].unit, candidates[bestIndex].unit, gm);
+                if (priority > 0 || (priority == 0 && GD.Randf() < 0.5f))
+                    bestIndex = i;
+            }
 
-        int priority = CompareDisplacementPriority(rebounder, transferer, gm);
-        if (priority == 0)
-            priority = GD.Randf() < 0.5f ? 1 : -1;
-
-        if (priority > 0)
-            return TryReboundStack(stack, origin, pushDirection, gm, rebounder)
-                || TryTransferStack(stack, pushDirection, gridManager, gm, transferer);
-        return TryTransferStack(stack, pushDirection, gridManager, gm, transferer)
-            || TryReboundStack(stack, origin, pushDirection, gm, rebounder);
+            var candidate = candidates[bestIndex];
+            candidates.RemoveAt(bestIndex);
+            bool resolved = candidate.rebound
+                ? TryReboundStack(stack, origin, pushDirection, gm, candidate.unit)
+                : TryTransferStack(stack, pushDirection, gridManager, gm, candidate.unit);
+            if (resolved) return true;
+        }
+        return false;
     }
 
     // Positive means first unit wins; negative means second unit wins.
@@ -647,7 +658,7 @@ public partial class Infantry
                 unit.health = Math.Min(unit.health, unit.GetEffectiveMaxHealth());
             if (pushLockTargetToOneHp) unit.health = 1;
             else if (pushTargetHealAmount > 0)
-                unit.health = (int)Math.Min(unit.pushTargetCanOverMaxHealth ? int.MaxValue : unit.GetEffectiveMaxHealth(),
+                unit.health = (int)Math.Min(pushTargetCanOverMaxHealth ? int.MaxValue : unit.GetEffectiveMaxHealth(),
                     Math.Min(int.MaxValue, (long)unit.health + pushTargetHealAmount));
             else if (pushTargetDamage > 0 || pushRamDamage > 0)
             {
