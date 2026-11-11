@@ -306,7 +306,7 @@ public partial class AI_Manager
             if (cand == null) continue;
             int d = Mathf.Abs(cand.GridIndex.X - sx) + Mathf.Abs(cand.GridIndex.Y - sy);
             if (d < silo.strikeMinRange || d > silo.strikeMaxRange) continue;
-            if (silo.IsScreenBlocked(cand)) continue; // ✅ N屏：AI 选弹着点默认仅限己图
+            if (!gameManager.gridManager.IsRangeAllowed(silo.grid, cand, silo.siloStrikeCanCrossScreens)) continue; // AI 与玩家使用相同弹着点跨屏规则
             float score = 0;
             foreach (var g in gameManager.gridManager.grids)
             {
