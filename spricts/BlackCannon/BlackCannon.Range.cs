@@ -245,7 +245,7 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
     private void OnRangeGridClicked(Grids targetGrid)
     {
         // ✅ 关键修复：检查格子是否还有效
-        if (targetGrid == null || !IsInstanceValid(targetGrid)) return;
+        if (targetGrid == null || !IsInstanceValid(targetGrid) || IsScreenBlocked(targetGrid)) return;
 
         // ✅ 再次检查弹药和冷却
         if (!HasAmmoAndCooldown())
