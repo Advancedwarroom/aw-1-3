@@ -339,6 +339,8 @@ public virtual bool ConsumePrimaryAmmo()
             var gmAtk = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gmAtk != null) gmAtk.CurrentAttackerGrid = grid; // 巨雷弱点判定: 记录攻击来源格
         weapon.TakeDamage(damage, this);
+        if (weapon.health > 0 && !weapon.isDestroyed)
+            TryPushWeaponOnAttack(weapon);
         if (gmAtk != null) gmAtk.CurrentAttackerGrid = null;
             __theater?.AddVolley(true, damage, Math.Max(0, weapon.health), BattleAnimCatalog.GetFireClass(this, selectedWeapon, null));
 
@@ -365,6 +367,8 @@ public virtual bool ConsumePrimaryAmmo()
             isAttacked = true; isMoved = true; originalGrid = null;
             int damage = facility.CalculateDamageFrom(this, selectedWeapon);
             facility.TakeDamage(damage, this);
+            if (facility.health > 0)
+                TryPushFacilityOnAttack(facility);
             state = UnitState.Acted; FreezeToIdleDark();
             var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
             gm?.gridManager?.HideAttackRange(); gm?.ClearSelectedInfantry();
