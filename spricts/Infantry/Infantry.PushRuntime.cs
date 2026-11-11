@@ -126,7 +126,7 @@ public partial class Infantry
             }
             else if (!TryMarkAttackPushUsed()) return;
             PayPushCost(gm);
-            if (GodotObject.IsInstanceValid(target) && !target.isDestroyed)
+            if (GodotObject.IsInstanceValid(target) && !target.isDestroyed && target.health > 0)
                 ApplyStaticPushEffects(target);
         }
     }
@@ -191,7 +191,7 @@ public partial class Infantry
         }
         else if (!TryMarkAttackPushUsed()) return;
         PayPushCost(gm);
-        if (GodotObject.IsInstanceValid(target) && target.ParentGrid != null)
+        if (GodotObject.IsInstanceValid(target) && target.ParentGrid != null && target.health > 0)
             ApplyStaticPushEffects(target);
     }
 
@@ -234,8 +234,7 @@ public partial class Infantry
         }
         if (unitWeight > staticWeight && !Mathf.IsEqualApprox(unitWeight, staticWeight))
         {
-            DestroyStaticPushTarget(movingWeapon, movingFacility, gm);
-            movingStaticDestroyed = true;
+            movingStaticDestroyed = DestroyStaticPushTarget(movingWeapon, movingFacility, gm);
             ApplyFragileCollisionEffects(stack);
             return false;
         }
@@ -274,12 +273,12 @@ public partial class Infantry
         return true;
     }
 
-    private void DestroyStaticPushTarget(Weapon weapon, Facility facility, GameManager gm)
+    private bool DestroyStaticPushTarget(Weapon weapon, Facility facility, GameManager gm)
     {
         if (weapon != null && GodotObject.IsInstanceValid(weapon) && !weapon.isDestroyed)
         {
             weapon.TakeDamage(int.MaxValue, this);
-            return;
+            return weapon.health <= 0 || weapon.isDestroyed || weapon.IsQueuedForDeletion();
         }
         if (facility != null && GodotObject.IsInstanceValid(facility))
         {
@@ -288,7 +287,9 @@ public partial class Infantry
             facility.health = 0;
             facility.QueueFree();
             gm?.CallDeferred(nameof(GameManager.UpdateUnitLists));
+            return true;
         }
+        return false;
     }
 
     private void ApplyStaticPushEffects(Weapon target)
