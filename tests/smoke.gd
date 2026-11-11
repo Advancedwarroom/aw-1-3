@@ -26,11 +26,10 @@ func _run_smoke() -> void:
 	if main_instance != null and is_instance_valid(main_instance):
 		main_instance.free()
 	main_instance = null
-	print("[TEST_CLEANUP] found TranslateGroup: ", translate_group != null)
-	if translate_group != null:
-		translate_group.call("ReleaseRuntimeResources")
+	print("[TEST_CLEANUP] found TranslateGroup: ", is_instance_valid(TranslateGroup))
+	if is_instance_valid(TranslateGroup):
+		TranslateGroup.ReleaseRuntimeResources()
 		print("[TEST_CLEANUP] called ReleaseRuntimeResources")
-		translate_group.free()
 	# Some effects deliberately reparent themselves to the SceneTree root. They are
 	# transient in this test and must be freed before checking shutdown leaks.
 	for child in tree.root.get_children(true):
