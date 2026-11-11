@@ -6,7 +6,7 @@ using Godot;
 public partial class HQ : Facility
 {
     // HQ base frames use a near-red source palette.
-    protected override float GetBaseArtHue() => 1.7f / 360.0f;
+    protected override float GetBaseArtHue() => 58.0f / 360.0f;
 
     [ExportGroup("总部 - 胜负规则")]
     /// <summary>是否在team改变（被占领）时判负。默认开启（原作行为）。</summary>
