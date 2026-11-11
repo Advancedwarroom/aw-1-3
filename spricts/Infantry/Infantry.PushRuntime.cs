@@ -626,7 +626,9 @@ public partial class Infantry
 
         var destinationOccupants = GetLivingStack(reboundDestination);
         if (destinationOccupants.Any(unit => pusherStack == null || !pusherStack.Contains(unit))
-            || reboundDestination.city != null || (reboundDestination.weapons?.Count ?? 0) > 0)
+            || (reboundDestination.city != null && reboundDestination.city.pushBlocksInfantryWhenOverlapped)
+            || (reboundDestination.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                && w.pushBlocksInfantryWhenOverlapped) ?? false))
             return false;
 
         // All destination and cost checks have passed. Only now consume resources.
@@ -644,7 +646,13 @@ public partial class Infantry
             else
                 MoveStackByPush(pusherStack, pusherDestination);
         }
-        MoveStackByPush(stack, reboundDestination);
+        foreach (var unit in stack.ToList())
+        {
+            if (IsLivingUnit(unit) && unit.GetMoveCostOnGrid(reboundDestination) >= 999)
+                DestroyPushedUnit(unit, gm);
+        }
+        stack = stack.Where(IsLivingUnit).ToList();
+        if (stack.Count > 0) MoveStackByPush(stack, reboundDestination);
 
         // Rebound impact is applied to the initiating pusher after the reverse
         // displacement, using the rebounder's own Export settings.
@@ -695,7 +703,10 @@ public partial class Infantry
         var origin = stack.FirstOrDefault(IsLivingUnit)?.grid;
         var destination = origin == null ? null : gridManager.GetGridAt(origin.GridIndex + direction);
         if (destination == null || GetLivingStack(destination).Count > 0
-            || destination.city != null || (destination.weapons?.Count ?? 0) > 0
+            || HasForeignMultiTileOccupant(destination, stack)
+            || (destination.city != null && destination.city.pushBlocksInfantryWhenOverlapped)
+            || (destination.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                && w.pushBlocksInfantryWhenOverlapped) ?? false)
             || transferUnit.GetAmmo(transferUnit.pushTransferAmmoKind) < ammoCost || transferUnit.fuel < fuelCost
             || transferUnit.health <= healthCost
             || (fundsCost > 0 && (gm == null || gm.GetTeamFunds(transferUnit.team) < fundsCost)))
@@ -708,7 +719,13 @@ public partial class Infantry
         transferUnit.health -= healthCost;
         if (fundsCost > 0)
             gm.SetTeamFunds(transferUnit.team, gm.GetTeamFunds(transferUnit.team) - fundsCost);
-        MoveStackByPush(stack, destination);
+        foreach (var unit in stack.ToList())
+        {
+            if (IsLivingUnit(unit) && unit.GetMoveCostOnGrid(destination) >= 999)
+                DestroyPushedUnit(unit, gm);
+        }
+        stack = stack.Where(IsLivingUnit).ToList();
+        if (stack.Count > 0) MoveStackByPush(stack, destination);
         return true;
     }
 
@@ -965,8 +982,7 @@ public partial class Infantry
             var stack = chain[i].Where(IsLivingUnit).ToList();
             if (stack.Count == 0) continue;
             var origin = originalTiles[i];
-            if (TryResolveStackDisplacement(stack, origin, direction, gridManager, gameManager))
-                continue;
+            TryResolveStackDisplacement(stack, origin, direction, gridManager, gameManager);
             ApplyPushTargetEffects(stack, gameManager);
         }
 
