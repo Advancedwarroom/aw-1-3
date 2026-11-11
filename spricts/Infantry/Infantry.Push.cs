@@ -122,8 +122,11 @@ public partial class Infantry
     [Export] public int pushFragileFundsPerDamage = 1000;
     [Export] public bool pushFragileCanDestroy = false;
     [Export] public bool pushFragileLockOneHp = false;
+    [Export] public bool pushFragileCanOverMaxHealth = false;
     [Export] public int pushFragileFuelDelta = 0;
+    [Export] public bool pushFragileFuelCanOverMax = false;
     [Export] public int pushFragileAmmoDelta = 0;
+    [Export] public bool pushFragileAmmoCanOverMax = false;
     [Export] public AmmoKind pushFragileAmmoKind = AmmoKind.Primary;
 
     [ExportSubgroup("反弹模块")]
