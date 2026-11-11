@@ -19,10 +19,10 @@ public partial class Weapon : Node2D
     // ✅ N屏：目标格是否被屏隔离挡住（canCrossScreens=true 时忽略屏界）
     public bool IsScreenBlocked(Grids target)
     {
-        if (target == null || grid == null) return false;
+        if (target == null || grid == null || canCrossScreens) return false;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         var gmm = gm?.gridManager;
-        if (gmm == null) return false;
+        if (gmm == null) return grid.screenId != target.screenId;
         return !gmm.IsRangeAllowed(grid, target, canCrossScreens);
     }
 
