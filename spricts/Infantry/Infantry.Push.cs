@@ -65,6 +65,8 @@ public partial class Infantry
     [Export] public bool pushCanTargetEnemies = true;
     [Export] public bool pushCanTargetFriendlies = false;
     [Export] public bool pushCanTargetAllies = false;
+    [Export] public string[] pushTargetWhitelist = System.Array.Empty<string>();
+    [Export] public string[] pushTargetBlacklist = System.Array.Empty<string>();
 
     [ExportSubgroup("方向与目标")]
     [Export] public PushDirectionMode pushDirectionMode = PushDirectionMode.AwayFromPusher;
