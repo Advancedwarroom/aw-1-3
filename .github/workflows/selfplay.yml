@@ -89,4 +89,4 @@ jobs:
       - name: 杀掉 MSBuild 服务进程
         run: dotnet build-server shutdown
       - name: City P-1 换色断言
-        run: timeout 120 godot --headless --path . -s res://tests/facility_recolor_check.gd
+        run: timeout 120 godot --headless --path . res://tests/facility_recolor_check.tscn
