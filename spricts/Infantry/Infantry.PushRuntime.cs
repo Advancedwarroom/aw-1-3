@@ -273,32 +273,59 @@ public partial class Infantry
         return distance >= minRange && distance <= maxRange;
     }
 
-    private bool CanPushTargetTeam(List<Infantry> stack)
+    private PushChainRule GetPushChainRule(int chainIndex)
     {
-        // A stack moves as one object, so every occupant must satisfy the selected team policy.
-        return pushCanTargetInfantry && stack != null && stack.Count > 0 && stack.All(unit =>
+        if (chainIndex < 0 || pushChainRules == null || chainIndex >= pushChainRules.Count)
+            return null;
+        return pushChainRules[chainIndex];
+    }
+
+    private bool CanPushTargetTeam(List<Infantry> stack, int chainIndex = 0)
+    {
+        // A stack moves as one object, so every occupant must satisfy the rules for
+        // this chain link. Missing rule entries inherit the initiating unit's exports.
+        var rule = GetPushChainRule(chainIndex);
+        bool allowInfantry = rule?.targetInfantry ?? pushCanTargetInfantry;
+        if (!allowInfantry || stack == null || stack.Count == 0) return false;
+
+        var whitelist = rule?.whitelist ?? pushTargetWhitelist;
+        var blacklist = rule?.blacklist ?? pushTargetBlacklist;
+        return stack.All(unit =>
         {
             string typeId = unit.UnitTypeId ?? unit.GetType().Name;
-            if (pushTargetWhitelist != null && pushTargetWhitelist.Length > 0
-                && !pushTargetWhitelist.Contains(typeId) && !pushTargetWhitelist.Contains(unit.GetType().Name))
+            if (whitelist != null && whitelist.Length > 0
+                && !whitelist.Contains(typeId) && !whitelist.Contains(unit.GetType().Name))
                 return false;
-            if (pushTargetBlacklist != null && (pushTargetBlacklist.Contains(typeId)
-                || pushTargetBlacklist.Contains(unit.GetType().Name)))
+            if (blacklist != null && (blacklist.Contains(typeId)
+                || blacklist.Contains(unit.GetType().Name)))
                 return false;
-            return CanPushTeamRelation(unit.team);
+            return rule == null || rule.teamPolicy == 0
+                ? CanPushTeamRelation(unit.team)
+                : CanPushTeamRelation(unit.team, rule);
         });
     }
 
-    private bool CanPushTeamName(string targetTeam, string targetType = null)
+    private bool CanPushTeamName(string targetTeam, string targetType = null, int chainIndex = 0)
     {
         if (string.IsNullOrEmpty(targetTeam)) return false;
+        var rule = GetPushChainRule(chainIndex);
+        if (rule != null)
+        {
+            bool allowType = targetType == null
+                || (targetType == nameof(Weapon) && rule.targetWeapons)
+                || (targetType == nameof(Facility) && rule.targetFacilities);
+            if (!allowType) return false;
+        }
+        var whitelist = rule?.whitelist ?? pushTargetWhitelist;
+        var blacklist = rule?.blacklist ?? pushTargetBlacklist;
         if (!string.IsNullOrEmpty(targetType))
         {
-            if (pushTargetWhitelist != null && pushTargetWhitelist.Length > 0
-                && !pushTargetWhitelist.Contains(targetType)) return false;
-            if (pushTargetBlacklist != null && pushTargetBlacklist.Contains(targetType)) return false;
+            if (whitelist != null && whitelist.Length > 0 && !whitelist.Contains(targetType)) return false;
+            if (blacklist != null && blacklist.Contains(targetType)) return false;
         }
-        return CanPushTeamRelation(targetTeam);
+        return rule == null || rule.teamPolicy == 0
+            ? CanPushTeamRelation(targetTeam)
+            : CanPushTeamRelation(targetTeam, rule);
     }
 
     private bool CanPushTeamRelation(string targetTeam)
@@ -315,6 +342,23 @@ public partial class Infantry
                 if (sameTeam) return pushCanTargetFriendlies;
                 if (allied) return pushCanTargetAllies;
                 return pushCanTargetEnemies;
+        }
+    }
+
+    private bool CanPushTeamRelation(string targetTeam, PushChainRule rule)
+    {
+        bool sameTeam = targetTeam == team;
+        bool allied = !sameTeam && TeamHelper.AreAllied(team, targetTeam);
+        switch (rule.teamPolicy)
+        {
+            case 1: return !sameTeam && !allied;
+            case 2: return sameTeam;
+            case 3: return allied;
+            case 4: return true;
+            default:
+                if (sameTeam) return rule.targetFriendlies;
+                if (allied) return rule.targetAllies;
+                return rule.targetEnemies;
         }
     }
 
@@ -657,7 +701,7 @@ public partial class Infantry
         while (cursor != null)
         {
             var stack = GetLivingStack(cursor);
-            if (stack.Count == 0 || !CanPushTargetTeam(stack)) break;
+            if (stack.Count == 0 || !CanPushTargetTeam(stack, chain.Count)) break;
             if (pushMaxChainUnits > 0 && chainUnitCount + stack.Count > pushMaxChainUnits)
                 break;
             chain.Add(stack);
@@ -738,7 +782,7 @@ public partial class Infantry
                 // Units configured for final-tile-only checks pass through invalid intermediate tiles.
                 var blockers = GetLivingStack(destination).Where(u => !stack.Contains(u)).ToList();
                 if (blockers.Count > 0 || HasForeignMultiTileOccupant(destination, stack)) continue;
-                if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager)) continue;
+                if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager, i)) continue;
 
                 MoveStackByPush(stack, destination);
                 movedStacks.Add(i);
@@ -828,7 +872,7 @@ public partial class Infantry
     }
 
     private bool TryDisplaceWeaponAndFacility(List<Infantry> movingStack,
-        Grids destination, Vector2I direction, GridManager gridManager)
+        Grids destination, Vector2I direction, GridManager gridManager, int chainIndex = 0)
     {
         float movingWeight = GetStackWeight(movingStack);
         var nextGrid = gridManager.GetGridAt(destination.GridIndex + direction);
@@ -849,8 +893,7 @@ public partial class Infantry
         Weapon blockingWeapon = blockingWeapons.FirstOrDefault();
         if (blockingWeapon != null)
         {
-            if (!pushCanTargetWeapons
-                || !CanPushTeamName(blockingWeapon.team, blockingWeapon.GetType().Name))
+            if (!CanPushTeamName(blockingWeapon.team, blockingWeapon.GetType().Name, chainIndex))
                 return false;
             float obstacleWeight = blockingWeapon.GetEffectiveWeight();
             if (!blockingWeapon.pushableByPhysics) return false;
@@ -862,8 +905,7 @@ public partial class Infantry
 
         if (blockingFacility != null)
         {
-            if (!pushCanTargetFacilities
-                || !CanPushTeamName(blockingFacility.facilityTeam, blockingFacility.GetType().Name))
+            if (!CanPushTeamName(blockingFacility.facilityTeam, blockingFacility.GetType().Name, chainIndex))
                 return false;
             float obstacleWeight = blockingFacility.GetEffectiveWeight();
             if (!blockingFacility.pushableByPhysics) return false;
