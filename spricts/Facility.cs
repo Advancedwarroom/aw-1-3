@@ -78,6 +78,8 @@ public partial class Facility : Node2D
     [Export] public Godot.Collections.Dictionary<string, int> productionVigorResMode = new();    // 资源名→模式：0=百分比(默认) 1=固定加减
     [Export] public Godot.Collections.Dictionary<string, int> productionVigorResValue = new();   // 资源名→数值：百分比=亏损度×基数×值/100；固定=亏损度×值。正=扣 负=倒加（残厂出超编资源）
     [Export] public Godot.Collections.Dictionary<string, int> productionVigorResFloor = new();   // 资源名→该资源下限（未配置：血量=productionUnitMinHp，燃油=productionUnitMinFuel，弹药=0）
+    [Export] public Godot.Collections.Dictionary<string, bool> productionVigorResExceedMax = new(); // 资源名→可否超上限（默认false=倒加也钳在原max；true=允许超过原上限）
+    [Export] public Godot.Collections.Dictionary<string, int> productionVigorResNewCap = new();   // 资源名→超编时的替代上限；可超且本项不填=无上限（显式-1也=无上限）
 
     // ========== 状态栏系统 ==========
     [ExportGroup("初始状态（运行时生效）")]
