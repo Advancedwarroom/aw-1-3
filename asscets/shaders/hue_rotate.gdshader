@@ -9,6 +9,9 @@ uniform float saturation = 1.0;   // P0 neutral = 0.12
 // 单图层成品画(City/Base/Port/AirPort)由 Facility 传 center=GetBaseArtHue(), 只染队伍红, 不染米色/灰/白。
 uniform float guard_center = -1.0;
 uniform float guard_range = 0.08;  // 色相环比例 0~0.5
+uniform float sv_snap = 0.0;      // S/V吸附强度 0~1（0=只转色相, 1=镶边完全呈现目标色的S/V）
+uniform float target_sat = 1.0;   // 目标色饱和度(GetHueMaterial按势力色注入)
+uniform float target_val = 1.0;   // 目标色明度
 
 vec3 rgb2hsv(vec3 c) {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -36,6 +39,9 @@ void fragment() {
     }
     if (in_band) {
         hsv.x = fract(hsv.x + hue_shift / 360.0);
+        // ✅ 开创人2026-11-12: S/V吸附——只转色相会把暗橄榄转成"黑洞紫"; 吸附后镶边呈现目标色的正典饱和度/明度
+        hsv.y = mix(hsv.y, target_sat, sv_snap);
+        hsv.z = mix(hsv.z, target_val, sv_snap);
         hsv.y *= saturation;
         COLOR = vec4(hsv2rgb(hsv), tex.a);
     }
