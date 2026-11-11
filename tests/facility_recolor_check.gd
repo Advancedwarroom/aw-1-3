@@ -1,7 +1,5 @@
 extends Node
-# 开创人2026-11-11: 设施换色冒烟断言——CI 直接炸，不靠手机截图（ScreenErrorLogger 哲学）
-# 结构对齐 selfplay.gd 已验证模式：extends Node + _ready + .tscn 场景进入
-# 关键：Facility._Ready 要求父节点是 Grids（res://Prefabs/grid.tscn），否则早退、精灵全空、材质挂不上
+# 开创人2026-11-11: 设施换色冒烟断言（诊断版——每环都打印，FAIL信息直接指认断点）
 
 func _ready() -> void:
 	var grid_scene = load("res://Prefabs/grid.tscn")
@@ -18,23 +16,29 @@ func _ready() -> void:
 	var fac = packed.instantiate()
 	grids.add_child(fac)
 	fac.set("facilityTeam", "P-1")
-	if fac.has_method("UpdateCityVisual"):
-		fac.UpdateCityVisual()
 
-	var spr = fac.get_node_or_null("BaseAnimSprite")
-	var dual = spr != null and spr.get("sprite_frames") != null
-	if not dual:
-		spr = fac.get_node_or_null("AnimatedSprite2D")
-	if spr == null:
-		_fail("找不到设施精灵节点")
-		return
+	print("has_method(UpdateCityVisual) = ", fac.has_method("UpdateCityVisual"))
+	fac.UpdateCityVisual()
 
-	var mat = spr.get("material")
+	var base = fac.get_node_or_null("BaseAnimSprite")
+	var normal = fac.get_node_or_null("NormalAnimSprite")
+	var legacy = fac.get_node_or_null("AnimatedSprite2D")
+	var base_frames = base.get("sprite_frames") if base != null else "无节点"
+	var base_mat = base.get("material") if base != null else "无节点"
+	print("BaseAnimSprite: 存在=", base != null, " 帧=", base_frames != null, " 材质=", base_mat != null)
+	print("NormalAnimSprite 存在=", normal != null, " AnimatedSprite2D 存在=", legacy != null)
+
+	var mat = null
+	var which = ""
+	if base_mat != null and base_mat is Material:
+		mat = base_mat; which = "BaseAnimSprite"
+	elif legacy != null and legacy.get("material") is Material:
+		mat = legacy.get("material"); which = "AnimatedSprite2D"
 	if mat == null:
-		_fail("P-1 未挂色相材质（GetHueMaterial 返回 null？看 PushError）")
+		_fail("材质空|base存在:%s base帧:%s base材质:%s legacy存在:%s" % [base != null, base_frames != null, base_mat != null, legacy != null])
 		return
 	var shift = mat.get_shader_parameter("hue_shift")
-	print("P-1 City hue_shift = ", shift, "  (双图层=", dual, ")")
+	print(which, " hue_shift = ", shift)
 	if shift == null or shift < 200.0 or shift > 340.0:
 		_fail("hue_shift 出紫色带: " + str(shift))
 		return
