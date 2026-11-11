@@ -347,7 +347,11 @@ private void ShowMultiSelectMenu(List<EditTarget> targets)
         // ✅ 对象类选项（单位/兵器/设施）在文字前加实际 sprite 首帧小图标；grid/spawn 无对象自动跳过
         // 防御（开创人2026-11-11 编辑模式弹窗事故）：图标只是装饰，任何异常只记日志+跳过该按钮图标，绝不允许中断菜单构建。
         try { AddLiveObjectIcon(btn, target.TargetObject); }
-        catch (System.Exception iconEx) { GD.PushError($"[编辑模式] 选择菜单图标生成失败({target.TargetType}): {iconEx}"); }
+        catch (System.Exception iconEx)
+            {
+                GD.PushError($"[编辑模式] 选择菜单图标生成失败({target.TargetType}): {iconEx}");
+                ShowEditorError($"选择菜单图标({target.TargetType}): {iconEx.Message}");
+            }
         selectionButtonContainer.AddChild(btn);
     }
 

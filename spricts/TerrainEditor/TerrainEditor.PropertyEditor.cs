@@ -378,6 +378,32 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
     }
 
     // ========== ✅ 打开单位编辑器 ==========
+    // ==================== 屏幕错误显示（开创人2026-11-11：手机看不了控制台，错误直接贴游戏画面）====================
+    private Label screenErrorLabel;
+    /// 在编辑模式画面中央弹出持久红色错误条（带关闭按钮），不依赖控制台。
+    public void ShowEditorError(string message)
+    {
+        if (screenErrorLabel != null && IsInstanceValid(screenErrorLabel)) screenErrorLabel.QueueFree();
+        var layer = new CanvasLayer { Layer = 3000 };
+        var panel = new PanelContainer();
+        panel.SetAnchorsPreset(LayoutPreset.Center);
+        panel.CustomMinimumSize = new Vector2(560, 90);
+        var vb = new VBoxContainer();
+        var msg = new Label
+        {
+            Text = "⚠ 编辑模式错误（截图发给开创人）\n" + message,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+            Modulate = new Color(1f, 0.85f, 0.85f)
+        };
+        var btn = new Button { Text = "关闭" };
+        btn.Pressed += () => { layer.QueueFree(); screenErrorLabel = null; };
+        vb.AddChild(msg); vb.AddChild(btn);
+        panel.AddChild(vb);
+        layer.AddChild(panel);
+        AddChild(layer);
+        screenErrorLabel = msg;
+    }
+
     private void OpenUnitEditor(Infantry unit)
     {
         CloseSelectionMenu();
@@ -464,7 +490,11 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
         {
             // 防御：兵器专属字段段异常时保留通用行已建好的面板内容，只记日志。
             try { AddWeaponVisionFields(weapon); }
-            catch (System.Exception wEx) { GD.PushError($"[编辑模式] 兵器专属字段段失败: {wEx}"); }
+            catch (System.Exception wEx)
+            {
+                GD.PushError($"[编辑模式] 兵器专属字段段失败: {wEx}");
+                ShowEditorError($"兵器专属字段段: {wEx.Message}");
+            }
             if (weapon is DeathRay dr)
         {
             dr.direction = pendingCannonDirection;
