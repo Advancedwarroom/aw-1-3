@@ -149,18 +149,40 @@ public partial class Infantry
         return true;
     }
 
+    public bool CanUseAttackPush()
+    {
+        if (!pushEnabled || pushTriggerMode != PushTriggerMode.Attack)
+            return false;
+        if (pushCooldownTurnsRemaining > 0) return false;
+        if (pushOncePerTurn && hasUsedPushThisTurn) return false;
+        return true;
+    }
+
+    private void MarkPushUsed()
+    {
+        hasUsedPushThisTurn = true;
+        pushCooldownTurnsRemaining = Mathf.Max(pushCooldownTurnsRemaining, pushCooldownTurns);
+    }
+
     public bool TryMarkPushActionUsed()
     {
         if (!CanUseSeparatePushAction())
             return false;
-        hasUsedPushThisTurn = true;
-        pushCooldownTurnsRemaining = Mathf.Max(pushCooldownTurnsRemaining, pushCooldownTurns);
+        MarkPushUsed();
         if (pushActionCountsAsAction)
         {
             hasActed = true;
             state = UnitState.Acted;
             SetWaitVisual(true);
         }
+        return true;
+    }
+
+    public bool TryMarkAttackPushUsed()
+    {
+        if (!CanUseAttackPush())
+            return false;
+        MarkPushUsed();
         return true;
     }
 
