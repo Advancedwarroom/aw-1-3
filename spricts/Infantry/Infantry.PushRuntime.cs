@@ -53,7 +53,7 @@ public partial class Infantry
             || grid == null || target == null || !GodotObject.IsInstanceValid(target)
             || target.grid == null || !IsWithinPushTargetRange(target.grid)) return;
 
-        Vector2I direction = directionOverride ?? GetPushDirection(target.grid);
+        Vector2I direction = GetPushDirection(target.grid);
 
         if (direction == Vector2I.Zero) return;
 
@@ -75,14 +75,15 @@ public partial class Infantry
             : fromMovement ? CanUseMovementPush() : CanUseAttackPush();
         if (distance > 0 && triggerReady
             && pushTargetClass == PushTargetClass.AnyPushableEntity && pushCanTargetWeapons
-            && target != null && target.grid != null && IsWithinPushTargetRange(target.grid)
+            && target != null && target.grid != null
+            && (fromMovement || IsWithinPushTargetRange(target.grid))
             && CanPushTeamName(target.team, target.GetType().Name)
             && CanPushNonInfantryTarget(target.grid, target.pushableByPhysics, target.GetEffectiveWeight(),
                 target.equalWeightPushMode, target.isDestroyed, distance))
         {
             var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
             if (gm?.gridManager == null || target == null) return;
-            Vector2I direction = GetPushDirection(target.grid);
+            Vector2I direction = directionOverride ?? GetPushDirection(target.grid);
             if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
             var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
             if (!CanMoveStaticTargetTo(firstDestination, target, null)) return;
@@ -113,14 +114,15 @@ public partial class Infantry
     }
 
     public void TryPushFacilityOnAttack(Facility target, bool fromSeparateAction = false,
-        int? distanceOverride = null, bool fromMovement = false)
+        int? distanceOverride = null, bool fromMovement = false, Vector2I? directionOverride = null)
     {
         int distance = GetRequestedPushDistance(distanceOverride);
         bool triggerReady = fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction
             : fromMovement ? CanUseMovementPush() : CanUseAttackPush();
         if (distance <= 0 || !triggerReady
             || pushTargetClass != PushTargetClass.AnyPushableEntity || !pushCanTargetFacilities
-            || target == null || target.ParentGrid == null || !IsWithinPushTargetRange(target.ParentGrid)
+            || target == null || target.ParentGrid == null
+            || (!fromMovement && !IsWithinPushTargetRange(target.ParentGrid))
             || !CanPushTeamName(target.facilityTeam, target.GetType().Name)
             || !CanPushNonInfantryTarget(target.ParentGrid, target.pushableByPhysics, target.GetEffectiveWeight(),
                 target.equalWeightPushMode, target.health <= 0, distance))
