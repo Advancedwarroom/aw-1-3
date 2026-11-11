@@ -648,9 +648,9 @@ public partial class Infantry
                     w == null || !GodotObject.IsInstanceValid(w) || !w.pushBlocksInfantryWhenOverlapped));
             if (canOverlapStatic && GetLivingStack(followDestination).Count == 0)
             {
-                var pusherStack = GetLivingStack(grid);
-                if (pusherStack.Count == 0) pusherStack.Add(this);
-                MoveStackByPush(pusherStack, followDestination);
+                var followStack = GetLivingStack(grid);
+                if (followStack.Count == 0) followStack.Add(this);
+                MoveStackByPush(followStack, followDestination);
             }
         }
 
