@@ -7,7 +7,7 @@ using System.Linq;
 // 三族通用：任何单位/兵器/设施都可成为「供弹方」或「受补方」。
 // 模式：0=自点自补（点自己出补给按钮） 1=代点他补（点供弹方，给n-m内白名单目标补给） 2=两者皆可
 // 铁律：每势力相位一次（stamp防伪）＋冷却回合；操作消耗行动力（prActs=true则待机）
-// 代价四方式：①资金（可负）②自身十资源（可负）③献祭（范围内按势力政策抽第三者十资源）
+// 代价四方式：①资金（可负）②自身十三资源（可负）③献祭（范围内按势力政策抽第三者十三资源）
 //           ④组合：启用几种，菜单亮几个按钮，玩家自选
 // 特殊弹（第11资源）：useSpecialAmmo=false 或 max<=0 = 无限（支付/补充对它免单）
 // ============================================================
@@ -301,7 +301,7 @@ public partial class Weapon
     [Export] public int wSpecialCurrent = 0;
     [Export] public int wSpecialMax = 0;                            // 0=无限
 
-    // 十资源读写（兵器无燃料/生产弹/建造弹 → no-op）
+    // 十三资源读写（兵器无燃料/生产弹/建造弹 → no-op）
     public int PrGetW(int res) => res switch
     {
         0 => health, 2 => currentAmmo, 3 => wExplodeCurrent, 4 => wFlareCurrent,
