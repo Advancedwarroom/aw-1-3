@@ -1310,7 +1310,7 @@ public partial class Infantry
         // configuration before moving anything rather than corrupting occupancy.
         if (blockingWeapons.Count > 1) return false;
         if (blockingWeapons.Count == 0 && blockingFacility == null) return true;
-        if (nextGrid == null || !CanMoveStaticTargetTo(nextGrid)) return false;
+        if (nextGrid == null) return false;
 
         Weapon blockingWeapon = blockingWeapons.FirstOrDefault();
         if (blockingWeapon != null)
@@ -1327,6 +1327,14 @@ public partial class Infantry
             if (!blockingWeapon.pushableByPhysics) return false;
             if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
                 && !CanResolveEqualWeight(movingStack, blockingWeapon.equalWeightPushMode)) return false;
+
+            if (!TryResolveStaticTargetCollision(nextGrid, direction, blockingWeapon, null,
+                GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager,
+                out bool weaponDestroyed))
+            {
+                if (!weaponDestroyed) return false;
+            }
+            if (weaponDestroyed) blockingWeapon = null;
         }
 
         if (blockingFacility != null)
@@ -1343,7 +1351,18 @@ public partial class Infantry
             if (!blockingFacility.pushableByPhysics) return false;
             if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
                 && !CanResolveEqualWeight(movingStack, blockingFacility.equalWeightPushMode)) return false;
+
+            if (!TryResolveStaticTargetCollision(nextGrid, direction, null, blockingFacility,
+                GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager,
+                out bool facilityDestroyed))
+            {
+                if (!facilityDestroyed) return false;
+            }
+            if (facilityDestroyed) blockingFacility = null;
         }
+
+        if (blockingWeapon == null && blockingFacility == null) return true;
+        if (!CanMoveStaticTargetTo(nextGrid, blockingWeapon, blockingFacility)) return false;
 
         // All weight and destination checks have passed. Move the weapon first because
         // its manager validates the complete footprint; then move the facility slot.
