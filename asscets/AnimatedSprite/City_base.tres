@@ -1,26 +1,19 @@
-[gd_resource type="SpriteFrames" load_steps=7 format=3]
+[gd_resource type="SpriteFrames" load_steps=2 format=3]
 
-[ext_resource type="Texture2D" path="res://art/CITY.png" id="1"]
-[ext_resource type="Texture2D" path="res://art/CITYdark.png" id="2"]
-[ext_resource type="Texture2D" path="res://art/City1.png" id="3"]
-[ext_resource type="Texture2D" path="res://art/City1dark.png" id="4"]
-[ext_resource type="Texture2D" path="res://art/CITY2.png" id="5"]
-[ext_resource type="Texture2D" path="res://art/CITY2dark.png" id="6"]
+[ext_resource type="Texture2D" path="res://art/official/City_dark_base.png" id="1_a"]
 
 [resource]
 animations = [{
-"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 1.0, "texture": ExtResource("2")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1_a")}],
 "loop": true,
 "name": &"P0City",
-"speed": 5.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("3")}, {"duration": 1.0, "texture": ExtResource("4")}],
+"speed": 5.0}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("1_a")}],
 "loop": true,
 "name": &"cityteam1",
-"speed": 5.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("5")}, {"duration": 1.0, "texture": ExtResource("6")}],
+"speed": 5.0}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("1_a")}],
 "loop": true,
 "name": &"cityteam2",
-"speed": 5.0
-}]
+"speed": 5.0}
+]
