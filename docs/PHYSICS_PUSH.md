@@ -36,7 +36,7 @@ For a separate action:
 - Resource costs can use funds, HP, fuel, primary ammo, or any configured `AmmoKind` through `pushCostAmmoKind`.
 - Push uses three dedicated shared ammunition kinds: `PushRebound`, `PushMitigation`, and `AntiGravityTransfer`. They are part of the unit ammo read/write/refill API, paid resupply/sacrifice, facility supply, devour effects, terrain per-turn ammo/max-ammo changes, and generic Export saves.
 - Push costs and target ammo changes can select any `AmmoKind`; rebound, mitigation, and transfer default to their dedicated ammo types.
-- Infantry target effects include damage, one-HP locking, healing, max-HP changes, fuel changes, and changes to any configured `AmmoKind`.
+- Infantry target effects include damage, one-HP locking, healing, max-HP changes, fuel changes, and changes to any configured `AmmoKind`. Health, fuel, and ammo each have their own over-max control.
 - Infantry stacks support configurable rebound, distance mitigation, and anti-gravity transfer Export settings. Mitigation ammo is charged only when its mitigation reduces displacement and the stack actually moves.
 - Rebound can restore the target to its origin or retreat the pusher one tile to let the target rebound into the pusher's old tile. Rebound supports health/fuel/funds/ammo costs and reflected damage/fuel/ammo effects on the pusher. Mitigation ammo is charged only when its mitigation actually reduces the displacement and the stack moves.
 - `pushSelfDestructOnInvalidIntermediateTile` is configured on each infantry entity: enabled destroys it on any invalid intermediate tile; disabled only destroys it if the final requested tile is invalid.
@@ -46,6 +46,7 @@ For a separate action:
 - Multi-tile weapons cannot yet be moved by push.
 - Facility/weapon chain stacks and mixed infantry/weapon/facility mass transmission are not yet unified into one chain solver.
 - Weapon and facility push targets support health damage, one-HP locking, healing, and maximum-health changes. Weapons also map the six compatible shared ammo kinds to their native ammo slots. Infantry additionally supports fuel and all shared ammo kinds.
+- When a pushed stack collides with another infantry stack, heavier mass wins and destroys the lighter stack; equal mass follows the two sides' simultaneous/stop rules. `pushChainEnabled=false` makes an occupied link stop both sides.
 - Infantry `pushFragileEnabled` applies configured fixed health/fuel/ammo impact to survivors of unit-stack and static-obstacle collisions. The current fragile damage mode is fixed-value only.
 - Rebound/transfer are implemented for infantry stacks, not static entities.
 - Visual push animation, continuous free-angle 0–360° direction selection (the current grid solver is eight-way), attack/funds-based fragile damage, and full simultaneous rebound/mitigation/transfer conflict arbitration remain future work.
