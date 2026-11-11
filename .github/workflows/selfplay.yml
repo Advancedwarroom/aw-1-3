@@ -71,6 +71,9 @@ jobs:
   recolor-check:
     name: 设施换色断言（P-1必须紫）
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
     steps:
       - uses: actions/checkout@v5
       - name: 装 .NET 10
@@ -103,3 +106,10 @@ jobs:
           else
             echo "::error::recolor.log 为空: godot 零输出退出——超时/段错误"
           fi
+      - name: 失败时开issue带日志（TOKEN可读通道）
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          { echo "run: ${{ github.run_id }}"; echo '```'; cat build/recolor.log 2>/dev/null || echo '(无日志)'; echo '```'; } > /tmp/issue_body.txt
+          gh issue create --title "[CI] recolor-check 失败 run ${{ github.run_id }}" --body-file /tmp/issue_body.txt || true
