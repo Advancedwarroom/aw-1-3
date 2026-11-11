@@ -56,7 +56,7 @@ public partial class Infantry
 
         // Decide weight links once per attack. A mixed equal-weight pair gets one 50/50
         // result for the entire push, rather than rerolling independently on each tile.
-        int firstBlockedLink = chain.Count;
+        int firstBlockedLink = 0;
         for (int i = 0; i < chain.Count; i++)
         {
             var pusher = i == 0 ? this : chain[i - 1];
