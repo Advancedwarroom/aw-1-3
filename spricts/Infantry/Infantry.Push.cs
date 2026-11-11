@@ -74,6 +74,7 @@ public partial class Infantry
     [Export] public PushTargetTeamMode pushTargetPolicy = PushTargetTeamMode.Custom;
     [Export] public string[] pushTargetWhitelist = System.Array.Empty<string>();
     [Export] public string[] pushTargetBlacklist = System.Array.Empty<string>();
+    [Export] public Godot.Collections.Array<PushChainRule> pushChainRules = new();
 
     [ExportSubgroup("方向与目标")]
     [Export] public bool pushChainEnabled = true;
