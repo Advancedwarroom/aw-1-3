@@ -548,11 +548,6 @@ private void ShowTransportUnloadButtonsOnly(Infantry transport, bool afterMove =
     {
         if (unit == null || !IsInstanceValid(unit)) continue;
 
-        // ✅ P-1 公共运输单位：只显示当前势力可卸载的单位
-        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-        string currentTurnTeam = TeamHelper.GetPhaseTeamName(gm?.turnPhase ?? 1);
-        if (transport.team == TeamHelper.Player && unit.team != currentTurnTeam)
-            continue;
 
 
         if (unloadUnitButtonPreset != null)
@@ -576,6 +571,28 @@ private void ShowTransportUnloadButtonsOnly(Infantry transport, bool afterMove =
             ubt.CustomMinimumSize = new Vector2(140, 50);
             container.AddChild(ubt);
         }
+    }
+
+    // ✅ 开创人2026-11-11：卸载菜单防遮挡三件套——
+    // ① 容器移到 ActionMenu 末位（同层最顶绘制）② ZIndex=100 压地图 sprite
+    //    （ActionMenu 挂在场景根节点、与地图同层，下挂的卸载按钮会被 sprite 盖）
+    // ③ 位置兜底：运行时锚到菜单列实际底沿，不吃场景写死的 280px
+    if (container.GetParent() is Node cp)
+        cp.MoveChild(container, cp.GetChildCount() - 1);
+    container.ZIndex = 100;
+    var btnCol = GetNodeOrNull<VBoxContainer>("ButtonContainer");
+    if (btnCol != null)
+        container.Position = new Vector2(btnCol.Position.X, btnCol.Position.Y + btnCol.Size.Y + 4f);
+
+    // ④ 溢出保护（开创人2026-11-11）：舱位多探出视口下沿时先收紧行距，仍溢出则整体上移兜底
+    var vp = GetViewportRect().Size;
+    float bottom = container.GlobalPosition.Y + container.Size.Y;
+    if (bottom > vp.Y)
+    {
+        container.AddThemeConstantOverride("separation", 2);
+        bottom = container.GlobalPosition.Y + container.Size.Y;
+        if (bottom > vp.Y)
+            container.Position = new Vector2(container.Position.X, Mathf.Max(0f, container.Position.Y - (bottom - vp.Y)));
     }
 }
 }
