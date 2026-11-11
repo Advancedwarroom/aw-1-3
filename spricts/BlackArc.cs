@@ -124,7 +124,9 @@ public partial class BlackArc : Weapon
     /// <summary>执行天基打击：以目标格为核心 x-y 范围内单位受扣血伤害</summary>
     public void PerformArcStrike(Grids targetGrid, GameManager gm)
     {
-        if (targetGrid == null || gm == null) return;
+        if (targetGrid == null || gm?.gridManager == null || grid == null) return;
+        int strikeDistance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
+        if (strikeDistance < arcStrikeMinRange || strikeDistance > arcStrikeMaxRange || IsScreenBlocked(targetGrid)) return;
         if (!ArcStrikeReady) return;
 
         int cx = targetGrid.GridIndex.X;
