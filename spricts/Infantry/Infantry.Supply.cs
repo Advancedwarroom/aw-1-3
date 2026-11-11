@@ -19,21 +19,23 @@ public partial class Infantry
     [Export] public int cost = 1000;  // 单位造价（可在Inspector中修改，非硬编码）
 
 // ========== ✅ 究极自由：补给范围计算（从 APC 迁移） ==========
-public virtual List<Grids> CalculateSupplyRange()
+public virtual List<Grids> CalculateSupplyRange() => CalculateSupplyRange(grid);
+
+public virtual List<Grids> CalculateSupplyRange(Grids originGrid)
 {
     var result = new List<Grids>();
     var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-    if (gm?.gridManager == null || grid == null) return result;
+    if (gm?.gridManager == null || originGrid == null) return result;
 
-    var allRange = gm.gridManager.FindRange(grid, maxSupplyRange, false, supplyCanCrossScreens);
+    var allRange = gm.gridManager.FindRange(originGrid, maxSupplyRange, false, supplyCanCrossScreens);
 
     if (minSupplyRange > 1)
     {
-        var blindZone = gm.gridManager.FindRange(grid, minSupplyRange - 1, false, supplyCanCrossScreens);
+        var blindZone = gm.gridManager.FindRange(originGrid, minSupplyRange - 1, false, supplyCanCrossScreens);
         allRange = allRange.Where(g => !blindZone.Contains(g)).ToList();
     }
 
-    allRange = allRange.Where(g => g != grid).ToList();
+    allRange = allRange.Where(g => g != originGrid).ToList();
 
     return allRange;
 }
