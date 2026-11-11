@@ -10,7 +10,7 @@ public static class ExportPersistenceCodec
 {
     private const string Prefix = "g1:";
 
-    private sealed class PushChainRuleData
+    public sealed class PushChainRuleData
     {
         public int teamPolicy { get; set; }
         public bool targetInfantry { get; set; }
