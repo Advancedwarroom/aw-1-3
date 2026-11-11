@@ -34,6 +34,16 @@ public partial class GameManager
         UpdateUnitLists();
     }
     
+    /// <summary>设置势力资金，不应用常规资金上限（由明确允许超上限的模块调用）</summary>
+    public void SetTeamFundsUncapped(string team, int value)
+    {
+        int safeValue = Math.Max(0, value);
+        if (team == "Player1") p1Funds = safeValue;
+        else if (team == "Player2") p2Funds = safeValue;
+        else _teamFunds[team] = safeValue;
+        UpdateUnitLists();
+    }
+
     /// <summary>设置势力资金上限（支持任意数量势力）</summary>
     public void SetTeamFundsMax(string team, int value)
     {
