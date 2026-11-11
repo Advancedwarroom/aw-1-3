@@ -10,7 +10,9 @@ The push system is configured per entity through Godot Export properties. The cu
 - `Movement`: when moving along a path, push eligible infantry, weapons, or facilities out of blocking tiles in the direction of travel. The mover continues only when the blocking tile is cleared.
 
 For a separate action:
+- Target range uses `pushMinTargetRange`–`pushRange`. At exactly one-tile range, a single eligible target is auto-selected; multiple eligible targets still require selection.
 - `pushActionCountsAsAction = false` records the per-turn push use without changing `hasActed` or `state`.
+- `pushAutoDistance = false` opens a distance picker only when more than one distance is available; a fixed one-tile distance executes directly.
 - `pushActionCountsAsAction = true` marks the unit as acted.
 - `pushOncePerTurn` and `pushCooldownTurns` control reuse.
 - `pushCanBeUsedAfterMoving` controls whether movement blocks the action.
