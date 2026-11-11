@@ -363,6 +363,7 @@ public partial class TerrainEditor
         grid.fixedAttackPerTurn = data.fixedAttackPerTurn;
         grid.canOverMaxHealth = data.canOverMaxHealth;
         grid.fixedMaxHealthChangePerTurn = data.fixedMaxHealthChangePerTurn;
+        grid.fixedWeightChangePerTurn = data.fixedWeightChangePerTurn;
         grid.fixedAmmoChangePerTurn = data.fixedAmmoChangePerTurn;
         grid.ammoCanOverMax = data.ammoCanOverMax;
         grid.ammoCanReachZero = data.ammoCanReachZero;
@@ -374,6 +375,10 @@ public partial class TerrainEditor
         grid.ammoChangeCamo = data.ammoChangeCamo;
         grid.ammoChangeProduction = data.ammoChangeProduction;
         grid.ammoChangeConstruction = data.ammoChangeConstruction;
+        grid.ammoChangeSpecial = data.ammoChangeSpecial;
+        grid.ammoChangePushRebound = data.ammoChangePushRebound;
+        grid.ammoChangePushMitigation = data.ammoChangePushMitigation;
+        grid.ammoChangeAntiGravityTransfer = data.ammoChangeAntiGravityTransfer;
         grid.ammoMaxChangePrimary = data.ammoMaxChangePrimary;
         grid.ammoMaxChangeExplode = data.ammoMaxChangeExplode;
         grid.ammoMaxChangeFlare = data.ammoMaxChangeFlare;
@@ -382,6 +387,10 @@ public partial class TerrainEditor
         grid.ammoMaxChangeCamo = data.ammoMaxChangeCamo;
         grid.ammoMaxChangeProduction = data.ammoMaxChangeProduction;
         grid.ammoMaxChangeConstruction = data.ammoMaxChangeConstruction;
+        grid.ammoMaxChangeSpecial = data.ammoMaxChangeSpecial;
+        grid.ammoMaxChangePushRebound = data.ammoMaxChangePushRebound;
+        grid.ammoMaxChangePushMitigation = data.ammoMaxChangePushMitigation;
+        grid.ammoMaxChangeAntiGravityTransfer = data.ammoMaxChangeAntiGravityTransfer;
         grid.fixedFuelChangePerTurn = data.fixedFuelChangePerTurn;
         grid.fixedMaxFuelChangePerTurn = data.fixedMaxFuelChangePerTurn;
         grid.fuelCanOverMax = data.fuelCanOverMax;
