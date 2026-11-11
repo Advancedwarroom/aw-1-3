@@ -174,6 +174,7 @@ public partial class Facility : Node2D
     [Export] public int pushReboundAmmoSupply = 0;
     [Export] public int pushMitigationAmmoSupply = 0;
     [Export] public int antiGravityTransferAmmoSupply = 0;
+    [Export(PropertyHint.Range, "-9999,9999,0.01")] public float weightSupply = 0.0f;
 
     [ExportGroup("补给支持兵种过滤（为空=不限制）")]
     [Export] public Godot.Collections.Array<string> supportedUnitTypesForHeal = new();
@@ -933,6 +934,18 @@ public partial class Facility : Node2D
                             if (supplyColor == Colors.Green) supplyColor = new Color(0.9f, 0.3f, 0.2f);
                         }
                     }
+                }
+            }
+
+            if (weightSupply != 0.0f)
+            {
+                float oldWeight = unit.weight;
+                unit.weight = Mathf.Clamp(unit.weight + weightSupply, 0.0f, 9999.0f);
+                float delta = unit.weight - oldWeight;
+                if (!Mathf.IsZeroApprox(delta))
+                {
+                    supplied = true;
+                    supplyParts.Add($"Weight{(delta > 0 ? "+" : "")}{delta:0.##}");
                 }
             }
 
