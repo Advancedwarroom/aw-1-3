@@ -156,7 +156,7 @@ public partial class ActionMenu
         {
             if (unit.spaceStrikeGlobal) return true;
             int d = Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y);
-            return d >= unit.spaceStrikeMinRange && d <= unit.spaceStrikeMaxRange;
+            return d >= unit.spaceStrikeMinRange && d <= unit.spaceStrikeMaxRange && gm.gridManager.IsRangeAllowed(unit.grid, g, unit.spaceStrikeCanCrossScreens);
         }).ToList();
 
         foreach (var g in rangeGrids)
