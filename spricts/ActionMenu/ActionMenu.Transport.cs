@@ -584,7 +584,9 @@ private void ShowTransportUnloadButtonsOnly(Infantry transport, bool afterMove =
     if (btnCol != null)
     {
         // ✅ 开创人2026-11-11: 布局pass完成后再锚定——CallDeferred内重读btnCol.Size，根治"待机盖住第一个卸载项"+旧尺寸缓存
-        container.CallDeferred(MethodName.Call, Callable.From(() =>
+        // ✅ 开创人2026-11-12: 修签名——CallDeferred(MethodName.Call, callable)是把callable当参数喂给Object.Call(StringName)必炸；
+        // 正确姿势：Callable自己CallDeferred()
+        Callable.From(() =>
         {
             if (!IsInstanceValid(container) || !IsInstanceValid(btnCol)) return;
             container.Position = new Vector2(btnCol.Position.X, btnCol.Position.Y + btnCol.Size.Y + 4f);
@@ -592,7 +594,7 @@ private void ShowTransportUnloadButtonsOnly(Infantry transport, bool afterMove =
             float bottom = container.GlobalPosition.Y + container.Size.Y;
             if (bottom > vp.Y)
                 container.Position = new Vector2(container.Position.X, Mathf.Max(0f, container.Position.Y - (bottom - vp.Y)));
-        }));
+        }).CallDeferred();
     }
 }
 }
