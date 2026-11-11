@@ -225,7 +225,8 @@ public partial class Infantry
                 // Each member's own terrain rules apply. Units unable to enter this tile
                 // are destroyed immediately; the rest of the stack continues together.
                 foreach (var unit in stack.ToList())
-                    if (unit.GetMoveCostOnGrid(destination) >= 999)
+                    if (unit.GetMoveCostOnGrid(destination) >= 999
+                        && (unit.pushSelfDestructOnInvalidIntermediateTile || step == distance - 1))
                         DestroyPushedUnit(unit, gameManager);
                 stack = stack.Where(IsLivingUnit).ToList();
                 if (stack.Count == 0) continue;
@@ -240,6 +241,13 @@ public partial class Infantry
                 MoveStackByPush(stack, destination);
                 ApplyPushTargetEffects(stack, gameManager);
             }
+        }
+
+        if (pushPusherFollowsChain && firstGrid != null && grid != null)
+        {
+            var followDestination = firstGrid;
+            if (GetLivingStack(followDestination).Count == 0)
+                MoveStackByPush(new List<Infantry> { this }, followDestination);
         }
 
         gameManager?.fogOfWarManager?.OnUnitMoved();
