@@ -28,53 +28,59 @@ public partial class Infantry
 
     public void TryPushWeaponOnAttack(Weapon target)
     {
-        if (pushTargetClass != PushTargetClass.AnyPushableEntity
-            || !CanPushNonInfantryTarget(target?.grid, target?.pushableByPhysics, target?.GetEffectiveWeight(),
-            target?.equalWeightPushMode ?? EqualWeightPushMode.Stop, target == null || target.isDestroyed)
-            || target == null || !CanPushTeamName(target.team, target.GetType().Name))
-            return;
-        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm?.gridManager == null || target == null || target.isMultiTile) return;
-        Vector2I direction = GetPushDirection(target.grid);
-        if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
-        PayPushCost(gm);
-        for (int step = 0; step < pushDistance; step++)
+        if (pushTriggerMode == PushTriggerMode.Attack && pushTargetClass == PushTargetClass.AnyPushableEntity
+            && target != null && CanPushTeamName(target.team, target.GetType().Name)
+            && CanPushNonInfantryTarget(target.grid, target.pushableByPhysics, target.GetEffectiveWeight(),
+                target.equalWeightPushMode, target.isDestroyed))
         {
-            var next = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
-            if (next == null || next.weapon != null || next.city != null
-                || GetLivingStack(next).Count > 0) break;
-            if (!target.MoveByPhysicsPush(next, gm.weaponManager)) break;
-        }
-        if (pushLockTargetToOneHp) target.health = 1;
-        else if (pushTargetDamage > 0)
-        {
-            target.TakeDamage(pushTargetDamage, this);
+            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (gm?.gridManager == null || target.isMultiTile) return;
+            Vector2I direction = GetPushDirection(target.grid);
+            if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
+            var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
+            if (!CanMoveStaticTargetTo(firstDestination)) return;
+
+            PayPushCost(gm);
+            for (int step = 0; step < pushDistance; step++)
+            {
+                var next = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
+                if (!CanMoveStaticTargetTo(next) || !target.MoveByPhysicsPush(next, gm.weaponManager)) break;
+            }
+            if (pushLockTargetToOneHp) target.health = 1;
+            else if (pushTargetDamage > 0) target.TakeDamage(pushTargetDamage, this);
         }
     }
 
     public void TryPushFacilityOnAttack(Facility target)
     {
-        if (pushTargetClass != PushTargetClass.AnyPushableEntity
-            || !CanPushNonInfantryTarget(target?.ParentGrid, target?.pushableByPhysics,
-            target?.GetEffectiveWeight(), target?.equalWeightPushMode ?? EqualWeightPushMode.Stop,
-            target == null || target.health <= 0)
-            || target == null || !CanPushTeamName(target.facilityTeam, target.GetType().Name))
+        if (pushTriggerMode != PushTriggerMode.Attack || pushTargetClass != PushTargetClass.AnyPushableEntity
+            || target == null || !CanPushTeamName(target.facilityTeam, target.GetType().Name)
+            || !CanPushNonInfantryTarget(target.ParentGrid, target.pushableByPhysics, target.GetEffectiveWeight(),
+                target.equalWeightPushMode, target.health <= 0))
             return;
+
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm?.gridManager == null || target == null) return;
+        if (gm?.gridManager == null) return;
         Vector2I direction = GetPushDirection(target.ParentGrid);
         if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
+        var firstDestination = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
+        if (!CanMoveStaticTargetTo(firstDestination)) return;
+
         PayPushCost(gm);
         for (int step = 0; step < pushDistance; step++)
         {
             var next = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
-            if (next == null || next.city != null || next.weapon != null
-                || GetLivingStack(next).Count > 0) break;
-            if (!target.MoveByPhysicsPush(next)) break;
+            if (!CanMoveStaticTargetTo(next) || !target.MoveByPhysicsPush(next)) break;
         }
         if (pushLockTargetToOneHp) target.health = 1;
-        else if (pushTargetDamage > 0)
-            target.TakeDamage(pushTargetDamage, this);
+        else if (pushTargetDamage > 0) target.TakeDamage(pushTargetDamage, this);
+    }
+
+    private bool CanMoveStaticTargetTo(Grids destination)
+    {
+        return destination != null && destination.city == null
+            && (destination.weapons == null || destination.weapons.Count == 0)
+            && GetLivingStack(destination).Count == 0;
     }
 
     private bool CanPushNonInfantryTarget(Grids targetGrid, bool? pushable, float? targetWeight,
@@ -403,43 +409,60 @@ public partial class Infantry
             pusherStack = chain[i];
         }
 
+        // Keep each stack's original tile so rebound is resolved once, after the
+        // complete displacement. Target effects must also run once per push action,
+        // not once for every tile traversed.
+        var originalTiles = chain.Select(stack => stack.FirstOrDefault(IsLivingUnit)?.grid).ToList();
+        var movedStacks = new HashSet<int>();
+
         for (int step = 0; step < distance; step++)
         {
             for (int i = chain.Count - 1; i > firstBlockedLink; i--)
             {
                 var stack = chain[i].Where(IsLivingUnit).ToList();
-                if (step >= GetMitigatedPushDistance(stack, distance)) continue;
-                if (stack.Count == 0) continue;
-                var destination = gridManager.GetGridAt(stack[0].grid.GridIndex + direction);
+                if (stack.Count == 0 || step >= GetMitigatedPushDistance(stack, distance)) continue;
+                var currentGrid = stack[0].grid;
+                if (currentGrid == null) continue;
+                var destination = gridManager.GetGridAt(currentGrid.GridIndex + direction);
                 if (destination == null)
                 {
                     foreach (var unit in stack) DestroyPushedUnit(unit, gameManager);
                     continue;
                 }
 
-                // Each member's own terrain rules apply. Units unable to enter this tile
-                // are destroyed immediately; the rest of the stack continues together.
                 foreach (var unit in stack.ToList())
-                    if (unit.GetMoveCostOnGrid(destination) >= 999
-                        && (unit.pushSelfDestructOnInvalidIntermediateTile || step == distance - 1))
+                {
+                    bool invalidTerrain = unit.GetMoveCostOnGrid(destination) >= 999;
+                    if (invalidTerrain && (unit.pushSelfDestructOnInvalidIntermediateTile || step == distance - 1))
                         DestroyPushedUnit(unit, gameManager);
+                }
                 stack = stack.Where(IsLivingUnit).ToList();
                 if (stack.Count == 0) continue;
 
+                // A final-tile-only unit may pass over invalid intermediate terrain,
+                // but it must never be left standing on an invalid final tile.
+                if (step < distance - 1 && stack.Any(u => !u.pushSelfDestructOnInvalidIntermediateTile
+                    && u.GetMoveCostOnGrid(destination) >= 999))
+                    continue;
+
                 var blockers = GetLivingStack(destination).Where(u => !stack.Contains(u)).ToList();
                 if (blockers.Count > 0) continue;
+                if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager)) continue;
 
-                if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager))
-                    continue;
-
-                var origin = stack[0].grid;
                 MoveStackByPush(stack, destination);
-                if (TryReboundStack(stack, origin, direction, gameManager))
-                    continue;
-                if (TryTransferStack(stack, direction, gridManager, gameManager))
-                    continue;
-                ApplyPushTargetEffects(stack, gameManager);
+                movedStacks.Add(i);
             }
+        }
+
+        // Resolve per-stack post-push modules once, after all chain movement is complete.
+        foreach (int i in movedStacks.OrderByDescending(index => index))
+        {
+            var stack = chain[i].Where(IsLivingUnit).ToList();
+            if (stack.Count == 0) continue;
+            var origin = originalTiles[i];
+            if (TryReboundStack(stack, origin, direction, gameManager)) continue;
+            if (TryTransferStack(stack, direction, gridManager, gameManager)) continue;
+            ApplyPushTargetEffects(stack, gameManager);
         }
 
         if (pushPusherFollowsChain && firstGrid != null && grid != null)
@@ -462,33 +485,38 @@ public partial class Infantry
     {
         float movingWeight = GetStackWeight(movingStack);
         var nextGrid = gridManager.GetGridAt(destination.GridIndex + direction);
+        var blockingWeapons = (destination.weapons ?? new List<Weapon>())
+            .Where(w => w != null && GodotObject.IsInstanceValid(w) && !w.IsQueuedForDeletion()
+                && w.pushBlocksInfantryWhenOverlapped).ToList();
+        var blockingFacility = destination.city != null && destination.city.pushBlocksInfantryWhenOverlapped
+            ? destination.city : null;
 
-        // A weapon can be stood on only when its own overlap policy allows it.
-        foreach (var weapon in destination.weapons.Where(w =>
-            w != null && GodotObject.IsInstanceValid(w) && !w.IsQueuedForDeletion()).ToList())
+        // Avoid partial relocation: preflight every blocking obstacle before moving any.
+        if (blockingWeapons.Count + (blockingFacility == null ? 0 : 1) > 1)
+            return false;
+        if (blockingWeapons.Count == 0 && blockingFacility == null) return true;
+        if (nextGrid == null || !CanMoveStaticTargetTo(nextGrid)) return false;
+
+        if (blockingWeapons.Count == 1)
         {
-            if (!weapon.pushBlocksInfantryWhenOverlapped) continue;
-            if (!weapon.pushableByPhysics || nextGrid == null || !Mathf.IsEqualApprox(movingWeight, weapon.GetEffectiveWeight())
-                && movingWeight < weapon.GetEffectiveWeight())
-                return false;
-            if (Mathf.IsEqualApprox(movingWeight, weapon.GetEffectiveWeight())
-                && !CanResolveEqualWeight(movingStack, weapon.equalWeightPushMode))
-                return false;
+            var weapon = blockingWeapons[0];
+            float obstacleWeight = weapon.GetEffectiveWeight();
+            if (!weapon.pushableByPhysics || (movingWeight < obstacleWeight
+                && !Mathf.IsEqualApprox(movingWeight, obstacleWeight))) return false;
+            if (Mathf.IsEqualApprox(movingWeight, obstacleWeight)
+                && !CanResolveEqualWeight(movingStack, weapon.equalWeightPushMode)) return false;
             var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-            if (!weapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager))
-                return false;
+            return weapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager);
         }
 
-        var facility = destination.city;
-        if (facility != null && facility.pushBlocksInfantryWhenOverlapped)
+        if (blockingFacility != null)
         {
-            if (!facility.pushableByPhysics || nextGrid == null || movingWeight < facility.GetEffectiveWeight())
-                return false;
-            if (Mathf.IsEqualApprox(movingWeight, facility.GetEffectiveWeight())
-                && !CanResolveEqualWeight(movingStack, facility.equalWeightPushMode))
-                return false;
-            if (!facility.MoveByPhysicsPush(nextGrid))
-                return false;
+            float obstacleWeight = blockingFacility.GetEffectiveWeight();
+            if (!blockingFacility.pushableByPhysics || (movingWeight < obstacleWeight
+                && !Mathf.IsEqualApprox(movingWeight, obstacleWeight))) return false;
+            if (Mathf.IsEqualApprox(movingWeight, obstacleWeight)
+                && !CanResolveEqualWeight(movingStack, blockingFacility.equalWeightPushMode)) return false;
+            return blockingFacility.MoveByPhysicsPush(nextGrid);
         }
         return true;
     }
