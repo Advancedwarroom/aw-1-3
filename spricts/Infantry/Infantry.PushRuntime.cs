@@ -154,7 +154,7 @@ public partial class Infantry
         gridManager.HideAttackRange();
         gridManager.ClearWeaponRange();
         int minRange = Mathf.Max(1, pushMinTargetRange);
-        int maxRange = Mathf.Max(minRange, pushMaxTargetRange);
+        int maxRange = Mathf.Max(minRange, pushRange);
         foreach (var tile in gridManager.grids)
         {
             if (tile == null || tile == grid) continue;
@@ -196,7 +196,7 @@ public partial class Infantry
         int distance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X)
             + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
         int minRange = Mathf.Max(1, pushMinTargetRange);
-        int maxRange = Mathf.Max(minRange, pushMaxTargetRange);
+        int maxRange = Mathf.Max(minRange, pushRange);
         return distance >= minRange && distance <= maxRange;
     }
 
@@ -212,9 +212,7 @@ public partial class Infantry
             if (pushTargetBlacklist != null && (pushTargetBlacklist.Contains(typeId)
                 || pushTargetBlacklist.Contains(unit.GetType().Name)))
                 return false;
-            if (unit.team == team) return pushCanTargetFriendlies;
-            if (TeamHelper.AreAllied(team, unit.team)) return pushCanTargetAllies;
-            return pushCanTargetEnemies;
+            return CanPushTeamRelation(unit.team);
         });
     }
 
@@ -227,9 +225,24 @@ public partial class Infantry
                 && !pushTargetWhitelist.Contains(targetType)) return false;
             if (pushTargetBlacklist != null && pushTargetBlacklist.Contains(targetType)) return false;
         }
-        if (targetTeam == team) return pushCanTargetFriendlies;
-        if (TeamHelper.AreAllied(team, targetTeam)) return pushCanTargetAllies;
-        return pushCanTargetEnemies;
+        return CanPushTeamRelation(targetTeam);
+    }
+
+    private bool CanPushTeamRelation(string targetTeam)
+    {
+        bool sameTeam = targetTeam == team;
+        bool allied = !sameTeam && TeamHelper.AreAllied(team, targetTeam);
+        switch (pushTargetPolicy)
+        {
+            case PushTargetTeamMode.EnemiesOnly: return !sameTeam && !allied;
+            case PushTargetTeamMode.FriendliesOnly: return sameTeam;
+            case PushTargetTeamMode.AlliesOnly: return allied;
+            case PushTargetTeamMode.Everyone: return true;
+            default:
+                if (sameTeam) return pushCanTargetFriendlies;
+                if (allied) return pushCanTargetAllies;
+                return pushCanTargetEnemies;
+        }
     }
 
     private Vector2I GetPushDirection(Grids targetGrid)
