@@ -1090,7 +1090,10 @@ public partial class Infantry
                     ? int.MaxValue : Math.Max(0, gm.GetTeamFundsMax(unit.team));
                 long newFunds = Math.Clamp((long)gm.GetTeamFunds(unit.team) + fundsDelta,
                     0L, fundsMax);
-                gm.SetTeamFunds(unit.team, (int)newFunds);
+                if (pushTargetFundsCanOverMax)
+                    gm.SetTeamFundsUncapped(unit.team, (int)newFunds);
+                else
+                    gm.SetTeamFunds(unit.team, (int)newFunds);
             }
             if (mitigationUsed) PayMitigationAmmoCostForUnit(unit);
             unit.UpdateHpLabel();
