@@ -13,16 +13,16 @@ public class IlluminationEffect
     public int minRange;
     public int maxRange;
     public int remainingTurns;  // 剩余大回合数
-    public Grids sourceGrid;
+    public Grids rangeOriginGrid;
     public bool allowCrossScreens;
 
-    public IlluminationEffect(Grids center, int minR, int maxR, int duration, Grids source = null, bool crossScreens = false)
+    public IlluminationEffect(Grids center, int minR, int maxR, int duration, bool crossScreens = false)
     {
         centerGrid = center;
         minRange = minR;
         maxRange = maxR;
         remainingTurns = duration;
-        sourceGrid = source;
+        rangeOriginGrid = center;
         allowCrossScreens = crossScreens;
     }
 }
@@ -626,7 +626,7 @@ public partial class FogOfWarManager : Node
         foreach (var effect in activeIlluminations)
         {
             if (effect?.centerGrid == null) continue;
-            if (effect.sourceGrid != null && gridManager != null && !gridManager.IsRangeAllowed(effect.sourceGrid, g, effect.allowCrossScreens)) continue;
+            if (effect.rangeOriginGrid != null && gridManager != null && !gridManager.IsRangeAllowed(effect.rangeOriginGrid, g, effect.allowCrossScreens)) continue;
             int dist = Mathf.Abs(g.GridIndex.X - effect.centerGrid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - effect.centerGrid.GridIndex.Y);
             if (dist <= effect.maxRange && dist >= effect.minRange) return true;
         }
@@ -660,7 +660,7 @@ public partial class FogOfWarManager : Node
                     {
                         var g = gridManager.map[pos.X, pos.Y];
                         if (g == null) continue;
-                        if (effect.sourceGrid != null && !gridManager.IsRangeAllowed(effect.sourceGrid, g, effect.allowCrossScreens)) continue;
+                        if (effect.rangeOriginGrid != null && !gridManager.IsRangeAllowed(effect.rangeOriginGrid, g, effect.allowCrossScreens)) continue;
                         visible.Add(g);
                     }
                 }
@@ -696,10 +696,10 @@ public partial class FogOfWarManager : Node
     }
 
     // ✅ 添加新的照明弹效果
-    public void AddIllumination(Grids center, int minR, int maxR, int duration, Grids source = null, bool allowCrossScreens = false)
+    public void AddIllumination(Grids center, int minR, int maxR, int duration, bool allowCrossScreens = false)
     {
         if (center == null || duration <= 0) return;
-        activeIlluminations.Add(new IlluminationEffect(center, minR, maxR, duration, source, allowCrossScreens));
+        activeIlluminations.Add(new IlluminationEffect(center, minR, maxR, duration, allowCrossScreens));
         if (isFogOfWarEnabled) RefreshFog();
     }
 
