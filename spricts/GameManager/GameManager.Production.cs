@@ -333,7 +333,7 @@ public partial class GameManager
         var scene = GD.Load<PackedScene>(info.ScenePath);
         if (scene == null)
         {
-            return;
+            return false;
         }
 
         var unit = scene.Instantiate<Infantry>();
@@ -351,7 +351,7 @@ public partial class GameManager
         if (!bound)
         {
             unit.QueueFree();
-            return;
+            return false;
         }
 
         unitManager.AllUnits.Add(unit);
@@ -497,7 +497,7 @@ public partial class GameManager
             int dist = Math.Abs(g.GridIndex.X - origin.X) + Math.Abs(g.GridIndex.Y - origin.Y);
             if (dist < facility.productionDropMinRange || dist > facility.productionDropMaxRange) continue;
             if (g.infantry != null || g.city != null || g.weapon != null) continue;
-            if (g.gridType == GridType.VOID) continue;
+            if (g.gridType is GridType.PLASMA or GridType.CREEPER or GridType.WALL or GridType.WEAK_WALL) continue;
             result.Add(g);
         }
         return result;
@@ -518,7 +518,8 @@ public partial class GameManager
             if (g == null || !IsInstanceValid(g)) continue;
             if (cellSet.Contains(g))
             {
-                g.modulate = new Color(1.3f, 1.3f, 0.7f);   // 高亮候选落点
+                g.pathIcon?.Show();                          // 高亮候选落点
+                g.pathIcon?.SetDeferred("modulate", new Color(1.3f, 1.3f, 0.7f));
                 Grids clicked = g;
                 g.OnClickGrid = (_) => ConfirmRemoteDrop(clicked);
             }
@@ -575,7 +576,8 @@ public partial class GameManager
             if (g == null || !IsInstanceValid(g)) continue;
             g.OnClickGrid = null;
             g.OnClickEmpty = null;
-            g.modulate = new Color(1f, 1f, 1f);
+            g.pathIcon?.Hide();
+            g.pathIcon?.SetDeferred("modulate", Colors.White);
         }
     }
 }

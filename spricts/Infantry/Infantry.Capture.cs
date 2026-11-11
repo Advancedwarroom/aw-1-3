@@ -325,7 +325,7 @@ public partial class Infantry
     public List<Facility> GetRemoteCapturableFacilities()
     {
         var result = new List<Facility>();
-        if (!canCaptureFacilities || isCapturingInProgress || grid == null) return result;
+        if (captureAbility == CaptureAbility.CannotCapture || isCapturingInProgress || grid == null) return result;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         var grids = gm?.gridManager?.grids;
         if (grids == null) return result;
@@ -383,8 +383,8 @@ public partial class Infantry
                 city.OnCaptureStarted(this);
             }
 
-            int captureValue = (int)Math.Floor(capturePower * capturePowerFactor);
-            captureValue = Math.Max(1, captureValue);
+            if (isStealthed && !canCaptureWhileStealthed) return;   // 隐身占点锁（与 PerformCapture 一致）
+            int captureValue = Math.Max(1, GetCapturePower());
             currentCaptureProgress += captureValue;
             ShowCaptureEffect();
 
