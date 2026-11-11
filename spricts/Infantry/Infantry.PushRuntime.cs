@@ -546,22 +546,22 @@ public partial class Infantry
         var blockingFacility = destination.city != null && destination.city.pushBlocksInfantryWhenOverlapped
             ? destination.city : null;
 
-        // Avoid partial relocation: preflight every blocking obstacle before moving any.
-        if (blockingWeapons.Count + (blockingFacility == null ? 0 : 1) > 1)
-            return false;
+        // A tile can hold one facility and one weapon. They share the destination
+        // tile but occupy independent engine slots, so resolve both as one obstacle set.
+        // Multiple weapons cannot be rebound into one slot by WeaponManager; reject that
+        // configuration before moving anything rather than corrupting occupancy.
+        if (blockingWeapons.Count > 1) return false;
         if (blockingWeapons.Count == 0 && blockingFacility == null) return true;
         if (nextGrid == null || !CanMoveStaticTargetTo(nextGrid)) return false;
 
-        if (blockingWeapons.Count == 1)
+        Weapon blockingWeapon = blockingWeapons.FirstOrDefault();
+        if (blockingWeapon != null)
         {
-            var weapon = blockingWeapons[0];
-            float obstacleWeight = weapon.GetEffectiveWeight();
-            if (!weapon.pushableByPhysics || (movingWeight < obstacleWeight
+            float obstacleWeight = blockingWeapon.GetEffectiveWeight();
+            if (!blockingWeapon.pushableByPhysics || (movingWeight < obstacleWeight
                 && !Mathf.IsEqualApprox(movingWeight, obstacleWeight))) return false;
             if (Mathf.IsEqualApprox(movingWeight, obstacleWeight)
-                && !CanResolveEqualWeight(movingStack, weapon.equalWeightPushMode)) return false;
-            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-            return weapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager);
+                && !CanResolveEqualWeight(movingStack, blockingWeapon.equalWeightPushMode)) return false;
         }
 
         if (blockingFacility != null)
@@ -571,7 +571,21 @@ public partial class Infantry
                 && !Mathf.IsEqualApprox(movingWeight, obstacleWeight))) return false;
             if (Mathf.IsEqualApprox(movingWeight, obstacleWeight)
                 && !CanResolveEqualWeight(movingStack, blockingFacility.equalWeightPushMode)) return false;
-            return blockingFacility.MoveByPhysicsPush(nextGrid);
+        }
+
+        // All weight and destination checks have passed. Move the weapon first because
+        // its manager validates the complete footprint; then move the facility slot.
+        if (blockingWeapon != null)
+        {
+            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (!blockingWeapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager))
+                return false;
+        }
+        if (blockingFacility != null && !blockingFacility.MoveByPhysicsPush(nextGrid))
+        {
+            // Facility movement has no failure path after the preflight above; if a
+            // custom override rejects it, do not attempt to overwrite the old slot.
+            return false;
         }
         return true;
     }
