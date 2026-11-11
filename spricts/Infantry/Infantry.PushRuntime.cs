@@ -6,8 +6,11 @@ using System.Linq;
 /// <summary>Grid-accurate forced displacement. Stack occupants move as one mass.</summary>
 public partial class Infantry
 {
+    private PopupMenu pushDistancePopup;
+
     public void TryPushTargetOnAttack(Infantry target)
     {
+        int distance = Mathf.Max(1, pushDistance);
         if (!CanUseAttackPush() || pushDistance <= 0
             || grid == null || target == null || !GodotObject.IsInstanceValid(target)
             || target.grid == null || !IsWithinPushTargetRange(target.grid)) return;
@@ -19,21 +22,23 @@ public partial class Infantry
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager?.map == null) return;
         if (!CanPayPushCost(gm)) return;
-        if (!ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm))
+        if (!ResolvePushChain(target.grid, direction, distance, gm.gridManager, gm))
             return;
         if (!TryMarkAttackPushUsed())
             return;
         PayPushCost(gm);
     }
 
-    public void TryPushWeaponOnAttack(Weapon target, bool fromSeparateAction = false)
+    public void TryPushWeaponOnAttack(Weapon target, bool fromSeparateAction = false, int? distanceOverride = null)
     {
-        if ((fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction : CanUseAttackPush())
+        int distance = GetRequestedPushDistance(distanceOverride);
+        if (distance > 0
+            && (fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction : CanUseAttackPush())
             && pushTargetClass == PushTargetClass.AnyPushableEntity && pushCanTargetWeapons
             && target != null && target.grid != null && IsWithinPushTargetRange(target.grid)
             && CanPushTeamName(target.team, target.GetType().Name)
             && CanPushNonInfantryTarget(target.grid, target.pushableByPhysics, target.GetEffectiveWeight(),
-                target.equalWeightPushMode, target.isDestroyed))
+                target.equalWeightPushMode, target.isDestroyed, distance))
         {
             var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
             if (gm?.gridManager == null || target == null) return;
@@ -43,7 +48,7 @@ public partial class Infantry
             if (!CanMoveStaticTargetTo(firstDestination, target, null)) return;
 
             bool moved = false;
-            for (int step = 0; step < pushDistance; step++)
+            for (int step = 0; step < distance; step++)
             {
                 var next = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
                 if (!CanMoveStaticTargetTo(next, target, null)
@@ -52,7 +57,7 @@ public partial class Infantry
             }
             if (!moved) return;
             if (pushDirectionMode == PushDirectionMode.OppositeSides)
-                MovePusherOppositeDirection(direction, pushDistance, gm.gridManager, gm);
+                MovePusherOppositeDirection(direction, distance, gm.gridManager, gm);
             if (fromSeparateAction)
             {
                 if (!TryMarkPushActionUsed()) return;
@@ -63,14 +68,16 @@ public partial class Infantry
         }
     }
 
-    public void TryPushFacilityOnAttack(Facility target, bool fromSeparateAction = false)
+    public void TryPushFacilityOnAttack(Facility target, bool fromSeparateAction = false, int? distanceOverride = null)
     {
-        if ((fromSeparateAction ? pushTriggerMode != PushTriggerMode.SeparateAction : !CanUseAttackPush())
+        int distance = GetRequestedPushDistance(distanceOverride);
+        if (distance <= 0
+            || (fromSeparateAction ? pushTriggerMode != PushTriggerMode.SeparateAction : !CanUseAttackPush())
             || pushTargetClass != PushTargetClass.AnyPushableEntity || !pushCanTargetFacilities
             || target == null || target.ParentGrid == null || !IsWithinPushTargetRange(target.ParentGrid)
             || !CanPushTeamName(target.facilityTeam, target.GetType().Name)
             || !CanPushNonInfantryTarget(target.ParentGrid, target.pushableByPhysics, target.GetEffectiveWeight(),
-                target.equalWeightPushMode, target.health <= 0))
+                target.equalWeightPushMode, target.health <= 0, distance))
             return;
 
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
@@ -81,7 +88,7 @@ public partial class Infantry
         if (!CanMoveStaticTargetTo(firstDestination, null, target)) return;
 
         bool moved = false;
-        for (int step = 0; step < pushDistance; step++)
+        for (int step = 0; step < distance; step++)
         {
             var next = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
             if (!CanMoveStaticTargetTo(next, null, target) || !target.MoveByPhysicsPush(next)) break;
@@ -89,7 +96,7 @@ public partial class Infantry
         }
         if (!moved) return;
         if (pushDirectionMode == PushDirectionMode.OppositeSides)
-            MovePusherOppositeDirection(direction, pushDistance, gm.gridManager, gm);
+            MovePusherOppositeDirection(direction, distance, gm.gridManager, gm);
         if (fromSeparateAction)
         {
             if (!TryMarkPushActionUsed()) return;
@@ -135,10 +142,10 @@ public partial class Infantry
     }
 
     private bool CanPushNonInfantryTarget(Grids targetGrid, bool? pushable, float? targetWeight,
-        EqualWeightPushMode targetMode, bool invalid)
+        EqualWeightPushMode targetMode, bool invalid, int distance)
     {
         if (!pushEnabled || (pushTriggerMode != PushTriggerMode.Attack
-            && pushTriggerMode != PushTriggerMode.SeparateAction) || pushDistance <= 0
+            && pushTriggerMode != PushTriggerMode.SeparateAction) || distance <= 0
             || targetGrid == null || invalid || pushable != true || targetWeight == null)
             return false;
         var pusherStack = GetLivingStack(grid);
@@ -196,6 +203,7 @@ public partial class Infantry
 
     private void CancelSeparatePushTargetSelection()
     {
+        ClosePushDistanceMenu();
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         gm?.gridManager?.HideAttackRange();
         gm?.gridManager?.ClearAllEmptyCallbacks();
@@ -482,8 +490,58 @@ public partial class Infantry
         }
     }
 
-    private void ExecuteSeparatePushOnGrid(Grids targetGrid)
+    private int GetRequestedPushDistance(int? selectedDistance = null)
     {
+        int maximum = Mathf.Max(0, pushDistance);
+        int minimum = Mathf.Clamp(pushMinDistance, 1, Math.Max(1, maximum));
+        int requested = selectedDistance ?? maximum;
+        return requested >= minimum && requested <= maximum ? requested : 0;
+    }
+
+    private void OpenPushDistanceMenu(Grids targetGrid)
+    {
+        if (targetGrid == null || !CanUseSeparatePushAction()) return;
+        if (pushDistancePopup != null && GodotObject.IsInstanceValid(pushDistancePopup))
+            pushDistancePopup.QueueFree();
+
+        int maximum = Mathf.Max(0, pushDistance);
+        int minimum = Mathf.Clamp(pushMinDistance, 1, Math.Max(1, maximum));
+        if (maximum < minimum) return;
+
+        var popup = new PopupMenu();
+        pushDistancePopup = popup;
+        GetTree().Root.AddChild(popup);
+        for (int distance = minimum; distance <= maximum; distance++)
+            popup.AddItem($"{distance} 格", distance);
+
+        popup.IdPressed += id =>
+        {
+            int chosenDistance = (int)id;
+            if (GodotObject.IsInstanceValid(popup)) popup.QueueFree();
+            if (pushDistancePopup == popup) pushDistancePopup = null;
+            ExecuteSeparatePushOnGrid(targetGrid, chosenDistance);
+        };
+        var mousePosition = (Vector2I)GetViewport().GetMousePosition();
+        popup.Popup(new Rect2I(mousePosition, new Vector2I(1, 1)));
+    }
+
+    private void ClosePushDistanceMenu()
+    {
+        if (pushDistancePopup != null && GodotObject.IsInstanceValid(pushDistancePopup))
+            pushDistancePopup.QueueFree();
+        pushDistancePopup = null;
+    }
+
+    private void ExecuteSeparatePushOnGrid(Grids targetGrid, int? selectedDistance = null)
+    {
+        if (!pushAutoDistance && selectedDistance == null)
+        {
+            OpenPushDistanceMenu(targetGrid);
+            return;
+        }
+        int distance = GetRequestedPushDistance(selectedDistance);
+        if (distance <= 0) return;
+
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         var gridManager = gm?.gridManager;
         if (targetGrid == null || grid == null || gridManager == null) return;
@@ -505,8 +563,8 @@ public partial class Infantry
             // The selected target is fully validated once by the corresponding
             // static-target resolver. Avoid a second equal-weight random arbitration.
             if (!CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
-            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true);
-            else TryPushFacilityOnAttack(facility, fromSeparateAction: true);
+            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true, distanceOverride: distance);
+            else TryPushFacilityOnAttack(facility, fromSeparateAction: true, distanceOverride: distance);
             gridManager.HideAttackRange();
             gridManager.ClearAllEmptyCallbacks();
             gm.isSelectingAttackTarget = false;
@@ -517,7 +575,7 @@ public partial class Infantry
         Vector2I direction = GetPushDirection(targetGrid);
         if (direction == Vector2I.Zero) return;
         if (!CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
-        if (!ResolvePushChain(targetGrid, direction, pushDistance, gridManager, gm))
+        if (!ResolvePushChain(targetGrid, direction, distance, gridManager, gm))
             return;
         if (!TryMarkPushActionUsed())
             return;
