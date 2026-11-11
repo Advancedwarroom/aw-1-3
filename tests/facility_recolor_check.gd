@@ -41,8 +41,11 @@ func _ready() -> void:
 		return
 	var shift = mat.get_shader_parameter("hue_shift")
 	var mode = mat.get_shader_parameter("mode")
-	print(which, " hue_shift=", shift, " mode=", mode)
-	if mode != null and int(mode) == 2:
+	var pal = mat.get_shader_parameter("palette")
+	print(which, " hue_shift=", shift, " mode=", mode, " palette=", pal != null)
+	if pal != null:
+		print("CoW正统(R,G)色板材质——palette参数在场, 通过")
+	elif mode != null and int(mode) == 2:
 		print("mode2模板色表材质——明暗阶路径, 通过")
 	else:
 		if shift == null or shift < 140.0 or shift > 340.0:
