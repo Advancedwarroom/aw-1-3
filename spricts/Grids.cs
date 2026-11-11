@@ -67,6 +67,7 @@ public partial class Grids : Node2D
     [Export] public int ammoChangeCamo = 0;        // 迷彩弹
     [Export] public int ammoChangeProduction = 0;  // 生产弹
     [Export] public int ammoChangeConstruction = 0; // 建造弹
+    [Export] public int ammoChangeSpecial = 0;
     [Export] public int ammoChangePushRebound = 0;
     [Export] public int ammoChangePushMitigation = 0;
     [Export] public int ammoChangeAntiGravityTransfer = 0;
@@ -79,6 +80,7 @@ public partial class Grids : Node2D
     [Export] public int ammoMaxChangeCamo = 0;
     [Export] public int ammoMaxChangeProduction = 0;
     [Export] public int ammoMaxChangeConstruction = 0;
+    [Export] public int ammoMaxChangeSpecial = 0;
     [Export] public int ammoMaxChangePushRebound = 0;
     [Export] public int ammoMaxChangePushMitigation = 0;
     [Export] public int ammoMaxChangeAntiGravityTransfer = 0;
@@ -586,6 +588,7 @@ public partial class Grids : Node2D
         Infantry.AmmoKind.CamoBullet => ammoChangeCamo,
         Infantry.AmmoKind.Production => ammoChangeProduction,
         Infantry.AmmoKind.Construction => ammoChangeConstruction,
+        Infantry.AmmoKind.Special => ammoChangeSpecial,
         Infantry.AmmoKind.PushRebound => ammoChangePushRebound,
         Infantry.AmmoKind.PushMitigation => ammoChangePushMitigation,
         Infantry.AmmoKind.AntiGravityTransfer => ammoChangeAntiGravityTransfer,
@@ -603,6 +606,7 @@ public partial class Grids : Node2D
         Infantry.AmmoKind.CamoBullet => ammoMaxChangeCamo,
         Infantry.AmmoKind.Production => ammoMaxChangeProduction,
         Infantry.AmmoKind.Construction => ammoMaxChangeConstruction,
+        Infantry.AmmoKind.Special => ammoMaxChangeSpecial,
         Infantry.AmmoKind.PushRebound => ammoMaxChangePushRebound,
         Infantry.AmmoKind.PushMitigation => ammoMaxChangePushMitigation,
         Infantry.AmmoKind.AntiGravityTransfer => ammoMaxChangeAntiGravityTransfer,
@@ -622,6 +626,7 @@ public partial class Grids : Node2D
             case Infantry.AmmoKind.CamoBullet: ammoChangeCamo = value; break;
             case Infantry.AmmoKind.Production: ammoChangeProduction = value; break;
             case Infantry.AmmoKind.Construction: ammoChangeConstruction = value; break;
+            case Infantry.AmmoKind.Special: ammoChangeSpecial = value; break;
             case Infantry.AmmoKind.PushRebound: ammoChangePushRebound = value; break;
             case Infantry.AmmoKind.PushMitigation: ammoChangePushMitigation = value; break;
             case Infantry.AmmoKind.AntiGravityTransfer: ammoChangeAntiGravityTransfer = value; break;
@@ -641,6 +646,7 @@ public partial class Grids : Node2D
             case Infantry.AmmoKind.CamoBullet: ammoMaxChangeCamo = value; break;
             case Infantry.AmmoKind.Production: ammoMaxChangeProduction = value; break;
             case Infantry.AmmoKind.Construction: ammoMaxChangeConstruction = value; break;
+            case Infantry.AmmoKind.Special: ammoMaxChangeSpecial = value; break;
             case Infantry.AmmoKind.PushRebound: ammoMaxChangePushRebound = value; break;
             case Infantry.AmmoKind.PushMitigation: ammoMaxChangePushMitigation = value; break;
             case Infantry.AmmoKind.AntiGravityTransfer: ammoMaxChangeAntiGravityTransfer = value; break;
