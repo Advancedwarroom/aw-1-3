@@ -15,7 +15,7 @@ public partial class AttackSatellite : Infantry
         {
             spaceStrikeEnabled = true;
             spaceStrikeDamagePercent = 0.5f;
-            spaceStrikeTargetPolicy = 1; // 仅敌军
+            spaceStrikeIncludeFriendly = false; spaceStrikeIncludeEnemy = true; // 仅敌军（勾选制）
         }
     }
 }
