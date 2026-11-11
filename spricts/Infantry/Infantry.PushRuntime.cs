@@ -8,7 +8,7 @@ public partial class Infantry
 {
     public void TryPushTargetOnAttack(Infantry target)
     {
-        if (!pushEnabled || pushTriggerMode != PushTriggerMode.Attack || pushDistance <= 0
+        if (!CanUseAttackPush() || pushDistance <= 0
             || grid == null || target == null || !GodotObject.IsInstanceValid(target)
             || target.grid == null || !IsWithinPushTargetRange(target.grid)) return;
 
@@ -24,13 +24,16 @@ public partial class Infantry
         if (!CanPushTargetTeam(initialStack)
             || !CanPushStack(pusherStack, initialStack, GetPushForceMultiplier())
             || !CanPayPushCost(gm)) return;
+        if (!ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm))
+            return;
+        if (!TryMarkAttackPushUsed())
+            return;
         PayPushCost(gm);
-        ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm);
     }
 
     public void TryPushWeaponOnAttack(Weapon target, bool fromSeparateAction = false)
     {
-        if ((fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction : pushTriggerMode == PushTriggerMode.Attack)
+        if ((fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction : CanUseAttackPush())
             && pushTargetClass == PushTargetClass.AnyPushableEntity
             && target != null && target.grid != null && IsWithinPushTargetRange(target.grid)
             && CanPushTeamName(target.team, target.GetType().Name)
@@ -53,6 +56,11 @@ public partial class Infantry
                 moved = true;
             }
             if (!moved) return;
+            if (fromSeparateAction)
+            {
+                if (!TryMarkPushActionUsed()) return;
+            }
+            else if (!TryMarkAttackPushUsed()) return;
             PayPushCost(gm);
             ApplyStaticPushEffects(target);
         }
@@ -60,7 +68,7 @@ public partial class Infantry
 
     public void TryPushFacilityOnAttack(Facility target, bool fromSeparateAction = false)
     {
-        if ((fromSeparateAction ? pushTriggerMode != PushTriggerMode.SeparateAction : pushTriggerMode != PushTriggerMode.Attack)
+        if ((fromSeparateAction ? pushTriggerMode != PushTriggerMode.SeparateAction : !CanUseAttackPush())
             || pushTargetClass != PushTargetClass.AnyPushableEntity
             || target == null || target.ParentGrid == null || !IsWithinPushTargetRange(target.ParentGrid)
             || !CanPushTeamName(target.facilityTeam, target.GetType().Name)
@@ -83,6 +91,11 @@ public partial class Infantry
             moved = true;
         }
         if (!moved) return;
+        if (fromSeparateAction)
+        {
+            if (!TryMarkPushActionUsed()) return;
+        }
+        else if (!TryMarkAttackPushUsed()) return;
         PayPushCost(gm);
         ApplyStaticPushEffects(target);
     }
@@ -486,13 +499,13 @@ public partial class Infantry
                     weapon.equalWeightPushMode, weapon.isDestroyed)
                 : CanPushNonInfantryTarget(facility.ParentGrid, facility.pushableByPhysics, facility.GetEffectiveWeight(),
                     facility.equalWeightPushMode, facility.health <= 0);
-            if (!canPushStatic || !CanPayPushCost(gm) || !TryMarkPushActionUsed()) return;
+            if (!canPushStatic || !CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
+            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true);
+            else TryPushFacilityOnAttack(facility, fromSeparateAction: true);
             gridManager.HideAttackRange();
             gridManager.ClearAllEmptyCallbacks();
             gm.isSelectingAttackTarget = false;
             actionMenu?.Hide();
-            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true);
-            else TryPushFacilityOnAttack(facility, fromSeparateAction: true);
             return;
         }
 
@@ -501,18 +514,19 @@ public partial class Infantry
         if (pusherStack.Count == 0) pusherStack.Add(this);
         if (direction == Vector2I.Zero || !CanPushStack(pusherStack, stack,
             GetPushForceMultiplier())) return;
-        if (!CanPayPushCost(gm)) return;
-
-        if (!TryMarkPushActionUsed()) return;
+        if (!CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
+        if (!ResolvePushChain(targetGrid, direction, pushDistance, gridManager, gm))
+            return;
+        if (!TryMarkPushActionUsed())
+            return;
         PayPushCost(gm);
         gridManager.HideAttackRange();
         gridManager.ClearAllEmptyCallbacks();
         gm.isSelectingAttackTarget = false;
         actionMenu?.Hide();
-        ResolvePushChain(targetGrid, direction, pushDistance, gridManager, gm);
     }
 
-    private void ResolvePushChain(Grids firstGrid, Vector2I direction, int distance,
+    private bool ResolvePushChain(Grids firstGrid, Vector2I direction, int distance,
         GridManager gridManager, GameManager gameManager)
     {
         // A stack is all living infantry occupying one tile. Its effective mass is the
@@ -527,7 +541,7 @@ public partial class Infantry
             if (!pushChainEnabled || (pushMaxChainStacks > 0 && chain.Count >= pushMaxChainStacks)) break;
             cursor = gridManager.GetGridAt(cursor.GridIndex + direction);
         }
-        if (chain.Count == 0) return;
+        if (chain.Count == 0) return false;
 
         // Force must be transmitted through every occupied stack in order.
         // If any link cannot move, the chain is mechanically blocked: stacks farther
@@ -537,7 +551,7 @@ public partial class Infantry
         for (int i = 0; i < chain.Count; i++)
         {
             if (!CanPushStack(pusherStack, chain[i], GetPushForceMultiplier()))
-                return;
+                return false;
             pusherStack = chain[i];
         }
 
@@ -616,6 +630,7 @@ public partial class Infantry
         gameManager?.fogOfWarManager?.OnUnitMoved();
         gameManager?.CallDeferred(nameof(GameManager.UpdateUnitLists));
         gameManager?.CallDeferred(nameof(GameManager.CheckVictoryCondition));
+        return movedStacks.Count > 0;
     }
 
     private bool TryDisplaceWeaponAndFacility(List<Infantry> movingStack,
