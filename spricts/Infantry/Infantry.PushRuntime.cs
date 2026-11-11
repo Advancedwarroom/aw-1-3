@@ -1322,8 +1322,8 @@ public partial class Infantry
                     // With domino chaining disabled, a blocked link stops both sides.
                     if (!pushChainEnabled || !pushUsesWeight)
                     {
-                        ApplyFragileCollisionEffects(stack);
-                        ApplyFragileCollisionEffects(blockers);
+                        ApplyFragileCollisionEffects(stack, blockers);
+                        ApplyFragileCollisionEffects(blockers, stack);
                         if (!stack.Any(IsLivingUnit)) pushResolved = true;
                         continue;
                     }
@@ -1334,8 +1334,8 @@ public partial class Infantry
                         && chain[i + 1].Any(unit => blockers.Contains(unit));
                     if (!isNextConfiguredLink || !CanPushTargetTeam(blockers, i + 1))
                     {
-                        ApplyFragileCollisionEffects(stack);
-                        ApplyFragileCollisionEffects(blockers);
+                        ApplyFragileCollisionEffects(stack, blockers);
+                        ApplyFragileCollisionEffects(blockers, stack);
                         if (!stack.Any(IsLivingUnit)) pushResolved = true;
                         continue;
                     }
@@ -1343,14 +1343,14 @@ public partial class Infantry
                     float blockerWeight = GetStackWeight(blockers);
                     if (movingWeight > blockerWeight && !Mathf.IsEqualApprox(movingWeight, blockerWeight))
                     {
+                        ApplyFragileCollisionEffects(stack, blockers);
                         DestroyCollisionLoser(blockers);
-                        ApplyFragileCollisionEffects(stack);
                         if (!stack.Any(IsLivingUnit)) pushResolved = true;
                     }
                     else if (blockerWeight > movingWeight && !Mathf.IsEqualApprox(movingWeight, blockerWeight))
                     {
+                        ApplyFragileCollisionEffects(blockers, stack);
                         DestroyCollisionLoser(stack);
-                        ApplyFragileCollisionEffects(blockers);
                         pushResolved = true;
                         continue;
                     }
@@ -1364,8 +1364,8 @@ public partial class Infantry
                             || !(movingStops && blockerStops) && GD.Randf() < 0.5f;
                         if (!bothMove)
                         {
-                            ApplyFragileCollisionEffects(stack);
-                            ApplyFragileCollisionEffects(blockers);
+                            ApplyFragileCollisionEffects(stack, blockers);
+                            ApplyFragileCollisionEffects(blockers, stack);
                             if (!stack.Any(IsLivingUnit)) pushResolved = true;
                             continue;
                         }
@@ -1375,8 +1375,8 @@ public partial class Infantry
                             || HasForeignMultiTileOccupant(collisionNext, blockers)
                             || !TryDisplaceWeaponAndFacility(blockers, collisionNext, direction, gridManager, i))
                         {
-                            ApplyFragileCollisionEffects(stack);
-                            ApplyFragileCollisionEffects(blockers);
+                            ApplyFragileCollisionEffects(stack, blockers);
+                            ApplyFragileCollisionEffects(blockers, stack);
                             if (!stack.Any(IsLivingUnit)) pushResolved = true;
                             continue;
                         }
@@ -1389,8 +1389,8 @@ public partial class Infantry
                         blockers = blockers.Where(IsLivingUnit).ToList();
                         if (blockers.Count > 0)
                             MoveStackByPush(blockers, collisionNext);
-                        ApplyFragileCollisionEffects(blockers);
-                        ApplyFragileCollisionEffects(stack);
+                        ApplyFragileCollisionEffects(blockers, stack);
+                        ApplyFragileCollisionEffects(stack, blockers);
                     }
                 }
 
