@@ -401,18 +401,14 @@ public partial class Infantry
         }
         if (chain.Count == 0) return;
 
-        // Resolve force transmission from the attacker through each stack once.
-        // When a link fails, stacks farther forward can still move; stacks behind
-        // the failed link cannot pass through it.
-        int firstBlockedLink = -1;
+        // Force must be transmitted through every occupied stack in order.
+        // If any link cannot move, the chain is mechanically blocked: stacks farther
+        // ahead are not independently pushed through the failed link.
         List<Infantry> pusherStack = new List<Infantry> { this };
         for (int i = 0; i < chain.Count; i++)
         {
             if (!CanPushStack(pusherStack, chain[i], GetPushForceMultiplier()))
-            {
-                firstBlockedLink = i;
-                break;
-            }
+                return;
             pusherStack = chain[i];
         }
 
@@ -424,7 +420,7 @@ public partial class Infantry
 
         for (int step = 0; step < distance; step++)
         {
-            for (int i = chain.Count - 1; i > firstBlockedLink; i--)
+            for (int i = chain.Count - 1; i >= 0; i--)
             {
                 var stack = chain[i].Where(IsLivingUnit).ToList();
                 if (stack.Count == 0 || step >= GetMitigatedPushDistance(stack, distance)) continue;
