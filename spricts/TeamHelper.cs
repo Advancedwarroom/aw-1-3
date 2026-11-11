@@ -469,7 +469,17 @@ public static class TeamHelper
             IsActive = true,
             SortOrder = 2
         });
-        
+
+        RegisterFaction(new FactionConfig
+        {
+            Id = Player3,
+            DisplayName = "Player3",
+            PrimaryColor = new Color(0.2f, 0.8f, 0.3f),
+            SecondaryColor = new Color(0.1f, 0.6f, 0.2f),
+            IsActive = true,
+            SortOrder = 3
+        });
+
         RebuildActiveList();
     }
     
