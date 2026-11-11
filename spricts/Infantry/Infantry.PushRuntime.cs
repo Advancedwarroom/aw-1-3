@@ -12,10 +12,8 @@ public partial class Infantry
             || grid == null || target == null || !GodotObject.IsInstanceValid(target)
             || target.grid == null) return;
 
-        Vector2I delta = target.grid.GridIndex - grid.GridIndex;
-        Vector2I direction = Math.Abs(delta.X) >= Math.Abs(delta.Y)
-            ? new Vector2I(Math.Sign(delta.X), 0)
-            : new Vector2I(0, Math.Sign(delta.Y));
+        Vector2I direction = GetPushDirection(target.grid);
+
         if (direction == Vector2I.Zero) return;
 
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
@@ -68,16 +66,93 @@ public partial class Infantry
 
     private bool CanPushTargetTeam(List<Infantry> stack)
     {
-        foreach (var unit in stack)
+        // A stack moves as one object, so every occupant must satisfy the selected team policy.
+        return stack != null && stack.Count > 0 && stack.All(unit =>
         {
-            if (unit.team == team && !pushCanTargetFriendlies) continue;
-            if (TeamHelper.AreAllied(team, unit.team) && unit.team != team && !pushCanTargetAllies) continue;
-            if (unit.team != team && !TeamHelper.AreAllied(team, unit.team)
-                && pushCanTargetEnemies) return true;
-            if (unit.team == team && pushCanTargetFriendlies) return true;
-            if (TeamHelper.AreAllied(team, unit.team) && unit.team != team && pushCanTargetAllies) return true;
+            if (unit.team == team) return pushCanTargetFriendlies;
+            if (TeamHelper.AreAllied(team, unit.team)) return pushCanTargetAllies;
+            return pushCanTargetEnemies;
+        });
+    }
+
+    private Vector2I GetPushDirection(Grids targetGrid)
+    {
+        if (targetGrid == null || grid == null) return Vector2I.Zero;
+        if (pushDirectionMode == PushDirectionMode.Fixed)
+        {
+            if (fixedPushDirection == Vector2I.Zero) return Vector2I.Zero;
+            return Mathf.Abs(fixedPushDirection.X) >= Mathf.Abs(fixedPushDirection.Y)
+                ? new Vector2I(Math.Sign(fixedPushDirection.X), 0)
+                : new Vector2I(0, Math.Sign(fixedPushDirection.Y));
         }
-        return false;
+
+        Vector2I delta = targetGrid.GridIndex - grid.GridIndex;
+        return Math.Abs(delta.X) >= Math.Abs(delta.Y)
+            ? new Vector2I(Math.Sign(delta.X), 0)
+            : new Vector2I(0, Math.Sign(delta.Y));
+    }
+
+    private float GetPushForceMultiplier() =>
+        pushForceScalesWithDistance ? Mathf.Max(0.01f, pushDistance * pushForcePerTile) : 1.0f;
+
+    private bool CanPayPushCost(GameManager gm)
+    {
+        int cost = Mathf.Max(0, pushCostAmount);
+        if (cost == 0 || pushCostResource == PushResourceType.None) return true;
+        return pushCostResource switch
+        {
+            PushResourceType.Funds => gm != null && gm.GetTeamFunds(team) >= cost,
+            PushResourceType.Health => health > cost,
+            PushResourceType.Fuel => fuel >= cost,
+            PushResourceType.PrimaryAmmo => HasAmmo(AmmoKind.Primary, cost),
+            _ => true
+        };
+    }
+
+    private void PayPushCost(GameManager gm)
+    {
+        int cost = Mathf.Max(0, pushCostAmount);
+        if (cost == 0) return;
+        switch (pushCostResource)
+        {
+            case PushResourceType.Funds:
+                gm?.SetTeamFunds(team, gm.GetTeamFunds(team) - cost);
+                break;
+            case PushResourceType.Health:
+                health = Mathf.Max(1, health - cost);
+                UpdateHpLabel();
+                break;
+            case PushResourceType.Fuel:
+                fuel = Mathf.Max(0, fuel - cost);
+                break;
+            case PushResourceType.PrimaryAmmo:
+                TryConsumeAmmo(AmmoKind.Primary, cost);
+                break;
+        }
+    }
+
+    private void ApplyPushTargetEffects(List<Infantry> stack, GameManager gm)
+    {
+        foreach (var unit in stack.ToList())
+        {
+            if (!IsLivingUnit(unit)) continue;
+            if (pushLockTargetToOneHp) unit.health = 1;
+            else if (pushTargetDamage > 0)
+            {
+                unit.health -= pushTargetDamage;
+                if (unit.health <= 0 && pushDamageCanDestroy)
+                {
+                    DestroyPushedUnit(unit, gm);
+                    continue;
+                }
+                unit.health = Mathf.Max(1, unit.health);
+            }
+            if (pushTargetFuelDelta != 0)
+                unit.fuel = Mathf.Max(0, unit.fuel + pushTargetFuelDelta);
+            if (pushTargetAmmoDelta != 0)
+                unit.AddAmmo(AmmoKind.Primary, pushTargetAmmoDelta);
+            unit.UpdateHpLabel();
+        }
     }
 
     private void ExecuteSeparatePushOnGrid(Grids targetGrid)
@@ -88,14 +163,13 @@ public partial class Infantry
         var stack = GetLivingStack(targetGrid);
         if (stack.Count == 0 || !CanPushTargetTeam(stack)) return;
 
-        Vector2I delta = targetGrid.GridIndex - grid.GridIndex;
-        Vector2I direction = Math.Abs(delta.X) >= Math.Abs(delta.Y)
-            ? new Vector2I(Math.Sign(delta.X), 0)
-            : new Vector2I(0, Math.Sign(delta.Y));
-        if (direction == Vector2I.Zero || !CanPushStack(new List<Infantry> { this }, stack))
-            return;
+        Vector2I direction = GetPushDirection(targetGrid);
+        if (direction == Vector2I.Zero || !CanPushStack(new List<Infantry> { this }, stack,
+            GetPushForceMultiplier())) return;
+        if (!CanPayPushCost(gm)) return;
 
         if (!TryMarkPushActionUsed()) return;
+        PayPushCost(gm);
         gridManager.HideAttackRange();
         gridManager.ClearAllEmptyCallbacks();
         gm.isSelectingAttackTarget = false;
@@ -115,6 +189,7 @@ public partial class Infantry
             var stack = GetLivingStack(cursor);
             if (stack.Count == 0) break;
             chain.Add(stack);
+            if (pushMaxChainStacks > 0 && chain.Count >= pushMaxChainStacks) break;
             cursor = gridManager.GetGridAt(cursor.GridIndex + direction);
         }
         if (chain.Count == 0) return;
@@ -126,7 +201,7 @@ public partial class Infantry
         List<Infantry> pusherStack = new List<Infantry> { this };
         for (int i = 0; i < chain.Count; i++)
         {
-            if (!CanPushStack(pusherStack, chain[i]))
+            if (!CanPushStack(pusherStack, chain[i], GetPushForceMultiplier()))
             {
                 firstBlockedLink = i;
                 break;
@@ -163,6 +238,7 @@ public partial class Infantry
                     continue;
                 }
                 MoveStackByPush(stack, destination);
+                ApplyPushTargetEffects(stack, gameManager);
             }
         }
 
@@ -192,9 +268,9 @@ public partial class Infantry
     private static bool StackStopsOnEqual(List<Infantry> stack) =>
         stack.Count > 0 && stack.All(u => u.equalWeightPushMode == EqualWeightPushMode.Stop);
 
-    private static bool CanPushStack(List<Infantry> pusher, List<Infantry> target)
+    private static bool CanPushStack(List<Infantry> pusher, List<Infantry> target, float forceMultiplier = 1.0f)
     {
-        float pusherWeight = GetStackWeight(pusher);
+        float pusherWeight = GetStackWeight(pusher) * forceMultiplier;
         float targetWeight = GetStackWeight(target);
         if (pusherWeight > targetWeight && !Mathf.IsEqualApprox(pusherWeight, targetWeight))
             return true;
