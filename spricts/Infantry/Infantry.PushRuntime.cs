@@ -40,6 +40,12 @@ public partial class Infantry
                 || GetLivingStack(next).Count > 0) break;
             if (!target.MoveByPhysicsPush(next, gm.weaponManager)) break;
         }
+        if (pushLockTargetToOneHp) target.health = 1;
+        else if (pushTargetDamage > 0)
+        {
+            target.TakeDamage(pushTargetDamage, this);
+        }
+        }
     }
 
     public void TryPushFacilityOnAttack(Facility target)
@@ -59,6 +65,10 @@ public partial class Infantry
             if (next == null || next.city != null || next.weapon != null
                 || GetLivingStack(next).Count > 0) break;
             if (!target.MoveByPhysicsPush(next)) break;
+        }
+        if (pushLockTargetToOneHp) target.health = 1;
+        else if (pushTargetDamage > 0)
+            target.TakeDamage(pushTargetDamage, this);
         }
     }
 
@@ -241,7 +251,12 @@ public partial class Infantry
             var facility = targetGrid.city != null && targetGrid.city.pushableByPhysics
                 && CanPushTeamName(targetGrid.city.facilityTeam) ? targetGrid.city : null;
             if (weapon == null && facility == null) return;
-            if (!CanPayPushCost(gm) || !TryMarkPushActionUsed()) return;
+            bool canPushStatic = weapon != null
+                ? CanPushNonInfantryTarget(weapon.grid, weapon.pushableByPhysics, weapon.GetEffectiveWeight(),
+                    weapon.equalWeightPushMode, weapon.isDestroyed)
+                : CanPushNonInfantryTarget(facility.ParentGrid, facility.pushableByPhysics, facility.GetEffectiveWeight(),
+                    facility.equalWeightPushMode, facility.health <= 0);
+            if (!canPushStatic || !CanPayPushCost(gm) || !TryMarkPushActionUsed()) return;
             PayPushCost(gm);
             gridManager.HideAttackRange();
             gridManager.ClearAllEmptyCallbacks();
