@@ -445,7 +445,10 @@ public partial class Infantry
         if (pushPusherFollowsChain && firstGrid != null && grid != null)
         {
             var followDestination = firstGrid;
-            if (GetLivingStack(followDestination).Count == 0)
+            bool canOverlapStatic = (followDestination.city == null || !followDestination.city.pushBlocksInfantryWhenOverlapped)
+                && (followDestination.weapons == null || followDestination.weapons.All(w =>
+                    w == null || !GodotObject.IsInstanceValid(w) || !w.pushBlocksInfantryWhenOverlapped));
+            if (canOverlapStatic && GetLivingStack(followDestination).Count == 0)
                 MoveStackByPush(new List<Infantry> { this }, followDestination);
         }
 
