@@ -254,7 +254,7 @@ public partial class Infantry
         gameManager?.CallDeferred(nameof(GameManager.CheckVictoryCondition));
     }
 
-    private static bool TryDisplaceWeaponAndFacility(List<Infantry> movingStack,
+    private bool TryDisplaceWeaponAndFacility(List<Infantry> movingStack,
         Grids destination, Vector2I direction, GridManager gridManager)
     {
         float movingWeight = GetStackWeight(movingStack);
@@ -271,7 +271,8 @@ public partial class Infantry
             if (Mathf.IsEqualApprox(movingWeight, weapon.GetEffectiveWeight())
                 && !CanResolveEqualWeight(movingStack, weapon.equalWeightPushMode))
                 return false;
-            if (!weapon.MoveByPhysicsPush(nextGrid, weapon.GetParent()?.GetParent() as WeaponManager))
+            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (!weapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager))
                 return false;
         }
 
