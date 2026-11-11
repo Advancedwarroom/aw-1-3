@@ -154,9 +154,10 @@ public partial class ActionMenu
 
         var rangeGrids = gm.gridManager.grids.Where(g =>
         {
+            if (!gm.gridManager.IsRangeAllowed(unit.grid, g, unit.spaceStrikeCanCrossScreens)) return false;
             if (unit.spaceStrikeGlobal) return true;
             int d = Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y);
-            return d >= unit.spaceStrikeMinRange && d <= unit.spaceStrikeMaxRange && gm.gridManager.IsRangeAllowed(unit.grid, g, unit.spaceStrikeCanCrossScreens);
+            return d >= unit.spaceStrikeMinRange && d <= unit.spaceStrikeMaxRange;
         }).ToList();
 
         foreach (var g in rangeGrids)
