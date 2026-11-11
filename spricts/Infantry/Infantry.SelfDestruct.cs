@@ -12,6 +12,7 @@ public partial class Infantry
     [Export] public bool canExplode = false;                     // 是否可自爆
     [Export] public int explosionMinRange = 0;                   // 爆炸最小范围（盲区）
     [Export] public int explosionMaxRange = 1;                   // 爆炸最大范围
+    [Export] public bool explosionCanCrossScreens = false;    // 自爆影响范围是否允许跨屏
     [Export] public int explosionDamageMode = 0;                 // 0=固定值 1=百分比 2=攻击公式
     [Export] public int explosionFixedValue = 5;                 // 固定伤害值（可为负=加血）
     [Export] public float explosionPercentValue = 0.5f;          // 百分比伤害（0.5=50%）
