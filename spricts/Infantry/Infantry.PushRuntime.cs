@@ -103,9 +103,9 @@ public partial class Infantry
             var stack = GetLivingStack(tile);
             bool hasPushableStatic = pushTargetClass == PushTargetClass.AnyPushableEntity
                 && ((tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
-                    && w.pushableByPhysics && w.team != team) ?? false)
+                    && w.pushableByPhysics && CanPushTeamName(w.team)) ?? false)
                     || (tile.city != null && tile.city.pushableByPhysics
-                        && tile.city.facilityTeam != team));
+                        && CanPushTeamName(tile.city.facilityTeam)));
             if ((stack.Count == 0 || !CanPushTargetTeam(stack))
                 && !hasPushableStatic) continue;
             tile.attackRangeIcon?.Show();
@@ -237,9 +237,9 @@ public partial class Infantry
         if (staticTarget)
         {
             var weapon = targetGrid.weapons?.FirstOrDefault(w => w != null
-                && GodotObject.IsInstanceValid(w) && w.pushableByPhysics && w.team != team);
+                && GodotObject.IsInstanceValid(w) && w.pushableByPhysics && CanPushTeamName(w.team));
             var facility = targetGrid.city != null && targetGrid.city.pushableByPhysics
-                && targetGrid.city.facilityTeam != team ? targetGrid.city : null;
+                && CanPushTeamName(targetGrid.city.facilityTeam) ? targetGrid.city : null;
             if (weapon == null && facility == null) return;
             if (!CanPayPushCost(gm) || !TryMarkPushActionUsed()) return;
             PayPushCost(gm);
