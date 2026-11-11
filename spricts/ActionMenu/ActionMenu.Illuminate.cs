@@ -117,7 +117,6 @@ public partial class ActionMenu
             unit.minIlluminationRange,
             unit.maxIlluminationRange,
             unit.flareDurationTurns,
-            unit.grid,
             unit.flareEffectCanCrossScreens
         );
 
