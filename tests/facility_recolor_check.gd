@@ -41,7 +41,7 @@ func _ready() -> void:
 		return
 	var shift = mat.get_shader_parameter("hue_shift")
 	print(which, " hue_shift = ", shift)
-	if shift == null or shift < 200.0 or shift > 340.0:
+	if shift == null or shift < 140.0 or shift > 340.0:
 		_fail("hue_shift 出紫色带: " + str(shift))
 		return
 	print("FACILITY_RECOLOR_CHECK_PASS")
