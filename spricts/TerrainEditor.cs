@@ -54,7 +54,8 @@ public partial class TerrainEditor : Control
     private SpinBox fixedDamageSpinBox;
     private SpinBox fixedAttackSpinBox;
     private CheckBox canOverMaxCheckBox;
-    private SpinBox maxHealthChangeSpinBox; // ✦优化：最大血量增减
+    private SpinBox maxHealthChangeSpinBox; // 最大血量增减
+    private SpinBox weightChangeSpinBox;
     private OptionButton ammoKindOptionButton; // ✦优化：弹药种类选择
     private SpinBox ammoKindChangeSpinBox;    // ✦优化：选中种类增减
     private SpinBox ammoKindMaxSpinBox;       // ✦优化：选中种类上限增减
