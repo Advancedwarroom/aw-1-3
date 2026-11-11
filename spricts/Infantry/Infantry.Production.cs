@@ -39,6 +39,7 @@ public partial class Infantry
     [Export] public bool productionFree = false;                                    // ⑫ 是否无消耗（原作兵工厂模式
     [Export] public bool productionFullList = false;                                    // ⑬ 全生产列表（跳过白名单与全局生产限制）
     [Export] public bool productionInstantMove = false;                                 // ⑭ 产出单位立即可动（常规=本回合不可动）：不耗生产弹药）
+    [Export] public bool producedCargoBoardedThisTurn = false;                          // ⑮ 产物视为本回合登舰（true=产物本回合不能起飞/卸载，旧防白嫖行为；false=DoR原作，产物当回合可出击）
 
     // ===== 运行时状态（不导出） =====
     public bool isProducing = false;                    // 生产中
@@ -170,7 +171,8 @@ public partial class Infantry
             EnsureTransportForInternalProduction();
             transportedUnits.Add(unit);
             unit.isTransported = true;
-            MarkCargoBoardedThisTurn(unit);   // 刚造好的舰载机本回合不能起飞
+            if (producedCargoBoardedThisTurn)
+                MarkCargoBoardedThisTurn(unit);   // ⑮旧行为：true=刚造好的舰载机本回合不能起飞（DoR原作=false当场可出击）
             unit.Hide();
             unit.ProcessMode = ProcessModeEnum.Disabled;
             gm.unitManager.units.AddChild(unit);
