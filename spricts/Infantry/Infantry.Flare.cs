@@ -18,4 +18,6 @@ public partial class Infantry
     [Export] public int maxIlluminationRange = 2;                    // 照明覆盖最大射程（黄色预览）
     [Export] public int flareDurationTurns = 1;                      // 照明效果持续大回合数
     [Export] public bool canIlluminateAfterMove = false;             // 移动后是否可以照明
+    [Export] public bool flareLaunchCanCrossScreens = false;       // 照明弹投射射程是否允许跨屏
+    [Export] public bool flareEffectCanCrossScreens = false;       // 照明效果覆盖范围是否允许跨屏
 }
