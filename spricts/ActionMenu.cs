@@ -413,8 +413,6 @@ private List<Grids> GetAdjacentGrids(Grids center)
             currentUnit = mountableUnit;
             canMountAPC = true;   // 复用装载按钮（OnLoadPressed 消费 currentUser/currentTransport）
         }
-        if (unit.transportedUnits != null && unit.transportedUnits.Count > 0)
-            ShowTransportUnloadButtonsOnly(unit, afterMove);
     }
 
 
@@ -433,6 +431,9 @@ private List<Grids> GetAdjacentGrids(Grids center)
     }
 
     waitButton.Visible = true;
+        // ✅ 开创人2026-11-11: 卸载按钮生成挪到待机可见之后——容器锚定用最终btnCol尺寸，根治"待机盖住第一个卸载项"
+        if (unit.transportedUnits != null && unit.transportedUnits.Count > 0)
+            ShowTransportUnloadButtonsOnly(unit, afterMove);
         var unitGlobalPos = unit.GlobalPosition;
         Position = new Vector2(unitGlobalPos.X - 40, unitGlobalPos.Y - Size.Y - 60);
         Show();
