@@ -223,7 +223,7 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
             // 开创人2026-11-11 修复：.NET 与 Godot 字典通吃（IDictionary 接口直写原实例）；isPrimary 只对真正的单位攻击矩阵成立。
             var dictin = value as System.Collections.Generic.IDictionary<string, int>;
             bool isPrimary = currentEditingTarget is Infantry inf0 && inf0.attackMatrix == value;
-            string title = isPrimary ? TranslateGroup.T("主武器") : (fieldName ?? name);
+            string title = isPrimary ? TranslateGroup.T("主武器") : (fieldName ?? "字典");
             Color color = isPrimary ? Colors.Red : new Color(0.5f, 0.8f, 0.5f);
             return CreateAttackMatrixEditor(dictin, title, color, (newDict) => onChanged(newDict));
         }
