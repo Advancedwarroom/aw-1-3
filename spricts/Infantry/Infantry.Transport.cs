@@ -293,13 +293,7 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
 
     var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
 
-    // ✅ P-1 公共运输单位：只能卸载当前势力的单位
-    if (this.team == TeamHelper.Player)
-    {
-        string currentTurnTeam = TeamHelper.GetPhaseTeamName(gm?.turnPhase ?? 1);
-        if (unit.team != currentTurnTeam)
-            return false;
-    }
+    // ✅ 开创人2026-11-11 拍板：废除 P-1 公共运输卸载限制——共用运输可装即可卸，无势力门禁
 
     
     var blockingUnit = targetGrid.infantries.FirstOrDefault(u => 
