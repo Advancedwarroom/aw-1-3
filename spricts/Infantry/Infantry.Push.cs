@@ -114,8 +114,15 @@ public partial class Infantry
     [Export] public bool pushReboundToOrigin = true;
     [Export] public int pushReboundAmmoCost = 0;
     [Export] public AmmoKind pushReboundAmmoKind = AmmoKind.PushRebound;
+    [Export] public int pushReboundHealthCost = 0;
     [Export] public int pushReboundFuelCost = 0;
     [Export] public int pushReboundFundsCost = 0;
+    [Export] public int pushReboundTargetDamage = 0;
+    [Export] public bool pushReboundTargetCanDestroy = false;
+    [Export] public bool pushReboundTargetLockOneHp = false;
+    [Export] public int pushReboundTargetFuelDelta = 0;
+    [Export] public int pushReboundTargetAmmoDelta = 0;
+    [Export] public AmmoKind pushReboundTargetAmmoKind = AmmoKind.Primary;
 
     [ExportSubgroup("缓冲模块")]
     [Export] public bool pushMitigationEnabled = false;
