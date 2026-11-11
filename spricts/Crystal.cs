@@ -17,7 +17,8 @@ public partial class Crystal : Weapon
     // ========== 黑水晶专用配置 ==========
     [ExportGroup("黑水晶 - 范围治疗")]
     [Export] public int crystalHealMinRange = 0;        // 治疗最小范围（盲区）
-    [Export] public int crystalHealMaxRange = 3;        // 治疗最大范围
+    [Export] public int crystalHealMaxRange = 3;
+    [Export] public bool crystalHealCanCrossScreens = false; // 黑水晶治疗范围是否允许跨屏        // 治疗最大范围
     [Export] public float crystalHealPercent = 0.2f;    // 治疗百分比（0.2=20%）
     [Export] public bool crystalHealIncludeFriendly = true;
     [Export] public bool crystalHealIncludeEnemy = false;
@@ -29,7 +30,8 @@ public partial class Crystal : Weapon
 
     [ExportGroup("黑水晶 - 范围补给")]
     [Export] public int crystalSupplyMinRange = 0;      // 补给最小范围
-    [Export] public int crystalSupplyMaxRange = 3;      // 补给最大范围
+    [Export] public int crystalSupplyMaxRange = 3;
+    [Export] public bool crystalSupplyCanCrossScreens = false; // 黑水晶补给范围是否允许跨屏      // 补给最大范围
     [Export] public bool crystalSupplyIncludeFriendly = true;
     [Export] public bool crystalSupplyIncludeEnemy = false;
     [Export] public bool crystalSupplyIncludeAllied = false;
@@ -124,7 +126,7 @@ public partial class Crystal : Weapon
     }
 
     // ========== 计算环形范围格子 ==========
-    private List<Grids> CalculateRingRange(int minR, int maxR)
+    private List<Grids> CalculateRingRange(int minR, int maxR, bool allowCrossScreens)
     {
         var result = new List<Grids>();
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
@@ -145,7 +147,7 @@ public partial class Crystal : Weapon
                 if (nx >= 0 && nx < w && ny >= 0 && ny < h)
                 {
                     var g = map[nx, ny];
-                    if (g != null && IsInstanceValid(g)) result.Add(g);
+                    if (g != null && IsInstanceValid(g) && gridMgr.IsRangeAllowed(grid, g, allowCrossScreens)) result.Add(g);
                 }
             }
         }
@@ -162,8 +164,8 @@ public partial class Crystal : Weapon
         Grids.IsForceActionMode = true;
 
         // ✅ 显示治疗圈 ∪ 补给圈（两者半径可不同，此前只显示治疗圈）
-        var rangeGrids = CalculateRingRange(crystalHealMinRange, crystalHealMaxRange)
-            .Union(CalculateRingRange(crystalSupplyMinRange, crystalSupplyMaxRange)).ToList();
+        var rangeGrids = CalculateRingRange(crystalHealMinRange, crystalHealMaxRange, crystalHealCanCrossScreens)
+            .Union(CalculateRingRange(crystalSupplyMinRange, crystalSupplyMaxRange, crystalSupplyCanCrossScreens)).ToList();
         var fog = gm.fogOfWarManager;
         bool isFogEnabled = fog != null && fog.isFogOfWarEnabled;
 
@@ -203,7 +205,7 @@ public partial class Crystal : Weapon
         if (gm == null || grid == null) return;
 
         // 1. 范围治疗（不消耗弹药）
-        var healGrids = CalculateRingRange(crystalHealMinRange, crystalHealMaxRange);
+        var healGrids = CalculateRingRange(crystalHealMinRange, crystalHealMaxRange, crystalHealCanCrossScreens);
         foreach (var g in healGrids)
         {
             foreach (var unit in g.infantries.ToList())
@@ -218,7 +220,7 @@ public partial class Crystal : Weapon
         }
 
         // 2. 范围补给（先检查弹药，再执行，避免无限卡 Bug）
-        var supplyGrids = CalculateRingRange(crystalSupplyMinRange, crystalSupplyMaxRange);
+        var supplyGrids = CalculateRingRange(crystalSupplyMinRange, crystalSupplyMaxRange, crystalSupplyCanCrossScreens);
         var supplyTargets = new List<object>(); // 收集所有需要补给的目标
         foreach (var g in supplyGrids)
         {
@@ -584,12 +586,13 @@ public partial class Crystal : Weapon
     // ========== ✅ AI 查询接口（只读，不改任何状态） ==========
     private int AIDist(Grids g) => (g == null || grid == null) ? 9999
         : Mathf.Abs(g.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - grid.GridIndex.Y);
-    public bool AIInHealRange(Grids g) { int d = AIDist(g); return d >= crystalHealMinRange && d <= crystalHealMaxRange; }
+    public bool AIInHealRange(Grids g) { int d = AIDist(g); var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager; return d >= crystalHealMinRange && d <= crystalHealMaxRange && gm?.gridManager != null && gm.gridManager.IsRangeAllowed(grid, g, crystalHealCanCrossScreens); }
     public bool AIInSupplyRange(Grids g)
     {
         int d = AIDist(g);
         if (!crystalSupplyAffectsSelf && g == grid) return false;
-        return d >= crystalSupplyMinRange && d <= crystalSupplyMaxRange;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        return d >= crystalSupplyMinRange && d <= crystalSupplyMaxRange && gm?.gridManager != null && gm.gridManager.IsRangeAllowed(grid, g, crystalSupplyCanCrossScreens);
     }
     /// <summary>单位若站在治疗范围内，本次脉冲的血量变化（正=回血，负=扣血，0=无效）</summary>
     public int AIPreviewHealDelta(Infantry unit)
