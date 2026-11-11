@@ -34,9 +34,10 @@ For a separate action:
 - When `pushForceScalesWithDistance` is enabled, force uses the actual selected displacement distance, not always the maximum.
 - `pushMaxChainStacks` and `pushMaxChainUnits` limit chain length.
 - Resource costs can use funds, HP, fuel, primary ammo, or any configured `AmmoKind` through `pushCostAmmoKind`.
-- Target ammo changes, rebound costs, and transfer costs each select their own `AmmoKind`, so the complete shared ammunition catalog is available rather than primary ammo only.
+- Push uses three dedicated shared ammunition kinds: `PushRebound`, `PushMitigation`, and `AntiGravityTransfer`. They are part of the unit ammo read/write/refill API, paid resupply/sacrifice, facility supply, devour effects, and generic Export saves.
+- Push costs and target ammo changes can select any `AmmoKind`; rebound, mitigation, and transfer default to their dedicated ammo types.
 - Infantry target effects include damage, one-HP locking, healing, max-HP changes, fuel changes, and changes to any configured `AmmoKind`.
-- Infantry stacks support configurable rebound, distance mitigation, and anti-gravity transfer Export settings.
+- Infantry stacks support configurable rebound, distance mitigation, and anti-gravity transfer Export settings. Mitigation ammo is charged only when its mitigation actually reduces the displacement and the stack moves.
 - `pushSelfDestructOnInvalidIntermediateTile` is configured on each infantry entity: enabled destroys it on any invalid intermediate tile; disabled only destroys it if the final requested tile is invalid.
 
 ## Current limitations
