@@ -11,6 +11,7 @@ public partial class Infantry
     [Export] public bool canAttackAllies = false;              // ✅ 友军火力·扩展：勾选后可攻击同盟势力（盟友）
     [Export] public bool friendliesCanCounterFire = true;      // ✅ 打友军是否还手：false=被打的同队目标不还手（默认还手=原味）
     [Export] public bool alliesCanCounterFire = true;          // ✅ 打盟友是否还手：false=被打的盟友不还手（默认还手=原味）
+    [Export] public bool attackCanCrossScreens = false; // 普通攻击射程是否允许跨屏
 
     [ExportGroup("补给")]
     [Export] public string[] excludedWeaponTargets = System.Array.Empty<string>();  // ⚔ 兵器攻击准入(攻击方)：不能攻击的兵器类型，"Weapon"=全部兵器，留空=均可攻击              // ✅ 合流模块：是否允许参与 Join 合流（false=该单位不可合流）
@@ -605,6 +606,8 @@ public virtual bool IsTargetInCounterRange(Infantry attacker)
     public virtual bool IsTargetInAttackRange(Infantry target)
     {
         if (target?.grid == null || this.grid == null) return false;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager == null || !gm.gridManager.IsRangeAllowed(this.grid, target.grid, attackCanCrossScreens)) return false;
 
         int distance = Mathf.Abs(target.grid.GridIndex.X - this.grid.GridIndex.X) 
                      + Mathf.Abs(target.grid.GridIndex.Y - this.grid.GridIndex.Y);
