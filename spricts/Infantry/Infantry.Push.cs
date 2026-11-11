@@ -7,7 +7,8 @@ public partial class Infantry
     {
         Disabled,
         Attack,
-        SeparateAction
+        SeparateAction,
+        Movement
     }
 
     public enum EqualWeightPushMode
@@ -166,6 +167,22 @@ public partial class Infantry
             return false;
         if (pushActionCountsAsAction && (hasActed || state == UnitState.Acted))
             return false;
+        return true;
+    }
+
+    public bool CanUseMovementPush()
+    {
+        if (!pushEnabled || pushTriggerMode != PushTriggerMode.Movement)
+            return false;
+        if (pushCooldownTurnsRemaining > 0) return false;
+        if (pushOncePerTurn && hasUsedPushThisTurn) return false;
+        return true;
+    }
+
+    public bool TryMarkMovementPushUsed()
+    {
+        if (!CanUseMovementPush()) return false;
+        MarkPushUsed();
         return true;
     }
 
