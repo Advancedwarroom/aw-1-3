@@ -28,7 +28,9 @@ For a separate action:
 ## Direction, chain, costs and effects
 
 - `pushDirectionMode` supports away-from-pusher, fixed cardinal direction, and opposite-sides drag. In opposite-sides mode, the target is displaced along the push vector and the pusher retreats in the reverse direction; the pusher stops at blockers and applies its own invalid-tile destruction setting.
-- `pushDistance`, `pushMaxChainStacks`, and `pushForceScalesWithDistance` tune reach and force.
+- `pushDistance` is the maximum displacement; `pushMinDistance` is the minimum. Attack-triggered pushes use the maximum. Separate actions use the maximum when `pushAutoDistance` is enabled; otherwise a popup lets the player choose a distance in the configured range.
+- When `pushForceScalesWithDistance` is enabled, force uses the actual selected displacement distance, not always the maximum.
+- `pushMaxChainStacks` and `pushMaxChainUnits` limit chain length.
 - Resource costs can use funds, HP, fuel, primary ammo, or any configured `AmmoKind` through `pushCostAmmoKind`.
 - Target ammo changes, rebound costs, and transfer costs each select their own `AmmoKind`, so the complete shared ammunition catalog is available rather than primary ammo only.
 - Target effects include damage, one-HP locking, healing, max-HP changes, fuel changes, and primary-ammo changes.
