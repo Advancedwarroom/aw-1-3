@@ -80,13 +80,13 @@ public partial class GridManager
         int minRange = Mathf.Max(1, unit.minAttackRange + CoModuleSystem.GetMinFireRangeBonus(unit));
         int maxRange = unit.maxAttackRange + CoModuleSystem.GetFireRangeBonus(unit) + WeatherSystem.GetFireRangeModifier(unit);
         
-        var allRangeGrids = FindRange(unit.grid, maxRange, false);
+        var allRangeGrids = FindRange(unit.grid, maxRange, false, unit.attackCanCrossScreens);
         var blindZoneGrids = new HashSet<Grids>();
         
         blindZoneGrids.Add(unit.grid);
         if (minRange > 1)
         {
-            var nearGrids = FindRange(unit.grid, minRange - 1, false);
+            var nearGrids = FindRange(unit.grid, minRange - 1, false, unit.attackCanCrossScreens);
             foreach (var g in nearGrids) 
                 blindZoneGrids.Add(g);
         }
@@ -211,7 +211,7 @@ public partial class GridManager
         }
         
         if (unit.attackType == AttackType.NoAttack) return;
-        var neighbors = GetAttackNeighbours(unit.grid);
+        var neighbors = GetAttackNeighbours(unit.grid, unit.attackCanCrossScreens);
         
         // ✅ 禁用所有单位选择，防止误选己方未行动单位
         foreach (var grid in grids)
