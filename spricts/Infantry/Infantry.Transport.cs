@@ -13,8 +13,8 @@ public partial class Infantry
 
 [Export] public int maxTransportCapacity = 0;
 [Export] public Godot.Collections.Array<string> canTransportUnitTypes = new();
-[Export] public bool canLaunchCargo = false;
-[Export] public bool unloadCanCrossScreens = false; // 卸载相邻格是否允许跨屏   // ✅ 舰载起飞（DoR 航母/生产舰）：回合开始时已在舱内的单位，载具本回合未移动时可直接“起飞”到相邻格并正常行动；起飞后载具本回合不能再移动
+[Export] public bool canLaunchCargo = false;   // ✅ 舰载起飞（DoR 航母/生产舰）：回合开始时已在舱内的单位，载具本回合未移动时可直接“起飞”到相邻格并正常行动；起飞后载具本回合不能再移动
+[Export] public bool unloadCanCrossScreens = false; // 卸载相邻格是否允许跨屏
 [Export] public int maxLoadCapacity { get => maxTransportCapacity; set => maxTransportCapacity = value; }
 [Export] public int minSupplyRange = 1;
 [Export] public int maxSupplyRange = 1;
