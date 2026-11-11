@@ -1542,7 +1542,8 @@ public partial class Infantry
 
     private int CalculateFragileHealthFundsDamage(Infantry survivor, GameManager gm)
     {
-        float healthPart = Math.Max(0.0f, (health + survivor.health) * survivor.pushFragileHealthScale);
+        double healthPart = Math.Max(0.0, ((double)health + survivor.health)
+            * Math.Max(0.0f, survivor.pushFragileHealthScale));
         double fundsPart = 0.0;
         if (gm != null)
         {
