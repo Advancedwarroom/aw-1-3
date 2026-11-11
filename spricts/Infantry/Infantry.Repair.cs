@@ -29,19 +29,21 @@ public partial class Infantry
     [Export] public bool repairCanCrossScreens = false;             // 修理范围是否允许跨屏
     // ========== ✅ 通用修理模块（任何 canRepair 单位可用；原 RepairBoat 专属逻辑上移） ==========
     /// <summary>修理范围：[min,max] 环；repairTargetMode=3（仅自己）时只含自身格</summary>
-    public virtual List<Grids> CalculateRepairRange()
+    public virtual List<Grids> CalculateRepairRange() => CalculateRepairRange(grid);
+
+    public virtual List<Grids> CalculateRepairRange(Grids originGrid)
     {
         var result = new List<Grids>();
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm?.gridManager == null || grid == null) return result;
-        if (repairTargetMode == 3) { result.Add(grid); return result; }
-        var allRange = gm.gridManager.FindRange(grid, maxRepairRange, false, repairCanCrossScreens);
+        if (gm?.gridManager == null || originGrid == null) return result;
+        if (repairTargetMode == 3) { result.Add(originGrid); return result; }
+        var allRange = gm.gridManager.FindRange(originGrid, maxRepairRange, false, repairCanCrossScreens);
         if (minRepairRange > 1)
         {
-            var blindZone = gm.gridManager.FindRange(grid, minRepairRange - 1, false, repairCanCrossScreens);
+            var blindZone = gm.gridManager.FindRange(originGrid, minRepairRange - 1, false, repairCanCrossScreens);
             allRange = allRange.Where(g => !blindZone.Contains(g)).ToList();
         }
-        return allRange.Where(g => g != grid).ToList();
+        return allRange.Where(g => g != originGrid).ToList();
     }
 
     /// <summary>目标是否符合修理模式：0=所有 1=仅友方 2=仅敌方 3=仅自己</summary>
