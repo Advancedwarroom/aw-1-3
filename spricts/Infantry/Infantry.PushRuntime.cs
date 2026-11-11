@@ -218,7 +218,11 @@ public partial class Infantry
             return false;
         if (!weapon.pushBlocksInfantryWhenOverlapped) return true;
 
+        var oldFootprint = weapon.grid == null
+            ? new HashSet<Vector2I>()
+            : weapon.GetOccupiedIndices(weapon.grid.GridIndex).ToHashSet();
         foreach (var index in weapon.GetOccupiedIndices(nextAnchor.GridIndex)
+            .Where(index => !oldFootprint.Contains(index))
             .OrderByDescending(index => index.X * direction.X + index.Y * direction.Y))
         {
             var tile = gm.gridManager.GetGridAt(index);
@@ -244,6 +248,9 @@ public partial class Infantry
         if (weapon == null || nextAnchor == null) return false;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null) return false;
+        var oldFootprint = weapon.grid == null
+            ? new HashSet<Vector2I>()
+            : weapon.GetOccupiedIndices(weapon.grid.GridIndex).ToHashSet();
         foreach (var index in weapon.GetOccupiedIndices(nextAnchor.GridIndex))
         {
             var tile = gm.gridManager.GetGridAt(index);
@@ -251,9 +258,11 @@ public partial class Infantry
                 || (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
                     && w != weapon) ?? false))
                 return false;
-            if (!allowInfantryOverlap && GetLivingStack(tile).Count > 0)
+            if (!allowInfantryOverlap && !oldFootprint.Contains(index)
+                && GetLivingStack(tile).Count > 0)
                 return false;
-            if (!allowInfantryOverlap && HasForeignMultiTileOccupant(tile, new List<Infantry>()))
+            if (!allowInfantryOverlap && !oldFootprint.Contains(index)
+                && HasForeignMultiTileOccupant(tile, new List<Infantry>()))
                 return false;
         }
         return true;
