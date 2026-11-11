@@ -1150,6 +1150,7 @@ public partial class Infantry
 
     private void ExecuteSeparatePushOnGrid(Grids targetGrid, int? selectedDistance = null)
     {
+        mitigationAmmoPaidThisAction.Clear();
         if (!pushAutoDistance && selectedDistance == null && pushMinDistance < pushDistance)
         {
             OpenPushDistanceMenu(targetGrid);
