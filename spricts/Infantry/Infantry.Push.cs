@@ -69,6 +69,9 @@ public partial class Infantry
     [Export] public string[] pushTargetBlacklist = System.Array.Empty<string>();
 
     [ExportSubgroup("方向与目标")]
+    [Export] public bool pushChainEnabled = true;
+    [Export] public bool pushUsesWeight = true;
+    [Export] public int pushRamDamage = 0;
     [Export] public PushDirectionMode pushDirectionMode = PushDirectionMode.AwayFromPusher;
     [Export] public Vector2I fixedPushDirection = Vector2I.Right;
     [Export] public PushTargetClass pushTargetClass = PushTargetClass.InfantryOnly;
