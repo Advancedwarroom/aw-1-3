@@ -5,6 +5,10 @@ render_mode blend_mix;
 // hue_shift is the delta from each source pixel hue to the faction's canonical hue.
 uniform float hue_shift = 0.0;    // degrees
 uniform float saturation = 1.0;   // P0 neutral = 0.12
+// ✅ 2026-11-11 源色带守卫(默认-1.0=关闭, 双图层行为不变): 仅旋转 hue∈[center±range] 的像素, 其余原样输出。
+// 单图层成品画(City/Base/Port/AirPort)由 Facility 传 center=GetBaseArtHue(), 只染队伍红, 不染米色/灰/白。
+uniform float guard_center = -1.0;
+uniform float guard_range = 0.08;  // 色相环比例 0~0.5
 
 vec3 rgb2hsv(vec3 c) {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -23,6 +27,11 @@ vec3 hsv2rgb(vec3 c) {
 void fragment() {
     vec4 tex = texture(TEXTURE, UV);
     vec3 hsv = rgb2hsv(tex.rgb);
+    // 源色带守卫: 色环最近距离超出范围 → 原样输出(不旋转、不改饱和)
+    if (guard_center >= 0.0) {
+        float d = abs(fract(hsv.x - guard_center + 0.5) - 0.5);
+        if (d > guard_range) { COLOR = tex; return; }
+    }
     hsv.x = fract(hsv.x + hue_shift / 360.0);
     hsv.y *= saturation;
     COLOR = vec4(hsv2rgb(hsv), tex.a);
