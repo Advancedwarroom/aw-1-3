@@ -403,16 +403,24 @@ public partial class GameManager
         float deficit = 1f - facility.GetProductionVigor();
 
         if (VigorShouldScale(facility, "Health"))
-            unit.health = Math.Clamp(VigorComputeScaled(unit.health, "Health", deficit, facility), VigorFloorOf(facility, "Health"), Math.Max(1, unit.maxHealth));
+            unit.health = Math.Clamp(VigorComputeScaled(unit.health, "Health", deficit, facility), VigorFloorOf(facility, "Health"), VigorCapOf(facility, "Health", Math.Max(1, unit.maxHealth)));
         if (VigorShouldScale(facility, "Fuel"))
-            unit.fuel = Math.Clamp(VigorComputeScaled(unit.fuel, "Fuel", deficit, facility), VigorFloorOf(facility, "Fuel"), Math.Max(0, unit.maxFuel));
-        foreach (AmmoKind kind in Enum.GetValues<AmmoKind>())
+            unit.fuel = Math.Clamp(VigorComputeScaled(unit.fuel, "Fuel", deficit, facility), VigorFloorOf(facility, "Fuel"), VigorCapOf(facility, "Fuel", Math.Max(0, unit.maxFuel)));
+        foreach (Infantry.AmmoKind kind in Enum.GetValues<Infantry.AmmoKind>())
         {
             string key = kind.ToString();
             if (!VigorShouldScale(facility, key)) continue;
             int scaled = VigorComputeScaled(unit.GetAmmo(kind), key, deficit, facility);
-            unit.SetAmmoRaw(kind, Math.Clamp(scaled, VigorFloorOf(facility, key), Math.Max(0, unit.GetMaxAmmo(kind))));
+            unit.SetAmmoRaw(kind, Math.Clamp(scaled, VigorFloorOf(facility, key), VigorCapOf(facility, key, Math.Max(0, unit.GetMaxAmmo(kind)))));
         }
+    }
+
+    /// <summary>超编上限解析（开创人2026-11-12）：可否超上限=false（默认/未配置）→钳在原max；=true→填了 productionVigorResNewCap 用新上限，不填=无上限（显式-1也=无上限）。</summary>
+    private int VigorCapOf(Facility f, string key, int defaultMax)
+    {
+        if (f.productionVigorResExceedMax.TryGetValue(key, out var allow) && allow)
+            return f.productionVigorResNewCap.TryGetValue(key, out var cap) ? (cap < 0 ? int.MaxValue : cap) : int.MaxValue;
+        return defaultMax;
     }
 
     /// <summary>旧配置兼容：缩放值字典为空→血量/燃油按旧行为缩放、弹药不缩放；非空→有条目才缩放。</summary>
