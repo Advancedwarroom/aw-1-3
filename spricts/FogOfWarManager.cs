@@ -296,6 +296,9 @@ public partial class FogOfWarManager : Node
         else
             visible = CalculateManhattanVision(provider.Grid.GridIndex, totalRange);
 
+        bool allowCrossScreens = provider is UnitVisionProvider uv ? uv.Unit?.visionCanCrossScreens == true
+            : provider is WeaponVisionProvider wvp2 && wvp2.Weapon?.visionCanCrossScreens == true;
+        visible.RemoveWhere(g => !gridManager.IsRangeAllowed(provider.Grid, g, allowCrossScreens));
         ApplySpecialGridRules(visible, provider.Grid.GridIndex);
         return visible;
     }
@@ -719,6 +722,7 @@ public class UnitVisionProvider : IVisionProvider
     public VisionMode VisionMode => VisionMode.Normal;
 
     public UnitVisionProvider(Infantry unit) { this.unit = unit; }
+    public Infantry Unit => unit;
 
     public int GetVisionRange()
     {
