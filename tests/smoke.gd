@@ -26,6 +26,12 @@ func _run_smoke() -> void:
 	if main_instance != null and is_instance_valid(main_instance):
 		main_instance.free()
 	main_instance = null
+	var translate_group := tree.root.get_node_or_null("TranslateGroup")
+	if translate_group != null:
+		translate_group.call("ReleaseRuntimeResources")
+		translate_group.free()
+	else:
+		push_error("TEST_CLEANUP: TranslateGroup autoload was not found")
 	# Some effects deliberately reparent themselves to the SceneTree root. They are
 	# transient in this test and must be freed before checking shutdown leaks.
 	for child in tree.root.get_children(true):
