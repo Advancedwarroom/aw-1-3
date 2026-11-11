@@ -118,7 +118,7 @@ public partial class Infantry
             DevourHealRes(devourHealMode, devourHealValue, money, devoured.health, fuel, maxFuel, cost, isHp: false, v => fuel = v);
         if (devourHealWeight)
         {
-            float delta = devourHealNegative ? -devourHealWeightDelta : devourHealWeightDelta;
+            float delta = devourHealNegative ? -Mathf.Abs(devourHealWeightDelta) : Mathf.Abs(devourHealWeightDelta);
             weight = Mathf.Clamp(weight + delta, 0.0f, 9999.0f);
         }
         if (devourHealAmmoPrimary)
@@ -169,7 +169,7 @@ public partial class Infantry
             DevourCostRes(devourCostMode, devourCostValue, money, fuel, maxFuel, cost, isHp: false, v => fuel = v);
         if (devourCostWeight)
         {
-            float delta = devourCostNegative ? -devourCostWeightDelta : devourCostWeightDelta;
+            float delta = devourCostNegative ? -Mathf.Abs(devourCostWeightDelta) : Mathf.Abs(devourCostWeightDelta);
             weight = Mathf.Clamp(weight - delta, 0.0f, 9999.0f);
         }
         if (devourCostAmmoPrimary)
