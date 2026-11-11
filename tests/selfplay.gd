@@ -213,7 +213,7 @@ func _finish() -> void:
 	game_instance = null
 	game_manager = null
 	ai_manager = null
-	for child in tree.root.get_children():
+	for child in tree.root.get_children(true):
 		if child == self:
 			continue
 		child.free()

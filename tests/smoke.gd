@@ -28,7 +28,7 @@ func _run_smoke() -> void:
 	main_instance = null
 	# Some effects deliberately reparent themselves to the SceneTree root. They are
 	# transient in this test and must be freed before checking shutdown leaks.
-	for child in tree.root.get_children():
+	for child in tree.root.get_children(true):
 		if child == self:
 			continue
 		child.free()
