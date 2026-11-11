@@ -49,7 +49,6 @@ public partial class Infantry
         {
             target.TakeDamage(pushTargetDamage, this);
         }
-        }
     }
 
     public void TryPushFacilityOnAttack(Facility target)
@@ -74,7 +73,6 @@ public partial class Infantry
         if (pushLockTargetToOneHp) target.health = 1;
         else if (pushTargetDamage > 0)
             target.TakeDamage(pushTargetDamage, this);
-        }
     }
 
     private bool CanPushNonInfantryTarget(Grids targetGrid, bool? pushable, float? targetWeight,
