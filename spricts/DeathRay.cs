@@ -199,7 +199,7 @@ public partial class DeathRay : BlackCannon
                     continue;
 
                 var targetGrid = gm.gridManager.map[checkPos.X, checkPos.Y];
-                if (targetGrid != null && targetGrid.gridType != GridType.METEORITE)
+                if (targetGrid != null && targetGrid.gridType != GridType.METEORITE && !IsScreenBlocked(targetGrid))
                 {
                     if (!range.Contains(targetGrid))
                         range.Add(targetGrid);
@@ -291,7 +291,7 @@ public partial class DeathRay : BlackCannon
                     continue;
 
                 var targetGrid = gm.gridManager.map[checkPos.X, checkPos.Y];
-                if (targetGrid == null) continue;
+                if (targetGrid == null || IsScreenBlocked(targetGrid)) continue;
 
                 // 获取该格子中的所有敌方单位（原版DeathRay只打非Black Hole单位）
                 var enemies = targetGrid.infantries
@@ -328,7 +328,8 @@ public partial class DeathRay : BlackCannon
                 if (checkPos.X < 0 || checkPos.X >= gm.gridManager.searchRange.X ||
                     checkPos.Y < 0 || checkPos.Y >= gm.gridManager.searchRange.Y) continue;
                 var targetGrid = gm.gridManager.map[checkPos.X, checkPos.Y];
-                var facility = targetGrid?.city;
+                if (targetGrid == null || IsScreenBlocked(targetGrid)) continue;
+                var facility = targetGrid.city;
                 if (facility != null && TeamHelper.IsEnemyTeam(team, facility.facilityTeam) && facility.CanBeAttackedFrom(grid) && !result.Contains(facility))
                     result.Add(facility);
             }
