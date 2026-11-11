@@ -134,9 +134,11 @@ public partial class Infantry
     [Export] public bool pushPusherFollowsChain = false;
     [Export] public bool pushSelfDestructOnInvalidIntermediateTile = true;
 
-    // Runtime-only turn limiter. It is reset by GameManager when this unit's turn refreshes.
-    private bool hasUsedPushThisTurn = false;
-    private int pushCooldownTurnsRemaining = 0;
+    // Persisted turn limiter: ExtraSave serializes public Export fields, so a save/load
+    // cannot accidentally restore a push that was already spent this turn.
+    [ExportSubgroup("运行时状态（自动保存）")]
+    [Export] public bool pushRuntimeHasUsedThisTurn = false;
+    [Export] public int pushRuntimeCooldownTurnsRemaining = 0;
 
     public float GetEffectiveWeight()
     {
@@ -153,8 +155,8 @@ public partial class Infantry
     {
         if (!pushEnabled || pushTriggerMode != PushTriggerMode.SeparateAction)
             return false;
-        if (pushCooldownTurnsRemaining > 0) return false;
-        if (pushOncePerTurn && hasUsedPushThisTurn)
+        if (pushRuntimeCooldownTurnsRemaining > 0) return false;
+        if (pushOncePerTurn && pushRuntimeHasUsedThisTurn)
             return false;
         if (!pushCanBeUsedAfterMoving && isMoved)
             return false;
@@ -167,8 +169,8 @@ public partial class Infantry
     {
         if (!pushEnabled || pushTriggerMode != PushTriggerMode.Movement)
             return false;
-        if (pushCooldownTurnsRemaining > 0) return false;
-        if (pushOncePerTurn && hasUsedPushThisTurn) return false;
+        if (pushRuntimeCooldownTurnsRemaining > 0) return false;
+        if (pushOncePerTurn && pushRuntimeHasUsedThisTurn) return false;
         return true;
     }
 
@@ -183,15 +185,15 @@ public partial class Infantry
     {
         if (!pushEnabled || pushTriggerMode != PushTriggerMode.Attack)
             return false;
-        if (pushCooldownTurnsRemaining > 0) return false;
-        if (pushOncePerTurn && hasUsedPushThisTurn) return false;
+        if (pushRuntimeCooldownTurnsRemaining > 0) return false;
+        if (pushOncePerTurn && pushRuntimeHasUsedThisTurn) return false;
         return true;
     }
 
     private void MarkPushUsed()
     {
-        hasUsedPushThisTurn = true;
-        pushCooldownTurnsRemaining = Mathf.Max(pushCooldownTurnsRemaining, pushCooldownTurns);
+        pushRuntimeHasUsedThisTurn = true;
+        pushRuntimeCooldownTurnsRemaining = Mathf.Max(pushRuntimeCooldownTurnsRemaining, pushCooldownTurns);
     }
 
     public bool TryMarkPushActionUsed()
@@ -218,7 +220,7 @@ public partial class Infantry
 
     public void ResetPushUseForTurn()
     {
-        hasUsedPushThisTurn = false;
-        if (pushCooldownTurnsRemaining > 0) pushCooldownTurnsRemaining--;
+        pushRuntimeHasUsedThisTurn = false;
+        if (pushRuntimeCooldownTurnsRemaining > 0) pushRuntimeCooldownTurnsRemaining--;
     }
 }
