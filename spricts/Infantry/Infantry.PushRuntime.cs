@@ -911,15 +911,18 @@ public partial class Infantry
         {
             foreach (var unit in pusherStack.Where(IsLivingUnit).ToList())
             {
+                bool mitigationUsed = false;
                 if (rebounder.pushReboundTargetLockOneHp)
                     unit.health = 1;
                 else if (rebounder.pushReboundTargetDamage > 0)
                 {
                     int reboundDamage = MitigatePushLoss(unit,
                         rebounder.pushReboundTargetDamage, unit.pushMitigationProtectHealth);
+                    mitigationUsed |= reboundDamage < rebounder.pushReboundTargetDamage;
                     long remainingHealth = (long)unit.health - reboundDamage;
                     if (remainingHealth <= 0 && rebounder.pushReboundTargetCanDestroy)
                     {
+                        if (mitigationUsed) PayMitigationAmmoCostForUnit(unit);
                         DestroyPushedUnit(unit, gm);
                         continue;
                     }
@@ -927,13 +930,16 @@ public partial class Infantry
                 }
                 int reboundFuelDelta = MitigatePushDelta(unit, rebounder.pushReboundTargetFuelDelta,
                     unit.pushMitigationProtectFuel);
+                mitigationUsed |= reboundFuelDelta != rebounder.pushReboundTargetFuelDelta;
                 if (reboundFuelDelta != 0)
                     unit.fuel = (int)Math.Clamp((long)unit.fuel + reboundFuelDelta, 0L, int.MaxValue);
                 int reboundAmmoDelta = MitigatePushDelta(unit, rebounder.pushReboundTargetAmmoDelta,
                     unit.pushMitigationProtectAmmo
                     && unit.pushMitigationProtectAmmoKind == rebounder.pushReboundTargetAmmoKind);
+                mitigationUsed |= reboundAmmoDelta != rebounder.pushReboundTargetAmmoDelta;
                 if (reboundAmmoDelta != 0)
                     unit.AddAmmo(rebounder.pushReboundTargetAmmoKind, reboundAmmoDelta);
+                if (mitigationUsed) PayMitigationAmmoCostForUnit(unit);
                 unit.UpdateHpLabel();
             }
         }
