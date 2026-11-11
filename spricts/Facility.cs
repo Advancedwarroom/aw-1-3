@@ -620,6 +620,14 @@ public partial class Facility : Node2D
         return bn;
     }
 
+    // Release cached palette resources when the game exits.
+    public static void ReleaseCowPaletteCaches()
+    {
+        _cowPalCache.Clear();
+        _cowPalTex.Clear();
+        _cowPalShader = null;
+    }
+
     private static Texture2D CowPaletteTexture(string name)
     {
         if (_cowPalTex.TryGetValue(name, out var hit)) return hit;
