@@ -29,6 +29,7 @@ public partial class BlackArc : Weapon
     // ========== 3. 打击效果范围（以目标点为核心 x-y）==========
     [Export] public int arcEffectRangeX = 1;                 // 3.以目标格为核心 x 范围（±x）
     [Export] public int arcEffectRangeY = 1;                 // 3.以目标格为核心 y 范围（±y）
+    [Export] public bool arcEffectCanCrossScreens = false; // 天基打击效果面是否允许跨屏
 
     // ========== 4. 打击伤害 ==========
     [Export] public int arcStrikeDamage = 50;                // 4.伤害（千分制，50=5HP）
@@ -137,7 +138,7 @@ public partial class BlackArc : Weapon
                 var g = gm.gridManager.map[nx, ny];
                 if (g == null) continue;
                 // ✅ N屏隔离：跨屏格子不受天基打击（开canCrossScreens才可跨图）
-                if (!canCrossScreens && g.screenId != grid.screenId) continue;
+                if (!gm.gridManager.IsRangeAllowed(targetGrid, g, arcEffectCanCrossScreens)) continue;
 
                 // 对范围内单位造成伤害
                 foreach (var u in (g.infantries ?? new List<Infantry>()).ToList())
