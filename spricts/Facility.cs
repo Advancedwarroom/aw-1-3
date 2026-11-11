@@ -564,6 +564,56 @@ public partial class Facility : Node2D
             item.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
     }
 
+    // ✅ 开创人2026-11-12: CoW正统染色——势力→色板映射 + 材质构建(缓存)
+    private static readonly Dictionary<string, ShaderMaterial> _cowPalCache = new();
+    private static Shader _cowPalShader;
+    private static readonly Dictionary<string, Texture2D> _cowPalTex = new();
+
+    private static string CowPaletteNameForTeam(string team)
+    {
+        string t = TeamHelper.CanonicalId(team);
+        if (t == TeamHelper.Player) return "purple";            // P-1 正典紫——CoW原生palette
+        if (t == TeamHelper.Player0) return "neutral";
+        if (t == TeamHelper.Player1) return "orange_star";
+        if (t == TeamHelper.Player2) return "blue_moon";
+        if (t == TeamHelper.Player3) return "green_earth";
+        // 其余势力: 按势力主色相近度选板
+        var fac = TeamHelper.GetFaction(t);
+        if (fac == null) return "neutral";
+        var c = fac.PrimaryColor;
+        (string n, float h)[] table = {
+            ("orange_star", 0.03f), ("yellow_comet", 0.14f), ("green_earth", 0.33f),
+            ("blue_moon", 0.62f), ("purple", 0.75f), ("red", 0.99f),
+        };
+        float th = c.H; float best = 99f; string bn = "neutral";
+        foreach (var kv in table)
+        {
+            float d = Mathf.Abs(th - kv.h); if (d > 0.5f) d = 1f - d;
+            if (d < best) { best = d; bn = kv.n; }
+        }
+        return bn;
+    }
+
+    private static Texture2D CowPaletteTexture(string name)
+    {
+        if (_cowPalTex.TryGetValue(name, out var hit)) return hit;
+        var t = GD.Load<Texture2D>($"res://asscets/palettes/cow/{name}.png");
+        if (t != null) _cowPalTex[name] = t;
+        return t;
+    }
+
+    private static ShaderMaterial GetCowPaletteMaterial(string team)
+    {
+        string key = CowPaletteNameForTeam(team);
+        if (_cowPalCache.TryGetValue(key, out var m) && GodotObject.IsInstanceValid(m)) return m;
+        _cowPalShader ??= GD.Load<Shader>("res://asscets/shaders/cow_palette.gdshader");
+        var mat = new ShaderMaterial { Shader = _cowPalShader };
+        var pal = CowPaletteTexture(key);
+        if (pal != null) mat.SetShaderParameter("palette", pal);
+        _cowPalCache[key] = mat;
+        return mat;
+    }
+
     // Source hue of this facility's base artwork. Override only for assets with a different
     // source palette (for example TempPort's cyan artwork).
     protected virtual float GetBaseArtHue() => 0f;  // 2026-11-11: base art normalized to 0° red baseline
@@ -695,7 +745,7 @@ public partial class Facility : Node2D
         if (baseAnimSprite != null && IsInstanceValid(baseAnimSprite) && baseAnimSprite.SpriteFrames != null &&
             normalAnimSprite != null && IsInstanceValid(normalAnimSprite) && normalAnimSprite.SpriteFrames != null)
         {
-            baseAnimSprite.Material = FactionPaletteManager.GetMaterial(facilityTeam);   // ✅ 开创人2026-11-12: 接入mode2模板色表(单位同款), 明暗阶全保留
+            baseAnimSprite.Material = GetCowPaletteMaterial(facilityTeam);   // ✅ 开创人2026-11-12: CoW正统(R,G)色板查表(源码背书 building.cpp)
             baseAnimSprite.Show();
             normalAnimSprite.Material = null;
             normalAnimSprite.Show();
