@@ -284,6 +284,10 @@ public partial class Infantry
         gridManager.ClearWeaponRange();
         int minRange = Mathf.Max(1, pushMinTargetRange);
         int maxRange = Mathf.Max(minRange, pushRange);
+        var eligibleTiles = new List<Grids>();
+        var firstRule = GetPushChainRule(0);
+        bool allowWeapons = firstRule?.targetWeapons ?? pushCanTargetWeapons;
+        bool allowFacilities = firstRule?.targetFacilities ?? pushCanTargetFacilities;
         foreach (var tile in gridManager.grids)
         {
             if (tile == null || tile == grid) continue;
@@ -293,16 +297,26 @@ public partial class Infantry
                 || !gridManager.IsRangeAllowed(grid, tile, attackCanCrossScreens))
                 continue;
             var stack = GetLivingStack(tile);
-            var firstRule = GetPushChainRule(0);
-            bool allowWeapons = firstRule?.targetWeapons ?? pushCanTargetWeapons;
-            bool allowFacilities = firstRule?.targetFacilities ?? pushCanTargetFacilities;
             bool hasPushableStatic =
                 (allowWeapons && (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
                     && w.pushableByPhysics && CanPushTeamName(w.team, w)) ?? false))
                 || (allowFacilities && tile.city != null && tile.city.pushableByPhysics
                     && CanPushTeamName(tile.city.facilityTeam, tile.city));
-            if ((stack.Count == 0 || !CanPushTargetTeam(stack))
-                && !hasPushableStatic) continue;
+            if ((stack.Count == 0 || !CanPushTargetTeam(stack)) && !hasPushableStatic)
+                continue;
+            eligibleTiles.Add(tile);
+        }
+
+        // At exactly one-tile target range, a single eligible target is unambiguous
+        // and can be pushed immediately without opening the target-selection overlay.
+        if (minRange == 1 && maxRange == 1 && eligibleTiles.Count == 1)
+        {
+            ExecuteSeparatePushOnGrid(eligibleTiles[0]);
+            return;
+        }
+
+        foreach (var tile in eligibleTiles)
+        {
             tile.attackRangeIcon?.Show();
             tile.IsInAttackRangeMode = true;
             gridManager.attackRange.Add(tile);
@@ -311,6 +325,13 @@ public partial class Infantry
         foreach (var tile in gridManager.grids)
             if (tile != null && !gridManager.attackRange.Contains(tile))
                 tile.OnClickEmpty = CancelSeparatePushTargetSelection;
+        if (eligibleTiles.Count == 0)
+        {
+            gridManager.HideAttackRange();
+            gridManager.ClearAllEmptyCallbacks();
+            gm.isSelectingAttackTarget = false;
+            return;
+        }
         gm.isSelectingAttackTarget = true;
     }
 
