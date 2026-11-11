@@ -814,6 +814,13 @@ public partial class Infantry
         if (rebounder == null || origin == null || gm?.gridManager == null)
             return false;
 
+        int reboundRange = Math.Abs(origin.GridIndex.X - grid.GridIndex.X)
+            + Math.Abs(origin.GridIndex.Y - grid.GridIndex.Y);
+        int minReboundRange = Math.Max(0, rebounder.pushReboundMinRange);
+        int maxReboundRange = Math.Max(minReboundRange, rebounder.pushReboundRange);
+        if (reboundRange < minReboundRange || reboundRange > maxReboundRange)
+            return false;
+
         bool sameTeam = string.Equals(rebounder.team, team, StringComparison.OrdinalIgnoreCase);
         bool alliedTeam = !sameTeam && TeamHelper.AreAllied(rebounder.team, team);
         if (sameTeam && !rebounder.pushReboundCanTargetFriendlies) return false;
