@@ -367,6 +367,14 @@ public virtual bool ConsumePrimaryAmmo()
         }
     }
 
+    // ✅ 友军火力·反击裁决：同队/盟友目标是否还手，由攻击方的纪律开关决定（默认还手=原味）
+    private bool CounterFireAllowed(Infantry target)
+    {
+        if (target.team == team) return friendliesCanCounterFire;
+        if (TeamHelper.AreAllied(team, target.team)) return alliesCanCounterFire;
+        return true;
+    }
+
     public virtual bool IsArmoredTarget(Infantry target)
     {
         return false;
@@ -433,14 +441,6 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     int attackDamage = CalculateFinalDamage(target, weapon);
     int counterDamage = 0;
     
-    // ✅ 友军火力·反击裁决：同队/盟友目标是否还手，由攻击方的纪律开关决定（默认还手=原味）
-    bool CounterFireAllowed(Infantry target)
-    {
-        if (target.team == team) return friendliesCanCounterFire;
-        if (TeamHelper.AreAllied(team, target.team)) return alliesCanCounterFire;
-        return true;
-    }
-
     // 反击
     bool targetWillDie = (target.health - attackDamage) <= 0;
     bool canTargetCounter = !targetWillDie 
