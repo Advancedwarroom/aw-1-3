@@ -645,7 +645,11 @@ public partial class Infantry
             ApplyPushTargetEffects(stack, gameManager);
         }
 
-        if (pushPusherFollowsChain && firstGrid != null && grid != null)
+        if (pushDirectionMode == PushDirectionMode.OppositeSides && movedStacks.Count > 0)
+        {
+            MovePusherOppositeDirection(direction, distance, gridManager, gameManager);
+        }
+        else if (pushPusherFollowsChain && firstGrid != null && grid != null)
         {
             var followDestination = firstGrid;
             bool canOverlapStatic = (followDestination.city == null || !followDestination.city.pushBlocksInfantryWhenOverlapped)
@@ -663,6 +667,46 @@ public partial class Infantry
         gameManager?.CallDeferred(nameof(GameManager.UpdateUnitLists));
         gameManager?.CallDeferred(nameof(GameManager.CheckVictoryCondition));
         return movedStacks.Count > 0;
+    }
+
+    private void MovePusherOppositeDirection(Vector2I pushDirection, int distance,
+        GridManager gridManager, GameManager gameManager)
+    {
+        var pusherStack = GetLivingStack(grid);
+        if (pusherStack.Count == 0) pusherStack.Add(this);
+
+        Vector2I retreatDirection = -pushDirection;
+        for (int step = 0; step < distance; step++)
+        {
+            pusherStack = pusherStack.Where(IsLivingUnit).ToList();
+            if (pusherStack.Count == 0) break;
+            var currentGrid = pusherStack[0].grid;
+            var destination = currentGrid == null
+                ? null : gridManager.GetGridAt(currentGrid.GridIndex + retreatDirection);
+            if (destination == null)
+            {
+                if (pushSelfDestructOnInvalidIntermediateTile)
+                    foreach (var unit in pusherStack) DestroyPushedUnit(unit, gameManager);
+                break;
+            }
+
+            bool finalStep = step == distance - 1;
+            foreach (var unit in pusherStack.ToList())
+            {
+                bool invalidTerrain = unit.GetMoveCostOnGrid(destination) >= 999;
+                if (invalidTerrain && (pushSelfDestructOnInvalidIntermediateTile || finalStep))
+                    DestroyPushedUnit(unit, gameManager);
+            }
+            pusherStack = pusherStack.Where(IsLivingUnit).ToList();
+            if (pusherStack.Count == 0) break;
+
+            var blockers = GetLivingStack(destination).Where(u => !pusherStack.Contains(u)).ToList();
+            if (blockers.Count > 0 || HasForeignMultiTileOccupant(destination, pusherStack))
+                break;
+            if (!TryDisplaceWeaponAndFacility(pusherStack, destination, retreatDirection, gridManager))
+                break;
+            MoveStackByPush(pusherStack, destination);
+        }
     }
 
     private bool TryDisplaceWeaponAndFacility(List<Infantry> movingStack,
