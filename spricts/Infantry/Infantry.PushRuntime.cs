@@ -741,6 +741,29 @@ public partial class Infantry
         if (rebounder == null || origin == null || gm?.gridManager == null)
             return false;
 
+        var initiatingStack = GetLivingStack(grid);
+        if (initiatingStack.Count == 0) initiatingStack.Add(this);
+        if (pushUsesWeight)
+        {
+            float reboundWeight = GetStackWeight(stack);
+            float initiatingWeight = GetStackWeight(initiatingStack);
+            if (reboundWeight < initiatingWeight
+                && !Mathf.IsEqualApprox(reboundWeight, initiatingWeight))
+                return false;
+            if (Mathf.IsEqualApprox(reboundWeight, initiatingWeight))
+            {
+                bool reboundAllows = StackAllowsSimultaneous(stack);
+                bool initiatingAllows = StackAllowsSimultaneous(initiatingStack);
+                bool reboundStops = StackStopsOnEqual(stack);
+                bool initiatingStops = StackStopsOnEqual(initiatingStack);
+                if (!(reboundAllows && initiatingAllows))
+                {
+                    if (reboundStops && initiatingStops) return false;
+                    if (GD.Randf() >= 0.5f) return false;
+                }
+            }
+        }
+
         int ammoCost = Mathf.Max(0, rebounder.pushReboundAmmoCost);
         int healthCost = Mathf.Max(0, rebounder.pushReboundHealthCost);
         int fuelCost = Mathf.Max(0, rebounder.pushReboundFuelCost);
@@ -762,8 +785,7 @@ public partial class Infantry
             // retreat one tile first. A blocked retreat makes the rebound fail.
             pusherOrigin = grid;
             if (pusherOrigin == null) return false;
-            pusherStack = GetLivingStack(pusherOrigin);
-            if (pusherStack.Count == 0) pusherStack.Add(this);
+            pusherStack = initiatingStack;
             pusherDestination = gm.gridManager.GetGridAt(pusherOrigin.GridIndex - direction);
             if (pusherDestination == null
                 || GetLivingStack(pusherDestination).Count > 0
