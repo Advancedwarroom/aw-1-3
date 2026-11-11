@@ -7,7 +7,7 @@ using System;
 public partial class Port : City
 {
     // Port base frames use a red source palette close to 353.5 degrees.
-    protected override float GetBaseArtHue() => 3.0f / 360.0f;
+    protected override float GetBaseArtHue() => 53.0f / 360.0f;
 
     // 港口默认可生产的舰船（含既有维修艇）
     private static readonly string[] DefaultNavalUnits =
