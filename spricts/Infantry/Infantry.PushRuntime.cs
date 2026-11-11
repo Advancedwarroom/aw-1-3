@@ -232,7 +232,9 @@ public partial class Infantry
                     target.TakeDamage(damage, this);
             }
         }
-        target.UpdateStatusBar();
+        target.GetType().GetMethod("UpdateStatusBarUI",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public
+            | System.Reflection.BindingFlags.NonPublic)?.Invoke(target, null);
     }
 
     private bool CanPushNonInfantryTarget(Grids targetGrid, bool? pushable, float? targetWeight,
