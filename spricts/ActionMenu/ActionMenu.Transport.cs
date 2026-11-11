@@ -251,6 +251,8 @@ private void StartUnloadMode(Infantry transport, Infantry unit, bool afterMove)
     }
 
     var availableGrids = GetAdjacentGrids(transport.grid);
+    // ✅ 开创人2026-11-11：诊断上屏——进入卸载模式即报舰位/邻格数
+    ScreenErrorLogger.Diag($"[卸载模式] {unit.Name}({unit.team})：舰 at ({transport.grid?.GridIndex.X},{transport.grid?.GridIndex.Y})，相邻格 {availableGrids.Count} 个");
 
     // 显示卸下范围
     foreach (var grid in availableGrids)
