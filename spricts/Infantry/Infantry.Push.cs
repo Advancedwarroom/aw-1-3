@@ -34,7 +34,8 @@ public partial class Infantry
         EnemiesOnly,
         FriendliesOnly,
         AlliesOnly,
-        Everyone
+        Everyone,
+        Custom
     }
 
     public enum PushResourceType
@@ -61,10 +62,11 @@ public partial class Infantry
     [ExportSubgroup("基础推动参数")]
     [Export] public int pushDistance = 1;
     [Export] public int pushMinTargetRange = 1;
-    [Export] public int pushMaxTargetRange = 1;
+    [Export] public int pushRange = 1;
     [Export] public bool pushCanTargetEnemies = true;
     [Export] public bool pushCanTargetFriendlies = false;
     [Export] public bool pushCanTargetAllies = false;
+    [Export] public PushTargetTeamMode pushTargetPolicy = PushTargetTeamMode.Custom;
     [Export] public string[] pushTargetWhitelist = System.Array.Empty<string>();
     [Export] public string[] pushTargetBlacklist = System.Array.Empty<string>();
 
