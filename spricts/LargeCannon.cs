@@ -166,7 +166,7 @@ public partial class LargeCannon : BlackCannon
                     continue;
 
                 var targetGrid = gm.gridManager.map[checkPos.X, checkPos.Y];
-                if (targetGrid != null && targetGrid.gridType != GridType.METEORITE)
+                if (targetGrid != null && targetGrid.gridType != GridType.METEORITE && !IsScreenBlocked(targetGrid))
                 {
                     range.Add(targetGrid);
                 }
