@@ -10,7 +10,7 @@ public partial class Infantry
     {
         if (!pushEnabled || pushTriggerMode != PushTriggerMode.Attack || pushDistance <= 0
             || grid == null || target == null || !GodotObject.IsInstanceValid(target)
-            || target.grid == null) return;
+            || target.grid == null || !IsWithinPushTargetRange(target.grid)) return;
 
         Vector2I direction = GetPushDirection(target.grid);
 
@@ -32,7 +32,8 @@ public partial class Infantry
     {
         if ((fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction : pushTriggerMode == PushTriggerMode.Attack)
             && pushTargetClass == PushTargetClass.AnyPushableEntity
-            && target != null && CanPushTeamName(target.team, target.GetType().Name)
+            && target != null && target.grid != null && IsWithinPushTargetRange(target.grid)
+            && CanPushTeamName(target.team, target.GetType().Name)
             && CanPushNonInfantryTarget(target.grid, target.pushableByPhysics, target.GetEffectiveWeight(),
                 target.equalWeightPushMode, target.isDestroyed))
         {
@@ -61,7 +62,8 @@ public partial class Infantry
     {
         if ((fromSeparateAction ? pushTriggerMode != PushTriggerMode.SeparateAction : pushTriggerMode != PushTriggerMode.Attack)
             || pushTargetClass != PushTargetClass.AnyPushableEntity
-            || target == null || !CanPushTeamName(target.facilityTeam, target.GetType().Name)
+            || target == null || target.ParentGrid == null || !IsWithinPushTargetRange(target.ParentGrid)
+            || !CanPushTeamName(target.facilityTeam, target.GetType().Name)
             || !CanPushNonInfantryTarget(target.ParentGrid, target.pushableByPhysics, target.GetEffectiveWeight(),
                 target.equalWeightPushMode, target.health <= 0))
             return;
@@ -177,6 +179,16 @@ public partial class Infantry
         gm?.gridManager?.HideAttackRange();
         gm?.gridManager?.ClearAllEmptyCallbacks();
         if (gm != null) gm.isSelectingAttackTarget = false;
+    }
+
+    private bool IsWithinPushTargetRange(Grids targetGrid)
+    {
+        if (grid == null || targetGrid == null) return false;
+        int distance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X)
+            + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
+        int minRange = Mathf.Max(1, pushMinTargetRange);
+        int maxRange = Mathf.Max(minRange, pushMaxTargetRange);
+        return distance >= minRange && distance <= maxRange;
     }
 
     private bool CanPushTargetTeam(List<Infantry> stack)
