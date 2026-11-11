@@ -588,7 +588,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     // A target killed by the attack is already removed and cannot be pushed.
     if (target != null && GodotObject.IsInstanceValid(target) && !target.IsQueuedForDeletion()
         && target.health > 0)
-        TryPushTargetOnAttack(target);
+        TryPushTargetOnAttack(target, weapon);
 
     state = UnitState.Acted;
     FreezeToIdleDark();
