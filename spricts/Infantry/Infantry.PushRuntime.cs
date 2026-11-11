@@ -234,7 +234,8 @@ public partial class Infantry
             return false;
         if (rebounder.GetAmmo(AmmoKind.Primary) < rebounder.pushReboundAmmoCost
             || rebounder.fuel < rebounder.pushReboundFuelCost
-            || (gm != null && gm.GetTeamFunds(rebounder.team) < rebounder.pushReboundFundsCost))
+            || (rebounder.pushReboundFundsCost > 0 && (gm == null
+                || gm.GetTeamFunds(rebounder.team) < rebounder.pushReboundFundsCost)))
             return false;
         if (rebounder.pushReboundAmmoCost > 0)
             rebounder.TryConsumeAmmo(AmmoKind.Primary, rebounder.pushReboundAmmoCost);
@@ -244,7 +245,8 @@ public partial class Infantry
         var reboundDestination = rebounder.pushReboundToOrigin
             ? origin
             : gm?.gridManager?.GetGridAt(origin.GridIndex - direction);
-        if (reboundDestination == null || GetLivingStack(reboundDestination).Count > 0)
+        if (reboundDestination == null || GetLivingStack(reboundDestination).Count > 0
+            || reboundDestination.city != null || reboundDestination.weapon != null)
             return false;
         MoveStackByPush(stack, reboundDestination);
         return true;
