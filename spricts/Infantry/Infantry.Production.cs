@@ -98,9 +98,9 @@ public partial class Infantry
     virtual public bool StartProduction(string unitId, bool internalMode, Grids externalTargetGrid = null)
     {
         if (!CanStartProduction(internalMode)) return false;
-        if (!internalMode && (externalTargetGrid == null || grid == null)) return false;
-        if (!internalMode)
+        if (!internalMode && externalTargetGrid != null)
         {
+            if (grid == null) return false;
             int productionDistance = Mathf.Abs(externalTargetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(externalTargetGrid.GridIndex.Y - grid.GridIndex.Y);
             var rangeGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
             if (productionDistance < productionMinRange || productionDistance > productionMaxRange || rangeGm?.gridManager == null || !rangeGm.gridManager.IsRangeAllowed(grid, externalTargetGrid, productionCanCrossScreens)) return false;
