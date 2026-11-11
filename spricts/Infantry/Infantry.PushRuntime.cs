@@ -172,23 +172,67 @@ public partial class Infantry
     private void ApplyStaticPushEffects(Weapon target)
     {
         if (target == null || !GodotObject.IsInstanceValid(target) || target.isDestroyed) return;
+        if (pushTargetMaxHealthDelta != 0)
+            target.maxHealth = (int)Math.Clamp((long)target.maxHealth + pushTargetMaxHealthDelta, 1L, int.MaxValue);
+
         if (pushLockTargetToOneHp) target.health = 1;
+        else if (pushTargetHealAmount > 0)
+            target.health = (int)Math.Min(pushTargetCanOverMaxHealth ? int.MaxValue : target.maxHealth,
+                Math.Min(int.MaxValue, (long)target.health + pushTargetHealAmount));
         else
         {
             int damage = (int)Math.Clamp((long)pushTargetDamage + pushRamDamage, 0L, int.MaxValue);
-            if (damage > 0) target.TakeDamage(damage, this);
+            if (damage > 0)
+            {
+                if (!pushDamageCanDestroy && (long)target.health - damage <= 0)
+                    target.health = 1;
+                else
+                    target.TakeDamage(damage, this);
+            }
         }
+
+        int weaponAmmoType = pushTargetAmmoKind switch
+        {
+            AmmoKind.Primary => 1,
+            AmmoKind.Explode => 2,
+            AmmoKind.Flare => 3,
+            AmmoKind.StealthBullet => 4,
+            AmmoKind.RevealBullet => 5,
+            AmmoKind.CamoBullet => 6,
+            _ => 0
+        };
+        if (pushTargetAmmoDelta != 0 && weaponAmmoType > 0)
+        {
+            int current = target.GetAmmoByType(weaponAmmoType);
+            int maximum = Math.Max(0, target.GetAmmoMaxByType(weaponAmmoType));
+            target.SetAmmoByType(weaponAmmoType,
+                (int)Math.Clamp((long)current + pushTargetAmmoDelta, 0L, maximum));
+        }
+        target.UpdateHpLabel();
     }
 
     private void ApplyStaticPushEffects(Facility target)
     {
         if (target == null || !GodotObject.IsInstanceValid(target) || target.health <= 0) return;
+        if (pushTargetMaxHealthDelta != 0)
+            target.maxHealth = (int)Math.Clamp((long)target.maxHealth + pushTargetMaxHealthDelta, 1L, int.MaxValue);
+
         if (pushLockTargetToOneHp) target.health = 1;
+        else if (pushTargetHealAmount > 0)
+            target.health = (int)Math.Min(pushTargetCanOverMaxHealth ? int.MaxValue : target.maxHealth,
+                Math.Min(int.MaxValue, (long)target.health + pushTargetHealAmount));
         else
         {
             int damage = (int)Math.Clamp((long)pushTargetDamage + pushRamDamage, 0L, int.MaxValue);
-            if (damage > 0) target.TakeDamage(damage, this);
+            if (damage > 0)
+            {
+                if (!pushDamageCanDestroy && (long)target.health - damage <= 0)
+                    target.health = 1;
+                else
+                    target.TakeDamage(damage, this);
+            }
         }
+        target.UpdateStatusBar();
     }
 
     private bool CanPushNonInfantryTarget(Grids targetGrid, bool? pushable, float? targetWeight,
@@ -573,8 +617,8 @@ public partial class Infantry
         foreach (var unit in stack.ToList())
         {
             if (!IsLivingUnit(unit)) continue;
-            if (unit.pushTargetMaxHealthDelta != 0)
-                unit.maxHealth = (int)Math.Clamp((long)unit.maxHealth + unit.pushTargetMaxHealthDelta, 1L, int.MaxValue);
+            if (pushTargetMaxHealthDelta != 0)
+                unit.maxHealth = (int)Math.Clamp((long)unit.maxHealth + pushTargetMaxHealthDelta, 1L, int.MaxValue);
             if (pushLockTargetToOneHp) unit.health = 1;
             else if (pushTargetHealAmount > 0)
                 unit.health = (int)Math.Min(unit.pushTargetCanOverMaxHealth ? int.MaxValue : unit.GetEffectiveMaxHealth(),
