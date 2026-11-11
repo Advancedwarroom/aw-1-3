@@ -170,16 +170,36 @@ public partial class GridManager
             var blockers = tile?.infantries?.Where(u => u != null && IsInstanceValid(u)
                 && u.health > 0 && u.grid == tile && u != mover).ToList()
                 ?? new List<Infantry>();
-            if (blockers.Count == 0) continue;
-
             Vector2I direction = tile.GridIndex - path[i - 1].GridIndex;
-            if (!mover.TryPushTargetOnMovement(tile, direction))
-                return pushedAny;
+            if (blockers.Count > 0)
+            {
+                if (!mover.TryPushTargetOnMovement(tile, direction))
+                    return pushedAny;
+                pushedAny = true;
+                bool stillOccupied = tile.infantries?.Any(u => u != null && IsInstanceValid(u)
+                    && u.health > 0 && u.grid == tile && u != mover) ?? false;
+                if (stillOccupied) return pushedAny;
+            }
 
-            pushedAny = true;
-            bool stillOccupied = tile.infantries?.Any(u => u != null && IsInstanceValid(u)
-                && u.health > 0 && u.grid == tile && u != mover) ?? false;
-            if (stillOccupied) return pushedAny;
+            // Static blockers use the same movement-trigger configuration and
+            // displacement vector. Each object is moved only if its own push Export
+            // and the pusher's target-class/team/weight policies permit it.
+            var blockingWeapon = tile.weapons?.FirstOrDefault(w => w != null && IsInstanceValid(w)
+                && !w.AllowsPassage(mover) && !w.CanShelterUnit(mover));
+            if (blockingWeapon != null)
+            {
+                if (!mover.TryPushWeaponOnMovement(blockingWeapon, direction))
+                    return pushedAny;
+                pushedAny = true;
+            }
+
+            if (tile.city != null && IsInstanceValid(tile.city) && !tile.city.allowAllPass
+                && !CanMoveToGrid(tile, mover))
+            {
+                if (!mover.TryPushFacilityOnMovement(tile.city, direction))
+                    return pushedAny;
+                pushedAny = true;
+            }
         }
         return pushedAny;
     }
