@@ -10,6 +10,19 @@ public static class ExportPersistenceCodec
 {
     private const string Prefix = "g1:";
 
+    private sealed class PushChainRuleData
+    {
+        public int teamPolicy { get; set; }
+        public bool targetInfantry { get; set; }
+        public bool targetWeapons { get; set; }
+        public bool targetFacilities { get; set; }
+        public bool targetEnemies { get; set; }
+        public bool targetFriendlies { get; set; }
+        public bool targetAllies { get; set; }
+        public string[] whitelist { get; set; } = Array.Empty<string>();
+        public string[] blacklist { get; set; } = Array.Empty<string>();
+    }
+
     public static bool IsSupportedType(Type type)
     {
         return type == typeof(Godot.Collections.Dictionary<string, string>)
@@ -17,6 +30,7 @@ public static class ExportPersistenceCodec
             || type == typeof(Godot.Collections.Dictionary<string, int>)
             || type == typeof(Godot.Collections.Array<string>)
             || type == typeof(Godot.Collections.Array<UnitCategory>)
+            || type == typeof(Godot.Collections.Array<PushChainRule>)
             || type == typeof(string[]);
     }
 
@@ -33,6 +47,18 @@ public static class ExportPersistenceCodec
                 Godot.Collections.Dictionary<string, int> d => d.ToDictionary(p => p.Key, p => p.Value),
                 Godot.Collections.Array<string> a => a.ToList(),
                 Godot.Collections.Array<UnitCategory> a => a.Select(v => (int)v).ToList(),
+                Godot.Collections.Array<PushChainRule> a => a.Select(rule => rule == null ? null : new PushChainRuleData
+                {
+                    teamPolicy = rule.teamPolicy,
+                    targetInfantry = rule.targetInfantry,
+                    targetWeapons = rule.targetWeapons,
+                    targetFacilities = rule.targetFacilities,
+                    targetEnemies = rule.targetEnemies,
+                    targetFriendlies = rule.targetFriendlies,
+                    targetAllies = rule.targetAllies,
+                    whitelist = rule.whitelist ?? Array.Empty<string>(),
+                    blacklist = rule.blacklist ?? Array.Empty<string>()
+                }).ToList(),
                 string[] a => a.ToList(),
                 _ => null
             };
@@ -78,6 +104,31 @@ public static class ExportPersistenceCodec
             {
                 var result = new Godot.Collections.Array<UnitCategory>();
                 foreach (int item in JsonSerializer.Deserialize<List<int>>(json) ?? new()) result.Add((UnitCategory)item);
+                value = result;
+            }
+            else if (targetType == typeof(Godot.Collections.Array<PushChainRule>))
+            {
+                var result = new Godot.Collections.Array<PushChainRule>();
+                foreach (var item in JsonSerializer.Deserialize<List<PushChainRuleData>>(json) ?? new())
+                {
+                    if (item == null)
+                    {
+                        result.Add(null);
+                        continue;
+                    }
+                    result.Add(new PushChainRule
+                    {
+                        teamPolicy = item.teamPolicy,
+                        targetInfantry = item.targetInfantry,
+                        targetWeapons = item.targetWeapons,
+                        targetFacilities = item.targetFacilities,
+                        targetEnemies = item.targetEnemies,
+                        targetFriendlies = item.targetFriendlies,
+                        targetAllies = item.targetAllies,
+                        whitelist = item.whitelist ?? Array.Empty<string>(),
+                        blacklist = item.blacklist ?? Array.Empty<string>()
+                    });
+                }
                 value = result;
             }
             else if (targetType == typeof(string[])) value = JsonSerializer.Deserialize<string[]>(json) ?? Array.Empty<string>();
