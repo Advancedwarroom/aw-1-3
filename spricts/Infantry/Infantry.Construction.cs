@@ -97,7 +97,7 @@ public partial class Infantry
     public bool StartConstruction(string facilityType, bool internalMode, Grids externalTargetGrid = null)
     {
         if (!CanStartConstruction(internalMode)) return false;
-        if (!internalMode && (externalTargetGrid == null || !GetValidExternalConstructionGrids(facilityType).Contains(externalTargetGrid))) return false;
+        if (!internalMode && externalTargetGrid != null && !GetValidExternalConstructionGrids(facilityType).Contains(externalTargetGrid)) return false;
         // 支持三类条目：① FacilityDatabase 建筑；② "Terrain:地形名"；③ "Weapon:模板键"（兵器建造）
         if (FacilityDatabase.GetScenePath(facilityType) == null && !IsTerrainBuildEntry(facilityType) && !IsWeaponBuildEntry(facilityType)) return false;
 
