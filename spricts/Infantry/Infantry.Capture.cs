@@ -355,7 +355,10 @@ public partial class Infantry
     {
         if (city == null || !IsInstanceValid(city)) return;
         var target = city.ParentGrid;
-        if (target == null || !IsInstanceValid(target) || grid == null) return;
+        if (target == null || !IsInstanceValid(target) || grid == null || captureAbility == CaptureAbility.CannotCapture) return;
+        if (!city.remoteCaptureEnabled || city.capturePointsRequired <= 0 || city.facilityTeam == team) return;
+        int remoteDistance = Mathf.Abs(target.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(target.GridIndex.Y - grid.GridIndex.Y);
+        if (remoteDistance == 0 || remoteDistance < city.captureRangeMin || remoteDistance > city.captureRangeMax) return;
         var gmRange = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gmRange?.gridManager == null || !gmRange.gridManager.IsRangeAllowed(grid, target, remoteCaptureCanCrossScreens)) return;
         if (isCapturingInProgress) return;
