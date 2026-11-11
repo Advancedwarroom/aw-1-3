@@ -26,6 +26,7 @@ public partial class Infantry
     [Export] public bool packBoostAttack = false;    // 效果对象：真实攻击力（攻防表额外加成）
     [Export] public bool packBoostDefense = false;   // 效果对象：固定防御力
     [Export] public int packLingerTurns = 0;         // 不符合标准后持续N回合（再符合=覆盖不叠加）
+    [Export] public bool packCanCrossScreens = false; // 群体狂热计数范围是否允许跨屏
 
     // ========== 群体狂热模块 ==========
     private int packFrenzyStacks = 0;        // 当前生效加成次数（已按MaxStacks封顶）
@@ -49,7 +50,9 @@ public partial class Infantry
                 if (dist < packRangeMin || dist > packRangeMax) continue;
                 var pos = new Vector2I(origin.X + dx, origin.Y + dy);
                 if (!gm.unitManager.IsValidGrid(pos)) continue;
-                foreach (var u in gm.gridManager.map[pos.X, pos.Y].infantries)
+                var candidateGrid = gm.gridManager.map[pos.X, pos.Y];
+                if (candidateGrid == null || !gm.gridManager.IsRangeAllowed(grid, candidateGrid, packCanCrossScreens)) continue;
+                foreach (var u in candidateGrid.infantries)
                 {
                     if (u == null || !IsInstanceValid(u) || u == this) continue;
                     if (!TeamHelper.MatchesTeamRelation(team, u.team,
