@@ -72,6 +72,7 @@ public partial class Watchtower : Facility
             rayRange -= coBonus;
         }
 
+        visible.RemoveWhere(g => !gm.gridManager.IsRangeAllowed(ParentGrid, g, facilityVisionCanCrossScreens));
         return visible;
     }
 
