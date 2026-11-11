@@ -23,6 +23,72 @@ public partial class Infantry
         ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm);
     }
 
+    public void BeginSeparatePushTargetSelection()
+    {
+        if (!CanUseSeparatePushAction() || grid == null || pushDistance <= 0) return;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var gridManager = gm?.gridManager;
+        if (gridManager == null) return;
+
+        gridManager.CloseRange();
+        gridManager.HideAttackRange();
+        gridManager.ClearWeaponRange();
+        int minRange = Mathf.Max(1, pushMinTargetRange);
+        int maxRange = Mathf.Max(minRange, pushMaxTargetRange);
+        foreach (var tile in gridManager.grids)
+        {
+            if (tile == null || tile == grid) continue;
+            int range = Mathf.Abs(tile.GridIndex.X - grid.GridIndex.X)
+                + Mathf.Abs(tile.GridIndex.Y - grid.GridIndex.Y);
+            if (range < minRange || range > maxRange
+                || !gridManager.IsRangeAllowed(grid, tile, attackCanCrossScreens))
+                continue;
+            var stack = GetLivingStack(tile);
+            if (stack.Count == 0 || !CanPushTargetTeam(stack)) continue;
+            tile.attackRangeIcon?.Show();
+            tile.IsInAttackRangeMode = true;
+            gridManager.attackRange.Add(tile);
+            tile.OnClickGrid = selected => ExecuteSeparatePushOnGrid(selected);
+        }
+        gm.isSelectingAttackTarget = true;
+    }
+
+    private bool CanPushTargetTeam(List<Infantry> stack)
+    {
+        foreach (var unit in stack)
+        {
+            if (unit.team == team && !pushCanTargetFriendlies) continue;
+            if (TeamHelper.AreAllied(team, unit.team) && unit.team != team && !pushCanTargetAllies) continue;
+            if (TeamHelper.IsEnemyForAttacker(team, unit.team, pushCanTargetFriendlies, pushCanTargetAllies)
+                && pushCanTargetEnemies) return true;
+            if (unit.team == team && pushCanTargetFriendlies) return true;
+            if (TeamHelper.AreAllied(team, unit.team) && unit.team != team && pushCanTargetAllies) return true;
+        }
+        return false;
+    }
+
+    private void ExecuteSeparatePushOnGrid(Grids targetGrid)
+    {
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var gridManager = gm?.gridManager;
+        if (targetGrid == null || grid == null || gridManager == null) return;
+        var stack = GetLivingStack(targetGrid);
+        if (stack.Count == 0 || !CanPushTargetTeam(stack)) return;
+
+        Vector2I delta = targetGrid.GridIndex - grid.GridIndex;
+        Vector2I direction = Math.Abs(delta.X) >= Math.Abs(delta.Y)
+            ? new Vector2I(Math.Sign(delta.X), 0)
+            : new Vector2I(0, Math.Sign(delta.Y));
+        if (direction == Vector2I.Zero || !CanPushStack(new List<Infantry> { this }, stack))
+            return;
+
+        if (!TryMarkPushActionUsed()) return;
+        gridManager.HideAttackRange();
+        gm.isSelectingAttackTarget = false;
+        actionMenu?.Hide();
+        ResolvePushChain(targetGrid, direction, pushDistance, gridManager, gm);
+    }
+
     private void ResolvePushChain(Grids firstGrid, Vector2I direction, int distance,
         GridManager gridManager, GameManager gameManager)
     {
