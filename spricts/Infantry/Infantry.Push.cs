@@ -44,7 +44,8 @@ public partial class Infantry
         Funds,
         Health,
         Fuel,
-        PrimaryAmmo
+        PrimaryAmmo,
+        Ammo
     }
 
     public enum PushChainWeightMode
@@ -94,6 +95,7 @@ public partial class Infantry
     [Export] public float pushForcePerTile = 1.0f;
     [Export] public PushResourceType pushCostResource = PushResourceType.None;
     [Export] public int pushCostAmount = 0;
+    [Export] public AmmoKind pushCostAmmoKind = AmmoKind.Primary;
     [Export] public int pushCooldownTurns = 0;
 
     [ExportSubgroup("目标状态效果")]
@@ -102,6 +104,7 @@ public partial class Infantry
     [Export] public bool pushLockTargetToOneHp = false;
     [Export] public int pushTargetFuelDelta = 0;
     [Export] public int pushTargetAmmoDelta = 0;
+    [Export] public AmmoKind pushTargetAmmoKind = AmmoKind.Primary;
     [Export] public int pushTargetHealAmount = 0;
     [Export] public bool pushTargetCanOverMaxHealth = false;
     [Export] public int pushTargetMaxHealthDelta = 0;
@@ -110,6 +113,7 @@ public partial class Infantry
     [Export] public bool pushReboundEnabled = false;
     [Export] public bool pushReboundToOrigin = true;
     [Export] public int pushReboundAmmoCost = 0;
+    [Export] public AmmoKind pushReboundAmmoKind = AmmoKind.Primary;
     [Export] public int pushReboundFuelCost = 0;
     [Export] public int pushReboundFundsCost = 0;
 
@@ -122,6 +126,7 @@ public partial class Infantry
     [Export] public bool pushTransferEnabled = false;
     [Export] public Vector2I pushTransferDirection = Vector2I.Zero;
     [Export] public int pushTransferAmmoCost = 0;
+    [Export] public AmmoKind pushTransferAmmoKind = AmmoKind.Primary;
     [Export] public int pushTransferFuelCost = 0;
     [Export] public int pushTransferHealthCost = 0;
     [Export] public int pushTransferFundsCost = 0;
