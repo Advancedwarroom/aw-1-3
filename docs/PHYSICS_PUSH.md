@@ -27,7 +27,7 @@ For a separate action:
 
 ## Direction, chain, costs and effects
 
-- `pushDirectionMode` currently supports away-from-pusher or fixed cardinal direction; the opposite-sides drag mode is not wired yet.
+- `pushDirectionMode` supports away-from-pusher, fixed cardinal direction, and opposite-sides drag. In opposite-sides mode, the target is displaced along the push vector and the pusher retreats in the reverse direction; the pusher stops at blockers and applies its own invalid-tile destruction setting.
 - `pushDistance`, `pushMaxChainStacks`, and `pushForceScalesWithDistance` tune reach and force.
 - Resource costs can use funds, HP, fuel, primary ammo, or any configured `AmmoKind` through `pushCostAmmoKind`.
 - Target ammo changes, rebound costs, and transfer costs each select their own `AmmoKind`, so the complete shared ammunition catalog is available rather than primary ammo only.
