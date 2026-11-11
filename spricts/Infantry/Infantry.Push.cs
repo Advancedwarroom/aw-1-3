@@ -85,6 +85,29 @@ public partial class Infantry
     [Export] public bool pushLockTargetToOneHp = false;
     [Export] public int pushTargetFuelDelta = 0;
     [Export] public int pushTargetAmmoDelta = 0;
+    [Export] public int pushTargetHealAmount = 0;
+    [Export] public bool pushTargetCanOverMaxHealth = false;
+    [Export] public int pushTargetMaxHealthDelta = 0;
+
+    [ExportSubgroup("反弹模块")]
+    [Export] public bool pushReboundEnabled = false;
+    [Export] public bool pushReboundToOrigin = true;
+    [Export] public int pushReboundAmmoCost = 0;
+    [Export] public int pushReboundFuelCost = 0;
+    [Export] public int pushReboundFundsCost = 0;
+
+    [ExportSubgroup("缓冲模块")]
+    [Export] public bool pushMitigationEnabled = false;
+    [Export] public int pushMitigationTiles = 0;
+    [Export(PropertyHint.Range, "0,100,1")] public float pushMitigationPercent = 0f;
+
+    [ExportSubgroup("反重力转移模块")]
+    [Export] public bool pushTransferEnabled = false;
+    [Export] public Vector2I pushTransferDirection = Vector2I.Zero;
+    [Export] public int pushTransferAmmoCost = 0;
+    [Export] public int pushTransferFuelCost = 0;
+    [Export] public int pushTransferHealthCost = 0;
+    [Export] public int pushTransferFundsCost = 0;
 
     [ExportSubgroup("推动者行为")]
     [Export] public bool pushPusherFollowsChain = false;
