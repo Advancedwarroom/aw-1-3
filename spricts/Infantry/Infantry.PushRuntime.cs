@@ -236,10 +236,11 @@ public partial class Infantry
                 || !gridManager.IsRangeAllowed(grid, tile, attackCanCrossScreens))
                 continue;
             var stack = GetLivingStack(tile);
-            bool hasPushableStatic = ((pushCanTargetWeapons && (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+            bool hasPushableStatic =
+                (pushCanTargetWeapons && (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
                     && w.pushableByPhysics && CanPushTeamName(w.team, w.GetType().Name)) ?? false))
-                    || (pushCanTargetFacilities && tile.city != null && tile.city.pushableByPhysics
-                        && CanPushTeamName(tile.city.facilityTeam, tile.city.GetType().Name)));
+                || (pushCanTargetFacilities && tile.city != null && tile.city.pushableByPhysics
+                    && CanPushTeamName(tile.city.facilityTeam, tile.city.GetType().Name));
             if ((stack.Count == 0 || !CanPushTargetTeam(stack))
                 && !hasPushableStatic) continue;
             tile.attackRangeIcon?.Show();
@@ -605,8 +606,9 @@ public partial class Infantry
         var gridManager = gm?.gridManager;
         if (targetGrid == null || grid == null || gridManager == null) return;
         var stack = GetLivingStack(targetGrid);
-        bool staticTarget = stack.Count == 0 && (pushCanTargetWeapons || pushCanTargetFacilities);
-        if (stack.Count > 0 && !CanPushTargetTeam(stack)) return;
+        bool infantryTarget = stack.Count > 0 && CanPushTargetTeam(stack);
+        bool staticTarget = !infantryTarget && (pushCanTargetWeapons || pushCanTargetFacilities);
+        if (stack.Count > 0 && !infantryTarget && !staticTarget) return;
         if (staticTarget)
         {
             var weapon = pushCanTargetWeapons
