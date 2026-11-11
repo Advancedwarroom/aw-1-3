@@ -102,7 +102,7 @@ public partial class Infantry
             {
                 var next = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
                 if (!TryResolveWeaponFootprintCollisions(target, next, direction, gm,
-                    out bool destroyed))
+                    out bool destroyed, 1))
                 {
                     if (destroyed) moved = true;
                     break;
