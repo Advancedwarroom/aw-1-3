@@ -47,6 +47,8 @@ public partial class ScreenErrorPump : Node
     private PanelContainer panel;
     private RichTextLabel logLabel;
     private Button reopenButton;
+    private static Vector2 savedPos = new Vector2(-472, -312);   // 开创人2026-11-11：默认右下角，避开切换回合按钮；拖动后记住位置
+    private static bool posSaved;
 
     public static void Enqueue(string line)
     {
@@ -65,8 +67,8 @@ public partial class ScreenErrorPump : Node
         root.AddChild(layer);
 
         panel = new PanelContainer();
-        panel.SetAnchorsPreset(Control.LayoutPreset.TopRight);
-        panel.Position = new Vector2(-472, 8);
+        panel.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
+        panel.Position = posSaved ? savedPos : savedPos;   // 默认右下角；拖过后沿用上次位置
         panel.CustomMinimumSize = new Vector2(462, 300);
         var vb = new VBoxContainer();
 
@@ -76,6 +78,22 @@ public partial class ScreenErrorPump : Node
         closeBtn.Pressed += () => { panel.Visible = false; if (reopenButton != null) reopenButton.Visible = true; };
         header.AddChild(title);
         header.AddChild(closeBtn);
+
+        // ✅ 标题栏拖动（开创人2026-11-11）：按住标题栏可拖动整条报错面板，松手记住位置
+        bool dragging = false;
+        header.GuiInput += (e) =>
+        {
+            if (e is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left)
+            {
+                dragging = mb.Pressed;
+                if (!dragging) { savedPos = panel.Position; posSaved = true; }
+                header.AcceptEvent();
+            }
+            else if (e is InputEventMouseMotion mm && dragging)
+            {
+                panel.Position += mm.Relative;
+            }
+        };
 
         logLabel = new RichTextLabel
         {
@@ -90,8 +108,8 @@ public partial class ScreenErrorPump : Node
         layer.AddChild(panel);
 
         reopenButton = new Button { Text = "⚠", Modulate = new Color(1f, 0.4f, 0.4f) };
-        reopenButton.SetAnchorsPreset(Control.LayoutPreset.TopRight);
-        reopenButton.Position = new Vector2(-42, 8);
+        reopenButton.SetAnchorsPreset(Control.LayoutPreset.BottomRight);
+        reopenButton.Position = new Vector2(-42, -40);
         reopenButton.Visible = false;
         reopenButton.Pressed += () => { panel.Visible = true; reopenButton.Visible = false; };
         layer.AddChild(reopenButton);
