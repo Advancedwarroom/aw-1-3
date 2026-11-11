@@ -135,7 +135,22 @@ public partial class Facility : Node2D
     [ExportGroup("推动模块")]
     [Export] public float weight = 1.0f;
     [Export] public bool weightScalesWithHealth = false;
+    [Export] public bool pushableByPhysics = false;
+    [Export] public bool pushBlocksInfantryWhenOverlapped = true;
+    [Export] public Infantry.EqualWeightPushMode equalWeightPushMode = Infantry.EqualWeightPushMode.Stop;
     public virtual float GetEffectiveWeight() => Mathf.Max(0f, weight) * (weightScalesWithHealth ? Mathf.Clamp((float)health / Mathf.Max(1, maxHealth), 0f, 1f) : 1f);
+
+    public virtual bool MoveByPhysicsPush(Grids destination)
+    {
+        if (!pushableByPhysics || ParentGrid == null || destination == null || destination.city != null)
+            return false;
+        Reparent(destination, true);
+        ParentGrid.city = null;
+        ParentGrid = destination;
+        destination.city = this;
+        GlobalPosition = destination.GlobalPosition;
+        return true;
+    }
 
     [Export] public int capturePointsRequired = 20;
     [Export] public int healMode = 0;
