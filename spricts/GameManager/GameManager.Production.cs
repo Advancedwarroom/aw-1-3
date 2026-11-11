@@ -329,6 +329,7 @@ public partial class GameManager
     /// 生成生产单位（现状直落与远程落点共用；落点非法绑定失败返回 false 由调用方退款）
     private bool SpawnProducedUnit(string unitName, Facility facility, Grids dropGrid, string currentTeam, bool dualInstant, bool dualStandby)
     {
+        var info = UnitProductionDatabase.GetInfo(unitName);   // 原方法头部已抽取，此处自取
         // 生成单位
         var scene = GD.Load<PackedScene>(info.ScenePath);
         if (scene == null)
@@ -337,7 +338,7 @@ public partial class GameManager
         }
 
         var unit = scene.Instantiate<Infantry>();
-        if (unit == null) return;
+        if (unit == null) return false;
 
         unit.Position = dropGrid.Position;
         unit.team = currentTeam;
