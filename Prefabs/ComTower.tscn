@@ -26,6 +26,7 @@ animation = &"P0ComTower"
 
 [node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(16, 16)
+scale = Vector2(1, 1)
 visible = false
 sprite_frames = ExtResource("3_base")
 
