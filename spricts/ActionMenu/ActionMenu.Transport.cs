@@ -582,17 +582,17 @@ private void ShowTransportUnloadButtonsOnly(Infantry transport, bool afterMove =
     container.ZIndex = 100;
     var btnCol = GetNodeOrNull<VBoxContainer>("ButtonContainer");
     if (btnCol != null)
-        container.Position = new Vector2(btnCol.Position.X, btnCol.Position.Y + btnCol.Size.Y + 4f);
-
-    // ④ 溢出保护（开创人2026-11-11）：舱位多探出视口下沿时先收紧行距，仍溢出则整体上移兜底
-    var vp = GetViewportRect().Size;
-    float bottom = container.GlobalPosition.Y + container.Size.Y;
-    if (bottom > vp.Y)
     {
-        container.AddThemeConstantOverride("separation", 2);
-        bottom = container.GlobalPosition.Y + container.Size.Y;
-        if (bottom > vp.Y)
-            container.Position = new Vector2(container.Position.X, Mathf.Max(0f, container.Position.Y - (bottom - vp.Y)));
+        // ✅ 开创人2026-11-11: 布局pass完成后再锚定——CallDeferred内重读btnCol.Size，根治"待机盖住第一个卸载项"+旧尺寸缓存
+        container.CallDeferred(MethodName.Call, Callable.From(() =>
+        {
+            if (!IsInstanceValid(container) || !IsInstanceValid(btnCol)) return;
+            container.Position = new Vector2(btnCol.Position.X, btnCol.Position.Y + btnCol.Size.Y + 4f);
+            var vp = GetViewportRect().Size;
+            float bottom = container.GlobalPosition.Y + container.Size.Y;
+            if (bottom > vp.Y)
+                container.Position = new Vector2(container.Position.X, Mathf.Max(0f, container.Position.Y - (bottom - vp.Y)));
+        }));
     }
 }
 }
