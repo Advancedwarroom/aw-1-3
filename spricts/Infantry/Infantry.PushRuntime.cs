@@ -253,22 +253,24 @@ public partial class Infantry
         var rebounder = stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushReboundEnabled);
         if (rebounder == null || origin == null || GetLivingStack(origin).Count > 0)
             return false;
-        if (rebounder.GetAmmo(AmmoKind.Primary) < rebounder.pushReboundAmmoCost
-            || rebounder.fuel < rebounder.pushReboundFuelCost
-            || (rebounder.pushReboundFundsCost > 0 && (gm == null
-                || gm.GetTeamFunds(rebounder.team) < rebounder.pushReboundFundsCost)))
-            return false;
-        if (rebounder.pushReboundAmmoCost > 0)
-            rebounder.TryConsumeAmmo(AmmoKind.Primary, rebounder.pushReboundAmmoCost);
-        rebounder.fuel = Mathf.Max(0, rebounder.fuel - rebounder.pushReboundFuelCost);
-        if (rebounder.pushReboundFundsCost > 0 && gm != null)
-            gm.SetTeamFunds(rebounder.team, gm.GetTeamFunds(rebounder.team) - rebounder.pushReboundFundsCost);
+        int ammoCost = Mathf.Max(0, rebounder.pushReboundAmmoCost);
+        int fuelCost = Mathf.Max(0, rebounder.pushReboundFuelCost);
+        int fundsCost = Mathf.Max(0, rebounder.pushReboundFundsCost);
         var reboundDestination = rebounder.pushReboundToOrigin
             ? origin
             : gm?.gridManager?.GetGridAt(origin.GridIndex - direction);
         if (reboundDestination == null || GetLivingStack(reboundDestination).Count > 0
-            || reboundDestination.city != null || reboundDestination.weapon != null)
+            || reboundDestination.city != null || (reboundDestination.weapons?.Count ?? 0) > 0
+            || rebounder.GetAmmo(AmmoKind.Primary) < ammoCost || rebounder.fuel < fuelCost
+            || (fundsCost > 0 && (gm == null || gm.GetTeamFunds(rebounder.team) < fundsCost)))
             return false;
+
+        // Validate the destination and every cost before charging anything.
+        if (ammoCost > 0 && !rebounder.HasAmmo(AmmoKind.Primary, ammoCost)) return false;
+        if (ammoCost > 0) rebounder.TryConsumeAmmo(AmmoKind.Primary, ammoCost);
+        rebounder.fuel -= fuelCost;
+        if (fundsCost > 0)
+            gm.SetTeamFunds(rebounder.team, gm.GetTeamFunds(rebounder.team) - fundsCost);
         MoveStackByPush(stack, reboundDestination);
         return true;
     }
@@ -283,24 +285,27 @@ public partial class Infantry
         int fuelCost = Mathf.Max(0, transferUnit.pushTransferFuelCost);
         int healthCost = Mathf.Max(0, transferUnit.pushTransferHealthCost);
         int fundsCost = Mathf.Max(0, transferUnit.pushTransferFundsCost);
-        if (transferUnit.GetAmmo(AmmoKind.Primary) < ammoCost || transferUnit.fuel < fuelCost
-            || transferUnit.health <= healthCost || (gm != null && gm.GetTeamFunds(transferUnit.team) < fundsCost))
-            return false;
 
         Vector2I direction = transferUnit.pushTransferDirection;
         direction = Mathf.Abs(direction.X) >= Mathf.Abs(direction.Y)
             ? new Vector2I(Math.Sign(direction.X), 0)
             : new Vector2I(0, Math.Sign(direction.Y));
-        var origin = stack[0].grid;
+        if (direction == Vector2I.Zero) return false;
+        var origin = stack.FirstOrDefault(IsLivingUnit)?.grid;
         var destination = origin == null ? null : gridManager.GetGridAt(origin.GridIndex + direction);
         if (destination == null || GetLivingStack(destination).Count > 0
-            || destination.city != null || destination.weapon != null)
+            || destination.city != null || (destination.weapons?.Count ?? 0) > 0
+            || transferUnit.GetAmmo(AmmoKind.Primary) < ammoCost || transferUnit.fuel < fuelCost
+            || transferUnit.health <= healthCost
+            || (fundsCost > 0 && (gm == null || gm.GetTeamFunds(transferUnit.team) < fundsCost)))
             return false;
+        if (ammoCost > 0 && !transferUnit.HasAmmo(AmmoKind.Primary, ammoCost)) return false;
 
+        // No resources are consumed until the destination is known to be valid.
         if (ammoCost > 0) transferUnit.TryConsumeAmmo(AmmoKind.Primary, ammoCost);
         transferUnit.fuel -= fuelCost;
         transferUnit.health -= healthCost;
-        if (fundsCost > 0 && gm != null)
+        if (fundsCost > 0)
             gm.SetTeamFunds(transferUnit.team, gm.GetTeamFunds(transferUnit.team) - fundsCost);
         MoveStackByPush(stack, destination);
         return true;
@@ -312,11 +317,11 @@ public partial class Infantry
         {
             if (!IsLivingUnit(unit)) continue;
             if (unit.pushTargetMaxHealthDelta != 0)
-                unit.maxHealth = Mathf.Max(1, unit.maxHealth + unit.pushTargetMaxHealthDelta);
+                unit.maxHealth = (int)Math.Clamp((long)unit.maxHealth + unit.pushTargetMaxHealthDelta, 1L, int.MaxValue);
             if (pushLockTargetToOneHp) unit.health = 1;
             else if (pushTargetHealAmount > 0)
-                unit.health = Mathf.Min(unit.pushTargetCanOverMaxHealth ? int.MaxValue : unit.GetEffectiveMaxHealth(),
-                    unit.health + pushTargetHealAmount);
+                unit.health = (int)Math.Min(unit.pushTargetCanOverMaxHealth ? int.MaxValue : unit.GetEffectiveMaxHealth(),
+                    Math.Min(int.MaxValue, (long)unit.health + pushTargetHealAmount));
             else if (pushTargetDamage > 0)
             {
                 unit.health -= pushTargetDamage;
@@ -328,7 +333,7 @@ public partial class Infantry
                 unit.health = Mathf.Max(1, unit.health);
             }
             if (pushTargetFuelDelta != 0)
-                unit.fuel = Mathf.Max(0, unit.fuel + pushTargetFuelDelta);
+                unit.fuel = (int)Math.Clamp((long)unit.fuel + pushTargetFuelDelta, 0L, int.MaxValue);
             if (pushTargetAmmoDelta != 0)
                 unit.AddAmmo(AmmoKind.Primary, pushTargetAmmoDelta);
             unit.UpdateHpLabel();
