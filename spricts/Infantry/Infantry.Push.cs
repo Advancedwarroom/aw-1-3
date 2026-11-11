@@ -134,6 +134,8 @@ public partial class Infantry
     [Export] public bool pushReboundCanTargetEnemies = true;
     [Export] public bool pushReboundCanTargetFriendlies = false;
     [Export] public bool pushReboundCanTargetAllies = false;
+    [Export] public int pushReboundMinRange = 1;
+    [Export] public int pushReboundRange = 99;
     [Export] public bool pushReboundToOrigin = true;
     [Export] public int pushReboundAmmoCost = 0;
     [Export] public AmmoKind pushReboundAmmoKind = AmmoKind.PushRebound;
