@@ -45,7 +45,7 @@ For a separate action:
 
 ## Current limitations
 
-- Multi-tile weapons cannot yet be moved by push.
+- Directly pushed multi-tile weapons use full-footprint collision checks. Multi-tile weapons are not yet supported as intermediate obstacles in mixed infantry/static domino chains.
 - Facility/weapon chain stacks and mixed infantry/weapon/facility mass transmission are not yet unified into one chain solver.
 - Weapon and facility push targets support health damage, one-HP locking, healing, and maximum-health changes. Weapons also map the six compatible shared ammo kinds to their native ammo slots. Infantry additionally supports fuel and all shared ammo kinds.
 - When a pushed stack collides with another infantry stack, heavier mass wins and destroys the lighter stack; equal mass follows the two sides' simultaneous/stop rules. `pushChainEnabled=false` makes an occupied link stop both sides.
