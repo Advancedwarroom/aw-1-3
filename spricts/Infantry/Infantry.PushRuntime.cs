@@ -254,9 +254,11 @@ public partial class Infantry
         foreach (var index in weapon.GetOccupiedIndices(nextAnchor.GridIndex))
         {
             var tile = gm.gridManager.GetGridAt(index);
-            if (tile == null || tile.city != null
-                || (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
-                    && w != weapon) ?? false))
+            if (tile == null) return false;
+            if (!oldFootprint.Contains(index)
+                && (tile.city != null
+                    || (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                        && w != weapon) ?? false)))
                 return false;
             if (!allowInfantryOverlap && !oldFootprint.Contains(index)
                 && GetLivingStack(tile).Count > 0)
