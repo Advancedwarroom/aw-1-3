@@ -53,11 +53,13 @@ public partial class BlackArc : Weapon
     // ========== 9. 力场模块（原作：存活期间保护地图目标物，对其攻击全部无效）==========
     [ExportGroup("力场模块（原作：黑弧存活时地图目标物攻击全部无效）")]
     [Export] public bool forceFieldEnabled = false;              // 是否开启力场（默认关，不强制）
+    [Export] public bool forceFieldCanCrossScreens = false;   // 力场保护范围是否允许跨屏
     [Export] public Godot.Collections.Array<Vector2I> forceFieldGridOffsets = new(); // 保护的目标格（相对锚点偏移；空=不保护）
 
     // ========== 10. 护卫联动模块（原作：护卫炮全毁→黑弧坠落）==========
     [ExportGroup("护卫联动模块（原作：护卫兵器全毁→黑弧坠落）")]
     [Export] public bool escortLinkageEnabled = false;           // 是否开启护卫联动（默认关，不强制）
+    [Export] public bool escortCanCrossScreens = false;       // 护卫联动绑定是否允许跨屏
     [Export] public Godot.Collections.Array<Vector2I> escortGridOffsets = new();   // 护卫兵器所在格（相对锚点偏移；空=无护卫）
 
     // 十字准星瞄准模式状态
@@ -202,6 +204,8 @@ public partial class BlackArc : Weapon
         {
             if (w is not BlackArc arc || !IsInstanceValid(w) || w.isDestroyed || w.IsQueuedForDeletion()) continue;
             if (!arc.forceFieldEnabled || arc.grid == null || arc.forceFieldGridOffsets.Count == 0) continue;
+            var gmGrid = arc.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (gmGrid?.gridManager != null && !gmGrid.gridManager.IsRangeAllowed(arc.grid, target, arc.forceFieldCanCrossScreens)) continue;
             var anchor = arc.grid.GridIndex;
             foreach (var off in arc.forceFieldGridOffsets)
                 if (anchor.X + off.X == target.GridIndex.X && anchor.Y + off.Y == target.GridIndex.Y)
@@ -225,6 +229,7 @@ public partial class BlackArc : Weapon
             if (ex < 0 || ey < 0 || ex >= map.GetLength(0) || ey >= map.GetLength(1)) continue;
             var g = map[ex, ey];
             if (g == null) continue;
+            if (!escortCanCrossScreens && !gm.gridManager.IsSameScreen(anchor, g.GridIndex)) continue;
             bool escortAlive = g.weapons.Any(w => w != null && IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed);
             if (escortAlive) return;   // 还有护卫活着
         }
