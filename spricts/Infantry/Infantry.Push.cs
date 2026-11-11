@@ -30,6 +30,8 @@ public partial class Infantry
 
     [ExportSubgroup("基础推动参数")]
     [Export] public int pushDistance = 1;
+    [Export] public int pushMinTargetRange = 1;
+    [Export] public int pushMaxTargetRange = 1;
 
     // Runtime-only turn limiter. It is reset by GameManager when this unit's turn refreshes.
     private bool hasUsedPushThisTurn = false;
