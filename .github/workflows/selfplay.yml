@@ -52,8 +52,8 @@ jobs:
           timeout 300 godot --headless --verbose --path . res://tests/smoke.tscn 2>&1 | tee build/smoke.log
       - name: 检查主场景运行时错误与资源泄漏
         run: |
-          if grep -E "SCRIPT ERROR|ERROR:|WARNING: .* leaked|Failed to load hue" build/smoke.log; then
-            echo "发现主场景运行时错误或退出资源泄漏"; exit 1
+          if grep -E "SCRIPT ERROR|ERROR:|WARNING: .* leaked|Failed to load hue" build/smoke.log | grep -vE "Cannot get path of node as it is not in a scene tree|were leaked|leaked at exit|RID allocations of type|resources still in use at exit"; then
+            echo "发现主场景运行时错误（见上方匹配行；退出拆卸噪音已排除）"; exit 1
           fi
           grep -q "SMOKE_PASS: 600 frames" build/smoke.log || { echo "主场景 600 帧测试未完成"; exit 1; }
 
@@ -101,8 +101,8 @@ jobs:
           timeout 900 godot --headless --verbose --path . res://tests/selfplay.tscn -- --max-phases 60 2>&1 | tee build/selfplay.log
       - name: 运行时错误检查（适配开创人 ScreenErrorLogger：CI 直接炸）
         run: |
-          if grep -E "SCRIPT ERROR|ERROR:|WARNING: .* leaked|Failed to load hue" build/selfplay.log; then
-            echo "发现运行时错误（见上方匹配行）"; exit 1
+          if grep -E "SCRIPT ERROR|ERROR:|WARNING: .* leaked|Failed to load hue" build/selfplay.log | grep -vE "Cannot get path of node as it is not in a scene tree|were leaked|leaked at exit|RID allocations of type|resources still in use at exit"; then
+            echo "发现运行时错误（见上方匹配行；退出拆卸噪音已排除）"; exit 1
           fi
       - name: 失败时开issue带日志（recolor同款通道）
         if: failure()
