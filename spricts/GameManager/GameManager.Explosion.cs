@@ -23,6 +23,8 @@ public partial class GameManager
         }
 
         var gridPos = unit.grid?.GridIndex ?? unitManager.WorldToGrid(unit.Position);
+        var sourceGrid = unit.grid ?? gridManager.GetGridAt(gridPos);
+        if (sourceGrid == null) return;
         int minR = unit.explosionMinRange;
         int maxR = unit.explosionMaxRange;
 
@@ -33,7 +35,7 @@ public partial class GameManager
             if (u == null || !IsInstanceValid(u)) continue;
             var uGridPos = u.grid?.GridIndex ?? unitManager.WorldToGrid(u.Position);
             int dist = Mathf.Abs(uGridPos.X - gridPos.X) + Mathf.Abs(uGridPos.Y - gridPos.Y);
-            if (dist >= minR && dist <= maxR && (unit.explosionCanCrossScreens || unit.grid == null || gridManager.IsRangeAllowed(unit.grid, u.grid ?? gridManager.GetGridAt(uGridPos), unit.explosionCanCrossScreens)))
+            if (dist >= minR && dist <= maxR && gridManager.IsRangeAllowed(sourceGrid, u.grid ?? gridManager.GetGridAt(uGridPos), unit.explosionCanCrossScreens))
             {
                 // 目标筛选
                 bool isEnemy = u.team != unit.team;
@@ -63,7 +65,7 @@ public partial class GameManager
                 if (w.grid == null) continue;
                 int dist = Mathf.Abs(w.grid.GridIndex.X - gridPos.X) + Mathf.Abs(w.grid.GridIndex.Y - gridPos.Y);
                 if (dist < minR || dist > maxR) continue;
-                if (!unit.explosionCanCrossScreens && unit.grid != null && !gridManager.IsRangeAllowed(unit.grid, w.grid, false)) continue;
+                if (!gridManager.IsRangeAllowed(sourceGrid, w.grid, unit.explosionCanCrossScreens)) continue;
 
                 // 目标筛选（兵器也有 team）
                 bool isEnemy = w.team != unit.team;
