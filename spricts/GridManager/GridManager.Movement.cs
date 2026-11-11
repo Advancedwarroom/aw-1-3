@@ -46,6 +46,10 @@ public partial class GridManager
             return;
         }
 
+        // Movement-triggered push is resolved on the actual traversed path, before
+        // normal overlap/truncation rules decide whether the mover can continue.
+        TryPushUnitsAlongMovementPath(infantry, to);
+
         var otherUnits = to.infantries.Where(i => i != infantry && IsInstanceValid(i)).ToList();
         bool hasOtherUnits = otherUnits.Count > 0 || (to.infantry != null && to.infantry != infantry);
 
@@ -150,6 +154,34 @@ public partial class GridManager
             
             MoveTo(infantry, to);
         }
+    }
+
+    private bool TryPushUnitsAlongMovementPath(Infantry mover, Grids destination)
+    {
+        if (mover == null || destination == null || !mover.CanUseMovementPush())
+            return false;
+        var path = BuildPath(mover.grid, destination, mover);
+        if (path == null || path.Count < 2) return false;
+
+        bool pushedAny = false;
+        for (int i = 1; i < path.Count; i++)
+        {
+            var tile = path[i];
+            var blockers = tile?.infantries?.Where(u => u != null && IsInstanceValid(u)
+                && u.health > 0 && u.grid == tile && u != mover).ToList()
+                ?? new List<Infantry>();
+            if (blockers.Count == 0) continue;
+
+            Vector2I direction = tile.GridIndex - path[i - 1].GridIndex;
+            if (!mover.TryPushTargetOnMovement(tile, direction))
+                return pushedAny;
+
+            pushedAny = true;
+            bool stillOccupied = tile.infantries?.Any(u => u != null && IsInstanceValid(u)
+                && u.health > 0 && u.grid == tile && u != mover) ?? false;
+            if (stillOccupied) return pushedAny;
+        }
+        return pushedAny;
     }
 
     private void ForceOoziumActed(Infantry unit)
