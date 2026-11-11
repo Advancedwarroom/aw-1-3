@@ -220,6 +220,11 @@ public partial class Infantry
 
         var stack = GetLivingStack(destination);
         if (stack.Count == 0) return true;
+        if (!pushUsesWeight)
+        {
+            ApplyFragileCollisionEffects(stack);
+            return false;
+        }
         float staticWeight = movingWeapon != null
             ? movingWeapon.GetEffectiveWeight()
             : movingFacility.GetEffectiveWeight();
