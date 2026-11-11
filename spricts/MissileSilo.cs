@@ -54,6 +54,7 @@ public partial class MissileSilo : Weapon
     [ExportGroup("打击范围")]
     [Export] public int strikeMinRange = 1;                     // 11.最小范围
     [Export] public int strikeMaxRange = 99;                    // 11.最大范围（原作全图）
+    [Export] public bool siloStrikeCanCrossScreens = false; // 导弹井弹着点射程是否允许跨屏
 
     // ========== 12. 打击伤害面（以目标点为新圆心）==========
     [Export] public int blastMinRadius = 0;                     // 12.伤害面最小半径（盲区）
@@ -169,7 +170,7 @@ public partial class MissileSilo : Weapon
         var rangeGrids = gm.gridManager.grids.Where(g =>
         {
             int d = Mathf.Abs(g.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - grid.GridIndex.Y);
-            return d >= strikeMinRange && d <= strikeMaxRange && !IsScreenBlocked(g); // ✅ N屏：默认仅限己图
+            return d >= strikeMinRange && d <= strikeMaxRange && gm.gridManager.IsRangeAllowed(grid, g, siloStrikeCanCrossScreens);
         }).ToList();
 
         foreach (var g in rangeGrids)
@@ -209,7 +210,7 @@ public partial class MissileSilo : Weapon
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null || targetGrid == null || grid == null) return;
         int launchDistance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
-        if (launchDistance < strikeMinRange || launchDistance > strikeMaxRange || IsScreenBlocked(targetGrid)) return;
+        if (launchDistance < strikeMinRange || launchDistance > strikeMaxRange || !gm.gridManager.IsRangeAllowed(grid, targetGrid, siloStrikeCanCrossScreens)) return;
         CancelTargetSelection(gm);
 
         // 消耗弹药
