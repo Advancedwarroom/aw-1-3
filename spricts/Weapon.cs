@@ -63,6 +63,11 @@ public partial class Weapon : Node2D
     [Export] public int maxAttacksPerTurn = 1;
     [Export] public int cost = 0;
 
+    [ExportGroup("推动模块")]
+    [Export] public float weight = 1.0f;
+    [Export] public bool weightScalesWithHealth = false;
+    public virtual float GetEffectiveWeight() => Mathf.Max(0f, weight) * (weightScalesWithHealth ? Mathf.Clamp((float)health / Mathf.Max(1, maxHealth), 0f, 1f) : 1f);
+
     // ✅ 力场bypass：坠落等引擎流程内部使用（黑弧护卫全毁坠落时绕过力场）
     public bool ignoreForceField = false; 
 
