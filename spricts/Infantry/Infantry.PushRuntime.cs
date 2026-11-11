@@ -30,7 +30,7 @@ public partial class Infantry
     {
         if (!CanPushNonInfantryTarget(target?.grid, target?.pushableByPhysics, target?.GetEffectiveWeight(),
             target?.equalWeightPushMode ?? EqualWeightPushMode.Stop, target == null || target.isDestroyed)
-            || target == null || !CanPushTeamName(target.team))
+            || target == null || !CanPushTeamName(target.team, target.GetType().Name))
             return;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null || target == null || target.isMultiTile) return;
@@ -57,7 +57,7 @@ public partial class Infantry
         if (!CanPushNonInfantryTarget(target?.ParentGrid, target?.pushableByPhysics,
             target?.GetEffectiveWeight(), target?.equalWeightPushMode ?? EqualWeightPushMode.Stop,
             target == null || target.health <= 0)
-            || target == null || !CanPushTeamName(target.facilityTeam))
+            || target == null || !CanPushTeamName(target.facilityTeam, target.GetType().Name))
             return;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null || target == null) return;
@@ -118,9 +118,9 @@ public partial class Infantry
             var stack = GetLivingStack(tile);
             bool hasPushableStatic = pushTargetClass == PushTargetClass.AnyPushableEntity
                 && ((tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
-                    && w.pushableByPhysics && CanPushTeamName(w.team)) ?? false)
+                    && w.pushableByPhysics && CanPushTeamName(w.team, w.GetType().Name)) ?? false)
                     || (tile.city != null && tile.city.pushableByPhysics
-                        && CanPushTeamName(tile.city.facilityTeam)));
+                        && CanPushTeamName(tile.city.facilityTeam, tile.city.GetType().Name)));
             if ((stack.Count == 0 || !CanPushTargetTeam(stack))
                 && !hasPushableStatic) continue;
             tile.attackRangeIcon?.Show();
@@ -147,15 +147,28 @@ public partial class Infantry
         // A stack moves as one object, so every occupant must satisfy the selected team policy.
         return stack != null && stack.Count > 0 && stack.All(unit =>
         {
+            string typeId = unit.UnitTypeId ?? unit.GetType().Name;
+            if (pushTargetWhitelist != null && pushTargetWhitelist.Length > 0
+                && !pushTargetWhitelist.Contains(typeId) && !pushTargetWhitelist.Contains(unit.GetType().Name))
+                return false;
+            if (pushTargetBlacklist != null && (pushTargetBlacklist.Contains(typeId)
+                || pushTargetBlacklist.Contains(unit.GetType().Name)))
+                return false;
             if (unit.team == team) return pushCanTargetFriendlies;
             if (TeamHelper.AreAllied(team, unit.team)) return pushCanTargetAllies;
             return pushCanTargetEnemies;
         });
     }
 
-    private bool CanPushTeamName(string targetTeam)
+    private bool CanPushTeamName(string targetTeam, string targetType = null)
     {
         if (string.IsNullOrEmpty(targetTeam)) return false;
+        if (!string.IsNullOrEmpty(targetType))
+        {
+            if (pushTargetWhitelist != null && pushTargetWhitelist.Length > 0
+                && !pushTargetWhitelist.Contains(targetType)) return false;
+            if (pushTargetBlacklist != null && pushTargetBlacklist.Contains(targetType)) return false;
+        }
         if (targetTeam == team) return pushCanTargetFriendlies;
         if (TeamHelper.AreAllied(team, targetTeam)) return pushCanTargetAllies;
         return pushCanTargetEnemies;
@@ -327,7 +340,7 @@ public partial class Infantry
             var weapon = targetGrid.weapons?.FirstOrDefault(w => w != null
                 && GodotObject.IsInstanceValid(w) && w.pushableByPhysics && CanPushTeamName(w.team));
             var facility = targetGrid.city != null && targetGrid.city.pushableByPhysics
-                && CanPushTeamName(targetGrid.city.facilityTeam) ? targetGrid.city : null;
+                && CanPushTeamName(targetGrid.city.facilityTeam, targetGrid.city.GetType().Name) ? targetGrid.city : null;
             if (weapon == null && facility == null) return;
             bool canPushStatic = weapon != null
                 ? CanPushNonInfantryTarget(weapon.grid, weapon.pushableByPhysics, weapon.GetEffectiveWeight(),
@@ -368,7 +381,7 @@ public partial class Infantry
         while (cursor != null)
         {
             var stack = GetLivingStack(cursor);
-            if (stack.Count == 0) break;
+            if (stack.Count == 0 || !CanPushTargetTeam(stack)) break;
             chain.Add(stack);
             if (pushMaxChainStacks > 0 && chain.Count >= pushMaxChainStacks) break;
             cursor = gridManager.GetGridAt(cursor.GridIndex + direction);
