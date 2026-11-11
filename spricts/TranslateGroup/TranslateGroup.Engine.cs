@@ -402,7 +402,14 @@ public partial class TranslateGroup
     {
         SaveMissingReport();
 
-        // Release the language selector UI before the autoload leaves the tree.
+        // Release controls individually as well as their CanvasLayer. The controls
+        // can be detached by shutdown/test scene teardown, so freeing only the layer
+        // is not sufficient to guarantee their native ObjectDB instances are released.
+        GD.Print("[TranslateGroup] Releasing language selector UI");
+        if (langPanel != null && IsInstanceValid(langPanel))
+            langPanel.Free();
+        if (langButton != null && IsInstanceValid(langButton))
+            langButton.Free();
         if (uiLayer != null && IsInstanceValid(uiLayer))
             uiLayer.Free();
         uiLayer = null;
