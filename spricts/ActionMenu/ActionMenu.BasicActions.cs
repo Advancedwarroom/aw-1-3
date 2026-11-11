@@ -28,7 +28,14 @@ public partial class ActionMenu
                 currentUnit.PerformLoadedTearFlag();   // ✅ 舱内撕旗
             else if (currentUnit.CanPerformLoadedCapture())
                     currentUnit.PerformLoadedCapture();   // ✅ 舱内占领
-                else
+                else if (!currentUnit.CanCaptureCurrentGrid())
+            {
+                // 开创人2026-11-11 远程占领：单目标直接开工，多目标弹选择菜单（只看设施判定）
+                var remoteTargets = currentUnit.GetRemoteCapturableFacilities();
+                if (remoteTargets.Count == 1) currentUnit.PerformRemoteCapture(remoteTargets[0]);
+                else if (remoteTargets.Count > 1) ShowRemoteCaptureTargetMenu(remoteTargets);
+            }
+            else
                     currentUnit.PerformCapture();
             Hide();
 
@@ -251,5 +258,32 @@ public void ShowMoveChoiceDialog(Infantry movingUnit, Infantry targetUnit, Grids
 
         GetTree().CurrentScene.AddChild(dialog);
 
+    }
+
+
+    private PopupPanel remoteCapturePopup;
+    /// 远程占领多目标选择菜单（开创人2026-11-11）
+    private void ShowRemoteCaptureTargetMenu(List<Facility> targets)
+    {
+        if (remoteCapturePopup != null && IsInstanceValid(remoteCapturePopup)) remoteCapturePopup.QueueFree();
+        remoteCapturePopup = new PopupPanel();
+        var vbox = new VBoxContainer();
+        remoteCapturePopup.AddChild(vbox);
+        vbox.AddChild(new Label { Text = "选择远程占领目标" });
+        foreach (var t in targets)
+        {
+            if (t == null || !IsInstanceValid(t)) continue;
+            var btn = new Button { Text = $"{t.GetType().Name} ({t.ParentGrid?.GridIndex.X},{t.ParentGrid?.GridIndex.Y})" };
+            Facility captured = t;
+            btn.Pressed += () =>
+            {
+                if (remoteCapturePopup != null && IsInstanceValid(remoteCapturePopup)) remoteCapturePopup.QueueFree();
+                remoteCapturePopup = null;
+                currentUnit?.PerformRemoteCapture(captured);
+            };
+            vbox.AddChild(btn);
+        }
+        AddChild(remoteCapturePopup);
+        remoteCapturePopup.PopupCentered();
     }
 }

@@ -291,11 +291,12 @@ public partial class GameManager
 
         // 编辑模式不判定资金
         bool isEditMode = terrainEditor != null && terrainEditor.IsEditMode;
+        int prodCostUI = 0;
         if (!isEditMode)
         {
             int currentFunds = GetTeamFunds(currentTeam);
             // ✅ CO 模块系统·模块12（生产模块）：价格增减与菜单显示/扣费一致
-            int prodCostUI = Mathf.Max(1, Mathf.RoundToInt(productionTargetFacility.GetProductionCost(info.Cost, unitName)
+            prodCostUI = Mathf.Max(1, Mathf.RoundToInt(productionTargetFacility.GetProductionCost(info.Cost, unitName)
                 * (100f + CoModuleSystem.GetCostModifierPercent(currentTeam)) / 100f));
             if (productionTargetFacility.productionFree) prodCostUI = 0;
             if (!productionTargetFacility.productionFree && currentFunds < prodCostUI)
@@ -307,6 +308,27 @@ public partial class GameManager
             CoModuleSystem.OnFundsSpent(currentTeam, prodCostUI);
         }
 
+
+        // ===== 远程生产落点（开创人2026-11-11）：开关+n-m 成对。开=环带高亮点选；关=现状直落建筑格 =====
+        if (productionTargetFacility.remoteProductionEnabled && productionTargetFacility.productionDropMaxRange > 0)
+        {
+            var dropCells = GetRemoteDropCells(productionTargetFacility);
+            if (dropCells.Count == 0)
+            {
+                if (!isEditMode && prodCostUI > 0) SetTeamFunds(currentTeam, GetTeamFunds(currentTeam) + prodCostUI);   // 无合法落点：退款
+                GD.PushWarning("[生产] 远程落点 n-m 环带内无合法格，资金已返还");
+                return;
+            }
+            EnterRemoteDropMode(unitName, productionTargetFacility, currentTeam, prodCostUI, isEditMode, dropCells, dualInstant, dualStandby);
+            return;   // 落点确认后由 ConfirmRemoteDrop 继续生成
+        }
+
+        SpawnProducedUnit(unitName, productionTargetFacility, productionTargetGrid, currentTeam, dualInstant, dualStandby);
+    }
+
+    /// 生成生产单位（现状直落与远程落点共用；落点非法绑定失败返回 false 由调用方退款）
+    private bool SpawnProducedUnit(string unitName, Facility facility, Grids dropGrid, string currentTeam, bool dualInstant, bool dualStandby)
+    {
         // 生成单位
         var scene = GD.Load<PackedScene>(info.ScenePath);
         if (scene == null)
@@ -317,7 +339,7 @@ public partial class GameManager
         var unit = scene.Instantiate<Infantry>();
         if (unit == null) return;
 
-        unit.Position = productionTargetGrid.Position;
+        unit.Position = dropGrid.Position;
         unit.team = currentTeam;
         // ✅ CO 模块系统·模块19/30：CO 专属单位出厂即 CO 单位（Zone 载体，被毁=CO 死亡规则用）
         if (CoModuleSystem.IsExclusiveUnit(currentTeam, unitName)) unit.isCoUnit = true;
@@ -342,7 +364,7 @@ public partial class GameManager
             unit.StartBreath();
 
         // 即时移动开关：默认关闭（instantMove=false）则生产后单位直接待机
-        if (productionTargetFacility != null && !productionTargetFacility.instantMoveAfterProduction)
+        if (facility != null && !facility.instantMoveAfterProduction)
         {
             unit.isMoved = true;
             unit.isAttacked = true;
@@ -352,9 +374,9 @@ public partial class GameManager
         }
 
         // ✅ 累计本回合生产次数
-        productionTargetFacility.productionsThisTurn++;
+        facility.productionsThisTurn++;
         // ✅ P-1公共设施：记录使用势力，添加"不可生产"状态给当前势力
-        productionTargetFacility.OnUnitProducedBy(currentTeam);
+        facility.OnUnitProducedBy(currentTeam);
         // ✅ CO 模块系统·模块27：生产单位打点（能量条）
         CoModuleSystem.OnUnitProduced(currentTeam);
 
@@ -363,7 +385,8 @@ public partial class GameManager
 
 
         // 刷新菜单（资金已变化，可能有些按钮要变灰）
-        ShowProductionMenu(productionTargetFacility, productionTargetGrid);
+        ShowProductionMenu(facility, dropGrid);
+        return true;
     }
 
     /// <summary>
@@ -450,5 +473,109 @@ public partial class GameManager
         RefreshSpecializedUnitLists();
 
         return true;
+    }
+
+
+    // ==================== 远程生产落点（开创人2026-11-11）====================
+    private string pendingDropUnitName;
+    private Facility pendingDropFacility;
+    private string pendingDropTeam;
+    private int pendingDropCost;
+    private bool pendingDropEditMode;
+    private bool pendingDropInstant;
+    private bool pendingDropStandby;
+
+    /// n-m 环带内合法落点：无单位/设施/兵器且非虚空格。
+    private List<Grids> GetRemoteDropCells(Facility facility)
+    {
+        var result = new List<Grids>();
+        if (facility?.ParentGrid == null || gridManager?.grids == null) return result;
+        Vector2I origin = facility.ParentGrid.GridIndex;
+        foreach (var g in gridManager.grids)
+        {
+            if (g == null || !IsInstanceValid(g)) continue;
+            int dist = Math.Abs(g.GridIndex.X - origin.X) + Math.Abs(g.GridIndex.Y - origin.Y);
+            if (dist < facility.productionDropMinRange || dist > facility.productionDropMaxRange) continue;
+            if (g.infantry != null || g.city != null || g.weapon != null) continue;
+            if (g.gridType == GridType.VOID) continue;
+            result.Add(g);
+        }
+        return result;
+    }
+
+    private void EnterRemoteDropMode(string unitName, Facility facility, string currentTeam, int cost, bool isEditMode, List<Grids> cells, bool dualInstant, bool dualStandby)
+    {
+        pendingDropUnitName = unitName;
+        pendingDropFacility = facility;
+        pendingDropTeam = currentTeam;
+        pendingDropCost = isEditMode ? 0 : cost;
+        pendingDropEditMode = isEditMode;
+        pendingDropInstant = dualInstant;
+        pendingDropStandby = dualStandby;
+        var cellSet = new HashSet<Grids>(cells);
+        foreach (var g in gridManager.grids)
+        {
+            if (g == null || !IsInstanceValid(g)) continue;
+            if (cellSet.Contains(g))
+            {
+                g.modulate = new Color(1.3f, 1.3f, 0.7f);   // 高亮候选落点
+                Grids clicked = g;
+                g.OnClickGrid = (_) => ConfirmRemoteDrop(clicked);
+            }
+            else
+            {
+                g.OnClickEmpty = CancelRemoteDrop;   // 点其他格=取消并退款
+            }
+        }
+        GD.Print($"[生产] 远程落点：请在 {cells.Count} 个高亮格中点选（点其他格取消并退款）");
+    }
+
+    private void ConfirmRemoteDrop(Grids target)
+    {
+        string unitName = pendingDropUnitName;
+        Facility facility = pendingDropFacility;
+        string team = pendingDropTeam;
+        int cost = pendingDropCost;
+        bool instant = pendingDropInstant;
+        bool standby = pendingDropStandby;
+        bool editMode = pendingDropEditMode;
+        ClearRemoteDropMode();
+        if (!SpawnProducedUnit(unitName, facility, target, team, instant, standby) && cost > 0 && !editMode)
+        {
+            SetTeamFunds(team, GetTeamFunds(team) + cost);   // 绑定失败：退款
+            GD.PushWarning("[生产] 远程落点绑定失败，资金已返还");
+        }
+    }
+
+    private void CancelRemoteDrop()
+    {
+        string team = pendingDropTeam;
+        int cost = pendingDropCost;
+        bool editMode = pendingDropEditMode;
+        ClearRemoteDropMode();
+        if (cost > 0 && !editMode)
+        {
+            SetTeamFunds(team, GetTeamFunds(team) + cost);
+            GD.PushWarning("[生产] 远程落点已取消，资金已返还");
+        }
+    }
+
+    private void ClearRemoteDropMode()
+    {
+        pendingDropUnitName = null;
+        pendingDropFacility = null;
+        pendingDropTeam = null;
+        pendingDropCost = 0;
+        pendingDropEditMode = false;
+        pendingDropInstant = false;
+        pendingDropStandby = false;
+        if (gridManager?.grids == null) return;
+        foreach (var g in gridManager.grids)
+        {
+            if (g == null || !IsInstanceValid(g)) continue;
+            g.OnClickGrid = null;
+            g.OnClickEmpty = null;
+            g.modulate = new Color(1f, 1f, 1f);
+        }
     }
 }

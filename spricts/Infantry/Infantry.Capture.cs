@@ -135,7 +135,7 @@ public partial class Infantry
         
         ShowCaptureEffect();
         
-        if (currentCaptureProgress >= (grid.city?.capturePointsRequired ?? 20))
+        if (currentCaptureProgress >= (grid.city?.GetCurrentCaptureState() ?? 20))
         {
             CompleteCapture();
         }
@@ -153,33 +153,38 @@ public partial class Infantry
 
     protected virtual void CompleteCapture()
 {
-    if (grid == null) return;
-    
-    string oldOwner = grid.city?.facilityTeam ?? "";
-    
-    // ✅ 关键修复：实际改变城市归属！
-    if (grid.city != null)
-        grid.city.facilityTeam = team;
-    
+    // 远程占领时 capturingGrid=目标设施格；本格占领时为脚下格
+    var targetGrid = (capturingGrid != null && IsInstanceValid(capturingGrid)) ? capturingGrid : grid;
+    if (targetGrid?.city == null) return;
+
+    string oldOwner = targetGrid.city.facilityTeam ?? "";
+
+    // ✅ 实际改变城市归属
+    targetGrid.city.facilityTeam = team;
+    // 占领后状态（开创人2026-11-11 Warside 2HP）：-1=回满(现状)；>=0=新归属初始防御值，之后每回合按 captureStateRegenPerTurn 回满
+    targetGrid.city.currentCaptureState = targetGrid.city.captureStateAfterCapture >= 0
+        ? targetGrid.city.captureStateAfterCapture
+        : targetGrid.city.capturePointsRequired;
+
     // 显示占领完成特效
     ShowCaptureCompleteEffect();
-    
+
     // 重置占领状态
     currentCaptureProgress = 0;
     capturingGrid = null;
-    
+
     // 标记为已完全行动
     isMoved = true;
     isAttacked = true;
     state = UnitState.Acted;
     originalGrid = null;
-    
+
     // 视觉变暗
     SetWaitVisual(true);
-    
+
     // 通知刷新城市视觉
-    grid.city?.UpdateCityVisual();
-    
+    targetGrid.city?.UpdateCityVisual();
+
     var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
     gm?.CheckVictoryCondition();
 }
@@ -215,7 +220,7 @@ public partial class Infantry
         }
         
         // ✅ 计算进度百分比（0-100）
-        float progressPercent = Mathf.Min(100f, (currentCaptureProgress / (float)(grid.city?.capturePointsRequired ?? 20)) * 100f);
+        float progressPercent = Mathf.Min(100f, (currentCaptureProgress / (float)(grid.city?.GetCurrentCaptureState() ?? 20)) * 100f);
         
         currentCaptureEffect = new CaptureEffect
         {
@@ -300,7 +305,7 @@ public partial class Infantry
         }
 
         loadedCaptureProgress += power;
-        bool completed = loadedCaptureProgress >= (grid.city?.capturePointsRequired ?? 20);
+        bool completed = loadedCaptureProgress >= (grid.city?.GetCurrentCaptureState() ?? 20);
 
         // 借道原生完成/特效逻辑：池子临时灌进运输车字段（归属=运输车势力）
         int keepP = currentCaptureProgress; var keepG = capturingGrid;
@@ -312,5 +317,80 @@ public partial class Infantry
 
         loaded.MarkAsCapturing();
         ConsumeLoadedOperation();
+    }
+
+    // ==================== 远程占领（开创人2026-11-11）====================
+
+    /// 扫描全图：远程可占领设施（只看设施判定：开关＋n-m 环带＋敌对＋未冻结）。
+    public List<Facility> GetRemoteCapturableFacilities()
+    {
+        var result = new List<Facility>();
+        if (!canCaptureFacilities || isCapturingInProgress || grid == null) return result;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var grids = gm?.gridManager?.grids;
+        if (grids == null) return result;
+        foreach (var g in grids)
+        {
+            var city = g.city;
+            if (city == null || !IsInstanceValid(city)) continue;
+            if (!city.remoteCaptureEnabled || city.capturePointsRequired <= 0) continue;
+            if (city.facilityTeam == team) continue;
+            int dist = Math.Abs(g.GridIndex.X - grid.GridIndex.X) + Math.Abs(g.GridIndex.Y - grid.GridIndex.Y);
+            if (dist == 0 || dist < city.captureRangeMin || dist > city.captureRangeMax) continue;
+            if (g.infantries != null && g.infantries.Any(u => u != null && IsInstanceValid(u)
+                    && u.team != team && u.currentTearProgress > 0 && u.tearingGrid == g)) continue;   // 拆旗冻结
+            result.Add(city);
+        }
+        return result;
+    }
+
+    public bool CanRemoteCapture() => GetRemoteCapturableFacilities().Count > 0;
+
+    /// 远程占领一次结算：人不用站上设施，占领力打进设施格。遭遇/冻结规则与 PerformCapture 逐条一致。
+    public void PerformRemoteCapture(Facility city)
+    {
+        if (city == null || !IsInstanceValid(city)) return;
+        var target = city.ParentGrid;
+        if (target == null || !IsInstanceValid(target)) return;
+        if (isCapturingInProgress) return;
+
+        isCapturingInProgress = true;
+        try
+        {
+            if (target.infantries != null && target.infantries.Any(u => u != null && IsInstanceValid(u)
+                    && u != this && u.team != team && u.currentTearProgress > 0 && u.tearingGrid == target))
+            { ShowCaptureInterruptedEffect(); return; }   // 拆旗冻结
+
+            var contest = target.infantries.Where(u => u != null && IsInstanceValid(u) && u != this
+                && u.currentCaptureProgress > 0 && u.capturingGrid == target && u.team != team).ToList();
+            if (contest.Count > 0)
+            {
+                city.ShowCaptureContestVisual();
+                currentCaptureProgress = 0;
+                foreach (var e in contest) e.currentCaptureProgress = 0;
+                capturingGrid = target;
+                if (!city.capturingUnits.Contains(this)) city.capturingUnits.Add(this);
+                MarkAsCapturing();
+                return;
+            }
+
+            if (capturingGrid != target)
+            {
+                capturingGrid?.city?.OnCaptureInterrupted(this);
+                currentCaptureProgress = 0;
+                capturingGrid = target;
+                if (!city.capturingUnits.Contains(this)) city.capturingUnits.Add(this);
+                city.OnCaptureStarted(this);
+            }
+
+            int captureValue = (int)Math.Floor(capturePower * capturePowerFactor);
+            captureValue = Math.Max(1, captureValue);
+            currentCaptureProgress += captureValue;
+            ShowCaptureEffect();
+
+            if (currentCaptureProgress >= city.GetCurrentCaptureState()) CompleteCapture();
+            else MarkAsCapturing();
+        }
+        finally { isCapturingInProgress = false; }
     }
 }

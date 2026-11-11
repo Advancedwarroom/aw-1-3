@@ -127,6 +127,41 @@ public partial class Facility : Node2D
     [Export] public int fundsPerTurn = 1000;
     [Export] public bool provideIncomeToAllTeams = false;
 
+    // ========== 通行控制三件套（照兵器同构，开创人2026-11-11）==========
+    // allowAllPass 默认 true=AW 经典（单位可站上城市/基地）；false=Warside 模式（建筑正上方不能呆着）。
+    [ExportGroup("通行控制")]
+    [Export(PropertyHint.Enum, "仅我方,仅敌方,全部")] public int movementBlockTeamPolicy = 2;
+    [Export] public bool allowAllPass = true;
+    [Export] public string[] movementBlockWhitelist = System.Array.Empty<string>();
+
+    // ========== 远程占领（只看设施判定，不看单位）==========
+    [ExportGroup("远程占领")]
+    [Export] public bool remoteCaptureEnabled = false;   // 开关：关=现状必须站上
+    [Export] public int captureRangeMin = 0;             // n-m 环带
+    [Export] public int captureRangeMax = 0;
+
+    // ========== 远程生产落点 ==========
+    [ExportGroup("远程生产落点")]
+    [Export] public bool remoteProductionEnabled = false; // 开关：关=现状直接生产不选点
+    [Export] public int productionDropMinRange = 0;       // n-m 环带
+    [Export] public int productionDropMaxRange = 0;
+
+    // ========== 占领后状态（Warside：刚占完只有 m，每回合 +n 回满）==========
+    [ExportGroup("占领后状态")]
+    [Export] public int captureStateAfterCapture = -1;    // -1=回满(现状)；>=0=占领完成后新归属防御值（如 2）
+    [Export] public int captureStateRegenPerTurn = 0;     // 每回合回复量（如 2）；0=不回
+
+    public int currentCaptureState = -1;                  // 运行时：当前占领防御值；-1=惰性满值
+    /// 当前占领防御值：未初始化时视为满值 capturePointsRequired。
+    public int GetCurrentCaptureState()
+        => currentCaptureState < 0 ? capturePointsRequired : System.Math.Min(currentCaptureState, capturePointsRequired);
+    /// 每回合回复（由势力相位开始统一调用）。
+    public void RegenerateCaptureState()
+    {
+        if (captureStateRegenPerTurn <= 0 || currentCaptureState < 0) return;
+        currentCaptureState = System.Math.Min(capturePointsRequired, currentCaptureState + captureStateRegenPerTurn);
+    }
+
     public List<Infantry> capturingUnits = new();
     private CaptureContestEffect contestEffect;
 

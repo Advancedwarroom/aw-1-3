@@ -53,7 +53,9 @@ public partial class GameManager
 
         foreach (var facility in gridManager.grids.Where(g => g?.city != null).Select(g => g.city).ToList())
         {
-            if (!IsInstanceValid(facility) || facility.facilityTeam != team || facility.upkeepCostPerTurn <= 0) continue;
+            if (!IsInstanceValid(facility) || facility.facilityTeam != team) continue;
+            facility.RegenerateCaptureState();   // 占领后状态：每势力相位按 captureStateRegenPerTurn 回满（开创人2026-11-11）
+            if (facility.upkeepCostPerTurn <= 0) continue;
             if (!TryPayUpkeep(team, facility.upkeepCostPerTurn))
                 ResolveUpkeepFailure(facility, team, facility.upkeepFailureAction, facility.upkeepFailureTransformTargetType,
                     facility.upkeepFailureTransformUnitName, facility.upkeepFailureTransformScenePath,

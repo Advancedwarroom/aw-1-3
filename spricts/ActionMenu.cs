@@ -292,6 +292,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
             attackButton.Visible = unit.HasLoadedAttackOption();
 
         bool canCapture = unit.CanCaptureCurrentGrid();
+        bool canRemoteCapture = unit.GetRemoteCapturableFacilities().Count > 0;   // 开创人2026-11-11：设施判定远程占领
         bool isCapturing = unit.currentCaptureProgress > 0 && unit.capturingGrid == unit.grid;
 
         bool allowCaptureAfterMove = unit?.allowCaptureAfterMove ?? true;
@@ -301,7 +302,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
         bool isTearing = unit.currentTearProgress > 0 && unit.tearingGrid == unit.grid;
         bool canLoadedCapture = unit.CanPerformLoadedCapture();
         bool canLoadedTear = unit.CanPerformLoadedTearFlag();      // ✅ 舱内撕旗   // ✅ 内部单位操作：舱内占领
-        captureButton.Visible = (canCapture || isCapturing || canTear || isTearing || canLoadedCapture || canLoadedTear) && !unit.isAttacked && (!unit.isMoved || allowCaptureAfterMove);
+        captureButton.Visible = (canCapture || canRemoteCapture || isCapturing || canTear || isTearing || canLoadedCapture || canLoadedTear) && !unit.isAttacked && (!unit.isMoved || allowCaptureAfterMove);
         rotateButton?.Hide();
 
         waitButton.Visible = true;

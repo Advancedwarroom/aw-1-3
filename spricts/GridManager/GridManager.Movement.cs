@@ -201,6 +201,22 @@ public partial class GridManager
                 return false;
             }
         }
+        // ✅ 设施通行控制三件套（照兵器同构）：设施自己决定本格能否进入；默认 allowAllPass=true 零影响。
+        if (grid.city != null && IsInstanceValid(grid.city) && !grid.city.allowAllPass)
+        {
+            var fBlk = grid.city;
+            bool fTeamHit = fBlk.movementBlockTeamPolicy == 2
+                || (fBlk.movementBlockTeamPolicy == 0 && requestingUnit.team == fBlk.facilityTeam)
+                || (fBlk.movementBlockTeamPolicy == 1 && requestingUnit.team != fBlk.facilityTeam);
+            if (fTeamHit)
+            {
+                if (fBlk.movementBlockWhitelist == null || fBlk.movementBlockWhitelist.Length == 0
+                    || !(fBlk.movementBlockWhitelist.Contains(requestingUnit.UnitTypeId)
+                        || fBlk.movementBlockWhitelist.Contains(requestingUnit.GetType().Name)))
+                    return false;
+            }
+        }
+
         // ✅ 宇宙战舰/空天战机：可飞越兵器（不 blocked）
             
         var otherUnits = grid.infantries.Where(i => i != requestingUnit && IsInstanceValid(i)).ToList();
