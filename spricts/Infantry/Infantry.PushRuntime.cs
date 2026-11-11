@@ -10,8 +10,8 @@ public partial class Infantry
 
     public void TryPushTargetOnAttack(Infantry target)
     {
-        int distance = Mathf.Max(1, pushDistance);
-        if (!CanUseAttackPush() || pushDistance <= 0
+        int distance = GetRequestedPushDistance();
+        if (!CanUseAttackPush() || distance <= 0
             || grid == null || target == null || !GodotObject.IsInstanceValid(target)
             || target.grid == null || !IsWithinPushTargetRange(target.grid)) return;
 
@@ -164,7 +164,7 @@ public partial class Infantry
 
     public void BeginSeparatePushTargetSelection()
     {
-        if (!CanUseSeparatePushAction() || grid == null || pushDistance <= 0) return;
+        if (!CanUseSeparatePushAction() || grid == null || GetRequestedPushDistance() <= 0) return;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         var gridManager = gm?.gridManager;
         if (gridManager == null) return;
