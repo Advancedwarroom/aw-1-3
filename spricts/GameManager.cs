@@ -86,6 +86,7 @@ public partial class GameManager : Node
     {   
 
         AddToGroup("game_manager");
+        ScreenErrorLogger.EnsureInstalled(this);   // 开创人2026-11-11：全引擎报错上屏（手机看不了控制台）
         
         // ✅ 初始化势力系统（动态调色板 + 多势力支持）
         TeamHelper.InitializeDefaults();
