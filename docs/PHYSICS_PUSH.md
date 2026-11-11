@@ -37,7 +37,8 @@ For a separate action:
 - Push uses three dedicated shared ammunition kinds: `PushRebound`, `PushMitigation`, and `AntiGravityTransfer`. They are part of the unit ammo read/write/refill API, paid resupply/sacrifice, facility supply, devour effects, and generic Export saves.
 - Push costs and target ammo changes can select any `AmmoKind`; rebound, mitigation, and transfer default to their dedicated ammo types.
 - Infantry target effects include damage, one-HP locking, healing, max-HP changes, fuel changes, and changes to any configured `AmmoKind`.
-- Infantry stacks support configurable rebound, distance mitigation, and anti-gravity transfer Export settings. Mitigation ammo is charged only when its mitigation reduces displacement and the stack actually moves. Mitigation ammo is charged only when its mitigation actually reduces the displacement and the stack moves.
+- Infantry stacks support configurable rebound, distance mitigation, and anti-gravity transfer Export settings. Mitigation ammo is charged only when its mitigation reduces displacement and the stack actually moves.
+- Rebound can restore the target to its origin or retreat the pusher one tile to let the target rebound into the pusher's old tile. Rebound supports health/fuel/funds/ammo costs and reflected damage/fuel/ammo effects on the pusher. Mitigation ammo is charged only when its mitigation actually reduces the displacement and the stack moves.
 - `pushSelfDestructOnInvalidIntermediateTile` is configured on each infantry entity: enabled destroys it on any invalid intermediate tile; disabled only destroys it if the final requested tile is invalid.
 
 ## Current limitations
