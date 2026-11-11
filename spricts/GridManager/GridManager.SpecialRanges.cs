@@ -36,8 +36,8 @@ public partial class GridManager
         HideExplosionRange();
         if (unit?.grid == null) return;
 
-        var allRangeGrids = FindRange(unit.grid, maxR, false, unit.explosionCanCrossScreens);
-        List<Grids> innerGrids = minR > 0 ? FindRange(unit.grid, minR - 1, false, unit.explosionCanCrossScreens) : new List<Grids>();
+        var allRangeGrids = grids.Where(g => g != null && Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) <= maxR && IsRangeAllowed(unit.grid, g, unit.explosionCanCrossScreens)).ToList();
+        List<Grids> innerGrids = minR > 0 ? allRangeGrids.Where(g => Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) < minR).ToList() : new List<Grids>();
 
         foreach (var grid in allRangeGrids)
         {
@@ -70,8 +70,8 @@ public partial class GridManager
         HideFlareRange();
         if (unit?.grid == null) return;
 
-        var allRangeGrids = FindRange(unit.grid, maxR, false, unit.flareLaunchCanCrossScreens);
-        List<Grids> innerGrids = minR > 0 ? FindRange(unit.grid, minR - 1, false, unit.flareLaunchCanCrossScreens) : new List<Grids>();
+        var allRangeGrids = grids.Where(g => g != null && Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) <= maxR && IsRangeAllowed(unit.grid, g, unit.flareLaunchCanCrossScreens)).ToList();
+        List<Grids> innerGrids = minR > 0 ? allRangeGrids.Where(g => Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) < minR).ToList() : new List<Grids>();
 
         foreach (var grid in allRangeGrids)
         {
@@ -99,14 +99,13 @@ public partial class GridManager
     }
 
     // ========== ✅ 照明覆盖范围显示（黄色，以目标为中心）==========
-    public void ShowIlluminationRange(Grids center, int minR, int maxR, Grids source = null, bool allowCrossScreens = false)
+    public void ShowIlluminationRange(Grids center, int minR, int maxR, bool allowCrossScreens = false)
     {
         HideIlluminationRange();
         if (center == null) return;
 
-        var allRangeGrids = FindRange(center, maxR, false, true);
-        List<Grids> innerGrids = minR > 0 ? FindRange(center, minR - 1, false, true) : new List<Grids>();
-        if (source != null && !allowCrossScreens) { allRangeGrids = allRangeGrids.Where(g => IsRangeAllowed(source, g, false)).ToList(); innerGrids = innerGrids.Where(g => IsRangeAllowed(source, g, false)).ToList(); }
+        var allRangeGrids = grids.Where(g => g != null && Mathf.Abs(g.GridIndex.X - center.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - center.GridIndex.Y) <= maxR && IsRangeAllowed(center, g, allowCrossScreens)).ToList();
+        List<Grids> innerGrids = minR > 0 ? allRangeGrids.Where(g => Mathf.Abs(g.GridIndex.X - center.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - center.GridIndex.Y) < minR).ToList() : new List<Grids>();
 
         foreach (var grid in allRangeGrids)
         {
