@@ -23,6 +23,7 @@ public partial class Infantry
     [Export] public int constructionMinRange = 1;                                     // ③ 外部建造最小范围
     [Export] public int constructionMaxRange = 2;                                     // ③ 外部建造最大范围
     [Export] public bool constructionCanCrossScreens = false;                        // 外部建造目标范围是否允许跨屏
+    [Export] public bool deployFacilityCanCrossScreens = false;                    // 部署舱内建筑的相邻格是否允许跨屏
     [Export] public bool constructionAutoPlace = false;                                // ④ 外部自动随机放置（false=手选目标格）
     [Export] public Godot.Collections.Array<string> constructionWhitelist = new();   // ⑤ 建造白名单（建筑类型名）
     [Export] public int maxConstructionAmmo = 0;                                      // ⑥ 建造弹药上限
@@ -246,7 +247,10 @@ public partial class Infantry
     public bool DeployCarriedFacility(Grids target)
     {
         if (carriedFacilityTypes.Count == 0) return false;
-        if (target == null || !CanBuildFacilityOnTerrain(carriedFacilityTypes[0], target.gridType)) return false;   // ⑫ 部署也受地形限制
+        if (target == null || grid == null || !CanBuildFacilityOnTerrain(carriedFacilityTypes[0], target.gridType)) return false;   // ⑫ 部署也受地形限制
+        int dx = Mathf.Abs(target.GridIndex.X - grid.GridIndex.X), dy = Mathf.Abs(target.GridIndex.Y - grid.GridIndex.Y);
+        var deployGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (Math.Max(dx, dy) != 1 || deployGm?.gridManager == null || !deployGm.gridManager.IsRangeAllowed(grid, target, deployFacilityCanCrossScreens)) return false;
         if (IsWeaponBuildEntry(carriedFacilityTypes[0]))
         {
             if (SpawnWeaponOnGrid(carriedFacilityTypes[0], target)) { carriedFacilityTypes.RemoveAt(0); return true; }
