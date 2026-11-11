@@ -256,7 +256,7 @@ public partial class ExtraSave
                 fixedAttackPerTurn = d.GetValueOrDefault("fixedAttackPerTurn", 0).AsInt32(),
                 canOverMaxHealth = d.GetValueOrDefault("canOverMaxHealth", false).AsBool(),
                 fixedMaxHealthChangePerTurn = d.GetValueOrDefault("fixedMaxHealthChangePerTurn", 0).AsInt32(),
-                fixedWeightChangePerTurn = d.GetValueOrDefault("fixedWeightChangePerTurn", 0.0).AsDouble(),
+                fixedWeightChangePerTurn = (float)d.GetValueOrDefault("fixedWeightChangePerTurn", 0.0).AsDouble(),
                 fixedAmmoChangePerTurn = d.GetValueOrDefault("fixedAmmoChangePerTurn", 0).AsInt32(),
                 ammoCanOverMax = d.GetValueOrDefault("ammoCanOverMax", false).AsBool(),
                 ammoCanReachZero = d.GetValueOrDefault("ammoCanReachZero", true).AsBool(),
