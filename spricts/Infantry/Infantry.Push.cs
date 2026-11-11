@@ -109,6 +109,15 @@ public partial class Infantry
     [Export] public bool pushTargetCanOverMaxHealth = false;
     [Export] public int pushTargetMaxHealthDelta = 0;
 
+    [ExportSubgroup("脆弱模块")]
+    [Export] public bool pushFragileEnabled = false;
+    [Export] public int pushFragileDamage = 0;
+    [Export] public bool pushFragileCanDestroy = false;
+    [Export] public bool pushFragileLockOneHp = false;
+    [Export] public int pushFragileFuelDelta = 0;
+    [Export] public int pushFragileAmmoDelta = 0;
+    [Export] public AmmoKind pushFragileAmmoKind = AmmoKind.Primary;
+
     [ExportSubgroup("反弹模块")]
     [Export] public bool pushReboundEnabled = false;
     [Export] public bool pushReboundToOrigin = true;
