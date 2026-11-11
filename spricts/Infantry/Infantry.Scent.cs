@@ -69,7 +69,7 @@ public partial class Infantry
         foreach (var kv in scentTracked)
         {
             int left = kv.Value - 1;
-            if (left <= 0 || !GodotObject.IsInstanceValid(kv.Key)) expired.Add(kv.Key);
+            if (left <= 0 || !GodotObject.IsInstanceValid(kv.Key) || grid == null || kv.Key.grid == null || !gridManager.IsRangeAllowed(grid, kv.Key.grid, scentCanCrossScreens)) expired.Add(kv.Key);
             else { scentTracked[kv.Key] = left; kv.Key.stealthFlareRevealed = true; }
         }
         foreach (var u in expired) scentTracked.Remove(u);
