@@ -93,6 +93,7 @@ public partial class Weapon : Node2D
     [ExportGroup("战争迷雾视野")]
     [Export] public int visionRange = -1;
     [Export] public bool useConfigVision = true;
+    [Export] public bool visionCanCrossScreens = false; // 兵器基础视野范围是否允许跨屏
     [Export] public VisionMode visionMode = VisionMode.Normal;
 
     // ✅ 新增：兵器独立的视野加成矩阵（覆盖全局默认值）
