@@ -28,7 +28,7 @@ public partial class ActionMenu
     {
         if (g == null) return false;
         if (fog != null && fog.isFogOfWarEnabled && !fog.IsGridVisible(g)) return false;
-        bool weaponOk = g.weapon != null && IsInstanceValid(g.weapon) && (g.weapon.team != unit.team || unit.canAttackFriendlies)
+        bool weaponOk = g.weapon != null && IsInstanceValid(g.weapon) && (g.weapon.team != unit.team || unit.canAttackFriendlies || (unit.canAttackAllies && TeamHelper.AreAllied(unit.team, g.weapon.team)))
                         && (!g.weapon.isMultiTile || g.weapon.IsWeakPointGrid(g))
                         && (ringMode || !g.weapon.hasActed);
         if (weaponOk) return true;
