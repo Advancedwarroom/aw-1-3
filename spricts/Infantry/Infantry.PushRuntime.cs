@@ -749,9 +749,17 @@ public partial class Infantry
                 unit.health = (int)Math.Max(1L, damagedHealth);
             }
             if (pushTargetFuelDelta != 0)
-                unit.fuel = (int)Math.Clamp((long)unit.fuel + pushTargetFuelDelta, 0L, int.MaxValue);
+            {
+                long fuelValue = (long)unit.fuel + pushTargetFuelDelta;
+                long fuelMax = pushTargetFuelCanOverMax ? int.MaxValue : Math.Max(0, unit.maxFuel);
+                unit.fuel = (int)Math.Clamp(fuelValue, 0L, fuelMax);
+            }
             if (pushTargetAmmoDelta != 0)
-                unit.AddAmmo(pushTargetAmmoKind, pushTargetAmmoDelta);
+            {
+                long ammoValue = (long)unit.GetAmmo(pushTargetAmmoKind) + pushTargetAmmoDelta;
+                long ammoMax = pushTargetAmmoCanOverMax ? int.MaxValue : Math.Max(0, unit.GetMaxAmmo(pushTargetAmmoKind));
+                unit.SetAmmoRaw(pushTargetAmmoKind, (int)Math.Clamp(ammoValue, 0L, ammoMax));
+            }
             unit.UpdateHpLabel();
         }
     }
