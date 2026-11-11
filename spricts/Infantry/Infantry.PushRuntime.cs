@@ -56,6 +56,8 @@ public partial class Infantry
                 moved = true;
             }
             if (!moved) return;
+            if (pushDirectionMode == PushDirectionMode.OppositeSides)
+                MovePusherOppositeDirection(direction, pushDistance, gm.gridManager, gm);
             if (fromSeparateAction)
             {
                 if (!TryMarkPushActionUsed()) return;
@@ -91,6 +93,8 @@ public partial class Infantry
             moved = true;
         }
         if (!moved) return;
+        if (pushDirectionMode == PushDirectionMode.OppositeSides)
+            MovePusherOppositeDirection(direction, pushDistance, gm.gridManager, gm);
         if (fromSeparateAction)
         {
             if (!TryMarkPushActionUsed()) return;
