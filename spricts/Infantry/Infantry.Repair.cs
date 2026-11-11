@@ -26,6 +26,7 @@ public partial class Infantry
     [Export] public bool autoRepairAfterMove = false;                // 移动后自动修复（不占用操作）
     [Export] public bool autoSupplyOnTurnStart = false;              // 每回合自动补给（不占用操作）
     [Export] public bool supplyCostsFunds = false;                   // 补给是否消耗资金
+    [Export] public bool repairCanCrossScreens = false;             // 修理范围是否允许跨屏
     // ========== ✅ 通用修理模块（任何 canRepair 单位可用；原 RepairBoat 专属逻辑上移） ==========
     /// <summary>修理范围：[min,max] 环；repairTargetMode=3（仅自己）时只含自身格</summary>
     public virtual List<Grids> CalculateRepairRange()
@@ -34,10 +35,10 @@ public partial class Infantry
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null || grid == null) return result;
         if (repairTargetMode == 3) { result.Add(grid); return result; }
-        var allRange = gm.gridManager.FindRange(grid, maxRepairRange, false);
+        var allRange = gm.gridManager.FindRange(grid, maxRepairRange, false, repairCanCrossScreens);
         if (minRepairRange > 1)
         {
-            var blindZone = gm.gridManager.FindRange(grid, minRepairRange - 1, false);
+            var blindZone = gm.gridManager.FindRange(grid, minRepairRange - 1, false, repairCanCrossScreens);
             allRange = allRange.Where(g => !blindZone.Contains(g)).ToList();
         }
         return allRange.Where(g => g != grid).ToList();
