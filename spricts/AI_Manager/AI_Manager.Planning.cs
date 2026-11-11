@@ -148,7 +148,7 @@ public partial class AI_Manager
             Grids hitGrid = null;
             foreach (var wg in WeaponGrids(w))
             {
-                if (wg.screenId != g.screenId) continue;
+                if (!gameManager.gridManager.IsRangeAllowed(g, wg, u.attackCanCrossScreens)) continue;
                 if (w.occupiedGrids.Count > 1 && !w.IsWeakPointGrid(wg)) continue;
                 int d = Dist(g, wg);
                 if (CanHitAtDistance(u, d)) { hitGrid = wg; break; }
@@ -215,7 +215,7 @@ public partial class AI_Manager
         if (u.canSupplyUnits && customOk)
         {
             float val = 0;
-            foreach (var t in Ring(g, Math.Max(1, u.minSupplyRange), Math.Max(1, u.maxSupplyRange)).SelectMany(x => x.infantries))
+            foreach (var t in Ring(g, Math.Max(1, u.minSupplyRange), Math.Max(1, u.maxSupplyRange)).Where(x => gameManager.gridManager.IsRangeAllowed(g, x, u.supplyCanCrossScreens)).SelectMany(x => x.infantries))
             {
                 if (t == null || t == u || t.team != u.team || !IsInstanceValid(t)) continue;
                 val += SupplyNeed(t);
@@ -229,7 +229,7 @@ public partial class AI_Manager
         if (rp.can && (!moved || rp.afterMove) && customOk)
         {
             Infantry bestT = null; float bestV = 0;
-            foreach (var t in Ring(g, Math.Max(0, rp.min), Math.Max(0, rp.max)).SelectMany(x => x.infantries))
+            foreach (var t in Ring(g, Math.Max(0, rp.min), Math.Max(0, rp.max)).Where(x => gameManager.gridManager.IsRangeAllowed(g, x, u.repairCanCrossScreens)).SelectMany(x => x.infantries))
             {
                 if (t == null || !IsInstanceValid(t) || t.isTransported) continue;
                 if (!u.IsRepairTargetAllowed(t)) continue;   // 与引擎/界面同一判定
@@ -248,10 +248,10 @@ public partial class AI_Manager
         if (u.canIlluminate && u.currentFlareAmmo > 0 && ctx.fogOn && (!moved || u.canIlluminateAfterMove) && customOk)
         {
             Grids bestC = null; float bestV = 0;
-            foreach (var c in Ring(g, Math.Max(0, u.minLaunchRange), Math.Max(0, u.maxLaunchRange)))
+            foreach (var c in Ring(g, Math.Max(0, u.minLaunchRange), Math.Max(0, u.maxLaunchRange)).Where(x => gameManager.gridManager.IsRangeAllowed(g, x, u.flareLaunchCanCrossScreens)))
             {
                 float v = 0;
-                foreach (var t in Ring(c, Math.Max(0, u.minIlluminationRange), Math.Max(0, u.maxIlluminationRange)))
+                foreach (var t in Ring(c, Math.Max(0, u.minIlluminationRange), Math.Max(0, u.maxIlluminationRange)).Where(x => gameManager.gridManager.IsRangeAllowed(c, x, u.flareEffectCanCrossScreens)))
                 {
                     if (ctx.vision.Contains(t)) continue;
                     v += 20;
@@ -273,7 +273,7 @@ public partial class AI_Manager
                 if (t == null || !IsInstanceValid(t) || t.grid == null) continue;
                 var tg = t == u ? g : t.grid;
                 int d = Dist(g, tg);
-                if (d < u.explosionMinRange || d > u.explosionMaxRange) continue;
+                if (d < u.explosionMinRange || d > u.explosionMaxRange || !gameManager.gridManager.IsRangeAllowed(g, tg, u.explosionCanCrossScreens)) continue;
                 if (t == u && u.explosionDestroysSelf) continue;
                 bool isEnemy = t.team != u.team;
                 bool include = u.explosionTargetMode switch { 1 => isEnemy, 2 => !isEnemy, _ => true };
@@ -293,7 +293,7 @@ public partial class AI_Manager
                 foreach (var w in ctx.enemyWeapons)
                 {
                     int d = Dist(g, w.grid);
-                    if (d < u.explosionMinRange || d > u.explosionMaxRange) continue;
+                    if (d < u.explosionMinRange || d > u.explosionMaxRange || !gameManager.gridManager.IsRangeAllowed(g, w.grid, u.explosionCanCrossScreens)) continue;
                     if (u.explosionTargetMode == 2) continue;
                     int dmg = gameManager.CalculateExplosionDamage(u, w);
                     if (dmg > 0) v += Math.Min(dmg, w.health) / (float)Math.Max(1, w.maxHealth) * Math.Max(w.cost, 8000);
