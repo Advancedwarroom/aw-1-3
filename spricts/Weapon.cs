@@ -73,10 +73,18 @@ public partial class Weapon : Node2D
 
     public virtual bool MoveByPhysicsPush(Grids destination, WeaponManager manager)
     {
-        if (!pushableByPhysics || isDestroyed || destination == null || manager == null || isMultiTile)
+        if (!pushableByPhysics || isDestroyed || destination == null || manager == null)
             return false;
+
+        // BindWeaponToGrid validates the full occupied footprint for multi-tile weapons.
+        // Preserve the old transform if the destination footprint cannot be rebound.
+        Vector2 previousPosition = Position;
         Position = destination.Position;
-        return manager.BindWeaponToGrid(this, true);
+        if (manager.BindWeaponToGrid(this, true))
+            return true;
+
+        Position = previousPosition;
+        return false;
     }
 
     // ✅ 力场bypass：坠落等引擎流程内部使用（黑弧护卫全毁坠落时绕过力场）
