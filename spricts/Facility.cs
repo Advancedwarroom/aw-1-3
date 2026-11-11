@@ -488,7 +488,7 @@ public partial class Facility : Node2D
     // source palette (for example TempPort's cyan artwork).
     protected virtual float GetBaseArtHue() => 0f;  // 2026-11-11: base art normalized to 0° red baseline
 
-    protected ShaderMaterial GetHueMaterial(string team)
+    protected ShaderMaterial GetHueMaterial(string team, bool guardSourceHue = false)
     {
         team = TeamHelper.CanonicalId(team);
         if (_hueShader == null || !GodotObject.IsInstanceValid(_hueShader))
@@ -524,6 +524,12 @@ public partial class Facility : Node2D
         var material = new ShaderMaterial { Shader = _hueShader };
         material.SetShaderParameter("hue_shift", hueShift);
         material.SetShaderParameter("saturation", saturation);
+        // ✅ 2026-11-11 单图层成品画: 只转源色带(队伍红)内像素, 其余原样——非编码画的"只染队伍色"守卫
+        if (guardSourceHue)
+        {
+            material.SetShaderParameter("guard_center", GetBaseArtHue());
+            material.SetShaderParameter("guard_range", 0.10f);
+        }
         return material;
     }
 
@@ -570,11 +576,21 @@ public partial class Facility : Node2D
         if (normalSprite != null) normalSprite.Hide();
         
         // ✅ 2026-11 设施拆雷: 城市设施全是每势力成品固定画(非CoW编码图/非红蓝模板画), mode2模板识别(mode=2)对非模板画=误判染色
-        // (染花水晶同款雷; P1/P2靠IsNativeArt幸免, 其余势力全在吃误判)——原生固定画直出Material=null;
-        // 若未来某设施接入(R,G)编码贴图, 在此改挂 FactionPaletteManager.GetCowLutMaterial(facilityTeam)
+        // (染花水晶同款雷; P1/P2靠IsNativeArt幸免, 其余势力全在吃误判)——原生固定画不挂 CoW LUT;
+        // ✅ 2026-11-11 开创人: 单图层成品画补挂色相Shader(带源色带守卫)兑现"P-1正典紫/自定义势力染色"。
+        // P-1/P3+ 播红色模板(PickTeamArt), 源色相≈GetBaseArtHue()实测校准; 守卫只转红色带内像素, 米色/灰/白不动——
+        // 与拆雷针对的LUT mode2是两套机制, 不会染花。P2蓝色模板源色相≠红基线→不挂; P0中立已灰→不挂。
+        // P1原生红直出保像素级保真, 仅改色后的P1挂Shader。若未来某设施接入(R,G)编码贴图, 在此改挂 FactionPaletteManager.GetCowLutMaterial(facilityTeam)
         if (animSprite != null && IsInstanceValid(animSprite))
         {
-            animSprite.Material = null;
+            string t = TeamHelper.CanonicalId(facilityTeam);
+            bool useHueShader = t != TeamHelper.Player0 && t != TeamHelper.Player2;
+            if (t == TeamHelper.Player1)
+            {
+                var f1 = TeamHelper.GetFaction(t);
+                useHueShader = !FactionPaletteManager.IsNativeArt(t, f1);   // P1原生红: 直出保真
+            }
+            animSprite.Material = useHueShader ? GetHueMaterial(facilityTeam, true) : null;
             animSprite.Show();
         }
     }
