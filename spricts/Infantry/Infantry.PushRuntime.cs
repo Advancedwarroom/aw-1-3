@@ -28,7 +28,8 @@ public partial class Infantry
 
     public void TryPushWeaponOnAttack(Weapon target)
     {
-        if (!CanPushNonInfantryTarget(target?.grid, target?.pushableByPhysics, target?.GetEffectiveWeight(),
+        if (pushTargetClass != PushTargetClass.AnyPushableEntity
+            || !CanPushNonInfantryTarget(target?.grid, target?.pushableByPhysics, target?.GetEffectiveWeight(),
             target?.equalWeightPushMode ?? EqualWeightPushMode.Stop, target == null || target.isDestroyed)
             || target == null || !CanPushTeamName(target.team, target.GetType().Name))
             return;
@@ -53,7 +54,8 @@ public partial class Infantry
 
     public void TryPushFacilityOnAttack(Facility target)
     {
-        if (!CanPushNonInfantryTarget(target?.ParentGrid, target?.pushableByPhysics,
+        if (pushTargetClass != PushTargetClass.AnyPushableEntity
+            || !CanPushNonInfantryTarget(target?.ParentGrid, target?.pushableByPhysics,
             target?.GetEffectiveWeight(), target?.equalWeightPushMode ?? EqualWeightPushMode.Stop,
             target == null || target.health <= 0)
             || target == null || !CanPushTeamName(target.facilityTeam, target.GetType().Name))
@@ -336,7 +338,7 @@ public partial class Infantry
         if (staticTarget)
         {
             var weapon = targetGrid.weapons?.FirstOrDefault(w => w != null
-                && GodotObject.IsInstanceValid(w) && w.pushableByPhysics && CanPushTeamName(w.team));
+                && GodotObject.IsInstanceValid(w) && w.pushableByPhysics && CanPushTeamName(w.team, w.GetType().Name));
             var facility = targetGrid.city != null && targetGrid.city.pushableByPhysics
                 && CanPushTeamName(targetGrid.city.facilityTeam, targetGrid.city.GetType().Name) ? targetGrid.city : null;
             if (weapon == null && facility == null) return;
