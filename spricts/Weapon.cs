@@ -19,11 +19,11 @@ public partial class Weapon : Node2D
     // ✅ N屏：目标格是否被屏隔离挡住（canCrossScreens=true 时忽略屏界）
     public bool IsScreenBlocked(Grids target)
     {
-        if (canCrossScreens || target == null || grid == null) return false;
+        if (target == null || grid == null) return false;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         var gmm = gm?.gridManager;
-        if (gmm == null || gmm.GetScreenCount() <= 1) return false;
-        return !gmm.IsSameScreen(grid.GridIndex, target.GridIndex);
+        if (gmm == null) return false;
+        return !gmm.IsRangeAllowed(grid, target, canCrossScreens);
     }
 
     // ✅ 伤害单位类别限制（可拼装模块）：按攻击者的空军/陆军/海军/防空分类过滤，全true=不限制（默认）
