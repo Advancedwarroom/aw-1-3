@@ -664,7 +664,7 @@ public partial class Infantry
                     && CanPushTeamName(w.team, w))
                 : null;
             var facility = pushCanTargetFacilities && targetGrid.city != null && targetGrid.city.pushableByPhysics
-                && CanPushTeamName(targetGrid.city.facilityTeam, targetGrid.city.GetType().Name)
+                && CanPushTeamName(targetGrid.city.facilityTeam, targetGrid.city)
                 ? targetGrid.city : null;
             if (weapon == null && facility == null) return;
             // The selected target is fully validated once by the corresponding
