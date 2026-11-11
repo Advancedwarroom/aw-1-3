@@ -305,7 +305,7 @@ public partial class Weapon
     [Export] public int wSpecialCurrent = 0;
     [Export] public int wSpecialMax = 0;                            // 0=无限
 
-    // 十四资源读写（兵器无燃料/生产弹/建造弹 → no-op）
+    // 十五资源读写（兵器无燃料/生产弹/建造弹 → no-op）
     public int PrGetW(int res) => res switch
     {
         0 => health, 14 => Mathf.RoundToInt(weight * 100.0f), 2 => currentAmmo, 3 => wExplodeCurrent, 4 => wFlareCurrent,
@@ -354,6 +354,7 @@ public partial class Facility
         switch (res)
         {
             case 0: health = v; break; case 10: currentSpecialAmmo = v; break;
+            case 14: weight = Mathf.Clamp(v / 100.0f, 0.0f, 9999.0f); break;
         }
     }
     public bool PrIsInfiniteF(int res)
