@@ -212,12 +212,45 @@ public partial class Infantry
         }
     }
 
+    private int GetMitigatedPushDistance(List<Infantry> stack, int requestedDistance)
+    {
+        int tiles = stack.Where(u => u.pushMitigationEnabled)
+            .Select(u => Mathf.Max(0, u.pushMitigationTiles)).DefaultIfEmpty(0).Max();
+        float percent = stack.Where(u => u.pushMitigationEnabled)
+            .Select(u => Mathf.Clamp(u.pushMitigationPercent, 0f, 100f)).DefaultIfEmpty(0f).Max();
+        int remaining = Mathf.Max(0, requestedDistance - tiles);
+        return Mathf.Clamp(Mathf.FloorToInt(remaining * (1f - percent / 100f)), 0, requestedDistance);
+    }
+
+    private bool TryReboundStack(List<Infantry> stack, Grids origin, Vector2I direction, GameManager gm)
+    {
+        var rebounder = stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushReboundEnabled);
+        if (rebounder == null || origin == null || GetLivingStack(origin).Count > 0)
+            return false;
+        if (rebounder.GetAmmo(AmmoKind.Primary) < rebounder.pushReboundAmmoCost
+            || rebounder.fuel < rebounder.pushReboundFuelCost
+            || (gm != null && gm.GetTeamFunds(rebounder.team) < rebounder.pushReboundFundsCost))
+            return false;
+        if (rebounder.pushReboundAmmoCost > 0)
+            rebounder.TryConsumeAmmo(AmmoKind.Primary, rebounder.pushReboundAmmoCost);
+        rebounder.fuel = Mathf.Max(0, rebounder.fuel - rebounder.pushReboundFuelCost);
+        if (rebounder.pushReboundFundsCost > 0 && gm != null)
+            gm.SetTeamFunds(rebounder.team, gm.GetTeamFunds(rebounder.team) - rebounder.pushReboundFundsCost);
+        MoveStackByPush(stack, origin);
+        return true;
+    }
+
     private void ApplyPushTargetEffects(List<Infantry> stack, GameManager gm)
     {
         foreach (var unit in stack.ToList())
         {
             if (!IsLivingUnit(unit)) continue;
+            if (unit.pushTargetMaxHealthDelta != 0)
+                unit.maxHealth = Mathf.Max(1, unit.maxHealth + unit.pushTargetMaxHealthDelta);
             if (pushLockTargetToOneHp) unit.health = 1;
+            else if (pushTargetHealAmount > 0)
+                unit.health = Mathf.Min(unit.pushTargetCanOverMaxHealth ? int.MaxValue : unit.GetEffectiveMaxHealth(),
+                    unit.health + pushTargetHealAmount);
             else if (pushTargetDamage > 0)
             {
                 unit.health -= pushTargetDamage;
@@ -318,6 +351,7 @@ public partial class Infantry
             for (int i = chain.Count - 1; i > firstBlockedLink; i--)
             {
                 var stack = chain[i].Where(IsLivingUnit).ToList();
+                if (step >= GetMitigatedPushDistance(stack, distance)) continue;
                 if (stack.Count == 0) continue;
                 var destination = gridManager.GetGridAt(stack[0].grid.GridIndex + direction);
                 if (destination == null)
@@ -341,7 +375,10 @@ public partial class Infantry
                 if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager))
                     continue;
 
+                var origin = stack[0].grid;
                 MoveStackByPush(stack, destination);
+                if (TryReboundStack(stack, origin, direction, gameManager))
+                    continue;
                 ApplyPushTargetEffects(stack, gameManager);
             }
         }
