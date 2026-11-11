@@ -25,9 +25,11 @@ public partial class Infantry
     // 5.力场支援范围
     [Export] public int forceSupportMinRange = 0;                // x1：以本单位为圆心最小距离
     [Export] public int forceSupportMaxRange = 2;               // y1：最大距离
+    [Export] public bool forceSupportCanCrossScreens = false; // 力场支援作用源范围是否跨屏
     // 6.力场作用效果范围
     [Export] public int forceSupportEffectMinRadius = 0;         // x2：效果最小半径
     [Export] public int forceSupportEffectMaxRadius = 0;         // y2：效果最大半径（0=仅覆盖目标本身）
+    [Export] public bool forceSupportEffectCanCrossScreens = false; // 力场支援二级效果面是否跨屏
     // 7.黑名单（建筑/兵器/单位全考虑：填类名或UnitId）
     [Export] public string[] forceSupportBlacklist = System.Array.Empty<string>();
 
@@ -54,6 +56,8 @@ public partial class Infantry
     [Export] public int spaceStrikeMaxRange = 8;                 // 2.最大范围
     [Export] public int spaceStrikeEffectMinRadius = 0;          // 3.选择目标后效果范围（以目标点为核心）
     [Export] public int spaceStrikeEffectMaxRadius = 1;          // 3.效果最大半径
+    [Export] public bool spaceStrikeCanCrossScreens = false; // 天基打击选点射程是否允许跨屏
+    [Export] public bool spaceStrikeEffectCanCrossScreens = false; // 天基打击效果面是否允许跨屏
     [Export] public float spaceStrikeDamagePercent = 0.5f;       // 固定伤害百分比（攻击卫星固定50%）
     [Export] public bool spaceStrikeIncludeFriendly = false;
     [Export] public bool spaceStrikeIncludeEnemy = true;
@@ -79,7 +83,8 @@ public partial class Infantry
     private bool FsInRange(Grids g)
     {
         int d = Mathf.Abs(g.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - grid.GridIndex.Y);
-        return d >= forceSupportMinRange && d <= forceSupportMaxRange;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        return d >= forceSupportMinRange && d <= forceSupportMaxRange && gm?.gridManager != null && gm.gridManager.IsRangeAllowed(grid, g, forceSupportCanCrossScreens);
     }
 
     // 效果范围（x2-y2）：以目标格为圆心的效果圈；0=仅目标本身
@@ -87,7 +92,8 @@ public partial class Infantry
     {
         if (forceSupportEffectMaxRadius <= 0) return checkGrid == targetGrid;
         int d = Mathf.Abs(checkGrid.GridIndex.X - targetGrid.GridIndex.X) + Mathf.Abs(checkGrid.GridIndex.Y - targetGrid.GridIndex.Y);
-        return d >= forceSupportEffectMinRadius && d <= forceSupportEffectMaxRadius;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        return d >= forceSupportEffectMinRadius && d <= forceSupportEffectMaxRadius && gm?.gridManager != null && gm.gridManager.IsRangeAllowed(targetGrid, checkGrid, forceSupportEffectCanCrossScreens);
     }
 
     // 由 Infantry._Process 每帧驱动（避免 partial 重复 override）
@@ -415,14 +421,19 @@ public partial class Infantry
     public void PerformSpaceStrike(Grids targetGrid)
     {
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm?.gridManager == null || targetGrid == null) return;
+        if (gm?.gridManager == null || targetGrid == null || grid == null) return;
+        if (!spaceStrikeGlobal)
+        {
+            int targetDistance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
+            if (targetDistance < spaceStrikeMinRange || targetDistance > spaceStrikeMaxRange || !gm.gridManager.IsRangeAllowed(grid, targetGrid, spaceStrikeCanCrossScreens)) return;
+        }
         if (spaceStrikeUsesThisTurn >= spaceStrikeMaxUses) return;
         spaceStrikeUsesThisTurn++;
 
         var blastGrids = gm.gridManager.grids.Where(g =>
         {
             int d = Mathf.Abs(g.GridIndex.X - targetGrid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - targetGrid.GridIndex.Y);
-            return d >= spaceStrikeEffectMinRadius && d <= spaceStrikeEffectMaxRadius;
+            return d >= spaceStrikeEffectMinRadius && d <= spaceStrikeEffectMaxRadius && gm.gridManager.IsRangeAllowed(targetGrid, g, spaceStrikeEffectCanCrossScreens);
         }).ToList();
 
         foreach (var g in blastGrids) ApplySpaceStrikeEffects(g, gm);
