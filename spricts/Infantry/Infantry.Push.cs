@@ -101,6 +101,8 @@ public partial class Infantry
 
     [ExportSubgroup("目标状态效果")]
     [Export] public int pushTargetDamage = 0;
+    [Export] public int pushTargetFundsDelta = 0;
+    [Export] public bool pushTargetFundsCanOverMax = false;
     [Export] public bool pushDamageCanDestroy = false;
     [Export] public bool pushLockTargetToOneHp = false;
     [Export] public int pushTargetFuelDelta = 0;
