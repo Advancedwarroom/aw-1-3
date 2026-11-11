@@ -594,6 +594,14 @@ public partial class Facility : Node2D
         return bn;
     }
 
+    // ✅ 开创人2026-11-12: 关闭时释放色板静态缓存——否则退出时 CompressedTexture2D/Image 泄漏, 进程退出码被顶成1
+    public static void ReleaseCowPaletteCaches()
+    {
+        _cowPalCache.Clear();
+        _cowPalTex.Clear();
+        _cowPalShader = null;
+    }
+
     private static Texture2D CowPaletteTexture(string name)
     {
         if (_cowPalTex.TryGetValue(name, out var hit)) return hit;
