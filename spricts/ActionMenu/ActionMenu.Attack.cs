@@ -44,8 +44,8 @@ public partial class ActionMenu
         var all = gm.gridManager.grids;
         bool ring = unit.useMinMaxAttackRange;
         IEnumerable<Grids> candidates = ring
-            ? all.Where(g => g != null && g != unit.grid && Dist(g, unit.grid) >= unit.minAttackRange && Dist(g, unit.grid) <= unit.maxAttackRange)
-            : gm.gridManager.GetAttackNeighbours(unit.grid);
+            ? all.Where(g => g != null && g != unit.grid && gm.gridManager.IsRangeAllowed(unit.grid, g, unit.attackCanCrossScreens) && Dist(g, unit.grid) >= unit.minAttackRange && Dist(g, unit.grid) <= unit.maxAttackRange)
+            : gm.gridManager.GetAttackNeighbours(unit.grid, unit.attackCanCrossScreens);
         if (candidates.Any(g => HasAttackableEnemyInGrid(unit, g, fog, all, ring))) return true;
         // 重叠型单位可打同格（与 ShowAttackRange 同格分支一致）
         return !ring && unit.overlapType == UnitOverlapType.Overlapping
