@@ -22,6 +22,8 @@ public partial class Infantry
     [Export(PropertyHint.Enum, "关闭,内部,外部,可选内外")] public int constructionLocationMode = 0;  // ② 建造位置
     [Export] public int constructionMinRange = 1;                                     // ③ 外部建造最小范围
     [Export] public int constructionMaxRange = 2;                                     // ③ 外部建造最大范围
+    [Export] public bool constructionCanCrossScreens = false;                        // 外部建造目标范围是否允许跨屏
+    [Export] public bool deployFacilityCanCrossScreens = false;                    // 部署舱内建筑的相邻格是否允许跨屏
     [Export] public bool constructionAutoPlace = false;                                // ④ 外部自动随机放置（false=手选目标格）
     [Export] public Godot.Collections.Array<string> constructionWhitelist = new();   // ⑤ 建造白名单（建筑类型名）
     [Export] public int maxConstructionAmmo = 0;                                      // ⑥ 建造弹药上限
@@ -95,6 +97,7 @@ public partial class Infantry
     public bool StartConstruction(string facilityType, bool internalMode, Grids externalTargetGrid = null)
     {
         if (!CanStartConstruction(internalMode)) return false;
+        if (!internalMode && externalTargetGrid != null && !GetValidExternalConstructionGrids(facilityType).Contains(externalTargetGrid)) return false;
         // 支持三类条目：① FacilityDatabase 建筑；② "Terrain:地形名"；③ "Weapon:模板键"（兵器建造）
         if (FacilityDatabase.GetScenePath(facilityType) == null && !IsTerrainBuildEntry(facilityType) && !IsWeaponBuildEntry(facilityType)) return false;
 
@@ -244,7 +247,10 @@ public partial class Infantry
     public bool DeployCarriedFacility(Grids target)
     {
         if (carriedFacilityTypes.Count == 0) return false;
-        if (target == null || !CanBuildFacilityOnTerrain(carriedFacilityTypes[0], target.gridType)) return false;   // ⑫ 部署也受地形限制
+        if (target == null || grid == null || !CanBuildFacilityOnTerrain(carriedFacilityTypes[0], target.gridType)) return false;   // ⑫ 部署也受地形限制
+        int dx = Mathf.Abs(target.GridIndex.X - grid.GridIndex.X), dy = Mathf.Abs(target.GridIndex.Y - grid.GridIndex.Y);
+        var deployGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (Math.Max(dx, dy) != 1 || deployGm?.gridManager == null || !deployGm.gridManager.IsRangeAllowed(grid, target, deployFacilityCanCrossScreens)) return false;
         if (IsWeaponBuildEntry(carriedFacilityTypes[0]))
         {
             if (SpawnWeaponOnGrid(carriedFacilityTypes[0], target)) { carriedFacilityTypes.RemoveAt(0); return true; }
@@ -335,7 +341,7 @@ public partial class Infantry
                 int dist = Math.Abs(gx - x) + Math.Abs(gy - y);
                 if (dist < constructionMinRange || dist > constructionMaxRange) continue;
                 var g = gm.gridManager.map[gx, gy];
-                if (g == null) continue;
+                if (g == null || !gm.gridManager.IsRangeAllowed(grid, g, constructionCanCrossScreens)) continue;
                 if (g.city != null && IsInstanceValid(g.city)) continue;   // 已有建筑
                 if (g.weapon != null) continue;                            // 兵器占位
                 if (!CanBuildFacilityOnTerrain(facilityType, g.gridType)) continue;   // ⑫ 可建造地形白名单（如临时港口只能建在海滩）

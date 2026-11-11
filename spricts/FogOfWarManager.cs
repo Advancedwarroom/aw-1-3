@@ -13,13 +13,17 @@ public class IlluminationEffect
     public int minRange;
     public int maxRange;
     public int remainingTurns;  // 剩余大回合数
+    public Grids rangeOriginGrid;
+    public bool allowCrossScreens;
 
-    public IlluminationEffect(Grids center, int minR, int maxR, int duration)
+    public IlluminationEffect(Grids center, int minR, int maxR, int duration, bool crossScreens = false)
     {
         centerGrid = center;
         minRange = minR;
         maxRange = maxR;
         remainingTurns = duration;
+        rangeOriginGrid = center;
+        allowCrossScreens = crossScreens;
     }
 }
 
@@ -292,6 +296,9 @@ public partial class FogOfWarManager : Node
         else
             visible = CalculateManhattanVision(provider.Grid.GridIndex, totalRange);
 
+        bool allowCrossScreens = provider is UnitVisionProvider uv ? uv.Unit?.visionCanCrossScreens == true
+            : provider is WeaponVisionProvider wvp2 && wvp2.Weapon?.visionCanCrossScreens == true;
+        visible.RemoveWhere(g => !gridManager.IsRangeAllowed(provider.Grid, g, allowCrossScreens));
         ApplySpecialGridRules(visible, provider.Grid.GridIndex);
         return visible;
     }
@@ -622,6 +629,7 @@ public partial class FogOfWarManager : Node
         foreach (var effect in activeIlluminations)
         {
             if (effect?.centerGrid == null) continue;
+            if (effect.rangeOriginGrid != null && gridManager != null && !gridManager.IsRangeAllowed(effect.rangeOriginGrid, g, effect.allowCrossScreens)) continue;
             int dist = Mathf.Abs(g.GridIndex.X - effect.centerGrid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - effect.centerGrid.GridIndex.Y);
             if (dist <= effect.maxRange && dist >= effect.minRange) return true;
         }
@@ -654,7 +662,9 @@ public partial class FogOfWarManager : Node
                         pos.Y >= 0 && pos.Y < gridManager.searchRange.Y)
                     {
                         var g = gridManager.map[pos.X, pos.Y];
-                        if (g != null) visible.Add(g);
+                        if (g == null) continue;
+                        if (effect.rangeOriginGrid != null && !gridManager.IsRangeAllowed(effect.rangeOriginGrid, g, effect.allowCrossScreens)) continue;
+                        visible.Add(g);
                     }
                 }
             }
@@ -689,10 +699,10 @@ public partial class FogOfWarManager : Node
     }
 
     // ✅ 添加新的照明弹效果
-    public void AddIllumination(Grids center, int minR, int maxR, int duration)
+    public void AddIllumination(Grids center, int minR, int maxR, int duration, bool allowCrossScreens = false)
     {
         if (center == null || duration <= 0) return;
-        activeIlluminations.Add(new IlluminationEffect(center, minR, maxR, duration));
+        activeIlluminations.Add(new IlluminationEffect(center, minR, maxR, duration, allowCrossScreens));
         if (isFogOfWarEnabled) RefreshFog();
     }
 
@@ -712,6 +722,7 @@ public class UnitVisionProvider : IVisionProvider
     public VisionMode VisionMode => VisionMode.Normal;
 
     public UnitVisionProvider(Infantry unit) { this.unit = unit; }
+    public Infantry Unit => unit;
 
     public int GetVisionRange()
     {

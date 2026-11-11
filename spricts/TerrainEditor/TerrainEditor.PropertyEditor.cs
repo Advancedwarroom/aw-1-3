@@ -541,8 +541,7 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
                             var gm0 = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
                             foreach (var g in selected)
                             {
-                                // 🌐 跨屏绑定开关：false 时点选异屏接缝直接拒收
-                                if (!sf.allowCrossScreenBind && gm0?.gridManager != null && !gm0.gridManager.IsSameScreen(sf.grid.GridIndex, g.GridIndex)) continue;
+                                if (gm0?.gridManager != null && !gm0.gridManager.IsRangeAllowed(sf.grid, g, sf.allowCrossScreenBind)) continue;
                                 rels.Add(g.GridIndex - sf.grid.GridIndex);
                             }
                         }

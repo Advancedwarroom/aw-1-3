@@ -205,10 +205,8 @@ public partial class SuperFactory : Weapon
         {
             int sx = anchor.X + offset.X, sy = anchor.Y + offset.Y;
             if (sx < 0 || sy < 0 || sx >= map.GetLength(0) || sy >= map.GetLength(1)) continue;
-            // 🌐 跨屏绑定开关：false 时异屏接缝不算数
-            if (!allowCrossScreenBind && !gm.gridManager.IsSameScreen(anchor, new Vector2I(sx, sy))) continue;
             var g = map[sx, sy];
-            if (g == null) continue;
+            if (g == null || !gm.gridManager.IsRangeAllowed(grid, g, allowCrossScreenBind)) continue;
 
             // 接缝活着 = 有兵器且未摧毁
             bool seamAlive = g.gridType == GridType.PIPESEAM &&

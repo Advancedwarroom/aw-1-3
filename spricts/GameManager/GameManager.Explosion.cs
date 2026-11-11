@@ -11,7 +11,7 @@ public partial class GameManager
     // ========== ✅ 爆炸执行 ==========
     public void ExecuteExplosion(Infantry unit)
     {
-        if (unit == null || !unit.canExplode) return;
+        if (unit == null || !unit.canExplode || gridManager == null || unitManager == null) return;
 
         // ✅ 无限自爆模式消耗自爆弹
         if (!unit.explosionDestroysSelf)
@@ -23,6 +23,8 @@ public partial class GameManager
         }
 
         var gridPos = unit.grid?.GridIndex ?? unitManager.WorldToGrid(unit.Position);
+        var sourceGrid = unit.grid ?? gridManager.GetGridAt(gridPos);
+        if (sourceGrid == null) return;
         int minR = unit.explosionMinRange;
         int maxR = unit.explosionMaxRange;
 
@@ -30,10 +32,10 @@ public partial class GameManager
         var affected = new List<Infantry>();
         foreach (var u in unitManager.AllUnits)
         {
-            if (u == null || !IsInstanceValid(u)) continue;
+            if (u == null || !IsInstanceValid(u) || u == unit) continue; // 自身伤害只由 explosionSelfDamageEnabled 专门控制
             var uGridPos = u.grid?.GridIndex ?? unitManager.WorldToGrid(u.Position);
             int dist = Mathf.Abs(uGridPos.X - gridPos.X) + Mathf.Abs(uGridPos.Y - gridPos.Y);
-            if (dist >= minR && dist <= maxR)
+            if (dist >= minR && dist <= maxR && gridManager.IsRangeAllowed(sourceGrid, u.grid ?? gridManager.GetGridAt(uGridPos), unit.explosionCanCrossScreens))
             {
                 // 目标筛选
                 bool isEnemy = u.team != unit.team;
@@ -63,6 +65,7 @@ public partial class GameManager
                 if (w.grid == null) continue;
                 int dist = Mathf.Abs(w.grid.GridIndex.X - gridPos.X) + Mathf.Abs(w.grid.GridIndex.Y - gridPos.Y);
                 if (dist < minR || dist > maxR) continue;
+                if (!gridManager.IsRangeAllowed(sourceGrid, w.grid, unit.explosionCanCrossScreens)) continue;
 
                 // 目标筛选（兵器也有 team）
                 bool isEnemy = w.team != unit.team;

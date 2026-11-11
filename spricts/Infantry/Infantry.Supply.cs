@@ -9,6 +9,7 @@ public partial class Infantry
 
     [ExportGroup("补给")]
     [Export] public string[] supplyBlacklist = System.Array.Empty<string>();  // 雾战独立攻防表（固定数值，禁小数）
+    [Export] public bool supplyCanCrossScreens = false; // 补给范围是否允许跨屏
     [Export] public bool useDefaultConfig = true;           // ✅ 是否使用代码默认值（false=完全由Inspector控制，不执行ApplyUnitSpecificDefaults）
     [Export] public bool canDevour = false;
     [Export] public bool canDevourAllies = true;   // 吞噬友军（AW原作史莱姆不分敌我；关掉则只吞噬敌军）                // 是否能吞噬敌人（Oozium特性）
@@ -18,21 +19,23 @@ public partial class Infantry
     [Export] public int cost = 1000;  // 单位造价（可在Inspector中修改，非硬编码）
 
 // ========== ✅ 究极自由：补给范围计算（从 APC 迁移） ==========
-public virtual List<Grids> CalculateSupplyRange()
+public virtual List<Grids> CalculateSupplyRange() => CalculateSupplyRange(grid);
+
+public virtual List<Grids> CalculateSupplyRange(Grids originGrid)
 {
     var result = new List<Grids>();
     var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-    if (gm?.gridManager == null || grid == null) return result;
+    if (gm?.gridManager == null || originGrid == null) return result;
 
-    var allRange = gm.gridManager.FindRange(grid, maxSupplyRange, false);
+    var allRange = gm.gridManager.FindRange(originGrid, maxSupplyRange, false, supplyCanCrossScreens);
 
     if (minSupplyRange > 1)
     {
-        var blindZone = gm.gridManager.FindRange(grid, minSupplyRange - 1, false);
+        var blindZone = gm.gridManager.FindRange(originGrid, minSupplyRange - 1, false, supplyCanCrossScreens);
         allRange = allRange.Where(g => !blindZone.Contains(g)).ToList();
     }
 
-    allRange = allRange.Where(g => g != grid).ToList();
+    allRange = allRange.Where(g => g != originGrid).ToList();
 
     return allRange;
 }

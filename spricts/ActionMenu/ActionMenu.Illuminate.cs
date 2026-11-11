@@ -68,7 +68,10 @@ public partial class ActionMenu
 
     private void OnFlareTargetSelected(Grids target)
     {
-        if (target == null || currentUnit == null || !currentUnit.canIlluminate) return;
+        if (target == null || currentUnit == null || !currentUnit.canIlluminate || currentUnit.grid == null) return;
+        int launchDistance = Mathf.Abs(target.GridIndex.X - currentUnit.grid.GridIndex.X) + Mathf.Abs(target.GridIndex.Y - currentUnit.grid.GridIndex.Y);
+        var rangeGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (rangeGm?.gridManager == null || launchDistance < currentUnit.minLaunchRange || launchDistance > currentUnit.maxLaunchRange || !rangeGm.gridManager.IsRangeAllowed(currentUnit.grid, target, currentUnit.flareLaunchCanCrossScreens)) return;
 
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm == null) return;
@@ -80,7 +83,7 @@ public partial class ActionMenu
 
         // 隐藏绿色射程，显示黄色照明覆盖范围
         gm.gridManager?.HideFlareRange();
-        gm.gridManager?.ShowIlluminationRange(target, currentUnit.minIlluminationRange, currentUnit.maxIlluminationRange);
+        gm.gridManager?.ShowIlluminationRange(target, currentUnit.minIlluminationRange, currentUnit.maxIlluminationRange, currentUnit.flareEffectCanCrossScreens);
 
         // 清除之前的回调
         foreach (var grid in gm.gridManager.grids)
@@ -97,7 +100,10 @@ public partial class ActionMenu
 
     private void ExecuteIllumination(Infantry unit)
     {
-        if (pendingIlluminationTarget == null || unit == null) return;
+        if (pendingIlluminationTarget == null || unit == null || unit.grid == null) return;
+        int targetDistance = Mathf.Abs(pendingIlluminationTarget.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(pendingIlluminationTarget.GridIndex.Y - unit.grid.GridIndex.Y);
+        var validationGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (validationGm?.gridManager == null || targetDistance < unit.minLaunchRange || targetDistance > unit.maxLaunchRange || !validationGm.gridManager.IsRangeAllowed(unit.grid, pendingIlluminationTarget, unit.flareLaunchCanCrossScreens)) return;
 
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm == null) return;
@@ -110,7 +116,8 @@ public partial class ActionMenu
             pendingIlluminationTarget,
             unit.minIlluminationRange,
             unit.maxIlluminationRange,
-            unit.flareDurationTurns
+            unit.flareDurationTurns,
+            unit.flareEffectCanCrossScreens
         );
 
         // 清理状态

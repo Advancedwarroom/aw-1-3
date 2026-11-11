@@ -90,6 +90,7 @@ public partial class Grids : Node2D
 
     [ExportGroup("格子视野系统")]
     [Export] public GridVisionMode gridVisionMode = GridVisionMode.None;
+    [Export] public bool gridVisionCanCrossScreens = false; // 格子/旧式瞭望塔视野是否允许跨屏
 
     [ExportGroup("地形绑定图标")]
     [Export] public Godot.Collections.Dictionary<GridType, Texture2D> terrainIconTextures = new();
@@ -211,11 +212,15 @@ public partial class Grids : Node2D
         if (city != null)
             visible.UnionWith(city.CalculateFacilityVision(gm));
 
-        switch (gridVisionMode)
+        HashSet<Grids> directional = gridVisionMode switch
         {
-            case GridVisionMode.TowerCone: visible.UnionWith(CalculateTowerConeVision(gm)); break;
-            case GridVisionMode.TowerRay: visible.UnionWith(CalculateTowerRayVision(gm)); break;
-        }
+            GridVisionMode.TowerCone => CalculateTowerConeVision(gm),
+            GridVisionMode.TowerRay => CalculateTowerRayVision(gm),
+            _ => new HashSet<Grids>()
+        };
+        foreach (var g in directional)
+            if (g != null && gm.gridManager.IsRangeAllowed(this, g, gridVisionCanCrossScreens))
+                visible.Add(g);
 
         return visible;
     }
@@ -224,15 +229,15 @@ public partial class Grids : Node2D
     public HashSet<Grids> CalculateTowerDirectionalVision(GameManager gm)
     {
         var visible = new HashSet<Grids>();
-        switch (gridVisionMode)
+        HashSet<Grids> directional = gridVisionMode switch
         {
-            case GridVisionMode.TowerCone:
-                visible.UnionWith(CalculateTowerConeVision(gm));
-                break;
-            case GridVisionMode.TowerRay:
-                visible.UnionWith(CalculateTowerRayVision(gm));
-                break;
-        }
+            GridVisionMode.TowerCone => CalculateTowerConeVision(gm),
+            GridVisionMode.TowerRay => CalculateTowerRayVision(gm),
+            _ => new HashSet<Grids>()
+        };
+        foreach (var g in directional)
+            if (g != null && gm?.gridManager != null && gm.gridManager.IsRangeAllowed(this, g, gridVisionCanCrossScreens))
+                visible.Add(g);
         return visible;
     }
 

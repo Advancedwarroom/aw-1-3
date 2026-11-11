@@ -142,6 +142,14 @@ public partial class GridManager : Node
  // ✅ N屏隔离核心：是否同一屏
     public bool IsSameScreen(Vector2I a, Vector2I b) => GetScreenId(a) == GetScreenId(b);
 
+    /// <summary>统一范围跨屏规则：只有对应行为的 Export 开启时才允许跨 screenId。</summary>
+    public bool IsRangeAllowed(Grids origin, Grids target, bool allowCrossScreens)
+    {
+        if (origin == null || target == null) return false;
+        if (allowCrossScreens || GetScreenCount() <= 1) return true;
+        return IsSameScreen(origin.GridIndex, target.GridIndex);
+    }
+
     // ✅ 按索引取格（越界安全）
     public Grids GetGridAt(Vector2I idx)
     {
@@ -436,7 +444,7 @@ public partial class GridManager : Node
         new Vector2I(1,0),
     };
 
-    public List<Grids> GetAttackNeighbours(Grids grid)
+    public List<Grids> GetAttackNeighbours(Grids grid, bool allowCrossScreens = false)
     {
         var neighbours = new List<Grids>();
         if (grid == null) return neighbours;
@@ -447,12 +455,13 @@ public partial class GridManager : Node
             if (vector.X < 0 || vector.X >= searchRange.X ||
                 vector.Y < 0 || vector.Y >= searchRange.Y) continue;
             if (map[vector.X, vector.Y] == null) continue;
+            if (!IsRangeAllowed(grid, map[vector.X, vector.Y], allowCrossScreens)) continue;
             neighbours.Add(map[vector.X, vector.Y]);
         }
         return neighbours;
     }
 
-    public List<Grids> GetNeighbours(Grids grid, bool walk = false)
+    public List<Grids> GetNeighbours(Grids grid, bool walk = false, bool allowCrossScreens = false)
     {
         List<Grids> neighbours = new List<Grids>();
         for (int i = 0; i < 4; i++)
@@ -465,7 +474,7 @@ public partial class GridManager : Node
             var neighbor = map[vector.X, vector.Y];
 
             // ✅ N屏隔离：邻格与起点不同屏则不连通（跨屏只能走传送）
-            if (neighbor.screenId != grid.screenId) continue;
+            if (!IsRangeAllowed(grid, neighbor, allowCrossScreens)) continue;
 
             // ✅ 移除METEORITE硬编码：所有地形通行性由GetMoveCost统一控制
             // SpaceShiper等移动方式可以通过METEORITE

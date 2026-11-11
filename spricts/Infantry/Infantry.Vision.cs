@@ -13,6 +13,7 @@ public partial class Infantry
 [ExportGroup("战争迷雾视野")]
 [Export] public int visionRange = -1;  // -1=使用配置表默认值，>=0=覆盖配置表
 [Export] public bool useConfigVision = true;  // 是否使用VisionConfig配置表
+[Export] public bool visionCanCrossScreens = false; // 单位基础视野范围是否允许跨屏
 
 // ✅ 新增：单位独立的视野加成矩阵（覆盖全局默认值）
 // 格式：地形类型 → 加成值（可正可负）

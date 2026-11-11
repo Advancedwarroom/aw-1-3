@@ -11,6 +11,7 @@ public partial class Infantry
     [Export] public bool canAttackAllies = false;              // ✅ 友军火力·扩展：勾选后可攻击同盟势力（盟友）
     [Export] public bool friendliesCanCounterFire = true;      // ✅ 打友军是否还手：false=被打的同队目标不还手（默认还手=原味）
     [Export] public bool alliesCanCounterFire = true;          // ✅ 打盟友是否还手：false=被打的盟友不还手（默认还手=原味）
+    [Export] public bool attackCanCrossScreens = false; // 普通攻击射程是否允许跨屏
 
     [ExportGroup("补给")]
     [Export] public string[] excludedWeaponTargets = System.Array.Empty<string>();  // ⚔ 兵器攻击准入(攻击方)：不能攻击的兵器类型，"Weapon"=全部兵器，留空=均可攻击              // ✅ 合流模块：是否允许参与 Join 合流（false=该单位不可合流）
@@ -304,6 +305,8 @@ public virtual bool ConsumePrimaryAmmo()
         }
         else if (target is Weapon weapon)
         {
+            var weaponTargetGrid = weapon.GetWeakPointGrid() ?? weapon.grid;
+            if (weaponTargetGrid == null || !IsGridInAttackRange(weaponTargetGrid)) return;
             // ✅ 修复1：使用统一的武器检查
             if (!CanUsePrimaryWeapon() && !CanUseSecondaryWeapon()) return;
             if (!canAttackAfterMoving && state == UnitState.Moved) return;
@@ -351,6 +354,7 @@ public virtual bool ConsumePrimaryAmmo()
         }
         else if (target is Facility facility)
         {
+            if (facility.ParentGrid == null || !IsGridInAttackRange(facility.ParentGrid)) return;
             if (!facility.CanBeAttackedBy(this)) return;
             if (state == UnitState.Acted || (!canAttackAfterMoving && state == UnitState.Moved)) return;
             WeaponType selectedWeapon;
@@ -604,18 +608,25 @@ public virtual bool IsTargetInCounterRange(Infantry attacker)
 }
     public virtual bool IsTargetInAttackRange(Infantry target)
     {
-        if (target?.grid == null || this.grid == null) return false;
+        return target?.grid != null && IsGridInAttackRange(target.grid);
+    }
 
-        int distance = Mathf.Abs(target.grid.GridIndex.X - this.grid.GridIndex.X) 
-                     + Mathf.Abs(target.grid.GridIndex.Y - this.grid.GridIndex.Y);
+    /// <summary>统一攻击格判定：单位、设施、兵器的预览与最终执行共用同一射程和跨屏规则。</summary>
+    public virtual bool IsGridInAttackRange(Grids targetGrid)
+    {
+        if (targetGrid == null || grid == null) return false;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, attackCanCrossScreens)) return false;
 
-        // ✅ CO 模块系统·模块3（攻击范围加成）+ 天气系统·模块15（沙暴-1）：射程/最小射程增减
+        int distance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X)
+                     + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
+
+        // CO/天气射程加成仍按原管线计算；跨屏许可独立由本单位 Export 控制。
         int coRangeBonus = CoModuleSystem.GetFireRangeBonus(this) + WeatherSystem.GetFireRangeModifier(this);
         int coMinBonus = CoModuleSystem.GetMinFireRangeBonus(this);
         if (useMinMaxAttackRange)
             return distance >= Mathf.Max(1, minAttackRange + coMinBonus) && distance <= maxAttackRange + coRangeBonus;
-        else
-            return distance <= attackRange + coRangeBonus;
+        return distance <= attackRange + coRangeBonus;
     }
     
 

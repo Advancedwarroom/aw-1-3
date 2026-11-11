@@ -319,6 +319,9 @@ public partial class Infantry
         ConsumeLoadedOperation();
     }
 
+    [ExportGroup("远程占领")]
+    [Export] public bool remoteCaptureCanCrossScreens = false; // 远程占领射程是否允许跨屏
+
     // ==================== 远程占领（开创人2026-11-11）====================
 
     /// 扫描全图：远程可占领设施（只看设施判定：开关＋n-m 环带＋敌对＋未冻结）。
@@ -337,6 +340,7 @@ public partial class Infantry
             if (city.facilityTeam == team) continue;
             int dist = Math.Abs(g.GridIndex.X - grid.GridIndex.X) + Math.Abs(g.GridIndex.Y - grid.GridIndex.Y);
             if (dist == 0 || dist < city.captureRangeMin || dist > city.captureRangeMax) continue;
+            if (gm?.gridManager == null || !gm.gridManager.IsRangeAllowed(grid, g, remoteCaptureCanCrossScreens)) continue;
             if (g.infantries != null && g.infantries.Any(u => u != null && IsInstanceValid(u)
                     && u.team != team && u.currentTearProgress > 0 && u.tearingGrid == g)) continue;   // 拆旗冻结
             result.Add(city);
@@ -351,7 +355,12 @@ public partial class Infantry
     {
         if (city == null || !IsInstanceValid(city)) return;
         var target = city.ParentGrid;
-        if (target == null || !IsInstanceValid(target)) return;
+        if (target == null || !IsInstanceValid(target) || grid == null || captureAbility == CaptureAbility.CannotCapture) return;
+        if (!city.remoteCaptureEnabled || city.capturePointsRequired <= 0 || city.facilityTeam == team) return;
+        int remoteDistance = Mathf.Abs(target.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(target.GridIndex.Y - grid.GridIndex.Y);
+        if (remoteDistance == 0 || remoteDistance < city.captureRangeMin || remoteDistance > city.captureRangeMax) return;
+        var gmRange = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gmRange?.gridManager == null || !gmRange.gridManager.IsRangeAllowed(grid, target, remoteCaptureCanCrossScreens)) return;
         if (isCapturingInProgress) return;
 
         isCapturingInProgress = true;

@@ -25,10 +25,12 @@ public partial class BlackArc : Weapon
     // ========== 2. 打击范围（以该兵器为核心）==========
     [Export] public int arcStrikeMinRange = 1;               // 2.最小射程（0=可打自身所在格）
     [Export] public int arcStrikeMaxRange = 10;             // 2.最大射程
+    [Export] public bool arcStrikeCanCrossScreens = false; // 天基打击选点射程是否允许跨屏
 
     // ========== 3. 打击效果范围（以目标点为核心 x-y）==========
     [Export] public int arcEffectRangeX = 1;                 // 3.以目标格为核心 x 范围（±x）
     [Export] public int arcEffectRangeY = 1;                 // 3.以目标格为核心 y 范围（±y）
+    [Export] public bool arcEffectCanCrossScreens = false; // 天基打击效果面是否允许跨屏
 
     // ========== 4. 打击伤害 ==========
     [Export] public int arcStrikeDamage = 50;                // 4.伤害（千分制，50=5HP）
@@ -52,11 +54,13 @@ public partial class BlackArc : Weapon
     // ========== 9. 力场模块（原作：存活期间保护地图目标物，对其攻击全部无效）==========
     [ExportGroup("力场模块（原作：黑弧存活时地图目标物攻击全部无效）")]
     [Export] public bool forceFieldEnabled = false;              // 是否开启力场（默认关，不强制）
+    [Export] public bool forceFieldCanCrossScreens = false;   // 力场保护范围是否允许跨屏
     [Export] public Godot.Collections.Array<Vector2I> forceFieldGridOffsets = new(); // 保护的目标格（相对锚点偏移；空=不保护）
 
     // ========== 10. 护卫联动模块（原作：护卫炮全毁→黑弧坠落）==========
     [ExportGroup("护卫联动模块（原作：护卫兵器全毁→黑弧坠落）")]
     [Export] public bool escortLinkageEnabled = false;           // 是否开启护卫联动（默认关，不强制）
+    [Export] public bool escortCanCrossScreens = false;       // 护卫联动绑定是否允许跨屏
     [Export] public Godot.Collections.Array<Vector2I> escortGridOffsets = new();   // 护卫兵器所在格（相对锚点偏移；空=无护卫）
 
     // 十字准星瞄准模式状态
@@ -76,7 +80,7 @@ public partial class BlackArc : Weapon
         var rangeGrids = gm.gridManager.grids.Where(g =>
         {
             int d = Mathf.Abs(g.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - grid.GridIndex.Y);
-            return d >= arcStrikeMinRange && d <= arcStrikeMaxRange && !IsScreenBlocked(g); // ✅ N屏：默认仅限己图
+            return d >= arcStrikeMinRange && d <= arcStrikeMaxRange && gm.gridManager.IsRangeAllowed(grid, g, arcStrikeCanCrossScreens);
         }).ToList();
 
         foreach (var g in rangeGrids)
@@ -121,7 +125,9 @@ public partial class BlackArc : Weapon
     /// <summary>执行天基打击：以目标格为核心 x-y 范围内单位受扣血伤害</summary>
     public void PerformArcStrike(Grids targetGrid, GameManager gm)
     {
-        if (targetGrid == null || gm == null) return;
+        if (targetGrid == null || gm?.gridManager == null || grid == null) return;
+        int strikeDistance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
+        if (strikeDistance < arcStrikeMinRange || strikeDistance > arcStrikeMaxRange || !gm.gridManager.IsRangeAllowed(grid, targetGrid, arcStrikeCanCrossScreens)) return;
         if (!ArcStrikeReady) return;
 
         int cx = targetGrid.GridIndex.X;
@@ -136,8 +142,8 @@ public partial class BlackArc : Weapon
                 if (nx < 0 || ny < 0 || nx >= gm.gridManager.map.GetLength(0) || ny >= gm.gridManager.map.GetLength(1)) continue;
                 var g = gm.gridManager.map[nx, ny];
                 if (g == null) continue;
-                // ✅ N屏隔离：跨屏格子不受天基打击（开canCrossScreens才可跨图）
-                if (!canCrossScreens && g.screenId != grid.screenId) continue;
+                // 天基打击效果面是否跨屏由 arcEffectCanCrossScreens 独立控制
+                if (!gm.gridManager.IsRangeAllowed(targetGrid, g, arcEffectCanCrossScreens)) continue;
 
                 // 对范围内单位造成伤害
                 foreach (var u in (g.infantries ?? new List<Infantry>()).ToList())
@@ -201,6 +207,12 @@ public partial class BlackArc : Weapon
         {
             if (w is not BlackArc arc || !IsInstanceValid(w) || w.isDestroyed || w.IsQueuedForDeletion()) continue;
             if (!arc.forceFieldEnabled || arc.grid == null || arc.forceFieldGridOffsets.Count == 0) continue;
+            var gmGrid = arc.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (gmGrid?.gridManager != null)
+            {
+                if (!gmGrid.gridManager.IsRangeAllowed(arc.grid, target, arc.forceFieldCanCrossScreens)) continue;
+            }
+            else if (!arc.forceFieldCanCrossScreens && arc.grid.screenId != target.screenId) continue;
             var anchor = arc.grid.GridIndex;
             foreach (var off in arc.forceFieldGridOffsets)
                 if (anchor.X + off.X == target.GridIndex.X && anchor.Y + off.Y == target.GridIndex.Y)
@@ -224,6 +236,7 @@ public partial class BlackArc : Weapon
             if (ex < 0 || ey < 0 || ex >= map.GetLength(0) || ey >= map.GetLength(1)) continue;
             var g = map[ex, ey];
             if (g == null) continue;
+            if (!gm.gridManager.IsRangeAllowed(grid, g, escortCanCrossScreens)) continue;
             bool escortAlive = g.weapons.Any(w => w != null && IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed);
             if (escortAlive) return;   // 还有护卫活着
         }
@@ -269,6 +282,8 @@ public partial class BlackArc : Weapon
             {
                 int dist = Mathf.Abs(tx - cx) + Mathf.Abs(ty - cy);
                 if (dist < arcStrikeMinRange || dist > arcStrikeMaxRange) continue;
+                var targetGrid = gm.gridManager.map[tx, ty];
+                if (targetGrid == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, arcStrikeCanCrossScreens)) continue;
                 int score = AIStrikeScore(gm, tx, ty, visibleFilter);
                 if (score > bestScore) { bestScore = score; best = gm.gridManager.map[tx, ty]; }
             }
@@ -279,6 +294,8 @@ public partial class BlackArc : Weapon
     private int AIStrikeScore(GameManager gm, int tx, int ty, System.Func<Infantry, bool> visibleFilter)
     {
         int score = 0;
+        var targetGrid = gm.gridManager.map[tx, ty];
+        if (targetGrid == null) return 0;
         for (int dx = -arcEffectRangeX; dx <= arcEffectRangeX; dx++)
         {
             for (int dy = -arcEffectRangeY; dy <= arcEffectRangeY; dy++)
@@ -286,7 +303,7 @@ public partial class BlackArc : Weapon
                 int x = tx + dx, y = ty + dy;
                 if (x < 0 || y < 0 || x >= gm.gridManager.searchRange.X || y >= gm.gridManager.searchRange.Y) continue;
                 var g = gm.gridManager.map[x, y];
-                if (g == null) continue;
+                if (g == null || !gm.gridManager.IsRangeAllowed(targetGrid, g, arcEffectCanCrossScreens)) continue;
                 foreach (var u in g.infantries)
                 {
                     if (u == null || !IsInstanceValid(u)) continue;

@@ -27,6 +27,7 @@ public partial class Infantry
     [Export(PropertyHint.Enum, "关闭,内部,外部,可选内外")] public int productionLocationMode = 0;  // ② 生产位置
     [Export] public int productionMinRange = 1;                                     // ③ 外部生产最小范围
     [Export] public int productionMaxRange = 2;                                     // ③ 外部生产最大范围
+    [Export] public bool productionCanCrossScreens = false;                        // 外部生产目标范围是否允许跨屏
     [Export] public bool productionAutoPlace = false;                                // ④ 外部自动随机放置（false=手选目标格）
     [Export] public Godot.Collections.Array<string> productionWhitelist = new();   // ⑤ 生产白名单（unitTypeId）
     [Export] public int maxProductionAmmo = 0;                                      // ⑥ 生产弹药上限
@@ -97,6 +98,13 @@ public partial class Infantry
     virtual public bool StartProduction(string unitId, bool internalMode, Grids externalTargetGrid = null)
     {
         if (!CanStartProduction(internalMode)) return false;
+        if (!internalMode && externalTargetGrid != null)
+        {
+            if (grid == null) return false;
+            int productionDistance = Mathf.Abs(externalTargetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(externalTargetGrid.GridIndex.Y - grid.GridIndex.Y);
+            var rangeGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (productionDistance < productionMinRange || productionDistance > productionMaxRange || rangeGm?.gridManager == null || !rangeGm.gridManager.IsRangeAllowed(grid, externalTargetGrid, productionCanCrossScreens)) return false;
+        }
         var info = UnitProductionDatabase.GetInfo(unitId);
         if (string.IsNullOrEmpty(info.ScenePath)) return false;
 
@@ -217,8 +225,9 @@ public partial class Infantry
             // 外部：放到目标格（自动放置时由调用方选好格）
             if (target == null || !IsInstanceValid(target))
                 target = FindValidExternalProductionGrid(unit);
-            // ✅ 完工复检：目标格被占/不可通行 → 回退自动找格（开工合法≠完工仍合法，生产跨回合期间格况会变）
-            if (target != null && (target.infantries.Any(u => u != null && IsInstanceValid(u)) || unit.GetMoveCostOnGrid(target) >= 999))
+            // 完工复检：目标格被占/不可通行时回退自动找格。
+            if (target != null && (target.infantries.Any(u => u != null && IsInstanceValid(u))
+                || unit.GetMoveCostOnGrid(target) >= 999))
                 target = FindValidExternalProductionGrid(unit);
             if (target == null)
             {
@@ -290,7 +299,7 @@ public partial class Infantry
                 int dist = Math.Abs(gx - x) + Math.Abs(gy - y);   // 曼哈顿距离=范围
                 if (dist < productionMinRange || dist > productionMaxRange) continue;
                 var g = gm.gridManager.map[gx, gy];
-                if (g == null) continue;
+                if (g == null || !gm.gridManager.IsRangeAllowed(grid, g, productionCanCrossScreens)) continue;
                 if (g.infantries.Any(u => u != null && IsInstanceValid(u))) continue;
                 if (producedUnit != null && producedUnit.GetMoveCostOnGrid(g) >= 999) continue;
                 result.Add(g);

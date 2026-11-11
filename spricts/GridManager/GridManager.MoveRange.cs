@@ -238,7 +238,7 @@ public partial class GridManager
         UpdateMoveArrows(pointCount);                // ✅ CoW 式路径方向箭头
     }
 
-    public List<Grids> FindRange(Grids grid, int distance, bool walk = false)
+    public List<Grids> FindRange(Grids grid, int distance, bool walk = false, bool allowCrossScreens = false)
     {
         List<Grids> range =new List<Grids>();
         List<Grids> now =new List<Grids>();
@@ -249,7 +249,7 @@ public partial class GridManager
         {
             foreach (var current in now)
             {
-                List<Grids> neighbours = GetNeighbours(current,true);
+                List<Grids> neighbours = GetNeighbours(current,true,allowCrossScreens);
                 foreach (var neighbour in neighbours)
                 {
                     if(!open.Contains(neighbour) && neighbour !=grid)

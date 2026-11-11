@@ -177,7 +177,7 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
                 if (targetGrid != null && targetGrid.gridType != GridType.METEORITE)
                 {
                     // ✅ N屏隔离：跨屏格子不进射程（开canCrossScreens才可跨图）
-                    if (!canCrossScreens && targetGrid.screenId != grid.screenId) continue;
+                    if (!gm.gridManager.IsRangeAllowed(grid, targetGrid, canCrossScreens)) continue;
                     range.Add(targetGrid);
                 }
             }
@@ -245,7 +245,7 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
     private void OnRangeGridClicked(Grids targetGrid)
     {
         // ✅ 关键修复：检查格子是否还有效
-        if (targetGrid == null || !IsInstanceValid(targetGrid)) return;
+        if (targetGrid == null || !IsInstanceValid(targetGrid) || IsScreenBlocked(targetGrid)) return;
 
         // ✅ 再次检查弹药和冷却
         if (!HasAmmoAndCooldown())

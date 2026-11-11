@@ -91,7 +91,7 @@ public override void TakeDamage(int damage, Infantry attacker = null)
 
     private void PerformAttackOnFacility(Facility target)
     {
-        if (remainingAttacks <= 0 || target == null || !IsInstanceValid(target)) return;
+        if (remainingAttacks <= 0 || target == null || !IsInstanceValid(target) || target.ParentGrid == null || IsScreenBlocked(target.ParentGrid) || !CalculateAttackRange().Contains(target.ParentGrid)) return;
         Vector2 targetPos = target.GlobalPosition;
         float percent = useModifiedDamage ? modifiedHealthPercent : fixedDamagePercent;
         target.ApplyWeaponPercentDamage(this, percent, CanDestroy, canOverMaxHp);
@@ -103,6 +103,8 @@ public override void TakeDamage(int damage, Infantry attacker = null)
     {
         if (remainingAttacks <= 0) return;
 
+        var weaponGrid = targetWeapon?.GetWeakPointGrid() ?? targetWeapon?.grid;
+        if (weaponGrid == null || IsScreenBlocked(weaponGrid) || !CalculateAttackRange().Contains(weaponGrid)) return;
         // 严格有效性检查
         if (targetWeapon == null || !IsInstanceValid(targetWeapon)) 
         {
@@ -412,6 +414,8 @@ public override void TakeDamage(int damage, Infantry attacker = null)
     {
         if (remainingAttacks <= 0) return;
 
+        // 最终执行校验：自定义射线/扇形范围与屏幕许可必须同时通过
+        if (target?.grid == null || IsScreenBlocked(target.grid) || !CalculateAttackRange().Contains(target.grid)) return;
         // 严格有效性检查
         if (target == null || !IsInstanceValid(target)) 
         {
@@ -797,7 +801,8 @@ public override void TakeDamage(int damage, Infantry attacker = null)
 
     private void AttackWeapon(Weapon target)
     {
-        if (target == null) return;
+        var targetGrid = target?.GetWeakPointGrid() ?? target?.grid;
+        if (target == null || targetGrid == null || IsScreenBlocked(targetGrid) || !CalculateAttackRange().Contains(targetGrid)) return;
         int damage = Mathf.Max(1, Mathf.RoundToInt(target.maxHealth * fixedDamagePercent));
         target.TakeDamage(damage);
         hasActed = true;

@@ -14,16 +14,16 @@ public partial class Weapon : Node2D
 
     [ExportGroup("攻击准入")]
     [Export] public string[] excludedAttackerTypes = System.Array.Empty<string>();  // ⚔ 不能被这些单位类型攻击（填类名，如 "Fighter"）
-    [Export] public bool canCrossScreens = false;   // ✅ N屏：能否跨图（跨屏攻击；全屏导弹默认仅限己图，开此Export才可跨图）
+    [Export] public bool canCrossScreens = false;   // 普通兵器射程是否允许跨屏；专用武器可使用独立Export
 
     // ✅ N屏：目标格是否被屏隔离挡住（canCrossScreens=true 时忽略屏界）
     public bool IsScreenBlocked(Grids target)
     {
-        if (canCrossScreens || target == null || grid == null) return false;
+        if (target == null || grid == null || canCrossScreens) return false;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         var gmm = gm?.gridManager;
-        if (gmm == null || gmm.GetScreenCount() <= 1) return false;
-        return !gmm.IsSameScreen(grid.GridIndex, target.GridIndex);
+        if (gmm == null) return grid.screenId != target.screenId;
+        return !gmm.IsRangeAllowed(grid, target, canCrossScreens);
     }
 
     // ✅ 伤害单位类别限制（可拼装模块）：按攻击者的空军/陆军/海军/防空分类过滤，全true=不限制（默认）
@@ -93,6 +93,7 @@ public partial class Weapon : Node2D
     [ExportGroup("战争迷雾视野")]
     [Export] public int visionRange = -1;
     [Export] public bool useConfigVision = true;
+    [Export] public bool visionCanCrossScreens = false; // 兵器基础视野范围是否允许跨屏
     [Export] public VisionMode visionMode = VisionMode.Normal;
 
     // ✅ 新增：兵器独立的视野加成矩阵（覆盖全局默认值）

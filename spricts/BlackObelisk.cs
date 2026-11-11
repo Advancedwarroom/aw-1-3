@@ -30,6 +30,7 @@ public partial class BlackObelisk : BlackCannon
 
     [ExportGroup("黑尖塔 - 范围治疗（原作：2格内我方+2HP）")]
     [Export] public int obeliskHealRange = 2;         // 治疗范围（曼哈顿距离，从尖塔中心算）
+    [Export] public bool obeliskHealCanCrossScreens = false; // 黑尖塔治疗与补给脉冲是否允许跨屏
     [Export] public int obeliskHealAmount = 20;        // 每回合回血（内部100制，20=显示+2HP）
     [Export] public bool obeliskHealWeapons = true;    // 能否给兵器回血（原作可维修Oozium等）
     [Export] public bool obeliskHealCanOverMaxHp = false; // 能否超过最大血量
@@ -133,7 +134,7 @@ public partial class BlackObelisk : BlackCannon
                 if (nx >= 0 && nx < w && ny >= 0 && ny < h)
                 {
                     var g = map[nx, ny];
-                    if (g != null && IsInstanceValid(g)) result.Add(g);
+                    if (g != null && IsInstanceValid(g) && gridMgr.IsRangeAllowed(GetCenterGrid(), g, obeliskHealCanCrossScreens)) result.Add(g);
                 }
             }
         }

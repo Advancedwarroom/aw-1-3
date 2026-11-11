@@ -14,6 +14,7 @@ public partial class Infantry
 [Export] public int maxTransportCapacity = 0;
 [Export] public Godot.Collections.Array<string> canTransportUnitTypes = new();
 [Export] public bool canLaunchCargo = false;   // ✅ 舰载起飞（DoR 航母/生产舰）：回合开始时已在舱内的单位，载具本回合未移动时可直接“起飞”到相邻格并正常行动；起飞后载具本回合不能再移动
+[Export] public bool unloadCanCrossScreens = false; // 卸载相邻格是否允许跨屏
 [Export] public int maxLoadCapacity { get => maxTransportCapacity; set => maxTransportCapacity = value; }
 [Export] public int minSupplyRange = 1;
 [Export] public int maxSupplyRange = 1;
@@ -287,10 +288,11 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
 {
         if (isStealthed && !canLoadUnloadWhileStealthed) return false; // ✅ 隐身行为锁
     if (!transportedUnits.Contains(unit)) return false;
-    if (targetGrid == null) return false;
+    if (targetGrid == null || grid == null) return false;
     if (targetGrid.gridType == GridType.METEORITE) return false;
-
+    int unloadDx = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X), unloadDy = Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
     var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+    if (Math.Max(unloadDx, unloadDy) != 1 || gm?.gridManager == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, unloadCanCrossScreens)) return false;
 
     // ✅ 开创人2026-11-11 拍板：废除 P-1 公共运输卸载限制——共用运输可装即可卸，无势力门禁
 
@@ -361,8 +363,11 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
 public virtual bool CanUnloadToGrid(Grids targetGrid)
 {
     if (transportedUnits.Count == 0) return false;
-    if (targetGrid == null) return false;
+    if (targetGrid == null || grid == null) return false;
     if (targetGrid.gridType == GridType.METEORITE) return false;
+    int unloadDx = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X), unloadDy = Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
+    var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+    if (Math.Max(unloadDx, unloadDy) != 1 || gm?.gridManager == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, unloadCanCrossScreens)) return false;
     
     var blockingUnit = targetGrid.infantries.FirstOrDefault(u => 
         u != null && IsInstanceValid(u) && 
@@ -529,7 +534,7 @@ public void UpdateLoadedIcon()
             if (gm.unitManager.IsValidGrid(pos))
             {
                 var targetGrid = gm.gridManager.map[pos.X, pos.Y];
-                if (targetGrid != null && targetGrid.gridType != GridType.METEORITE)
+                if (targetGrid != null && targetGrid.gridType != GridType.METEORITE && gm.gridManager.IsRangeAllowed(grid, targetGrid, unloadCanCrossScreens))
                 {
                     var blockingUnit = targetGrid.infantries.FirstOrDefault(u =>
                         u != null && IsInstanceValid(u) &&

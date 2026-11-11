@@ -10,6 +10,7 @@ public partial class Infantry
     [Export] public bool canSuppressFacilities = false; // 压制开关：站敌楼干扰 x-y 环内设施
     [Export] public int suppressRangeMin = 0;           // x（含自身格）
     [Export] public int suppressRangeMax = 1;           // y
+    [Export] public bool suppressCanCrossScreens = false; // 设施压制光环是否允许跨屏
     [Export] public int suppressIncomeMode = 0;         // 资金：0不干扰 1制止 2百分比
     [Export] public int suppressIncomePercent = 0;      // 百分比（负=减弱 正=增强）
     [Export] public int suppressDefenseMode = 0;        // 掩体：0不干扰 1制止 2百分比
@@ -32,7 +33,9 @@ public partial class Infantry
                 if (dist < suppressRangeMin || dist > suppressRangeMax) continue;
                 var pos = new Vector2I(origin.X + dx, origin.Y + dy);
                 if (!gm.unitManager.IsValidGrid(pos)) continue;
-                var f = gm.gridManager.map[pos.X, pos.Y]?.city;
+                var targetGrid = gm.gridManager.map[pos.X, pos.Y];
+                if (targetGrid == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, suppressCanCrossScreens)) continue;
+                var f = targetGrid.city;
                 if (f == null || f.facilityTeam == team) continue;   // 只压敌方建筑
                 if (suppressIncomeMode == 1) f.AddStatus(FacilityStatusType.NoIncome, 2, team);
                 else if (suppressIncomeMode == 2) f.SetIncomeSuppression(suppressIncomePercent);

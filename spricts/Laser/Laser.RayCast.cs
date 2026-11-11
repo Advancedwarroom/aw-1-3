@@ -123,6 +123,7 @@ public partial class Laser
             foreach (var rayInfo in rayGrids)
             {
                 var g = rayInfo.Grid;
+                if (g == null || IsScreenBlocked(g)) continue;
                 if (maxPiercePerLine > 0 && pierceCount >= maxPiercePerLine) break;
                 var targetsInGrid = GetValidTargetsInGrid(g);
                 foreach (var target in targetsInGrid)
@@ -205,7 +206,7 @@ public partial class Laser
             {
                 if (rayInfo.Grid == null) continue;
                 // ✅ N屏隔离：跨屏格子不进射程（开canCrossScreens才可跨图）
-                if (!canCrossScreens && rayInfo.Grid.screenId != grid.screenId) continue;
+                if (IsScreenBlocked(rayInfo.Grid)) continue;
                 if (!allGrids.Contains(rayInfo.Grid))
                     allGrids.Add(rayInfo.Grid);
             }

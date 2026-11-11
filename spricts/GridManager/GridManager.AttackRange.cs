@@ -80,15 +80,17 @@ public partial class GridManager
         int minRange = Mathf.Max(1, unit.minAttackRange + CoModuleSystem.GetMinFireRangeBonus(unit));
         int maxRange = unit.maxAttackRange + CoModuleSystem.GetFireRangeBonus(unit) + WeatherSystem.GetFireRangeModifier(unit);
         
-        var allRangeGrids = FindRange(unit.grid, maxRange, false);
-        var blindZoneGrids = new HashSet<Grids>();
-        
-        blindZoneGrids.Add(unit.grid);
+        var allRangeGrids = grids.Where(g => g != null && g != unit.grid
+            && Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) <= maxRange
+            && IsRangeAllowed(unit.grid, g, unit.attackCanCrossScreens)).ToList();
+        var blindZoneGrids = new HashSet<Grids> { unit.grid };
         if (minRange > 1)
         {
-            var nearGrids = FindRange(unit.grid, minRange - 1, false);
-            foreach (var g in nearGrids) 
-                blindZoneGrids.Add(g);
+            foreach (var g in allRangeGrids)
+            {
+                int distance = Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y);
+                if (distance < minRange) blindZoneGrids.Add(g);
+            }
         }
         
         // ✅ 修复：盲区必须先算好再扫描（原顺序会让盲区内目标被高亮可打）
@@ -211,7 +213,11 @@ public partial class GridManager
         }
         
         if (unit.attackType == AttackType.NoAttack) return;
-        var neighbors = GetAttackNeighbours(unit.grid);
+        var neighbors = unit.attackRange <= 1
+            ? GetAttackNeighbours(unit.grid, unit.attackCanCrossScreens)
+            : grids.Where(g => g != null && g != unit.grid
+                && Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) <= unit.attackRange
+                && IsRangeAllowed(unit.grid, g, unit.attackCanCrossScreens)).ToList();
         
         // ✅ 禁用所有单位选择，防止误选己方未行动单位
         foreach (var grid in grids)

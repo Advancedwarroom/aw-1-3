@@ -134,11 +134,16 @@ public partial class AI_Manager
                 }
                 break;
             case Act.Illuminate:
-                if (p.actGrid != null && u.currentFlareAmmo > 0)
+                if (p.actGrid != null && u.currentFlareAmmo > 0 && u.grid != null)
                 {
-                    u.TryConsumeAmmo(Infantry.AmmoKind.Flare);
-                    gm.fogOfWarManager?.AddIllumination(p.actGrid, u.minIlluminationRange, u.maxIlluminationRange, u.flareDurationTurns);
-                    gm.fogOfWarManager?.RefreshFog();
+                    int launchDistance = Mathf.Abs(p.actGrid.GridIndex.X - u.grid.GridIndex.X) + Mathf.Abs(p.actGrid.GridIndex.Y - u.grid.GridIndex.Y);
+                    if (launchDistance >= u.minLaunchRange && launchDistance <= u.maxLaunchRange
+                        && gm.gridManager.IsRangeAllowed(u.grid, p.actGrid, u.flareLaunchCanCrossScreens))
+                    {
+                        u.TryConsumeAmmo(Infantry.AmmoKind.Flare);
+                        gm.fogOfWarManager?.AddIllumination(p.actGrid, u.minIlluminationRange, u.maxIlluminationRange, u.flareDurationTurns, u.flareEffectCanCrossScreens);
+                        gm.fogOfWarManager?.RefreshFog();
+                    }
                 }
                 break;
             case Act.Explode:
