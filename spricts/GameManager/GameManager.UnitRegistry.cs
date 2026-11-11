@@ -201,6 +201,11 @@ private void AutoCategorizeUnit(Infantry unit)
             antiTankUnits.Add(unit);
             break;
 
+        case Infantry u when u.UnitTypeId == "Rhino":
+            category = UnitCategory.Tank;
+            tankUnits.Add(unit);
+            break;
+
         case Infantry _:
             category = UnitCategory.Infantry;
             infantryUnits.Add(unit);
@@ -267,6 +272,7 @@ private void AutoCategorizeUnit(Infantry unit)
             Lander _ => UnitCategory.Lander,
             Carrier _ => UnitCategory.Carrier,
             Gunboat _ => UnitCategory.Gunboat,
+            Infantry u when u.UnitTypeId == "Rhino" => UnitCategory.Tank,
             Infantry _ => UnitCategory.Infantry,
             _ => UnitCategory.Other
         };
