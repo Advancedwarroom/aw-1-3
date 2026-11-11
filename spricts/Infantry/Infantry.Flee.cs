@@ -10,6 +10,7 @@ public partial class Infantry
     [Export] public bool canFleeOnDeath = false;   // 逃跑开关：致命伤触发
     [Export] public int fleeRangeMin = 0;          // 逃跑目标格检查范围 x
     [Export] public int fleeRangeMax = 2;          // 逃跑目标格检查范围 y
+    [Export] public bool fleeCanCrossScreens = false; // 致命逃跑目标范围是否允许跨屏
     
     // ========== 逃跑模块（野化）==========
     /// <summary>
@@ -36,7 +37,7 @@ public partial class Infantry
                 var pos = new Vector2I(origin.X + dx, origin.Y + dy);
                 if (!gm.unitManager.IsValidGrid(pos)) continue;
                 var g = gm.gridManager.map[pos.X, pos.Y];
-                if (g == null || g.infantries.Count > 0) continue;      // 有单位的不选
+                if (g == null || !gm.gridManager.IsRangeAllowed(grid, g, fleeCanCrossScreens) || g.infantries.Count > 0) continue;      // 有单位的不选
                 if (GetMoveCostOnGrid(g) >= 999) continue;           // 本兵种不可通行的地形不选（水面/陨石）
                 candidates.Add(g);
             }
