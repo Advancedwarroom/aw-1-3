@@ -481,11 +481,11 @@ public partial class Infantry
 
     private int GetMitigatedPushDistance(List<Infantry> stack, int requestedDistance)
     {
-        // A co-located stack shares one displacement result. Evaluate each member's
-        // complete mitigation profile independently and use the strongest valid
-        // profile; do not accidentally combine the best flat and percentage values
-        // from two different units into a mitigation configuration neither owns.
-        return stack.Where(u => IsLivingUnit(u) && u.pushMitigationEnabled)
+        // A mitigation Export is active only when its configured ammo cost can be
+        // paid. Ammo is charged later, and only if that stack actually moved.
+        return stack.Where(u => IsLivingUnit(u) && u.pushMitigationEnabled
+                && (u.pushMitigationAmmoCost <= 0
+                    || u.HasAmmo(u.pushMitigationAmmoKind, u.pushMitigationAmmoCost)))
             .Select(u =>
             {
                 int remaining = Mathf.Max(0, requestedDistance - Mathf.Max(0, u.pushMitigationTiles));
@@ -495,6 +495,16 @@ public partial class Infantry
             })
             .DefaultIfEmpty(requestedDistance)
             .Min();
+    }
+
+    private static void PayMitigationAmmoCost(List<Infantry> stack)
+    {
+        foreach (var unit in stack.Where(u => IsLivingUnit(u) && u.pushMitigationEnabled))
+        {
+            int cost = Mathf.Max(0, unit.pushMitigationAmmoCost);
+            if (cost > 0 && unit.HasAmmo(unit.pushMitigationAmmoKind, cost))
+                unit.TryConsumeAmmo(unit.pushMitigationAmmoKind, cost);
+        }
     }
 
     // Rebound and transfer compete for the same stack displacement. Resolve the
@@ -804,6 +814,7 @@ public partial class Infantry
         // not once for every tile traversed.
         var originalTiles = chain.Select(stack => stack.FirstOrDefault(IsLivingUnit)?.grid).ToList();
         var movedStacks = new HashSet<int>();
+        var mitigatedDistances = chain.Select(stack => GetMitigatedPushDistance(stack, distance)).ToList();
 
         for (int step = 0; step < distance; step++)
         {
@@ -811,7 +822,7 @@ public partial class Infantry
             {
                 var stack = chain[i].Where(IsLivingUnit).ToList();
                 if (stack.Count == 0) continue;
-                int stackDistance = GetMitigatedPushDistance(stack, distance);
+                int stackDistance = mitigatedDistances[i];
                 if (step >= stackDistance) continue;
                 bool finalStepForStack = step == stackDistance - 1;
                 var currentGrid = stack[0].grid;
@@ -844,6 +855,14 @@ public partial class Infantry
                 MoveStackByPush(stack, destination);
                 movedStacks.Add(i);
             }
+        }
+
+        // Charge each active mitigation module once, and only for stacks that
+        // actually moved at least one tile.
+        foreach (int i in movedStacks)
+        {
+            if (mitigatedDistances[i] < distance)
+                PayMitigationAmmoCost(chain[i]);
         }
 
         // Resolve per-stack post-push modules once, after all chain movement is complete.
