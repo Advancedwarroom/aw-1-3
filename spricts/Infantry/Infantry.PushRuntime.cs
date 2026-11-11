@@ -288,6 +288,7 @@ public partial class Infantry
             PushResourceType.Health => health > cost,
             PushResourceType.Fuel => fuel >= cost,
             PushResourceType.PrimaryAmmo => HasAmmo(AmmoKind.Primary, cost),
+            PushResourceType.Ammo => HasAmmo(pushCostAmmoKind, cost),
             _ => true
         };
     }
@@ -310,6 +311,9 @@ public partial class Infantry
                 break;
             case PushResourceType.PrimaryAmmo:
                 TryConsumeAmmo(AmmoKind.Primary, cost);
+                break;
+            case PushResourceType.Ammo:
+                TryConsumeAmmo(pushCostAmmoKind, cost);
                 break;
         }
     }
@@ -397,13 +401,13 @@ public partial class Infantry
             : gm?.gridManager?.GetGridAt(origin.GridIndex - direction);
         if (reboundDestination == null || GetLivingStack(reboundDestination).Count > 0
             || reboundDestination.city != null || (reboundDestination.weapons?.Count ?? 0) > 0
-            || rebounder.GetAmmo(AmmoKind.Primary) < ammoCost || rebounder.fuel < fuelCost
+            || rebounder.GetAmmo(rebounder.pushReboundAmmoKind) < ammoCost || rebounder.fuel < fuelCost
             || (fundsCost > 0 && (gm == null || gm.GetTeamFunds(rebounder.team) < fundsCost)))
             return false;
 
         // Validate the destination and every cost before charging anything.
-        if (ammoCost > 0 && !rebounder.HasAmmo(AmmoKind.Primary, ammoCost)) return false;
-        if (ammoCost > 0) rebounder.TryConsumeAmmo(AmmoKind.Primary, ammoCost);
+        if (ammoCost > 0 && !rebounder.HasAmmo(rebounder.pushReboundAmmoKind, ammoCost)) return false;
+        if (ammoCost > 0) rebounder.TryConsumeAmmo(rebounder.pushReboundAmmoKind, ammoCost);
         rebounder.fuel -= fuelCost;
         if (fundsCost > 0)
             gm.SetTeamFunds(rebounder.team, gm.GetTeamFunds(rebounder.team) - fundsCost);
@@ -433,14 +437,14 @@ public partial class Infantry
         var destination = origin == null ? null : gridManager.GetGridAt(origin.GridIndex + direction);
         if (destination == null || GetLivingStack(destination).Count > 0
             || destination.city != null || (destination.weapons?.Count ?? 0) > 0
-            || transferUnit.GetAmmo(AmmoKind.Primary) < ammoCost || transferUnit.fuel < fuelCost
+            || transferUnit.GetAmmo(transferUnit.pushTransferAmmoKind) < ammoCost || transferUnit.fuel < fuelCost
             || transferUnit.health <= healthCost
             || (fundsCost > 0 && (gm == null || gm.GetTeamFunds(transferUnit.team) < fundsCost)))
             return false;
-        if (ammoCost > 0 && !transferUnit.HasAmmo(AmmoKind.Primary, ammoCost)) return false;
+        if (ammoCost > 0 && !transferUnit.HasAmmo(transferUnit.pushTransferAmmoKind, ammoCost)) return false;
 
         // No resources are consumed until the destination is known to be valid.
-        if (ammoCost > 0) transferUnit.TryConsumeAmmo(AmmoKind.Primary, ammoCost);
+        if (ammoCost > 0) transferUnit.TryConsumeAmmo(transferUnit.pushTransferAmmoKind, ammoCost);
         transferUnit.fuel -= fuelCost;
         transferUnit.health -= healthCost;
         if (fundsCost > 0)
@@ -474,7 +478,7 @@ public partial class Infantry
             if (pushTargetFuelDelta != 0)
                 unit.fuel = (int)Math.Clamp((long)unit.fuel + pushTargetFuelDelta, 0L, int.MaxValue);
             if (pushTargetAmmoDelta != 0)
-                unit.AddAmmo(AmmoKind.Primary, pushTargetAmmoDelta);
+                unit.AddAmmo(pushTargetAmmoKind, pushTargetAmmoDelta);
             unit.UpdateHpLabel();
         }
     }
