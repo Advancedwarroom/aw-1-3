@@ -346,6 +346,7 @@ public partial class GameManager
         if (CoModuleSystem.IsExclusiveUnit(currentTeam, unitName)) unit.isCoUnit = true;
         int unitNumber = unitManager.AllUnits.Count + 1;
         unit.Name = $"{currentTeam}_{unitName}_{unitNumber}";
+        ApplyProductionVigor(unit, facility);   // ✅ 产能绑定（血量/占领度平均值）→ 出厂血量/燃油（厂子越残，出的单位越残次）
 
         unitManager.units.AddChild(unit);
         bool bound = unitManager.BindUnitToGrid(unit, true);
@@ -390,6 +391,16 @@ public partial class GameManager
         return true;
     }
 
+    /// <summary>产能绑定（开创人2026-11-11）：出厂单位血量/燃油按设施产能活力缩放——厂子越残，出的单位越残次。
+    /// 绑定未开=不缩放；血量托底 productionUnitMinHp，燃油钳在 [productionUnitMinFuel, maxFuel]。</summary>
+    private void ApplyProductionVigor(Infantry unit, Facility facility)
+    {
+        if (facility == null || (!facility.productionHealthBound && !facility.productionCaptureBound)) return;
+        float vigor = facility.GetProductionVigor();
+        unit.health = Mathf.Max(facility.productionUnitMinHp, Mathf.RoundToInt(unit.health * vigor));
+        unit.fuel = Math.Clamp(Mathf.RoundToInt(unit.fuel * vigor), facility.productionUnitMinFuel, unit.maxFuel);
+    }
+
     /// <summary>
     /// AI自动生产单位：无需UI，直接检查条件并生产
     /// </summary>
@@ -427,6 +438,7 @@ public partial class GameManager
         unit.team = team;
         int unitNumber = unitManager.AllUnits.Count + 1;
         unit.Name = $"{team}_{unitName}_{unitNumber}";
+        ApplyProductionVigor(unit, facility);   // ✅ 产能绑定：AI 出厂同规则同规
 
         unitManager.units.AddChild(unit);
         bool bound = unitManager.BindUnitToGrid(unit, true);

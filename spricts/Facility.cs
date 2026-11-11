@@ -65,6 +65,15 @@ public partial class Facility : Node2D
     [Export] public int maxProductionsPerTurn = 1;
     [Export] public int productionsThisTurn = 0;
 
+    // ========== 产能绑定（开创人2026-11-11）：实际血量+最高占领度 双轴平均 → 产能/出厂血量/出厂燃油 ==========
+    [ExportGroup("产能绑定（血量/占领度）")]
+    [Export] public bool productionHealthBound = false;      // 实际血量绑定（用当前health，非maxHealth）
+    [Export] public bool productionCaptureBound = false;     // 最高占领度绑定（GetCurrentCaptureState() 实际当前值：刚占领完临时低值，逐回合回满）
+    [Export] public float productionSlotsPerPoint = 1f;      // 每点平均值=几个生产名额（1=一滴血一名额）
+    [Export] public int productionMinSlots = 0;              // 产能下限（残血保底）
+    [Export] public int productionUnitMinHp = 1;             // 出厂血量下限（不至于出0血单位）
+    [Export] public int productionUnitMinFuel = 0;           // 出厂燃油下限
+
     // ========== 状态栏系统 ==========
     [ExportGroup("初始状态（运行时生效）")]
     [Export] public Godot.Collections.Array<FacilityStatusData> initialStatuses = new();
@@ -76,7 +85,26 @@ public partial class Facility : Node2D
     private VBoxContainer statusBarContainer;
     private Dictionary<FacilityStatusType, Label> statusLabels = new();
 
-    public bool CanProduceNow() => canProduce && productionsThisTurn < maxProductionsPerTurn && !HasStatus(FacilityStatusType.CannotProduce);
+    /// <summary>产能活力 0~1：各绑定源归一化后取平均（血量+占领度并存不矛盾，就是加一块除以二；都没开=满产能）</summary>
+    public float GetProductionVigor()
+    {
+        float sum = 0f; int n = 0;
+        if (productionHealthBound)  { sum += (float)health / Mathf.Max(1, maxHealth); n++; }
+        if (productionCaptureBound) { sum += (float)GetCurrentCaptureState() / Mathf.Max(1, capturePointsRequired); n++; }
+        return n == 0 ? 1f : sum / n;
+    }
+
+    /// <summary>有效产能（每回合生产次数上限）：绑定开启时=平均值原始点×每点名额（按下限托底）；未开启=maxProductionsPerTurn</summary>
+    public int GetEffectiveMaxProductions()
+    {
+        if (!productionHealthBound && !productionCaptureBound) return maxProductionsPerTurn;
+        float sum = 0f; int n = 0;
+        if (productionHealthBound)  { sum += health; n++; }
+        if (productionCaptureBound) { sum += GetCurrentCaptureState(); n++; }
+        return Mathf.Max(productionMinSlots, Mathf.FloorToInt(sum / n * productionSlotsPerPoint));
+    }
+
+    public bool CanProduceNow() => canProduce && productionsThisTurn < GetEffectiveMaxProductions() && !HasStatus(FacilityStatusType.CannotProduce);
 
     public void ResetProductionCount()
     {
