@@ -46,10 +46,6 @@ public partial class GridManager
             return;
         }
 
-        // Movement-triggered push is resolved on the actual traversed path, before
-        // normal overlap/truncation rules decide whether the mover can continue.
-        TryPushUnitsAlongMovementPath(infantry, to);
-
         var otherUnits = to.infantries.Where(i => i != infantry && IsInstanceValid(i)).ToList();
         bool hasOtherUnits = otherUnits.Count > 0 || (to.infantry != null && to.infantry != infantry);
 
@@ -366,6 +362,11 @@ public partial class GridManager
         if (infantry == null || to == null) return;
         // 最终安全门：任何调用路径都不能把单位停进禁停地形；经过禁停格不受影响。
         if (to.PreventsUnitStop(this)) return;
+
+        // Resolve movement-triggered pushes before overlap checks so a successfully
+        // displaced blocker can vacate the destination for both human and AI moves.
+        TryPushUnitsAlongMovementPath(infantry, to);
+
         // ✅ forcedPath：手画路径模式——路程/绕圈以画线为准，不再重算最短路径
 
         if (infantry.overlapType == UnitOverlapType.NonOverlapping)
