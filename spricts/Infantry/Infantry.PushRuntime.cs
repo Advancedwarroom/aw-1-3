@@ -741,6 +741,12 @@ public partial class Infantry
         if (rebounder == null || origin == null || gm?.gridManager == null)
             return false;
 
+        bool sameTeam = string.Equals(rebounder.team, team, StringComparison.OrdinalIgnoreCase);
+        bool alliedTeam = !sameTeam && TeamHelper.AreAllied(rebounder.team, team);
+        if (sameTeam && !rebounder.pushReboundCanTargetFriendlies) return false;
+        if (alliedTeam && !rebounder.pushReboundCanTargetAllies) return false;
+        if (!sameTeam && !alliedTeam && !rebounder.pushReboundCanTargetEnemies) return false;
+
         var initiatingStack = GetLivingStack(grid);
         if (initiatingStack.Count == 0) initiatingStack.Add(this);
         if (pushUsesWeight)
