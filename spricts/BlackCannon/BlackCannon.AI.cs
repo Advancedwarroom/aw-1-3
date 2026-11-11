@@ -65,6 +65,8 @@ public partial class BlackCannon
         float bestDist = float.MaxValue;
         foreach (var target in candidates)
         {
+            var targetGrid = target is Infantry infTarget ? infTarget.grid : target is Weapon weaponTarget ? (weaponTarget.GetWeakPointGrid() ?? weaponTarget.grid) : null;
+            if (targetGrid == null || IsScreenBlocked(targetGrid)) continue;
             int dist = GetDistanceToTarget(target);
             if (dist >= 0 && dist <= maxAttackDepth && dist < bestDist)
             {
