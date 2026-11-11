@@ -26,7 +26,8 @@ public partial class Infantry
     public void TryPushWeaponOnAttack(Weapon target)
     {
         if (!CanPushNonInfantryTarget(target?.grid, target?.pushableByPhysics, target?.GetEffectiveWeight(),
-            target?.equalWeightPushMode ?? EqualWeightPushMode.Stop, target == null || target.isDestroyed))
+            target?.equalWeightPushMode ?? EqualWeightPushMode.Stop, target == null || target.isDestroyed)
+            || target == null || !CanPushTeamName(target.team))
             return;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null || target == null || target.isMultiTile) return;
@@ -45,7 +46,8 @@ public partial class Infantry
     {
         if (!CanPushNonInfantryTarget(target?.ParentGrid, target?.pushableByPhysics,
             target?.GetEffectiveWeight(), target?.equalWeightPushMode ?? EqualWeightPushMode.Stop,
-            target == null || target.health <= 0))
+            target == null || target.health <= 0)
+            || target == null || !CanPushTeamName(target.facilityTeam))
             return;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null || target == null) return;
@@ -134,6 +136,14 @@ public partial class Infantry
             if (TeamHelper.AreAllied(team, unit.team)) return pushCanTargetAllies;
             return pushCanTargetEnemies;
         });
+    }
+
+    private bool CanPushTeamName(string targetTeam)
+    {
+        if (string.IsNullOrEmpty(targetTeam)) return false;
+        if (targetTeam == team) return pushCanTargetFriendlies;
+        if (TeamHelper.AreAllied(team, targetTeam)) return pushCanTargetAllies;
+        return pushCanTargetEnemies;
     }
 
     private Vector2I GetPushDirection(Grids targetGrid)
