@@ -215,7 +215,7 @@ public partial class AI_Manager
         if (u.canSupplyUnits && customOk)
         {
             float val = 0;
-            foreach (var t in Ring(g, Math.Max(1, u.minSupplyRange), Math.Max(1, u.maxSupplyRange)).Where(x => gameManager.gridManager.IsRangeAllowed(g, x, u.supplyCanCrossScreens)).SelectMany(x => x.infantries))
+            foreach (var t in u.CalculateSupplyRange(g).SelectMany(x => x.infantries))
             {
                 if (t == null || t == u || t.team != u.team || !IsInstanceValid(t)) continue;
                 val += SupplyNeed(t);
@@ -229,7 +229,7 @@ public partial class AI_Manager
         if (rp.can && (!moved || rp.afterMove) && customOk)
         {
             Infantry bestT = null; float bestV = 0;
-            foreach (var t in Ring(g, Math.Max(0, rp.min), Math.Max(0, rp.max)).Where(x => gameManager.gridManager.IsRangeAllowed(g, x, u.repairCanCrossScreens)).SelectMany(x => x.infantries))
+            foreach (var t in u.CalculateRepairRange(g).SelectMany(x => x.infantries))
             {
                 if (t == null || !IsInstanceValid(t) || t.isTransported) continue;
                 if (!u.IsRepairTargetAllowed(t)) continue;   // 与引擎/界面同一判定
