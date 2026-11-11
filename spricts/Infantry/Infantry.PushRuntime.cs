@@ -19,8 +19,10 @@ public partial class Infantry
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager?.map == null) return;
         var initialStack = GetLivingStack(target.grid);
+        var pusherStack = GetLivingStack(grid);
+        if (pusherStack.Count == 0) pusherStack.Add(this);
         if (!CanPushTargetTeam(initialStack)
-            || !CanPushStack(new List<Infantry> { this }, initialStack, GetPushForceMultiplier())
+            || !CanPushStack(pusherStack, initialStack, GetPushForceMultiplier())
             || !CanPayPushCost(gm)) return;
         PayPushCost(gm);
         ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm);
@@ -425,7 +427,9 @@ public partial class Infantry
         }
 
         Vector2I direction = GetPushDirection(targetGrid);
-        if (direction == Vector2I.Zero || !CanPushStack(new List<Infantry> { this }, stack,
+        var pusherStack = GetLivingStack(grid);
+        if (pusherStack.Count == 0) pusherStack.Add(this);
+        if (direction == Vector2I.Zero || !CanPushStack(pusherStack, stack,
             GetPushForceMultiplier())) return;
         if (!CanPayPushCost(gm)) return;
 
@@ -458,7 +462,8 @@ public partial class Infantry
         // Force must be transmitted through every occupied stack in order.
         // If any link cannot move, the chain is mechanically blocked: stacks farther
         // ahead are not independently pushed through the failed link.
-        List<Infantry> pusherStack = new List<Infantry> { this };
+        List<Infantry> pusherStack = GetLivingStack(grid);
+        if (pusherStack.Count == 0) pusherStack.Add(this);
         for (int i = 0; i < chain.Count; i++)
         {
             if (!CanPushStack(pusherStack, chain[i], GetPushForceMultiplier()))
@@ -527,7 +532,11 @@ public partial class Infantry
                 && (followDestination.weapons == null || followDestination.weapons.All(w =>
                     w == null || !GodotObject.IsInstanceValid(w) || !w.pushBlocksInfantryWhenOverlapped));
             if (canOverlapStatic && GetLivingStack(followDestination).Count == 0)
-                MoveStackByPush(new List<Infantry> { this }, followDestination);
+            {
+                var pusherStack = GetLivingStack(grid);
+                if (pusherStack.Count == 0) pusherStack.Add(this);
+                MoveStackByPush(pusherStack, followDestination);
+            }
         }
 
         gameManager?.fogOfWarManager?.OnUnitMoved();
