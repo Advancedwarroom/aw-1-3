@@ -1,8 +1,9 @@
 extends SceneTree
 # 开创人2026-11-11: 设施换色冒烟断言——CI 直接炸，不靠手机截图（ScreenErrorLogger 哲学）
 # City 是锚点灾难当事设施：P-1 必须挂上色相材质且 hue_shift 落在紫色带 [200°,340°]
+# 入口必须是 _initialize()：_init() 是构造器，此刻 get_root() 还是 null
 
-func _init() -> void:
+func _initialize() -> void:
     var packed = load("res://Prefabs/City.tscn")
     if packed == null:
         print("FACILITY_RECOLOR_CHECK_FAIL: City.tscn 加载失败")
