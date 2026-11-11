@@ -99,13 +99,14 @@ public partial class GridManager
     }
 
     // ========== ✅ 照明覆盖范围显示（黄色，以目标为中心）==========
-    public void ShowIlluminationRange(Grids center, int minR, int maxR)
+    public void ShowIlluminationRange(Grids center, int minR, int maxR, Grids source = null, bool allowCrossScreens = false)
     {
         HideIlluminationRange();
         if (center == null) return;
 
-        var allRangeGrids = FindRange(center, maxR, false);
-        List<Grids> innerGrids = minR > 0 ? FindRange(center, minR - 1, false) : new List<Grids>();
+        var allRangeGrids = FindRange(center, maxR, false, true);
+        List<Grids> innerGrids = minR > 0 ? FindRange(center, minR - 1, false, true) : new List<Grids>();
+        if (source != null && !allowCrossScreens) { allRangeGrids = allRangeGrids.Where(g => IsRangeAllowed(source, g, false)).ToList(); innerGrids = innerGrids.Where(g => IsRangeAllowed(source, g, false)).ToList(); }
 
         foreach (var grid in allRangeGrids)
         {
