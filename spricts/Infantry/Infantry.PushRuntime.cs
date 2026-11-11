@@ -232,12 +232,11 @@ public partial class Infantry
                 if (stack.Count == 0) continue;
 
                 var blockers = GetLivingStack(destination).Where(u => !stack.Contains(u)).ToList();
-                if (blockers.Count > 0)
-                {
-                    // A contiguous chain stack should already have moved this step.
-                    // Any remaining occupant is an unrelated obstruction: stop this stack.
+                if (blockers.Count > 0) continue;
+
+                if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager))
                     continue;
-                }
+
                 MoveStackByPush(stack, destination);
                 ApplyPushTargetEffects(stack, gameManager);
             }
@@ -253,6 +252,51 @@ public partial class Infantry
         gameManager?.fogOfWarManager?.OnUnitMoved();
         gameManager?.CallDeferred(nameof(GameManager.UpdateUnitLists));
         gameManager?.CallDeferred(nameof(GameManager.CheckVictoryCondition));
+    }
+
+    private static bool TryDisplaceWeaponAndFacility(List<Infantry> movingStack,
+        Grids destination, Vector2I direction, GridManager gridManager)
+    {
+        float movingWeight = GetStackWeight(movingStack);
+        var nextGrid = gridManager.GetGridAt(destination.GridIndex + direction);
+
+        // A weapon can be stood on only when its own overlap policy allows it.
+        foreach (var weapon in destination.weapons.Where(w =>
+            w != null && GodotObject.IsInstanceValid(w) && !w.IsQueuedForDeletion()).ToList())
+        {
+            if (!weapon.pushBlocksInfantryWhenOverlapped) continue;
+            if (!weapon.pushableByPhysics || nextGrid == null || !Mathf.IsEqualApprox(movingWeight, weapon.GetEffectiveWeight())
+                && movingWeight < weapon.GetEffectiveWeight())
+                return false;
+            if (Mathf.IsEqualApprox(movingWeight, weapon.GetEffectiveWeight())
+                && !CanResolveEqualWeight(movingStack, weapon.equalWeightPushMode))
+                return false;
+            if (!weapon.MoveByPhysicsPush(nextGrid, weapon.GetParent()?.GetParent() as WeaponManager))
+                return false;
+        }
+
+        var facility = destination.city;
+        if (facility != null && facility.pushBlocksInfantryWhenOverlapped)
+        {
+            if (!facility.pushableByPhysics || nextGrid == null || movingWeight < facility.GetEffectiveWeight())
+                return false;
+            if (Mathf.IsEqualApprox(movingWeight, facility.GetEffectiveWeight())
+                && !CanResolveEqualWeight(movingStack, facility.equalWeightPushMode))
+                return false;
+            if (!facility.MoveByPhysicsPush(nextGrid))
+                return false;
+        }
+        return true;
+    }
+
+    private static bool CanResolveEqualWeight(List<Infantry> movingStack,
+        EqualWeightPushMode obstacleMode)
+    {
+        bool stackAllows = StackAllowsSimultaneous(movingStack);
+        bool stackStops = StackStopsOnEqual(movingStack);
+        if (stackAllows && obstacleMode == EqualWeightPushMode.AllowSimultaneous) return true;
+        if (stackStops && obstacleMode == EqualWeightPushMode.Stop) return false;
+        return GD.Randf() < 0.5f;
     }
 
     private static bool IsLivingUnit(Infantry unit) =>
