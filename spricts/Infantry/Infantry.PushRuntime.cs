@@ -919,15 +919,13 @@ public partial class Infantry
                     }
                     unit.health = (int)Math.Max(1L, remainingHealth);
                 }
-                int reboundFuelDelta = rebounder.pushReboundTargetFuelDelta;
-                if (reboundFuelDelta < 0 && unit.pushMitigationProtectFuel)
-                    reboundFuelDelta = -MitigatePushLoss(unit, -reboundFuelDelta, true);
+                int reboundFuelDelta = MitigatePushDelta(unit, rebounder.pushReboundTargetFuelDelta,
+                    unit.pushMitigationProtectFuel);
                 if (reboundFuelDelta != 0)
                     unit.fuel = (int)Math.Clamp((long)unit.fuel + reboundFuelDelta, 0L, int.MaxValue);
-                int reboundAmmoDelta = rebounder.pushReboundTargetAmmoDelta;
-                if (reboundAmmoDelta < 0 && unit.pushMitigationProtectAmmo
-                    && unit.pushMitigationProtectAmmoKind == rebounder.pushReboundTargetAmmoKind)
-                    reboundAmmoDelta = -MitigatePushLoss(unit, -reboundAmmoDelta, true);
+                int reboundAmmoDelta = MitigatePushDelta(unit, rebounder.pushReboundTargetAmmoDelta,
+                    unit.pushMitigationProtectAmmo
+                    && unit.pushMitigationProtectAmmoKind == rebounder.pushReboundTargetAmmoKind);
                 if (reboundAmmoDelta != 0)
                     unit.AddAmmo(rebounder.pushReboundTargetAmmoKind, reboundAmmoDelta);
                 unit.UpdateHpLabel();
@@ -995,6 +993,13 @@ public partial class Infantry
             0.0, int.MaxValue);
     }
 
+    private static int MitigatePushDelta(Infantry target, int delta, bool protectResource)
+    {
+        if (delta >= 0) return delta;
+        int loss = (int)Math.Min(int.MaxValue, -(long)delta);
+        return -MitigatePushLoss(target, loss, protectResource);
+    }
+
     private void ApplyPushTargetEffects(List<Infantry> stack, GameManager gm)
     {
         foreach (var unit in stack.ToList())
@@ -1021,19 +1026,17 @@ public partial class Infantry
                 }
                 unit.health = (int)Math.Max(1L, damagedHealth);
             }
-            int targetFuelDelta = pushTargetFuelDelta;
-            if (targetFuelDelta < 0 && unit.pushMitigationProtectFuel)
-                targetFuelDelta = -MitigatePushLoss(unit, -targetFuelDelta, true);
+            int targetFuelDelta = MitigatePushDelta(unit, pushTargetFuelDelta,
+                unit.pushMitigationProtectFuel);
             if (targetFuelDelta != 0)
             {
                 long fuelValue = (long)unit.fuel + targetFuelDelta;
                 long fuelMax = pushTargetFuelCanOverMax ? int.MaxValue : Math.Max(0, unit.maxFuel);
                 unit.fuel = (int)Math.Clamp(fuelValue, 0L, fuelMax);
             }
-            int targetAmmoDelta = pushTargetAmmoDelta;
-            if (targetAmmoDelta < 0 && unit.pushMitigationProtectAmmo
-                && unit.pushMitigationProtectAmmoKind == pushTargetAmmoKind)
-                targetAmmoDelta = -MitigatePushLoss(unit, -targetAmmoDelta, true);
+            int targetAmmoDelta = MitigatePushDelta(unit, pushTargetAmmoDelta,
+                unit.pushMitigationProtectAmmo
+                && unit.pushMitigationProtectAmmoKind == pushTargetAmmoKind);
             if (targetAmmoDelta != 0)
             {
                 long ammoValue = (long)unit.GetAmmo(pushTargetAmmoKind) + targetAmmoDelta;
@@ -1042,9 +1045,8 @@ public partial class Infantry
             }
             if (gm != null && pushTargetFundsDelta != 0)
             {
-                int fundsDelta = pushTargetFundsDelta;
-                if (fundsDelta < 0 && unit.pushMitigationProtectFunds)
-                    fundsDelta = -MitigatePushLoss(unit, -fundsDelta, true);
+                int fundsDelta = MitigatePushDelta(unit, pushTargetFundsDelta,
+                    unit.pushMitigationProtectFunds);
                 long fundsMax = pushTargetFundsCanOverMax
                     ? int.MaxValue : Math.Max(0, gm.GetTeamFundsMax(unit.team));
                 long newFunds = Math.Clamp((long)gm.GetTeamFunds(unit.team) + fundsDelta,
@@ -1575,15 +1577,13 @@ public partial class Infantry
                 }
                 unit.health = (int)Math.Max(1L, remainingHealth);
             }
-            int fragileFuelDelta = unit.pushFragileFuelDelta;
-            if (fragileFuelDelta < 0 && unit.pushMitigationProtectFuel)
-                fragileFuelDelta = -MitigatePushLoss(unit, -fragileFuelDelta, true);
+            int fragileFuelDelta = MitigatePushDelta(unit, unit.pushFragileFuelDelta,
+                unit.pushMitigationProtectFuel);
             if (fragileFuelDelta != 0)
                 unit.fuel = (int)Math.Clamp((long)unit.fuel + fragileFuelDelta, 0L, int.MaxValue);
-            int fragileAmmoDelta = unit.pushFragileAmmoDelta;
-            if (fragileAmmoDelta < 0 && unit.pushMitigationProtectAmmo
-                && unit.pushMitigationProtectAmmoKind == unit.pushFragileAmmoKind)
-                fragileAmmoDelta = -MitigatePushLoss(unit, -fragileAmmoDelta, true);
+            int fragileAmmoDelta = MitigatePushDelta(unit, unit.pushFragileAmmoDelta,
+                unit.pushMitigationProtectAmmo
+                && unit.pushMitigationProtectAmmoKind == unit.pushFragileAmmoKind);
             if (fragileAmmoDelta != 0)
                 unit.AddAmmo(unit.pushFragileAmmoKind, fragileAmmoDelta);
             unit.UpdateHpLabel();
