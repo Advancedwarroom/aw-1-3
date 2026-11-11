@@ -73,7 +73,6 @@ public partial class MissileSilo : Weapon
 
     // ========== 14. 支持队伍（如开启势力限制）==========
     [ExportGroup("队伍与目标")]
-    [ExportGroup("队伍筛选")]
     [Export] public bool siloIncludeFriendly = true;
     [Export] public bool siloIncludeEnemy = true;
     [Export] public bool siloIncludeAllied = true;
