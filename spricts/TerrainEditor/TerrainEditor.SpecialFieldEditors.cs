@@ -599,6 +599,22 @@ private void ApplyPreset(System.Collections.Generic.IDictionary<string, int> dic
         maxHealthHBox.AddChild(maxHealthChangeSpinBox);
         customDamageContainer.AddChild(maxHealthHBox);
 
+        var weightHBox = new HBoxContainer();
+        var weightLabel = new Label { Text = TranslateGroup.T("重量增减/回合:"), CustomMinimumSize = new Vector2(100, 22) };
+        weightLabel.AddThemeFontSizeOverride("font_size", 11);
+        weightChangeSpinBox = new SpinBox
+        {
+            MinValue = -9999,
+            MaxValue = 9999,
+            Step = 0.01,
+            Value = 0,
+            CustomMinimumSize = new Vector2(80, 22)
+        };
+        weightChangeSpinBox.AddThemeFontSizeOverride("font_size", 11);
+        weightHBox.AddChild(weightLabel);
+        weightHBox.AddChild(weightChangeSpinBox);
+        customDamageContainer.AddChild(weightHBox);
+
         terrainMenuPanel.AddChild(customDamageContainer);
     }
 
@@ -652,7 +668,7 @@ private void ApplyPreset(System.Collections.Generic.IDictionary<string, int> dic
         kindLabel.AddThemeFontSizeOverride("font_size", 11);
         ammoKindOptionButton = new OptionButton { CustomMinimumSize = new Vector2(130, 22) };
         ammoKindOptionButton.AddThemeFontSizeOverride("font_size", 11);
-        foreach (var kn in new[] { "主弹药", "自爆弹", "照明弹", "隐身弹", "显形弹", "迷彩弹", "生产弹", "建造弹" })
+        foreach (var kn in new[] { "主弹药", "自爆弹", "照明弹", "隐身弹", "显形弹", "迷彩弹", "生产弹", "建造弹", "特殊弹", "反弹推进弹", "卸力弹", "反重力场弹" })
             ammoKindOptionButton.AddItem(TranslateGroup.T(kn));
         ammoKindOptionButton.ItemSelected += _ => LoadAmmoKindSpinValues();
         kindHBox.AddChild(kindLabel);
@@ -732,6 +748,7 @@ private void ApplyPreset(System.Collections.Generic.IDictionary<string, int> dic
         fixedAttackSpinBox.Value = grid.fixedAttackPerTurn;
         canOverMaxCheckBox.ButtonPressed = grid.canOverMaxHealth;
         maxHealthChangeSpinBox.Value = grid.fixedMaxHealthChangePerTurn;
+        weightChangeSpinBox.Value = grid.fixedWeightChangePerTurn;
     }
 
     private void LoadAmmoFuelValues(Grids grid)
@@ -765,6 +782,7 @@ private void ApplyPreset(System.Collections.Generic.IDictionary<string, int> dic
         grid.fixedAttackPerTurn = (int)fixedAttackSpinBox.Value;
         grid.canOverMaxHealth = canOverMaxCheckBox.ButtonPressed;
         grid.fixedMaxHealthChangePerTurn = (int)maxHealthChangeSpinBox.Value;
+        grid.fixedWeightChangePerTurn = (float)weightChangeSpinBox.Value;
     }
 
     private void SaveAmmoFuelValues(Grids grid)
