@@ -1409,6 +1409,10 @@ public partial class Infantry
         // Multiple weapons cannot be rebound into one slot by WeaponManager; reject that
         // configuration before moving anything rather than corrupting occupancy.
         if (blockingWeapons.Count > 1) return false;
+        // Multi-tile weapons can be pushed as direct targets with full-footprint
+        // validation, but a mixed infantry/static chain needs a footprint-aware
+        // domino solver before it can safely move one as an intermediate obstacle.
+        if (blockingWeapons.Any(w => w.isMultiTile)) return false;
         if (blockingWeapons.Count == 0 && blockingFacility == null) return true;
         if (nextGrid == null) return false;
 
