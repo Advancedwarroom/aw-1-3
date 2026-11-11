@@ -809,7 +809,7 @@ public partial class Infantry
 
     private void ExecuteSeparatePushOnGrid(Grids targetGrid, int? selectedDistance = null)
     {
-        if (!pushAutoDistance && selectedDistance == null)
+        if (!pushAutoDistance && selectedDistance == null && pushMinDistance < pushDistance)
         {
             OpenPushDistanceMenu(targetGrid);
             return;
