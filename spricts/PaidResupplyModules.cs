@@ -55,6 +55,7 @@ public partial class Infantry
     [Export] public int prSelfCostAmount = 0;                       // 每勾选资源扣这么多（负=返还）
     [Export] public bool prSelfCostHp = false;
     [Export] public bool prSelfCostFuel = false;
+    [Export] public bool prSelfCostWeight = false;
     [Export] public bool prSelfCostAmmoPrimary = false;
     [Export] public bool prSelfCostAmmoExplode = false;
     [Export] public bool prSelfCostAmmoFlare = false;
@@ -76,6 +77,7 @@ public partial class Infantry
     [Export] public bool prSacrificeIncludeAllied = false;
     [Export] public bool prSacrificeHp = false;
     [Export] public bool prSacrificeFuel = false;
+    [Export] public bool prSacrificeWeight = false;
     [Export] public bool prSacrificeAmmoPrimary = false;
     [Export] public bool prSacrificeAmmoExplode = false;
     [Export] public bool prSacrificeAmmoFlare = false;
@@ -119,10 +121,11 @@ public partial class Infantry
         return true;
     }
 
-    // ===== 十四资源读写（资源索引：0血 1油 2普通 3自爆 4照明 5隐身 6显形 7迷彩 8生产 9建造 10特殊）=====
+    // ===== 十五资源读写（0血 1油 2-13弹药 14重量；重量按0.01缩放为整数）=====
     public int PrGet(int res) => res switch
     {
         0 => health, 1 => fuel, 2 => currentPrimaryAmmo, 3 => currentExplodeAmmo,
+        14 => Mathf.RoundToInt(weight * 100.0f),
         4 => currentFlareAmmo, 5 => currentStealthBullets, 6 => currentRevealBullets,
         7 => currentCamoBullets, 8 => currentProductionAmmo, 9 => currentConstructionAmmo,
         10 => currentSpecialAmmo, 11 => currentPushReboundAmmo,
@@ -134,7 +137,7 @@ public partial class Infantry
         4 => maxFlareAmmo, 5 => maxStealthBullets, 6 => maxRevealBullets,
         7 => maxCamoBullets, 8 => maxProductionAmmo, 9 => maxConstructionAmmo,
         10 => maxSpecialAmmo, 11 => maxPushReboundAmmo,
-        12 => maxPushMitigationAmmo, 13 => maxAntiGravityTransferAmmo, _ => 0
+        12 => maxPushMitigationAmmo, 13 => maxAntiGravityTransferAmmo, 14 => 999900, _ => 0
     };
     public void PrSet(int res, int v)
     {
@@ -149,6 +152,7 @@ public partial class Infantry
             case 11: currentPushReboundAmmo = v; break;
             case 12: currentPushMitigationAmmo = v; break;
             case 13: currentAntiGravityTransferAmmo = v; break;
+            case 14: weight = Mathf.Clamp(v / 100.0f, 0.0f, 9999.0f); break;
         }
     }
     public bool PrIsInfinite(int res)
@@ -156,7 +160,7 @@ public partial class Infantry
 
     public bool PrTargetResEnabled(int res) => res switch
     {
-        0 => prTargetHp, 1 => prTargetFuel, 2 => prTargetAmmoPrimary, 3 => prTargetAmmoExplode,
+        0 => prTargetHp, 1 => prTargetFuel, 14 => prTargetWeight, 2 => prTargetAmmoPrimary, 3 => prTargetAmmoExplode,
         4 => prTargetAmmoFlare, 5 => prTargetAmmoStealth, 6 => prTargetAmmoReveal,
         7 => prTargetAmmoCamo, 8 => prTargetAmmoProduction, 9 => prTargetAmmoConstruction,
         10 => prTargetAmmoSpecial, 11 => prTargetAmmoPushRebound,
@@ -164,7 +168,7 @@ public partial class Infantry
     };
     public bool PrSelfCostEnabled(int res) => res switch
     {
-        0 => prSelfCostHp, 1 => prSelfCostFuel, 2 => prSelfCostAmmoPrimary, 3 => prSelfCostAmmoExplode,
+        0 => prSelfCostHp, 1 => prSelfCostFuel, 14 => prSelfCostWeight, 2 => prSelfCostAmmoPrimary, 3 => prSelfCostAmmoExplode,
         4 => prSelfCostAmmoFlare, 5 => prSelfCostAmmoStealth, 6 => prSelfCostAmmoReveal,
         7 => prSelfCostAmmoCamo, 8 => prSelfCostAmmoProduction, 9 => prSelfCostAmmoConstruction,
         10 => prSelfCostAmmoSpecial, 11 => prSelfCostAmmoPushRebound,
@@ -172,7 +176,7 @@ public partial class Infantry
     };
     public bool PrSacrificeEnabled(int res) => res switch
     {
-        0 => prSacrificeHp, 1 => prSacrificeFuel, 2 => prSacrificeAmmoPrimary, 3 => prSacrificeAmmoExplode,
+        0 => prSacrificeHp, 1 => prSacrificeFuel, 14 => prSacrificeWeight, 2 => prSacrificeAmmoPrimary, 3 => prSacrificeAmmoExplode,
         4 => prSacrificeAmmoFlare, 5 => prSacrificeAmmoStealth, 6 => prSacrificeAmmoReveal,
         7 => prSacrificeAmmoCamo, 8 => prSacrificeAmmoProduction, 9 => prSacrificeAmmoConstruction,
         10 => prSacrificeAmmoSpecial, 11 => prSacrificeAmmoPushRebound,
@@ -191,7 +195,7 @@ public partial class Infantry
             gm.SetTeamFunds(team, Math.Max(0, gm.GetTeamFunds(team) - prFundsCost));  // 负价=退款
         else if (method == 1 && prUseSelf)
         {
-            for (int r = 0; r <= 13; r++)
+            for (int r = 0; r <= 14; r++)
                 if (PrSelfCostEnabled(r) && !PrIsInfinite(r))
                     PrSet(r, Math.Max(0, PrGet(r) - prSelfCostAmount));
         }
@@ -235,7 +239,7 @@ public partial class Infantry
 
     private void PrRefill(Infantry tu, Weapon tw, Facility tf)
     {
-        for (int r = 0; r <= 13; r++)
+        for (int r = 0; r <= 14; r++)
         {
             if (!PrTargetResEnabled(r)) continue;
             if (tu != null && IsInstanceValid(tu) && !tu.PrIsInfinite(r))
@@ -266,7 +270,7 @@ public partial class Infantry
         bool teamOk = TeamHelper.MatchesTeamRelation(team, u.team,
             prSacrificeIncludeFriendly, prSacrificeIncludeEnemy, prSacrificeIncludeAllied);
         if (!teamOk) return;
-        for (int r = 0; r <= 13; r++)
+        for (int r = 0; r <= 14; r++)
             if (PrSacrificeEnabled(r) && !u.PrIsInfinite(r))
                 u.PrSet(r, Mathf.Max(0, u.PrGet(r) - prSacrificeAmount));
         u.UpdateHpLabel();
@@ -277,7 +281,7 @@ public partial class Infantry
         bool teamOk = TeamHelper.MatchesTeamRelation(team, wp.team,
             prSacrificeIncludeFriendly, prSacrificeIncludeEnemy, prSacrificeIncludeAllied);
         if (!teamOk) return;
-        for (int r = 0; r <= 13; r++)
+        for (int r = 0; r <= 14; r++)
             if (PrSacrificeEnabled(r) && !wp.PrIsInfiniteW(r))
                 wp.PrSetW(r, Mathf.Max(0, wp.PrGetW(r) - prSacrificeAmount));
     }
@@ -287,7 +291,7 @@ public partial class Infantry
         bool teamOk = TeamHelper.MatchesTeamRelation(team, f.facilityTeam,
             prSacrificeIncludeFriendly, prSacrificeIncludeEnemy, prSacrificeIncludeAllied);
         if (!teamOk) return;
-        for (int r = 0; r <= 13; r++)
+        for (int r = 0; r <= 14; r++)
             if (PrSacrificeEnabled(r) && !f.PrIsInfiniteF(r))
                 f.PrSetF(r, Mathf.Max(0, f.PrGetF(r) - prSacrificeAmount));
     }
@@ -304,13 +308,13 @@ public partial class Weapon
     // 十四资源读写（兵器无燃料/生产弹/建造弹 → no-op）
     public int PrGetW(int res) => res switch
     {
-        0 => health, 2 => currentAmmo, 3 => wExplodeCurrent, 4 => wFlareCurrent,
+        0 => health, 14 => Mathf.RoundToInt(weight * 100.0f), 2 => currentAmmo, 3 => wExplodeCurrent, 4 => wFlareCurrent,
         5 => wStealthBulletCurrent, 6 => wRevealBulletCurrent, 7 => wCamoBulletCurrent,
         10 => wSpecialCurrent, _ => 0
     };
     public int PrMaxW(int res) => res switch
     {
-        0 => maxHealth, 2 => maxAmmo, 3 => wExplodeMax, 4 => wFlareMax,
+        0 => maxHealth, 14 => 999900, 2 => maxAmmo, 3 => wExplodeMax, 4 => wFlareMax,
         5 => wStealthBulletMax, 6 => wRevealBulletMax, 7 => wCamoBulletMax,
         10 => wSpecialMax, _ => 0
     };
@@ -319,6 +323,7 @@ public partial class Weapon
         switch (res)
         {
             case 0: health = v; break; case 2: currentAmmo = v; break;
+            case 14: weight = Mathf.Clamp(v / 100.0f, 0.0f, 9999.0f); break;
             case 3: wExplodeCurrent = v; break; case 4: wFlareCurrent = v; break;
             case 5: wStealthBulletCurrent = v; break; case 6: wRevealBulletCurrent = v; break;
             case 7: wCamoBulletCurrent = v; break; case 10: wSpecialCurrent = v; break;
@@ -338,11 +343,11 @@ public partial class Facility
 
     public int PrGetF(int res) => res switch
     {
-        0 => health, 10 => currentSpecialAmmo, _ => 0
+        0 => health, 14 => Mathf.RoundToInt(weight * 100.0f), 10 => currentSpecialAmmo, _ => 0
     };
     public int PrMaxF(int res) => res switch
     {
-        0 => maxHealth, 10 => maxSpecialAmmo, _ => 0
+        0 => maxHealth, 14 => 999900, 10 => maxSpecialAmmo, _ => 0
     };
     public void PrSetF(int res, int v)
     {
