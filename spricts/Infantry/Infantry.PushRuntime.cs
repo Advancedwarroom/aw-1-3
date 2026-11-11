@@ -18,12 +18,7 @@ public partial class Infantry
 
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager?.map == null) return;
-        var initialStack = GetLivingStack(target.grid);
-        var pusherStack = GetLivingStack(grid);
-        if (pusherStack.Count == 0) pusherStack.Add(this);
-        if (!CanPushTargetTeam(initialStack)
-            || !CanPushStack(pusherStack, initialStack, GetPushForceMultiplier())
-            || !CanPayPushCost(gm)) return;
+        if (!CanPayPushCost(gm)) return;
         if (!ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm))
             return;
         if (!TryMarkAttackPushUsed())
@@ -507,12 +502,9 @@ public partial class Infantry
                 && CanPushTeamName(targetGrid.city.facilityTeam, targetGrid.city.GetType().Name)
                 ? targetGrid.city : null;
             if (weapon == null && facility == null) return;
-            bool canPushStatic = weapon != null
-                ? CanPushNonInfantryTarget(weapon.grid, weapon.pushableByPhysics, weapon.GetEffectiveWeight(),
-                    weapon.equalWeightPushMode, weapon.isDestroyed)
-                : CanPushNonInfantryTarget(facility.ParentGrid, facility.pushableByPhysics, facility.GetEffectiveWeight(),
-                    facility.equalWeightPushMode, facility.health <= 0);
-            if (!canPushStatic || !CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
+            // The selected target is fully validated once by the corresponding
+            // static-target resolver. Avoid a second equal-weight random arbitration.
+            if (!CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
             if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true);
             else TryPushFacilityOnAttack(facility, fromSeparateAction: true);
             gridManager.HideAttackRange();
@@ -523,10 +515,7 @@ public partial class Infantry
         }
 
         Vector2I direction = GetPushDirection(targetGrid);
-        var pusherStack = GetLivingStack(grid);
-        if (pusherStack.Count == 0) pusherStack.Add(this);
-        if (direction == Vector2I.Zero || !CanPushStack(pusherStack, stack,
-            GetPushForceMultiplier())) return;
+        if (direction == Vector2I.Zero) return;
         if (!CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
         if (!ResolvePushChain(targetGrid, direction, pushDistance, gridManager, gm))
             return;
