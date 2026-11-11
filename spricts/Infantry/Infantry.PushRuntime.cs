@@ -26,9 +26,10 @@ public partial class Infantry
         ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm);
     }
 
-    public void TryPushWeaponOnAttack(Weapon target)
+    public void TryPushWeaponOnAttack(Weapon target, bool fromSeparateAction = false)
     {
-        if (pushTriggerMode == PushTriggerMode.Attack && pushTargetClass == PushTargetClass.AnyPushableEntity
+        if ((fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction : pushTriggerMode == PushTriggerMode.Attack)
+            && pushTargetClass == PushTargetClass.AnyPushableEntity
             && target != null && CanPushTeamName(target.team, target.GetType().Name)
             && CanPushNonInfantryTarget(target.grid, target.pushableByPhysics, target.GetEffectiveWeight(),
                 target.equalWeightPushMode, target.isDestroyed))
@@ -51,9 +52,10 @@ public partial class Infantry
         }
     }
 
-    public void TryPushFacilityOnAttack(Facility target)
+    public void TryPushFacilityOnAttack(Facility target, bool fromSeparateAction = false)
     {
-        if (pushTriggerMode != PushTriggerMode.Attack || pushTargetClass != PushTargetClass.AnyPushableEntity
+        if ((fromSeparateAction ? pushTriggerMode != PushTriggerMode.SeparateAction : pushTriggerMode != PushTriggerMode.Attack)
+            || pushTargetClass != PushTargetClass.AnyPushableEntity
             || target == null || !CanPushTeamName(target.facilityTeam, target.GetType().Name)
             || !CanPushNonInfantryTarget(target.ParentGrid, target.pushableByPhysics, target.GetEffectiveWeight(),
                 target.equalWeightPushMode, target.health <= 0))
@@ -358,8 +360,8 @@ public partial class Infantry
             gridManager.ClearAllEmptyCallbacks();
             gm.isSelectingAttackTarget = false;
             actionMenu?.Hide();
-            if (weapon != null) TryPushWeaponOnAttack(weapon);
-            else TryPushFacilityOnAttack(facility);
+            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true);
+            else TryPushFacilityOnAttack(facility, fromSeparateAction: true);
             return;
         }
 
@@ -439,12 +441,7 @@ public partial class Infantry
                 stack = stack.Where(IsLivingUnit).ToList();
                 if (stack.Count == 0) continue;
 
-                // A final-tile-only unit may pass over invalid intermediate terrain,
-                // but it must never be left standing on an invalid final tile.
-                if (step < distance - 1 && stack.Any(u => !u.pushSelfDestructOnInvalidIntermediateTile
-                    && u.GetMoveCostOnGrid(destination) >= 999))
-                    continue;
-
+                // Units configured for final-tile-only checks pass through invalid intermediate tiles.
                 var blockers = GetLivingStack(destination).Where(u => !stack.Contains(u)).ToList();
                 if (blockers.Count > 0) continue;
                 if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager)) continue;
@@ -485,7 +482,7 @@ public partial class Infantry
     {
         float movingWeight = GetStackWeight(movingStack);
         var nextGrid = gridManager.GetGridAt(destination.GridIndex + direction);
-        var blockingWeapons = (destination.weapons ?? new List<Weapon>())
+        var blockingWeapons = (destination.weapons?.AsEnumerable() ?? Enumerable.Empty<Weapon>())
             .Where(w => w != null && GodotObject.IsInstanceValid(w) && !w.IsQueuedForDeletion()
                 && w.pushBlocksInfantryWhenOverlapped).ToList();
         var blockingFacility = destination.city != null && destination.city.pushBlocksInfantryWhenOverlapped
