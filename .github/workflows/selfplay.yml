@@ -61,6 +61,13 @@ jobs:
           if grep -E "SCRIPT ERROR|Failed to load hue" build/selfplay.log; then
             echo "发现运行时错误（见上方匹配行）"; exit 1
           fi
+      - name: 失败时开issue带日志（recolor同款通道）
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          { echo "run: ${{ github.run_id }}"; echo '```'; tail -c 4000 build/selfplay.log 2>/dev/null || echo '(无日志)'; echo '```'; } > /tmp/sp_issue.txt
+          gh issue create --title "[CI] 自对弈失败 run ${{ github.run_id }}" --body-file /tmp/sp_issue.txt || true
       - name: 失败时导出日志（发这个给我）
         if: failure()
         uses: actions/upload-artifact@v4
