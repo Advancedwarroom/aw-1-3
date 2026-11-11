@@ -74,7 +74,7 @@ public partial class Radar : Facility
                 int x = cx + dx, y = cy + dy;
                 if (x < 0 || y < 0 || x >= map.GetLength(0) || y >= map.GetLength(1)) continue;
                 var g = map[x, y];
-                if (g != null) result.Add(g);
+                if (g != null && gm.gridManager.IsRangeAllowed(ParentGrid, g, facilityVisionCanCrossScreens)) result.Add(g);
             }
         return result;
     }
