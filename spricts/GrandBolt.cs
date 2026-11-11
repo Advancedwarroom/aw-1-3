@@ -81,6 +81,7 @@ public partial class GrandBolt : Weapon
     [ExportGroup("蠕动（新机制）")]
     [Export] public bool wriggleEnabled = false;               // 8.是否开启蠕动玩法
     [Export] public int wriggleDistance = 1;                  // 8.每回合蠕动距离（格）
+    [Export] public bool wriggleCanCrossScreens = false;    // 蠕动移动时各足印格是否允许跨越屏幕边界
     public Vector2I pendingWriggleDirection = Vector2I.Zero;    // 待执行的蠕动方向
     public bool hasWriggledThisTurn = false;
 
@@ -530,6 +531,7 @@ public partial class GrandBolt : Weapon
             if (idx.X < 0 || idx.Y < 0 || idx.X >= gm.gridManager.searchRange.X || idx.Y >= gm.gridManager.searchRange.Y)
                 return;
             if (gm.gridManager.map[idx.X, idx.Y] == null) return;   // 屏间真空不可蠕动进入
+            if (!wriggleCanCrossScreens && !gm.gridManager.IsSameScreen(idx - (newAnchor - oldAnchor), idx)) return;
         }
 
         // ✅ 卡死规则：敌人卡足印→不能移动
