@@ -638,32 +638,38 @@ public partial class Infantry
         }
     }
 
+    private static int GetMitigationDistanceForUnit(Infantry unit, int requestedDistance)
+    {
+        if (!IsLivingUnit(unit) || !unit.pushMitigationEnabled
+            || (unit.pushMitigationAmmoCost > 0
+                && !unit.HasAmmo(unit.pushMitigationAmmoKind, unit.pushMitigationAmmoCost)))
+            return requestedDistance;
+        int remaining = Mathf.Max(0, requestedDistance - Mathf.Max(0, unit.pushMitigationTiles));
+        float percent = Mathf.Clamp(unit.pushMitigationPercent, 0f, 100f);
+        return Mathf.Clamp(Mathf.FloorToInt(remaining * (1f - percent / 100f)),
+            0, requestedDistance);
+    }
+
     private int GetMitigatedPushDistance(List<Infantry> stack, int requestedDistance)
     {
-        // A mitigation Export is active only when its configured ammo cost can be
-        // paid. Ammo is charged later, and only if that stack actually moved.
-        return stack.Where(u => IsLivingUnit(u) && u.pushMitigationEnabled
-                && (u.pushMitigationAmmoCost <= 0
-                    || u.HasAmmo(u.pushMitigationAmmoKind, u.pushMitigationAmmoCost)))
-            .Select(u =>
-            {
-                int remaining = Mathf.Max(0, requestedDistance - Mathf.Max(0, u.pushMitigationTiles));
-                float percent = Mathf.Clamp(u.pushMitigationPercent, 0f, 100f);
-                return Mathf.Clamp(Mathf.FloorToInt(remaining * (1f - percent / 100f)),
-                    0, requestedDistance);
-            })
+        return stack.Where(IsLivingUnit)
+            .Select(unit => GetMitigationDistanceForUnit(unit, requestedDistance))
             .DefaultIfEmpty(requestedDistance)
             .Min();
     }
 
-    private static void PayMitigationAmmoCost(List<Infantry> stack)
+    private static void PayMitigationAmmoCost(List<Infantry> stack,
+        int requestedDistance, int resolvedDistance)
     {
-        foreach (var unit in stack.Where(u => IsLivingUnit(u) && u.pushMitigationEnabled))
-        {
-            int cost = Mathf.Max(0, unit.pushMitigationAmmoCost);
-            if (cost > 0 && unit.HasAmmo(unit.pushMitigationAmmoKind, cost))
-                unit.TryConsumeAmmo(unit.pushMitigationAmmoKind, cost);
-        }
+        // The stack uses the strongest single mitigation result, so charge only
+        // one module that actually produced that result, not every enabled module.
+        var provider = stack.Where(IsLivingUnit)
+            .FirstOrDefault(unit => GetMitigationDistanceForUnit(unit, requestedDistance) == resolvedDistance
+                && resolvedDistance < requestedDistance);
+        if (provider == null) return;
+        int cost = Mathf.Max(0, provider.pushMitigationAmmoCost);
+        if (cost > 0 && provider.HasAmmo(provider.pushMitigationAmmoKind, cost))
+            provider.TryConsumeAmmo(provider.pushMitigationAmmoKind, cost);
     }
 
     // Rebound and transfer compete for the same stack displacement. Resolve the
@@ -1220,7 +1226,7 @@ public partial class Infantry
         foreach (int i in movedStacks)
         {
             if (mitigatedDistances[i] < distance)
-                PayMitigationAmmoCost(chain[i]);
+                PayMitigationAmmoCost(chain[i], distance, mitigatedDistances[i]);
         }
 
         // Resolve per-stack post-push modules once, after all chain movement is complete.
