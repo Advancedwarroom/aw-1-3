@@ -1,0 +1,44 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://spricts/Infantry.cs" id="1_script"]
+[ext_resource type="Texture2D" path="res://art/official/Rhino_base.png" id="2_base"]
+[ext_resource type="Texture2D" path="res://art/official/Rhino_overlay.png" id="3_overlay"]
+
+[node name="Rhino" type="Node2D" node_paths=PackedStringArray("baseSprite", "normalSprite")]
+script = ExtResource("1_script")
+baseSprite = NodePath("BaseSprite")
+normalSprite = NodePath("NormalSprite")
+useDefaultConfig = true
+unitTypeId = "Rhino"
+unitDisplayName = "犀牛"
+templateType = "MdTank"
+unitCategory = 1
+isArmoredUnit = true
+moveType = 3
+defaultMovePoints = 5
+movePoints = 5
+maxFuel = 80
+fuel = 80
+consumeFuel = true
+hasPrimaryWeapon = true
+maxPrimaryAmmo = 8
+currentPrimaryAmmo = 8
+primaryAntiArmor = true
+primaryAntiInfantry = true
+hasSecondaryWeapon = true
+secondaryAttack = 100
+secondaryAntiInfantry = true
+secondaryAntiArmor = false
+visionRange = 4
+useConfigVision = false
+cost = 16000
+
+[node name="BaseSprite" type="Sprite2D" parent="."]
+position = Vector2(16, 16)
+scale = Vector2(2, 2)
+texture = ExtResource("2_base")
+
+[node name="NormalSprite" type="Sprite2D" parent="."]
+position = Vector2(16, 16)
+scale = Vector2(2, 2)
+texture = ExtResource("3_overlay")
