@@ -654,14 +654,14 @@ public partial class FogOfWarManager : Node
                     int dist = Mathf.Abs(dx) + Mathf.Abs(dy);
                     if (dist > maxRange) continue;
                     if (dist < minRange) continue; // 排除内圈（与UI黄色范围一致）
-                    var targetGrid = gridManager.GetGridAt(pos);
-                    if (effect.sourceGrid != null && !gridManager.IsRangeAllowed(effect.sourceGrid, targetGrid, effect.allowCrossScreens)) continue;
                     var pos = new Vector2I(center.X + dx, center.Y + dy);
                     if (pos.X >= 0 && pos.X < gridManager.searchRange.X &&
                         pos.Y >= 0 && pos.Y < gridManager.searchRange.Y)
                     {
                         var g = gridManager.map[pos.X, pos.Y];
-                        if (g != null) visible.Add(g);
+                        if (g == null) continue;
+                        if (effect.sourceGrid != null && !gridManager.IsRangeAllowed(effect.sourceGrid, g, effect.allowCrossScreens)) continue;
+                        visible.Add(g);
                     }
                 }
             }
