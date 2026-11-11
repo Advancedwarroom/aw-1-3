@@ -21,6 +21,8 @@ public partial class Infantry
     [Export] public Godot.Collections.Dictionary<string, int> fogMatrixOverride = new();
     public bool FogActive()   // 雾战生效=全局迷雾开关
     {
+        // ✅ 开创人2026-11-11: 孤儿单位(AI原型/预览实例)不在场景树——GetTree()会刷"data.tree is null"引擎错误, 直接按雾战关闭处理
+        if (!IsInsideTree()) return false;
         if (_fogGmCache == null || !GodotObject.IsInstanceValid(_fogGmCache))
             _fogGmCache = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         return _fogGmCache?.fogOfWarManager?.isFogOfWarEnabled == true;
