@@ -963,7 +963,8 @@ public partial class Infantry
                 var blockers = GetLivingStack(destination).Where(u => !stack.Contains(u)).ToList();
                 if (blockers.Count > 0)
                 {
-                    if (!pushUsesWeight) continue;
+                    // With domino chaining disabled, a blocked link stops both sides.
+                    if (!pushChainEnabled || !pushUsesWeight) continue;
                     float movingWeight = GetStackWeight(stack);
                     float blockerWeight = GetStackWeight(blockers);
                     if (movingWeight > blockerWeight && !Mathf.IsEqualApprox(movingWeight, blockerWeight))
