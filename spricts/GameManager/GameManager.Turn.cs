@@ -10,6 +10,24 @@ public partial class GameManager
     // ✅ totalPhases 动态计算 = 启用的战斗势力数（不含 P-1 和 P0）
     public int totalPhases => Mathf.Max(1, TeamHelper.GetActiveFactions().Count(f => f.Id != TeamHelper.Player && f.Id != TeamHelper.Player0));
 
+    // ✅ 开创人2026-11-11: 势力是否"无任何存在"（无单位且无设施）——用于回合跳过
+    private bool TeamHasNoPresence(string team)
+    {
+        if (string.IsNullOrEmpty(team)) return true;
+        var units = unitManager?.AllUnits;
+        if (units != null && units.Any(u => u != null && GodotObject.IsInstanceValid(u) && u.team == team))
+            return false;
+        if (gridManager?.grids != null)
+        {
+            foreach (var g in gridManager.grids)
+            {
+                if (g?.city != null && g.city.facilityTeam == team)
+                    return false;
+            }
+        }
+        return true;
+    }
+
     // 切换回合
     public void NextPhase()
     {
@@ -47,7 +65,8 @@ public partial class GameManager
         while (skipSafety < totalPhases)
         {
             string checkTeam = TeamHelper.GetPhaseTeamName(turnPhase);
-            if (TeamHelper.ActiveTeams.Contains(checkTeam) && defeatedTeams.Contains(checkTeam))
+            // ✅ 开创人2026-11-11: 空势力(无单位且无设施)同样跳过——已败势力之外的第二种"永不结束的回合"（自对弈卡死阶段3实案）
+            if (TeamHelper.ActiveTeams.Contains(checkTeam) && (defeatedTeams.Contains(checkTeam) || TeamHasNoPresence(checkTeam)))
             {
                 turnPhase++;
                 if (turnPhase > totalPhases)
