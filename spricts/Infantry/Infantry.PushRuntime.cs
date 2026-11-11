@@ -150,7 +150,7 @@ public partial class Infantry
             return false;
         var pusherStack = GetLivingStack(grid);
         if (pusherStack.Count == 0) pusherStack.Add(this);
-        float ownWeight = GetStackWeight(pusherStack) * GetPushForceMultiplier();
+        float ownWeight = GetStackWeight(pusherStack) * GetPushForceMultiplier(distance);
         if (!pushUsesWeight) return true;
         if (ownWeight > targetWeight.Value && !Mathf.IsEqualApprox(ownWeight, targetWeight.Value))
             return true;
@@ -282,8 +282,10 @@ public partial class Infantry
             : new Vector2I(0, Math.Sign(delta.Y));
     }
 
-    private float GetPushForceMultiplier() =>
-        pushForceScalesWithDistance ? Mathf.Max(0.01f, pushDistance * pushForcePerTile) : 1.0f;
+    private float GetPushForceMultiplier(int? requestedDistance = null) =>
+        pushForceScalesWithDistance
+            ? Mathf.Max(0.01f, (requestedDistance ?? pushDistance) * pushForcePerTile)
+            : 1.0f;
 
     private bool CanPayPushCost(GameManager gm)
     {
@@ -615,7 +617,7 @@ public partial class Infantry
         // ahead are not independently pushed through the failed link.
         List<Infantry> pusherStack = GetLivingStack(grid);
         if (pusherStack.Count == 0) pusherStack.Add(this);
-        float transmittedForce = GetStackWeight(pusherStack) * GetPushForceMultiplier();
+        float transmittedForce = GetStackWeight(pusherStack) * GetPushForceMultiplier(distance);
         for (int i = 0; i < chain.Count; i++)
         {
             if (!CanPushStackWithForce(pusherStack, transmittedForce, chain[i]))
