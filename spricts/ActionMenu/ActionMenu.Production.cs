@@ -178,7 +178,13 @@ public partial class ActionMenu
             var btn = new Button();
             btn.CustomMinimumSize = new Vector2(120, 32);
             btn.AddThemeFontSizeOverride("font_size", 13);
-            TranslateGroup.SetText(btn, string.IsNullOrEmpty(info.DisplayName) ? unitId : info.DisplayName);
+            // ✅ 价格显示 + 资金不足置灰（与建筑生产菜单同款式/同政策）
+            int cost = unit.GetUnitProductionCost(unitId);
+            string costText = cost <= 0 ? "免费" : $"{cost}G";
+            string name = string.IsNullOrEmpty(info.DisplayName) ? unitId : info.DisplayName;
+            TranslateGroup.SetText(btn, $"{name} [{costText}]");
+            if (!unit.productionFree && cost > 0 && gm.GetTeamFunds(unit.team) < cost)
+                btn.Disabled = true;
             btn.Pressed += () =>
             {
                 productionChoiceContainer.Visible = false;

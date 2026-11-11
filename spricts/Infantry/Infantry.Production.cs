@@ -36,7 +36,7 @@ public partial class Infantry
     [Export] public bool canMoveWhileProducing = false;                             // ⑨ 内部生产时可否移动
     [Export] public bool productionAutomation = false;                               // ⑩ 自动化
     [Export] public int productionCooldownTurns = 0;                                 // ⑪ 冷却回合数
-    [Export] public bool productionFree = false;                                    // ⑫ 是否无消耗（原作兵工厂模式
+    [Export] public bool productionFree = false;                                    // ⑫ 是否无消耗（原作兵工厂模式：不耗生产弹药、不花资金
     [Export] public bool productionFullList = false;                                    // ⑬ 全生产列表（跳过白名单与全局生产限制）
     [Export] public bool productionInstantMove = false;                                 // ⑭ 产出单位立即可动（常规=本回合不可动）：不耗生产弹药）
     [Export] public bool producedCargoBoardedThisTurn = false;                          // ⑮ 产物视为本回合登舰（true=产物本回合不能起飞/卸载，旧防白嫖行为；false=DoR原作，产物当回合可出击）
@@ -48,6 +48,7 @@ public partial class Infantry
     public bool productionInternal = true;             // 本次生产：内部/外部
     public int productionCooldownRemaining = 0;        // 剩余冷却
     public Grids productionTargetGrid = null;          // 外部生产目标格
+    public int productionPaidCost = 0;                  // 本次生产已扣资金（完工彻底失败时全额退款）
 
     /// <summary>位置模式是否允许指定方式</summary>
     public bool ProductionAllowsInternal => productionLocationMode == 1 || productionLocationMode == 3;
@@ -72,6 +73,16 @@ public partial class Infantry
         return true;
     }
 
+    /// <summary>本[生产者]生产指定单位的实际造价：检查器造价 → 实例降价/逐兵种字典 → CO模块12修正。
+    /// productionFree（无消耗）时返回 0。与建筑生产同一套公式。</summary>
+    public int GetUnitProductionCost(string unitId)
+    {
+        if (productionFree) return 0;
+        var info = UnitProductionDatabase.GetInfo(unitId);
+        int cost = GetInstanceProductionCost(info.Cost, unitId);
+        return Mathf.Max(1, Mathf.RoundToInt(cost * (100f + CoModuleSystem.GetCostModifierPercent(team)) / 100f));
+    }
+
     /// <summary>内部生产只需开启搭载模块：点「内部生产」时自动打开依赖项</summary>
     public void EnsureTransportForInternalProduction()
     {
@@ -92,7 +103,27 @@ public partial class Infantry
         // ✅ Lab白名单：仅当本[生产者]isUpdatable=true时，生产受全局白名单限制
         if (isUpdatable && !productionFullList && !UnitProductionWhitelist.CanProduce(unitId)) return false;
 
+        // ✅ 外部手选：先校验目标格（非法/被占 → 直接拒绝，不吞弹药/资金）
+        if (!internalMode && externalTargetGrid != null)
+        {
+            if (!IsInstanceValid(externalTargetGrid)) return false;
+            if (externalTargetGrid.infantries.Any(u => u != null && IsInstanceValid(u))) return false;
+        }
+
+        // ✅ 资金预检（不扣）：无消耗模式跳过；与建筑生产同一公式
+        int prodCost = GetUnitProductionCost(unitId);
+        var gm0 = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm0 != null && prodCost > 0 && gm0.GetTeamFunds(team) < prodCost) return false;
+
         if (!productionFree && !TryConsumeAmmo(AmmoKind.Production)) return false;  // 开工消耗 1 发生产弹药（无消耗模式跳过）
+
+        // ✅ 扣款：实例降价+逐兵种字典+CO修正已在 GetUnitProductionCost 内统一计算
+        if (gm0 != null && prodCost > 0)
+        {
+            gm0.SetTeamFunds(team, gm0.GetTeamFunds(team) - prodCost);
+            CoModuleSystem.OnFundsSpent(team, prodCost);   // ✅ 模块27（能量条）：消耗资金打点
+        }
+        productionPaidCost = prodCost;   // 记录已付：完工彻底失败时 RefundFailedProduction 全额退款
 
         productionTargetUnitId = unitId;
         productionInternal = internalMode;
@@ -130,6 +161,7 @@ public partial class Infantry
         isProducing = false;
         productionProgress = 0;
         productionTargetUnitId = "";
+        productionPaidCost = 0;   // 手动中断：不退款（与生产弹药中断不退政策一致）
         productionTargetGrid = null;
         productionCooldownRemaining = Math.Max(0, productionCooldownTurns);
     }
@@ -146,12 +178,12 @@ public partial class Infantry
         productionTargetGrid = null;
 
         var info = UnitProductionDatabase.GetInfo(unitId);
-        if (string.IsNullOrEmpty(info.ScenePath)) return;
+        if (string.IsNullOrEmpty(info.ScenePath)) { RefundFailedProduction(); return; }
 
         var scene = GD.Load<PackedScene>(info.ScenePath);
-        if (scene == null) return;
+        if (scene == null) { RefundFailedProduction(); return; }
         var unit = scene.Instantiate() as Infantry;
-        if (unit == null) return;
+        if (unit == null) { RefundFailedProduction(); return; }
 
         unit.team = team;
 
@@ -165,6 +197,7 @@ public partial class Infantry
             var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
             if (gm == null || gm.unitManager == null || gm.unitManager.units == null)
             {
+                RefundFailedProduction();   // 彻底失败：全额退款（资金+弹药），与建筑远程落点失败退款一致
                 unit.QueueFree();
                 return;
             }
@@ -177,16 +210,25 @@ public partial class Infantry
             unit.ProcessMode = ProcessModeEnum.Disabled;
             gm.unitManager.units.AddChild(unit);
             unit.Position = Vector2.Zero;
+            productionPaidCost = 0;   // 交货成功：清已付记录
         }
         else
         {
             // 外部：放到目标格（自动放置时由调用方选好格）
             if (target == null || !IsInstanceValid(target))
                 target = FindValidExternalProductionGrid(unit);
-            if (target == null) { unit.QueueFree(); return; }
+            // ✅ 完工复检：目标格被占/不可通行 → 回退自动找格（开工合法≠完工仍合法，生产跨回合期间格况会变）
+            if (target != null && (target.infantries.Any(u => u != null && IsInstanceValid(u)) || unit.GetMoveCostOnGrid(target) >= 999))
+                target = FindValidExternalProductionGrid(unit);
+            if (target == null)
+            {
+                RefundFailedProduction();   // 彻底无合法落点：全额退款（资金+弹药），与建筑远程落点失败退款一致
+                unit.QueueFree();
+                return;
+            }
 
             var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-            if (gm == null || gm.unitManager == null) { unit.QueueFree(); return; }
+            if (gm == null || gm.unitManager == null) { RefundFailedProduction(); unit.QueueFree(); return; }
 
             gm.unitManager.AddChild(unit);
             unit.GlobalPosition = target.GlobalPosition;
@@ -195,7 +237,23 @@ public partial class Infantry
             if (target.infantry == null) target.infantry = unit;
             gm.unitManager.BindUnitToGrid(unit, true);
             if (productionInstantMove) unit.hasActed = false;   // ⑭ 立即可动：显式重置行动标记
+            productionPaidCost = 0;   // 交货成功：清已付记录
         }
+    }
+
+    /// <summary>生产彻底失败（无任何合法落点/场景异常）：全额退款——资金 + 生产弹药。
+    /// 与建筑生产「远程落点失败退款」同一政策；手动中断不调用本函数（中断不退，与弹药政策一致）。</summary>
+    private void RefundFailedProduction()
+    {
+        if (productionPaidCost > 0)
+        {
+            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (gm != null)
+                gm.SetTeamFunds(team, gm.GetTeamFunds(team) + productionPaidCost);
+            productionPaidCost = 0;
+        }
+        if (!productionFree && currentProductionAmmo < maxProductionAmmo)
+            currentProductionAmmo = Math.Min(maxProductionAmmo, currentProductionAmmo + 1);
     }
 
     /// <summary>外部生产自动放置：在范围内随机挑一个可放格子</summary>
