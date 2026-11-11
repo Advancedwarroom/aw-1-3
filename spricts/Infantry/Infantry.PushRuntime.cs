@@ -929,6 +929,7 @@ public partial class Infantry
         // not once for every tile traversed.
         var originalTiles = chain.Select(stack => stack.FirstOrDefault(IsLivingUnit)?.grid).ToList();
         var movedStacks = new HashSet<int>();
+        bool pushResolved = false;
         var mitigatedDistances = chain.Select(stack => GetMitigatedPushDistance(stack, distance)).ToList();
 
         for (int step = 0; step < distance; step++)
@@ -949,7 +950,10 @@ public partial class Infantry
                     // A non-destructive push stops at the boundary without moving
                     // any stack through the missing tile.
                     if (pushSelfDestructOnInvalidIntermediateTile)
+                    {
                         foreach (var unit in stack) DestroyPushedUnit(unit, gameManager);
+                        pushResolved = true;
+                    }
                     break;
                 }
 
@@ -957,7 +961,10 @@ public partial class Infantry
                 {
                     bool invalidTerrain = unit.GetMoveCostOnGrid(destination) >= 999;
                     if (invalidTerrain && (pushSelfDestructOnInvalidIntermediateTile || finalStepForStack))
+                    {
                         DestroyPushedUnit(unit, gameManager);
+                        pushResolved = true;
+                    }
                 }
                 stack = stack.Where(IsLivingUnit).ToList();
                 if (stack.Count == 0) continue;
@@ -972,6 +979,7 @@ public partial class Infantry
                     {
                         ApplyFragileCollisionEffects(stack);
                         ApplyFragileCollisionEffects(blockers);
+                        if (!stack.Any(IsLivingUnit)) pushResolved = true;
                         continue;
                     }
                     float movingWeight = GetStackWeight(stack);
@@ -980,11 +988,13 @@ public partial class Infantry
                     {
                         DestroyCollisionLoser(blockers);
                         ApplyFragileCollisionEffects(stack);
+                        if (!stack.Any(IsLivingUnit)) pushResolved = true;
                     }
                     else if (blockerWeight > movingWeight && !Mathf.IsEqualApprox(movingWeight, blockerWeight))
                     {
                         DestroyCollisionLoser(stack);
                         ApplyFragileCollisionEffects(blockers);
+                        pushResolved = true;
                         continue;
                     }
                     else
@@ -999,6 +1009,7 @@ public partial class Infantry
                         {
                             ApplyFragileCollisionEffects(stack);
                             ApplyFragileCollisionEffects(blockers);
+                            if (!stack.Any(IsLivingUnit)) pushResolved = true;
                             continue;
                         }
 
@@ -1009,6 +1020,7 @@ public partial class Infantry
                         {
                             ApplyFragileCollisionEffects(stack);
                             ApplyFragileCollisionEffects(blockers);
+                            if (!stack.Any(IsLivingUnit)) pushResolved = true;
                             continue;
                         }
 
@@ -1027,10 +1039,18 @@ public partial class Infantry
 
                 if (!stack.Any(IsLivingUnit) || HasForeignMultiTileOccupant(destination, stack)) continue;
                 if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager, i)) continue;
+                if (!stack.Any(IsLivingUnit))
+                {
+                    pushResolved = true;
+                    continue;
+                }
 
                 MoveStackByPush(stack, destination);
                 if (stack.Any(IsLivingUnit))
+                {
                     movedStacks.Add(i);
+                    pushResolved = true;
+                }
             }
         }
 
@@ -1081,7 +1101,7 @@ public partial class Infantry
         gameManager?.fogOfWarManager?.OnUnitMoved();
         gameManager?.CallDeferred(nameof(GameManager.UpdateUnitLists));
         gameManager?.CallDeferred(nameof(GameManager.CheckVictoryCondition));
-        return movedStacks.Count > 0;
+        return pushResolved || movedStacks.Count > 0;
     }
 
     private void MovePusherOppositeDirection(Vector2I pushDirection, int distance,
