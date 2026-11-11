@@ -34,6 +34,9 @@ public partial class Infantry
     [Export] public bool prTargetAmmoProduction = false;
     [Export] public bool prTargetAmmoConstruction = false;
     [Export] public bool prTargetAmmoSpecial = false;               // 第11资源·特殊弹
+    [Export] public bool prTargetAmmoPushRebound = false;
+    [Export] public bool prTargetAmmoPushMitigation = false;
+    [Export] public bool prTargetAmmoAntiGravityTransfer = false;
 
     [ExportGroup("自费补给·对象资格（模式1代补：谁是合法受补方）")]
     [Export] public int prRangeMin = 1;                             // n-m 距离带（0=同格/正上方）
@@ -61,6 +64,9 @@ public partial class Infantry
     [Export] public bool prSelfCostAmmoProduction = false;
     [Export] public bool prSelfCostAmmoConstruction = false;
     [Export] public bool prSelfCostAmmoSpecial = false;
+    [Export] public bool prSelfCostAmmoPushRebound = false;
+    [Export] public bool prSelfCostAmmoPushMitigation = false;
+    [Export] public bool prSelfCostAmmoAntiGravityTransfer = false;
 
     [ExportGroup("自费补给·代价③献祭（抽n-m内第三者的资源）")]
     [Export] public bool prUseSacrifice = false;
@@ -79,6 +85,9 @@ public partial class Infantry
     [Export] public bool prSacrificeAmmoProduction = false;
     [Export] public bool prSacrificeAmmoConstruction = false;
     [Export] public bool prSacrificeAmmoSpecial = false;
+    [Export] public bool prSacrificeAmmoPushRebound = false;
+    [Export] public bool prSacrificeAmmoPushMitigation = false;
+    [Export] public bool prSacrificeAmmoAntiGravityTransfer = false;
 
     [ExportGroup("特殊弹（第11资源）")]
     [Export] public bool useSpecialAmmo = false;                    // 启用特殊弹槽（false=该资源无限/免单）
@@ -116,14 +125,16 @@ public partial class Infantry
         0 => health, 1 => fuel, 2 => currentPrimaryAmmo, 3 => currentExplodeAmmo,
         4 => currentFlareAmmo, 5 => currentStealthBullets, 6 => currentRevealBullets,
         7 => currentCamoBullets, 8 => currentProductionAmmo, 9 => currentConstructionAmmo,
-        10 => currentSpecialAmmo, _ => 0
+        10 => currentSpecialAmmo, 11 => currentPushReboundAmmo,
+        12 => currentPushMitigationAmmo, 13 => currentAntiGravityTransferAmmo, _ => 0
     };
     public int PrMax(int res) => res switch
     {
         0 => maxHealth, 1 => maxFuel, 2 => maxPrimaryAmmo, 3 => maxExplodeAmmo,
         4 => maxFlareAmmo, 5 => maxStealthBullets, 6 => maxRevealBullets,
         7 => maxCamoBullets, 8 => maxProductionAmmo, 9 => maxConstructionAmmo,
-        10 => maxSpecialAmmo, _ => 0
+        10 => maxSpecialAmmo, 11 => maxPushReboundAmmo,
+        12 => maxPushMitigationAmmo, 13 => maxAntiGravityTransferAmmo, _ => 0
     };
     public void PrSet(int res, int v)
     {
@@ -135,6 +146,9 @@ public partial class Infantry
             case 6: currentRevealBullets = v; break; case 7: currentCamoBullets = v; break;
             case 8: currentProductionAmmo = v; break; case 9: currentConstructionAmmo = v; break;
             case 10: currentSpecialAmmo = v; break;
+            case 11: currentPushReboundAmmo = v; break;
+            case 12: currentPushMitigationAmmo = v; break;
+            case 13: currentAntiGravityTransferAmmo = v; break;
         }
     }
     public bool PrIsInfinite(int res)
@@ -145,21 +159,24 @@ public partial class Infantry
         0 => prTargetHp, 1 => prTargetFuel, 2 => prTargetAmmoPrimary, 3 => prTargetAmmoExplode,
         4 => prTargetAmmoFlare, 5 => prTargetAmmoStealth, 6 => prTargetAmmoReveal,
         7 => prTargetAmmoCamo, 8 => prTargetAmmoProduction, 9 => prTargetAmmoConstruction,
-        10 => prTargetAmmoSpecial, _ => false
+        10 => prTargetAmmoSpecial, 11 => prTargetAmmoPushRebound,
+        12 => prTargetAmmoPushMitigation, 13 => prTargetAmmoAntiGravityTransfer, _ => false
     };
     public bool PrSelfCostEnabled(int res) => res switch
     {
         0 => prSelfCostHp, 1 => prSelfCostFuel, 2 => prSelfCostAmmoPrimary, 3 => prSelfCostAmmoExplode,
         4 => prSelfCostAmmoFlare, 5 => prSelfCostAmmoStealth, 6 => prSelfCostAmmoReveal,
         7 => prSelfCostAmmoCamo, 8 => prSelfCostAmmoProduction, 9 => prSelfCostAmmoConstruction,
-        10 => prSelfCostAmmoSpecial, _ => false
+        10 => prSelfCostAmmoSpecial, 11 => prSelfCostAmmoPushRebound,
+        12 => prSelfCostAmmoPushMitigation, 13 => prSelfCostAmmoAntiGravityTransfer, _ => false
     };
     public bool PrSacrificeEnabled(int res) => res switch
     {
         0 => prSacrificeHp, 1 => prSacrificeFuel, 2 => prSacrificeAmmoPrimary, 3 => prSacrificeAmmoExplode,
         4 => prSacrificeAmmoFlare, 5 => prSacrificeAmmoStealth, 6 => prSacrificeAmmoReveal,
         7 => prSacrificeAmmoCamo, 8 => prSacrificeAmmoProduction, 9 => prSacrificeAmmoConstruction,
-        10 => prSacrificeAmmoSpecial, _ => false
+        10 => prSacrificeAmmoSpecial, 11 => prSacrificeAmmoPushRebound,
+        12 => prSacrificeAmmoPushMitigation, 13 => prSacrificeAmmoAntiGravityTransfer, _ => false
     };
 
     // ===== 主入口：由菜单调用。method: 0=资金 1=自身 2=献祭 =====
@@ -174,7 +191,7 @@ public partial class Infantry
             gm.SetTeamFunds(team, Math.Max(0, gm.GetTeamFunds(team) - prFundsCost));  // 负价=退款
         else if (method == 1 && prUseSelf)
         {
-            for (int r = 0; r <= 10; r++)
+            for (int r = 0; r <= 13; r++)
                 if (PrSelfCostEnabled(r) && !PrIsInfinite(r))
                     PrSet(r, Math.Max(0, PrGet(r) - prSelfCostAmount));
         }
@@ -218,7 +235,7 @@ public partial class Infantry
 
     private void PrRefill(Infantry tu, Weapon tw, Facility tf)
     {
-        for (int r = 0; r <= 10; r++)
+        for (int r = 0; r <= 13; r++)
         {
             if (!PrTargetResEnabled(r)) continue;
             if (tu != null && IsInstanceValid(tu) && !tu.PrIsInfinite(r))
@@ -249,7 +266,7 @@ public partial class Infantry
         bool teamOk = TeamHelper.MatchesTeamRelation(team, u.team,
             prSacrificeIncludeFriendly, prSacrificeIncludeEnemy, prSacrificeIncludeAllied);
         if (!teamOk) return;
-        for (int r = 0; r <= 10; r++)
+        for (int r = 0; r <= 13; r++)
             if (PrSacrificeEnabled(r) && !u.PrIsInfinite(r))
                 u.PrSet(r, Mathf.Max(0, u.PrGet(r) - prSacrificeAmount));
         u.UpdateHpLabel();
@@ -260,7 +277,7 @@ public partial class Infantry
         bool teamOk = TeamHelper.MatchesTeamRelation(team, wp.team,
             prSacrificeIncludeFriendly, prSacrificeIncludeEnemy, prSacrificeIncludeAllied);
         if (!teamOk) return;
-        for (int r = 0; r <= 10; r++)
+        for (int r = 0; r <= 13; r++)
             if (PrSacrificeEnabled(r) && !wp.PrIsInfiniteW(r))
                 wp.PrSetW(r, Mathf.Max(0, wp.PrGetW(r) - prSacrificeAmount));
     }
@@ -270,7 +287,7 @@ public partial class Infantry
         bool teamOk = TeamHelper.MatchesTeamRelation(team, f.facilityTeam,
             prSacrificeIncludeFriendly, prSacrificeIncludeEnemy, prSacrificeIncludeAllied);
         if (!teamOk) return;
-        for (int r = 0; r <= 10; r++)
+        for (int r = 0; r <= 13; r++)
             if (PrSacrificeEnabled(r) && !f.PrIsInfiniteF(r))
                 f.PrSetF(r, Mathf.Max(0, f.PrGetF(r) - prSacrificeAmount));
     }
