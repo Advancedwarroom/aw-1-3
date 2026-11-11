@@ -333,7 +333,6 @@ public partial class Infantry
                 : CanPushNonInfantryTarget(facility.ParentGrid, facility.pushableByPhysics, facility.GetEffectiveWeight(),
                     facility.equalWeightPushMode, facility.health <= 0);
             if (!canPushStatic || !CanPayPushCost(gm) || !TryMarkPushActionUsed()) return;
-            PayPushCost(gm);
             gridManager.HideAttackRange();
             gridManager.ClearAllEmptyCallbacks();
             gm.isSelectingAttackTarget = false;
