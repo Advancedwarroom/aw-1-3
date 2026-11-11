@@ -66,7 +66,18 @@ public partial class Weapon : Node2D
     [ExportGroup("推动模块")]
     [Export] public float weight = 1.0f;
     [Export] public bool weightScalesWithHealth = false;
+    [Export] public bool pushableByPhysics = false;
+    [Export] public bool pushBlocksInfantryWhenOverlapped = true;
+    [Export] public Infantry.EqualWeightPushMode equalWeightPushMode = Infantry.EqualWeightPushMode.Stop;
     public virtual float GetEffectiveWeight() => Mathf.Max(0f, weight) * (weightScalesWithHealth ? Mathf.Clamp((float)health / Mathf.Max(1, maxHealth), 0f, 1f) : 1f);
+
+    public virtual bool MoveByPhysicsPush(Grids destination, WeaponManager manager)
+    {
+        if (!pushableByPhysics || isDestroyed || destination == null || manager == null || isMultiTile)
+            return false;
+        Position = destination.Position;
+        return manager.BindWeaponToGrid(this, true);
+    }
 
     // ✅ 力场bypass：坠落等引擎流程内部使用（黑弧护卫全毁坠落时绕过力场）
     public bool ignoreForceField = false; 
