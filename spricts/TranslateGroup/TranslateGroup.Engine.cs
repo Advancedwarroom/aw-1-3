@@ -401,12 +401,22 @@ public partial class TranslateGroup
     public override void _ExitTree()
     {
         SaveMissingReport();
+
+        // Explicitly release the language selector UI before the autoload leaves the tree.
+        // This is also important for headless test shutdown, where the engine otherwise
+        // reports the Panel/Label and their theme resources as leaked instances.
+        if (uiLayer != null && IsInstanceValid(uiLayer))
+            uiLayer.Free();
+        uiLayer = null;
+        langButton = null;
+        langPanel = null;
+        langList = null;
+
         foreach (var t in registeredTranslations)
             if (IsInstanceValid(t)) TranslationServer.RemoveTranslation(t);
         registeredTranslations.Clear();
 
         // SetText retains scene controls in a static list for language refresh.
-        // Clear those references when the autoload exits to avoid retaining freed UI.
         _registered.Clear();
         Instance = null;
     }
