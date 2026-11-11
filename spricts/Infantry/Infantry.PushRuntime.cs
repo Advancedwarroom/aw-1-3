@@ -19,7 +19,10 @@ public partial class Infantry
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager?.map == null) return;
         var initialStack = GetLivingStack(target.grid);
-        if (!CanPushTargetTeam(initialStack)) return;
+        if (!CanPushTargetTeam(initialStack)
+            || !CanPushStack(new List<Infantry> { this }, initialStack, GetPushForceMultiplier())
+            || !CanPayPushCost(gm)) return;
+        PayPushCost(gm);
         ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm);
     }
 
@@ -32,7 +35,8 @@ public partial class Infantry
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null || target == null || target.isMultiTile) return;
         Vector2I direction = GetPushDirection(target.grid);
-        if (direction == Vector2I.Zero) return;
+        if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
+        PayPushCost(gm);
         for (int step = 0; step < pushDistance; step++)
         {
             var next = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
@@ -58,7 +62,8 @@ public partial class Infantry
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null || target == null) return;
         Vector2I direction = GetPushDirection(target.ParentGrid);
-        if (direction == Vector2I.Zero) return;
+        if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
+        PayPushCost(gm);
         for (int step = 0; step < pushDistance; step++)
         {
             var next = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
@@ -79,7 +84,7 @@ public partial class Infantry
             && pushTriggerMode != PushTriggerMode.SeparateAction) || pushDistance <= 0
             || targetGrid == null || invalid || pushable != true || targetWeight == null)
             return false;
-        float ownWeight = GetEffectiveWeight();
+        float ownWeight = GetEffectiveWeight() * GetPushForceMultiplier();
         if (ownWeight > targetWeight.Value && !Mathf.IsEqualApprox(ownWeight, targetWeight.Value))
             return true;
         if (!Mathf.IsEqualApprox(ownWeight, targetWeight.Value)) return false;
