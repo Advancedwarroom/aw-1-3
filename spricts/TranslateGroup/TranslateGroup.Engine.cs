@@ -404,5 +404,10 @@ public partial class TranslateGroup
         foreach (var t in registeredTranslations)
             if (IsInstanceValid(t)) TranslationServer.RemoveTranslation(t);
         registeredTranslations.Clear();
+
+        // SetText retains scene controls in a static list for language refresh.
+        // Clear those references when the autoload exits to avoid retaining freed UI.
+        _registered.Clear();
+        Instance = null;
     }
 }

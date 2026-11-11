@@ -25,14 +25,20 @@ jobs:
           unzip -o Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip
           sudo ln -s $PWD/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64/Godot_v${GODOT_VERSION}-stable_mono_linux.x86_64 /usr/local/bin/godot
       - name: 导入资源
-        run: godot --headless --import --path . --quit
+        run: |
+          mkdir -p build
+          set -o pipefail
+          godot --headless --editor --verbose --path . --quit 2>&1 | tee build/import.log
+          if grep -E "SCRIPT ERROR|ERROR:" build/import.log; then
+            echo "Godot asset import/editor startup reported an error"; exit 1
+          fi
       - name: 杀掉 MSBuild 服务进程
         run: dotnet build-server shutdown
       - name: 主场景无头跑 600 帧
         run: |
           mkdir -p build
           set -o pipefail
-          timeout 300 godot --headless --path . res://tests/smoke.tscn 2>&1 | tee build/smoke.log
+          timeout 300 godot --headless --verbose --path . res://tests/smoke.tscn 2>&1 | tee build/smoke.log
       - name: 检查主场景运行时错误与资源泄漏
         run: |
           if grep -E "SCRIPT ERROR|ERROR:|WARNING: .* leaked|Failed to load hue" build/smoke.log; then
@@ -64,7 +70,7 @@ jobs:
         run: |
           mkdir -p build
           set -o pipefail
-          timeout 900 godot --headless --path . res://tests/selfplay.tscn -- --max-phases 60 2>&1 | tee build/selfplay.log
+          timeout 900 godot --headless --verbose --path . res://tests/selfplay.tscn -- --max-phases 60 2>&1 | tee build/selfplay.log
       - name: 运行时错误检查（适配开创人 ScreenErrorLogger：CI 直接炸）
         run: |
           if grep -E "SCRIPT ERROR|ERROR:|WARNING: .* leaked|Failed to load hue" build/selfplay.log; then
