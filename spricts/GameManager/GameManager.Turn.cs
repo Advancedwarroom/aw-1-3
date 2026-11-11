@@ -222,6 +222,7 @@ public partial class GameManager
             bool canMoveThisTurn = APC.CanUnitMove(unit);
             unit.isMoved = false;
             unit.isAttacked = false;
+            unit.ResetPushUseForTurn();
 
             // ✅ 电磁爆麻痹：麻痹中强制待机（不能移动/攻击）；当前行动势力的单位在其回合开始时递减
             if (unit.stunTurnsRemaining > 0)
