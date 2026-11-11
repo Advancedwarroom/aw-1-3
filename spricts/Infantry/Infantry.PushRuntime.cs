@@ -1077,11 +1077,11 @@ public partial class Infantry
             ApplyPushTargetEffects(stack, gameManager);
         }
 
-        if (!fromMovement && pushDirectionMode == PushDirectionMode.OppositeSides && movedStacks.Count > 0)
+        if (!fromMovement && pushDirectionMode == PushDirectionMode.OppositeSides && pushResolved)
         {
             MovePusherOppositeDirection(direction, distance, gridManager, gameManager);
         }
-        else if (!fromMovement && (pushPusherFollowsChain || pusherMovesSimultaneously)
+        else if (!fromMovement && pushResolved && (pushPusherFollowsChain || pusherMovesSimultaneously)
             && firstGrid != null && grid != null)
         {
             var followDestination = firstGrid;
