@@ -151,6 +151,13 @@ public partial class Infantry
 
     [ExportSubgroup("缓冲模块")]
     [Export] public bool pushMitigationEnabled = false;
+    [Export] public bool pushMitigationProtectHealth = false;
+    [Export] public bool pushMitigationProtectFunds = false;
+    [Export] public bool pushMitigationProtectFuel = false;
+    [Export] public bool pushMitigationProtectAmmo = false;
+    [Export] public AmmoKind pushMitigationProtectAmmoKind = AmmoKind.Primary;
+    [Export] public int pushMitigationResourceFixedReduction = 0;
+    [Export(PropertyHint.Range, "0,100,0.1")] public float pushMitigationResourcePercentReduction = 0f;
     [Export] public AmmoKind pushMitigationAmmoKind = AmmoKind.PushMitigation;
     [Export] public int pushMitigationAmmoCost = 0;
     [Export] public int pushMitigationTiles = 0;
