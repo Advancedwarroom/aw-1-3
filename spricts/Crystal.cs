@@ -30,8 +30,8 @@ public partial class Crystal : Weapon
 
     [ExportGroup("黑水晶 - 范围补给")]
     [Export] public int crystalSupplyMinRange = 0;      // 补给最小范围
-    [Export] public int crystalSupplyMaxRange = 3;
-    [Export] public bool crystalSupplyCanCrossScreens = false; // 黑水晶补给范围是否允许跨屏      // 补给最大范围
+    [Export] public int crystalSupplyMaxRange = 3;      // 补给最大范围
+    [Export] public bool crystalSupplyCanCrossScreens = false; // 黑水晶补给范围是否允许跨屏
     [Export] public bool crystalSupplyIncludeFriendly = true;
     [Export] public bool crystalSupplyIncludeEnemy = false;
     [Export] public bool crystalSupplyIncludeAllied = false;
