@@ -695,7 +695,7 @@ public partial class Facility : Node2D
         if (baseAnimSprite != null && IsInstanceValid(baseAnimSprite) && baseAnimSprite.SpriteFrames != null &&
             normalAnimSprite != null && IsInstanceValid(normalAnimSprite) && normalAnimSprite.SpriteFrames != null)
         {
-            baseAnimSprite.Material = GetHueMaterial(facilityTeam, true);   // ✅ CoW移植: 守卫只染队伍色带, 墙窗不跟着变色
+            baseAnimSprite.Material = TeamHelper.GetMaterial(facilityTeam);   // ✅ 开创人2026-11-12: 接入mode2模板色表(单位同款), 明暗阶全保留
             baseAnimSprite.Show();
             normalAnimSprite.Material = null;
             normalAnimSprite.Show();
