@@ -77,7 +77,7 @@ public partial class Infantry
             && pushCanTargetWeapons
             && target != null && target.grid != null
             && (fromMovement || IsWithinPushTargetRange(target.grid))
-            && CanPushTeamName(target.team, target.GetType().Name)
+            && CanPushTeamName(target.team, target)
             && CanPushNonInfantryTarget(target.grid, target.pushableByPhysics, target.GetEffectiveWeight(),
                 target.equalWeightPushMode, target.isDestroyed, distance))
         {
@@ -123,7 +123,7 @@ public partial class Infantry
             || !pushCanTargetFacilities
             || target == null || target.ParentGrid == null
             || (!fromMovement && !IsWithinPushTargetRange(target.ParentGrid))
-            || !CanPushTeamName(target.facilityTeam, target.GetType().Name)
+            || !CanPushTeamName(target.facilityTeam, target)
             || !CanPushNonInfantryTarget(target.ParentGrid, target.pushableByPhysics, target.GetEffectiveWeight(),
                 target.equalWeightPushMode, target.health <= 0, distance))
             return;
@@ -238,9 +238,9 @@ public partial class Infantry
             var stack = GetLivingStack(tile);
             bool hasPushableStatic =
                 (pushCanTargetWeapons && (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
-                    && w.pushableByPhysics && CanPushTeamName(w.team, w.GetType().Name)) ?? false))
+                    && w.pushableByPhysics && CanPushTeamName(w.team, w)) ?? false))
                 || (pushCanTargetFacilities && tile.city != null && tile.city.pushableByPhysics
-                    && CanPushTeamName(tile.city.facilityTeam, tile.city.GetType().Name));
+                    && CanPushTeamName(tile.city.facilityTeam, tile.city));
             if ((stack.Count == 0 || !CanPushTargetTeam(stack))
                 && !hasPushableStatic) continue;
             tile.attackRangeIcon?.Show();
@@ -305,17 +305,20 @@ public partial class Infantry
         });
     }
 
-    private bool CanPushTeamName(string targetTeam, string targetType = null, int chainIndex = 0)
+    private bool CanPushTeamName(string targetTeam, Node target = null, int chainIndex = 0)
     {
         if (string.IsNullOrEmpty(targetTeam)) return false;
         var rule = GetPushChainRule(chainIndex);
-        if (rule != null)
+        if (target is Weapon)
         {
-            bool allowType = targetType == null
-                || (targetType == nameof(Weapon) && rule.targetWeapons)
-                || (targetType == nameof(Facility) && rule.targetFacilities);
-            if (!allowType) return false;
+            if (rule != null ? !rule.targetWeapons : !pushCanTargetWeapons) return false;
         }
+        else if (target is Facility)
+        {
+            if (rule != null ? !rule.targetFacilities : !pushCanTargetFacilities) return false;
+        }
+
+        string targetType = target?.GetType().Name;
         var whitelist = rule?.whitelist ?? pushTargetWhitelist;
         var blacklist = rule?.blacklist ?? pushTargetBlacklist;
         if (!string.IsNullOrEmpty(targetType))
@@ -658,7 +661,7 @@ public partial class Infantry
             var weapon = pushCanTargetWeapons
                 ? targetGrid.weapons?.FirstOrDefault(w => w != null
                     && GodotObject.IsInstanceValid(w) && w.pushableByPhysics
-                    && CanPushTeamName(w.team, w.GetType().Name))
+                    && CanPushTeamName(w.team, w))
                 : null;
             var facility = pushCanTargetFacilities && targetGrid.city != null && targetGrid.city.pushableByPhysics
                 && CanPushTeamName(targetGrid.city.facilityTeam, targetGrid.city.GetType().Name)
@@ -893,7 +896,7 @@ public partial class Infantry
         Weapon blockingWeapon = blockingWeapons.FirstOrDefault();
         if (blockingWeapon != null)
         {
-            if (!CanPushTeamName(blockingWeapon.team, blockingWeapon.GetType().Name, chainIndex))
+            if (!CanPushTeamName(blockingWeapon.team, blockingWeapon, chainIndex))
                 return false;
             float obstacleWeight = blockingWeapon.GetEffectiveWeight();
             if (!blockingWeapon.pushableByPhysics) return false;
@@ -905,7 +908,7 @@ public partial class Infantry
 
         if (blockingFacility != null)
         {
-            if (!CanPushTeamName(blockingFacility.facilityTeam, blockingFacility.GetType().Name, chainIndex))
+            if (!CanPushTeamName(blockingFacility.facilityTeam, blockingFacility, chainIndex))
                 return false;
             float obstacleWeight = blockingFacility.GetEffectiveWeight();
             if (!blockingFacility.pushableByPhysics) return false;
