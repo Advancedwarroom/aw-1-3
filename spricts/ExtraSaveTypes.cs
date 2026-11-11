@@ -96,7 +96,8 @@ public class SavedGridTerrainData
     public int fixedDamagePerTurn = 0;
     public int fixedAttackPerTurn = 0;
     public bool canOverMaxHealth = false;
-    public int fixedMaxHealthChangePerTurn = 0; // ✦优化：最大血量增减
+    public int fixedMaxHealthChangePerTurn = 0; // 最大血量增减
+    public float fixedWeightChangePerTurn = 0f;
     public int fixedAmmoChangePerTurn = 0;
     public bool ammoCanOverMax = false;
     public bool ammoCanReachZero = true;
@@ -108,6 +109,10 @@ public class SavedGridTerrainData
     public int ammoChangeCamo = 0;
     public int ammoChangeProduction = 0;
     public int ammoChangeConstruction = 0;
+    public int ammoChangeSpecial = 0;
+    public int ammoChangePushRebound = 0;
+    public int ammoChangePushMitigation = 0;
+    public int ammoChangeAntiGravityTransfer = 0;
     public int ammoMaxChangePrimary = 0;    // ✦优化：全种类弹药上限增减
     public int ammoMaxChangeExplode = 0;
     public int ammoMaxChangeFlare = 0;
@@ -116,6 +121,10 @@ public class SavedGridTerrainData
     public int ammoMaxChangeCamo = 0;
     public int ammoMaxChangeProduction = 0;
     public int ammoMaxChangeConstruction = 0;
+    public int ammoMaxChangeSpecial = 0;
+    public int ammoMaxChangePushRebound = 0;
+    public int ammoMaxChangePushMitigation = 0;
+    public int ammoMaxChangeAntiGravityTransfer = 0;
     public int fixedFuelChangePerTurn = 0;
     public int fixedMaxFuelChangePerTurn = 0; // ✦优化：燃油上限增减
     public bool fuelCanOverMax = false;
