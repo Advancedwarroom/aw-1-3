@@ -1083,9 +1083,13 @@ public partial class Infantry
             if (!CanPushTeamName(blockingWeapon.team, blockingWeapon, chainIndex))
                 return false;
             float obstacleWeight = blockingWeapon.GetEffectiveWeight();
-            if (!blockingWeapon.pushableByPhysics) return false;
             if (pushUsesWeight && movingWeight < obstacleWeight
-                && !Mathf.IsEqualApprox(movingWeight, obstacleWeight)) return false;
+                && !Mathf.IsEqualApprox(movingWeight, obstacleWeight))
+            {
+                DestroyCollisionLoser(movingStack);
+                return true;
+            }
+            if (!blockingWeapon.pushableByPhysics) return false;
             if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
                 && !CanResolveEqualWeight(movingStack, blockingWeapon.equalWeightPushMode)) return false;
         }
@@ -1095,9 +1099,13 @@ public partial class Infantry
             if (!CanPushTeamName(blockingFacility.facilityTeam, blockingFacility, chainIndex))
                 return false;
             float obstacleWeight = blockingFacility.GetEffectiveWeight();
-            if (!blockingFacility.pushableByPhysics) return false;
             if (pushUsesWeight && movingWeight < obstacleWeight
-                && !Mathf.IsEqualApprox(movingWeight, obstacleWeight)) return false;
+                && !Mathf.IsEqualApprox(movingWeight, obstacleWeight))
+            {
+                DestroyCollisionLoser(movingStack);
+                return true;
+            }
+            if (!blockingFacility.pushableByPhysics) return false;
             if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
                 && !CanResolveEqualWeight(movingStack, blockingFacility.equalWeightPushMode)) return false;
         }
@@ -1116,7 +1124,42 @@ public partial class Infantry
             // custom override rejects it, do not attempt to overwrite the old slot.
             return false;
         }
+
+        if (blockingWeapon != null || blockingFacility != null)
+            ApplyFragileCollisionEffects(movingStack);
         return true;
+    }
+
+    private void DestroyCollisionLoser(List<Infantry> losingStack)
+    {
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        foreach (var unit in losingStack.ToList())
+            DestroyPushedUnit(unit, gm);
+    }
+
+    private void ApplyFragileCollisionEffects(List<Infantry> survivingStack)
+    {
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        foreach (var unit in survivingStack.Where(IsLivingUnit).ToList())
+        {
+            if (!unit.pushFragileEnabled) continue;
+            if (unit.pushFragileLockOneHp) unit.health = 1;
+            else if (unit.pushFragileDamage > 0)
+            {
+                long remainingHealth = (long)unit.health - unit.pushFragileDamage;
+                if (remainingHealth <= 0 && unit.pushFragileCanDestroy)
+                {
+                    DestroyPushedUnit(unit, gm);
+                    continue;
+                }
+                unit.health = (int)Math.Max(1L, remainingHealth);
+            }
+            if (unit.pushFragileFuelDelta != 0)
+                unit.fuel = (int)Math.Clamp((long)unit.fuel + unit.pushFragileFuelDelta, 0L, int.MaxValue);
+            if (unit.pushFragileAmmoDelta != 0)
+                unit.AddAmmo(unit.pushFragileAmmoKind, unit.pushFragileAmmoDelta);
+            unit.UpdateHpLabel();
+        }
     }
 
     private static bool CanResolveEqualWeight(List<Infantry> movingStack,
