@@ -311,7 +311,7 @@ public partial class AI_Manager
             foreach (var g in gameManager.gridManager.grids)
             {
                 int bd = Mathf.Abs(g.GridIndex.X - cand.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - cand.GridIndex.Y);
-                if (bd < silo.blastMinRadius || bd > silo.blastMaxRadius) continue;
+                if (bd < silo.blastMinRadius || bd > silo.blastMaxRadius || !gameManager.gridManager.IsRangeAllowed(cand, g, silo.blastCanCrossScreens)) continue;
                 foreach (var e in g.infantries)
                 {
                     if (e == null || !IsInstanceValid(e) || e.health <= 0) continue;
