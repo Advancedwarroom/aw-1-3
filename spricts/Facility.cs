@@ -680,7 +680,7 @@ public partial class Facility : Node2D
             material.SetShaderParameter("guard_range", 0.10f);
         }
         // S/V吸附: 0.65折中——镶边呈现势力正典彩度, 又保留画作的明暗层次
-        material.SetShaderParameter("sv_snap", 0.65f);
+        material.SetShaderParameter("sv_snap", 1.0f);   // ✅ 开创人2026-11-12: 正色——镶边完全吸附势力S/V
         material.SetShaderParameter("target_sat", targetSat);
         material.SetShaderParameter("target_val", targetVal);
         return material;
