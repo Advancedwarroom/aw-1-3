@@ -455,7 +455,7 @@ public partial class ActionMenu
                 int gx = x + dx, gy = y + dy;
                 if (!gm.unitManager.IsValidGrid(new Vector2I(gx, gy))) continue;
                 var g = gm.gridManager.map[gx, gy];
-                if (g == null) continue;
+                if (g == null || !gm.gridManager.IsRangeAllowed(currentUnit.grid, g, currentUnit.deployFacilityCanCrossScreens)) continue;
                 if (g.city != null && IsInstanceValid(g.city)) continue;
                 if (g.weapon != null) continue;
                 if (!currentUnit.CanBuildFacilityOnTerrain(currentUnit.carriedFacilityTypes[0], g.gridType)) continue;   // ⑫ 可建造地形
