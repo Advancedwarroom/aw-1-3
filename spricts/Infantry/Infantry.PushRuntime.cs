@@ -448,7 +448,7 @@ public partial class Infantry
 
                 // Units configured for final-tile-only checks pass through invalid intermediate tiles.
                 var blockers = GetLivingStack(destination).Where(u => !stack.Contains(u)).ToList();
-                if (blockers.Count > 0) continue;
+                if (blockers.Count > 0 || HasForeignMultiTileOccupant(destination, stack)) continue;
                 if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager)) continue;
 
                 MoveStackByPush(stack, destination);
@@ -536,6 +536,14 @@ public partial class Infantry
     private static bool IsLivingUnit(Infantry unit) =>
         unit != null && GodotObject.IsInstanceValid(unit) && !unit.IsQueuedForDeletion()
         && unit.health > 0 && unit.grid != null;
+
+    // Multi-tile infantry occupy footprint tiles through multiTileOccupant rather than
+    // appearing in every tile's infantries list. Do not push a stack into such a tile.
+    private static bool HasForeignMultiTileOccupant(Grids tile, List<Infantry> movingStack)
+    {
+        var occupant = tile?.multiTileOccupant;
+        return IsLivingUnit(occupant) && (movingStack == null || !movingStack.Contains(occupant));
+    }
 
     private static List<Infantry> GetLivingStack(Grids tile)
     {
