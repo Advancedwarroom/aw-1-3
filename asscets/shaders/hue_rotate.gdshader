@@ -27,12 +27,16 @@ vec3 hsv2rgb(vec3 c) {
 void fragment() {
     vec4 tex = texture(TEXTURE, UV);
     vec3 hsv = rgb2hsv(tex.rgb);
-    // 源色带守卫: 色环最近距离超出范围 → 原样输出(不旋转、不改饱和)
+    // ✅ 2026-11-11: GDShader禁止fragment()内return——守卫改if/else结构
+    COLOR = tex;                         // 默认原样输出(守卫拦截或低饱和)
+    bool in_band = guard_center < 0.0;   // 守卫关闭 = 全部像素在带内(双图层行为不变)
     if (guard_center >= 0.0) {
         float d = abs(fract(hsv.x - guard_center + 0.5) - 0.5);
-        if (d > guard_range) { COLOR = tex; return; }
+        in_band = d <= guard_range;
     }
-    hsv.x = fract(hsv.x + hue_shift / 360.0);
-    hsv.y *= saturation;
-    COLOR = vec4(hsv2rgb(hsv), tex.a);
+    if (in_band) {
+        hsv.x = fract(hsv.x + hue_shift / 360.0);
+        hsv.y *= saturation;
+        COLOR = vec4(hsv2rgb(hsv), tex.a);
+    }
 }
