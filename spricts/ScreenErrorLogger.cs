@@ -1,5 +1,4 @@
-    /// Godot 4 没有 Bb(string)，手写："[ " → "[lb]"。
-    private static string Bb(string s) => (s ?? "").Replace("[", "[lb]");\n// ScreenErrorLogger.cs - 全局屏幕错误显示（开创人2026-11-11）：引擎所有报错/警告直接上屏，可关闭。
+// ScreenErrorLogger.cs - 全局屏幕错误显示（开创人2026-11-11）：引擎所有报错/警告直接上屏，可关闭。
 // 手机看不了 Godot 控制台——这个文件把全引擎错误流变成游戏画面里的滚动红字条。
 using Godot;
 using System.Collections.Generic;
@@ -17,11 +16,15 @@ public partial class ScreenErrorLogger : Godot.Logger
         host.CallDeferred(Node.MethodName.AddChild, pump);
     }
 
+    /// Godot 4 没有 string.EscapeBBCode()，手写："[" → "[lb]"。
+    private static string Bb(string s) => (s ?? "").Replace("[", "[lb]");
+
     public override void _LogError(string function, string file, int line, string code, string rationale, bool editorNotify, int errorType, Godot.Collections.Array<ScriptBacktrace> scriptBacktraces)
     {
         var msg = string.IsNullOrEmpty(rationale) ? code : rationale;
-        var color = errorType == (int)ErrorType.Warning ? "gold" : "tomato";
-        var kind = errorType == (int)ErrorType.Warning ? "警告" : "错误";
+        var isWarning = errorType == (int)ErrorType.Warning;
+        var color = isWarning ? "gold" : "tomato";
+        var kind = isWarning ? "警告" : "错误";
         ScreenErrorPump.Enqueue($"[color={color}][b]{kind}[/b] {Bb(msg)}\n[i]{file}:{line} @{function}()[/i][/color]\n");
     }
 
@@ -105,7 +108,7 @@ public partial class ScreenErrorPump : Node
         foreach (var line in batch) logLabel.AppendText(line);
         if (dropped > 0)
         {
-            logLabel.AppendText($"[color=orange]…另有 {dropped} 条被丢弃[/color]\n");
+            logLabel.AppendText($"[color=orange]...另有 {dropped} 条被丢弃[/color]\n");
             dropped = 0;
         }
         logLabel.ScrollToLine(logLabel.GetLineCount());
