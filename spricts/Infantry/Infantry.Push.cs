@@ -92,6 +92,7 @@ public partial class Infantry
 
     // Runtime-only turn limiter. It is reset by GameManager when this unit's turn refreshes.
     private bool hasUsedPushThisTurn = false;
+    private int pushCooldownTurnsRemaining = 0;
 
     public float GetEffectiveWeight()
     {
@@ -108,6 +109,7 @@ public partial class Infantry
     {
         if (!pushEnabled || pushTriggerMode != PushTriggerMode.SeparateAction)
             return false;
+        if (pushCooldownTurnsRemaining > 0) return false;
         if (pushOncePerTurn && hasUsedPushThisTurn)
             return false;
         if (!pushCanBeUsedAfterMoving && isMoved)
@@ -122,6 +124,7 @@ public partial class Infantry
         if (!CanUseSeparatePushAction())
             return false;
         hasUsedPushThisTurn = true;
+        pushCooldownTurnsRemaining = Mathf.Max(pushCooldownTurnsRemaining, pushCooldownTurns);
         if (pushActionCountsAsAction)
         {
             hasActed = true;
@@ -134,5 +137,6 @@ public partial class Infantry
     public void ResetPushUseForTurn()
     {
         hasUsedPushThisTurn = false;
+        if (pushCooldownTurnsRemaining > 0) pushCooldownTurnsRemaining--;
     }
 }
