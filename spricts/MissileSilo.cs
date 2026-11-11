@@ -207,7 +207,9 @@ public partial class MissileSilo : Weapon
     public void LaunchMissile(Grids targetGrid, Infantry firer)
     {
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm == null || targetGrid == null) return;
+        if (gm?.gridManager == null || targetGrid == null || grid == null) return;
+        int launchDistance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
+        if (launchDistance < strikeMinRange || launchDistance > strikeMaxRange || IsScreenBlocked(targetGrid)) return;
         CancelTargetSelection(gm);
 
         // 消耗弹药
