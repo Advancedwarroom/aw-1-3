@@ -641,10 +641,13 @@ public partial class Facility : Node2D
 
         float targetHue = 0f;
         float saturation = 1f;
+        float targetSat = 1f;   // ✅ 开创人2026-11-12: S/V吸附目标——P-1正典粉不再是"黑洞紫"
+        float targetVal = 1f;
         if (team == TeamHelper.Player)
         {
             // P-1 is fixed canonical purple, independent of saved faction palette state.
-            targetHue = new Color(0.7f, 0.4f, 0.9f).H;
+            var canonical = new Color(0.7f, 0.4f, 0.9f);
+            targetHue = canonical.H; targetSat = canonical.S; targetVal = canonical.V;
         }
         else if (team == TeamHelper.Player0)
         {
@@ -655,7 +658,11 @@ public partial class Facility : Node2D
         {
             var faction = TeamHelper.GetFaction(team);
             if (faction != null)
+            {
                 targetHue = faction.PrimaryColor.H;
+                targetSat = faction.PrimaryColor.S;
+                targetVal = faction.PrimaryColor.V;
+            }
         }
 
         // Shader adds this delta to the source pixel hue. Subtract the source-art hue first;
@@ -670,6 +677,10 @@ public partial class Facility : Node2D
             material.SetShaderParameter("guard_center", EffectiveBaseArtHue());
             material.SetShaderParameter("guard_range", 0.10f);
         }
+        // S/V吸附: 0.65折中——镶边呈现势力正典彩度, 又保留画作的明暗层次
+        material.SetShaderParameter("sv_snap", 0.65f);
+        material.SetShaderParameter("target_sat", targetSat);
+        material.SetShaderParameter("target_val", targetVal);
         return material;
     }
 
