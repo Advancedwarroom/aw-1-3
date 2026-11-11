@@ -16,11 +16,11 @@ public partial class ScreenErrorLogger : Godot.Logger
         host.CallDeferred(Node.MethodName.AddChild, pump);
     }
 
-    public override void _LogError(string function, string file, int line, string code, string rationale, bool editorNotify, ErrorType errorType, Godot.Collections.Array<ScriptBacktrace> scriptBacktraces)
+    public override void _LogError(string function, string file, int line, string code, string rationale, bool editorNotify, int errorType, Godot.Collections.Array<ScriptBacktrace> scriptBacktraces)
     {
         var msg = string.IsNullOrEmpty(rationale) ? code : rationale;
-        var color = errorType == ErrorType.Warning ? "gold" : "tomato";
-        var kind = errorType == ErrorType.Warning ? "警告" : "错误";
+        var color = errorType == (int)ErrorType.Warning ? "gold" : "tomato";
+        var kind = errorType == (int)ErrorType.Warning ? "警告" : "错误";
         ScreenErrorPump.Enqueue($"[color={color}][b]{kind}[/b] {msg.EscapeBBCode()}\n[i]{file}:{line} @{function}()[/i][/color]\n");
     }
 
