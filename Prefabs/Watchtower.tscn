@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://spricts/Watchtower.cs" id="1_wt"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Watchtower.tres" id="2_wt"]
 
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/WatchTower_base.tres" id="99_cbase"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/WatchTower_overlay.tres" id="99_cover"]
 [node name="Watchtower" type="Node2D"]
 script = ExtResource("1_wt")
 
@@ -11,3 +13,10 @@ position = Vector2(16, 0)
 scale = Vector2(0.34, 0.34)
 sprite_frames = ExtResource("2_wt")
 animation = &"P0Watchtower"
+
+[node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(16, 16)
+sprite_frames = ExtResource("99_cbase")
+
+[node name="NormalAnimSprite" type="AnimatedSprite2D" parent="BaseAnimSprite"]
+sprite_frames = ExtResource("99_cover")
