@@ -6,6 +6,9 @@ using System.Collections.Generic;
 // Infantry · Combat（由 Infantry.cs 按模块拆分；partial class，Export 分组已显式标注）
 public partial class Infantry
 {
+    [ExportGroup("友军火力")]
+    [Export] public bool canAttackFriendlies = false;  // ✅ 友军火力：勾选后可攻击同队单位/兵器/设施（默认关=原味；AI 不接线不会误伤；被打的友军仍会反击）
+
     [ExportGroup("补给")]
     [Export] public string[] excludedWeaponTargets = System.Array.Empty<string>();  // ⚔ 兵器攻击准入(攻击方)：不能攻击的兵器类型，"Weapon"=全部兵器，留空=均可攻击              // ✅ 合流模块：是否允许参与 Join 合流（false=该单位不可合流）
 
