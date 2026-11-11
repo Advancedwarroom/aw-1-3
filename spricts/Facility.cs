@@ -142,10 +142,16 @@ public partial class Facility : Node2D
 
     public virtual bool MoveByPhysicsPush(Grids destination)
     {
-        if (!pushableByPhysics || ParentGrid == null || destination == null || destination.city != null)
+        var origin = ParentGrid;
+        if (!pushableByPhysics || origin == null || destination == null
+            || destination == origin || destination.city != null)
             return false;
+
+        // Clear the source occupancy before reparenting so grid ownership never
+        // temporarily points at the destination while the old tile still owns it.
+        if (origin.city == this)
+            origin.city = null;
         Reparent(destination, true);
-        ParentGrid.city = null;
         ParentGrid = destination;
         destination.city = this;
         GlobalPosition = destination.GlobalPosition;
