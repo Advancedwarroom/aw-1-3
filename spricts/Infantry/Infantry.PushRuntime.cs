@@ -958,13 +958,59 @@ public partial class Infantry
                 stack = stack.Where(IsLivingUnit).ToList();
                 if (stack.Count == 0) continue;
 
-                // Units configured for final-tile-only checks pass through invalid intermediate tiles.
+                // A non-chain infantry stack can still collide with the moving stack.
+                // Weight decides the winner; equal weight follows both stacks' tie rules.
                 var blockers = GetLivingStack(destination).Where(u => !stack.Contains(u)).ToList();
-                if (blockers.Count > 0 || HasForeignMultiTileOccupant(destination, stack)) continue;
+                if (blockers.Count > 0)
+                {
+                    if (!pushUsesWeight) continue;
+                    float movingWeight = GetStackWeight(stack);
+                    float blockerWeight = GetStackWeight(blockers);
+                    if (movingWeight > blockerWeight && !Mathf.IsEqualApprox(movingWeight, blockerWeight))
+                    {
+                        DestroyCollisionLoser(blockers);
+                        ApplyFragileCollisionEffects(stack);
+                    }
+                    else if (blockerWeight > movingWeight && !Mathf.IsEqualApprox(movingWeight, blockerWeight))
+                    {
+                        DestroyCollisionLoser(stack);
+                        continue;
+                    }
+                    else
+                    {
+                        bool movingAllows = StackAllowsSimultaneous(stack);
+                        bool blockerAllows = StackAllowsSimultaneous(blockers);
+                        bool movingStops = StackStopsOnEqual(stack);
+                        bool blockerStops = StackStopsOnEqual(blockers);
+                        bool bothMove = movingAllows && blockerAllows
+                            || !(movingStops && blockerStops) && GD.Randf() < 0.5f;
+                        if (!bothMove) continue;
+
+                        var collisionNext = gridManager.GetGridAt(destination.GridIndex + direction);
+                        if (collisionNext == null || GetLivingStack(collisionNext).Count > 0
+                            || HasForeignMultiTileOccupant(collisionNext, blockers)
+                            || !TryDisplaceWeaponAndFacility(blockers, collisionNext, direction, gridManager, i))
+                            continue;
+
+                        foreach (var unit in blockers.ToList())
+                        {
+                            if (unit.GetMoveCostOnGrid(collisionNext) >= 999)
+                                DestroyPushedUnit(unit, gameManager);
+                        }
+                        blockers = blockers.Where(IsLivingUnit).ToList();
+                        if (blockers.Count > 0)
+                            MoveStackByPush(blockers, collisionNext);
+                        ApplyFragileCollisionEffects(blockers);
+                        ApplyFragileCollisionEffects(stack);
+                    }
+                }
+
+                if (HasForeignMultiTileOccupant(destination, stack)) continue;
                 if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager, i)) continue;
 
                 MoveStackByPush(stack, destination);
-                movedStacks.Add(i);
+                if (stack.Any(IsLivingUnit))
+                    movedStacks.Add(i);
             }
         }
 
