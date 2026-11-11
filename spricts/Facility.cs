@@ -133,12 +133,12 @@ public partial class Facility : Node2D
     [Export] public int surviveDefeatTurns = 0;    // 本设施存活满 N 大回合 → 所属势力失败出局（0=关闭）
     [Export] public int survivedTurns = 0;         // 已存活大回合数（计时器；[Export] 随存档/导出/导入自动带走）
     [ExportGroup("推动模块")]
-    [Export] public float weight = 1.0f;
+    [Export(PropertyHint.Range, "0,9999,0.01")] public float weight = 1.0f;
     [Export] public bool weightScalesWithHealth = false;
     [Export] public bool pushableByPhysics = false;
     [Export] public bool pushBlocksInfantryWhenOverlapped = true;
     [Export] public Infantry.EqualWeightPushMode equalWeightPushMode = Infantry.EqualWeightPushMode.Stop;
-    public virtual float GetEffectiveWeight() => Mathf.Max(0f, weight) * (weightScalesWithHealth ? Mathf.Clamp((float)health / Mathf.Max(1, maxHealth), 0f, 1f) : 1f);
+    public virtual float GetEffectiveWeight() => Mathf.Clamp(weight, 0f, 9999f) * (weightScalesWithHealth ? Mathf.Clamp((float)health / Mathf.Max(1, maxHealth), 0f, 1f) : 1f);
 
     public virtual bool MoveByPhysicsPush(Grids destination)
     {
