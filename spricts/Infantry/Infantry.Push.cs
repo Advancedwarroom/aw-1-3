@@ -63,6 +63,12 @@ public partial class Infantry
         if (!CanUseSeparatePushAction())
             return false;
         hasUsedPushThisTurn = true;
+        if (pushActionCountsAsAction)
+        {
+            hasActed = true;
+            state = UnitState.Acted;
+            SetWaitVisual(true);
+        }
         return true;
     }
 
