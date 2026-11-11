@@ -16,10 +16,12 @@ For a separate action:
 
 ## Weight and stacks
 
-- `weight` is a float.
+- `weight` is a floating-point value clamped to 0–9999, with 0.01 inspector precision.
 - `weightScalesWithHealth` scales effective weight by current HP / maximum HP.
 - All infantry on one tile form a single stack. Stack weight is the sum of its members' effective weights; the whole stack moves together.
 - Equal-weight behavior is controlled by each entity's `equalWeightPushMode`. Both sides allowing simultaneous movement means the push proceeds; both sides set to stop means it stops; mixed settings resolve 50/50 once for that link.
+- `pushMaxChainUnits` limits the number of infantry in a chain without splitting co-located stacks. `pushMaxChainStacks` continues to limit occupied tiles.
+- `pushChainWeightMode` controls force transmission from the initiating pusher: constant force, add each displaced stack's mass, or subtract each displaced stack's mass. `pushChainMaxAccumulatedWeight` caps accumulated force when positive.
 - Weapon and facility weights use the same health-scaling model. They can be pushed when `pushableByPhysics` is enabled. Multi-tile weapons are intentionally excluded from displacement until footprint-safe movement is implemented.
 
 ## Direction, chain, costs and effects
