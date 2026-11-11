@@ -1,22 +1,19 @@
-[gd_resource type="SpriteFrames" load_steps=3 format=3]
+[gd_resource type="SpriteFrames" load_steps=2 format=3]
 
-[ext_resource type="Texture2D" path="res://art/official/TempAirPort_dark_base.png" id="1"]
-[ext_resource type="Texture2D" path="res://art/official/TempAirPort_light_base.png" id="2"]
+[ext_resource type="Texture2D" path="res://art/official/TempAirPort_dark_base.png" id="1_a"]
 
 [resource]
 animations = [{
-"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 3.0, "texture": ExtResource("2")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1_a")}],
 "loop": true,
-"name": &"P0AirPort",
-"speed": 1.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 3.0, "texture": ExtResource("2")}],
+"name": &"P0X",
+"speed": 5.0}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("1_a")}],
 "loop": true,
-"name": &"airportteam1",
-"speed": 1.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("1")}, {"duration": 3.0, "texture": ExtResource("2")}],
+"name": &"team1",
+"speed": 5.0}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("1_a")}],
 "loop": true,
-"name": &"airportteam2",
-"speed": 1.0
-}]
+"name": &"team2",
+"speed": 5.0}
+]
