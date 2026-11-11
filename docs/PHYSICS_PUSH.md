@@ -28,7 +28,8 @@ For a separate action:
 
 - `pushDirectionMode` currently supports away-from-pusher or fixed cardinal direction; the opposite-sides drag mode is not wired yet.
 - `pushDistance`, `pushMaxChainStacks`, and `pushForceScalesWithDistance` tune reach and force.
-- Resource costs can use funds, HP, fuel, or primary ammo.
+- Resource costs can use funds, HP, fuel, primary ammo, or any configured `AmmoKind` through `pushCostAmmoKind`.
+- Target ammo changes, rebound costs, and transfer costs each select their own `AmmoKind`, so the complete shared ammunition catalog is available rather than primary ammo only.
 - Target effects include damage, one-HP locking, healing, max-HP changes, fuel changes, and primary-ammo changes.
 - Infantry stacks support configurable rebound, distance mitigation, and anti-gravity transfer Export settings.
 - `pushSelfDestructOnInvalidIntermediateTile` is configured on each infantry entity: enabled destroys it on any invalid intermediate tile; disabled only destroys it if the final requested tile is invalid.
