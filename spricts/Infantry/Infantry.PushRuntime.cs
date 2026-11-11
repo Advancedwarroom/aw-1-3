@@ -269,7 +269,8 @@ public partial class Infantry
 
         foreach (var unit in stack.ToList())
         {
-            if (unit.GetMoveCostOnGrid(next) >= 999)
+            if (unit.GetMoveCostOnGrid(next) >= 999
+                || (pushDestroyOnProperty && next.city != null))
                 DestroyPushedUnit(unit, gm);
         }
         stack = stack.Where(IsLivingUnit).ToList();
@@ -766,7 +767,8 @@ public partial class Infantry
                     && w.pushBlocksInfantryWhenOverlapped) ?? false))
                 return false;
 
-            destroyPusher = pusherStack.Any(unit => unit.GetMoveCostOnGrid(pusherDestination) >= 999);
+            destroyPusher = pusherStack.Any(unit => unit.GetMoveCostOnGrid(pusherDestination) >= 999
+                || (pushDestroyOnProperty && pusherDestination.city != null));
             reboundDestination = pusherOrigin;
         }
 
@@ -794,7 +796,8 @@ public partial class Infantry
         }
         foreach (var unit in stack.ToList())
         {
-            if (IsLivingUnit(unit) && unit.GetMoveCostOnGrid(reboundDestination) >= 999)
+            if (IsLivingUnit(unit) && (unit.GetMoveCostOnGrid(reboundDestination) >= 999
+                || (pushDestroyOnProperty && reboundDestination.city != null)))
                 DestroyPushedUnit(unit, gm);
         }
         stack = stack.Where(IsLivingUnit).ToList();
@@ -866,7 +869,8 @@ public partial class Infantry
             gm.SetTeamFunds(transferUnit.team, gm.GetTeamFunds(transferUnit.team) - fundsCost);
         foreach (var unit in stack.ToList())
         {
-            if (IsLivingUnit(unit) && unit.GetMoveCostOnGrid(destination) >= 999)
+            if (IsLivingUnit(unit) && (unit.GetMoveCostOnGrid(destination) >= 999
+                || (pushDestroyOnProperty && destination.city != null)))
                 DestroyPushedUnit(unit, gm);
         }
         stack = stack.Where(IsLivingUnit).ToList();
@@ -1098,9 +1102,10 @@ public partial class Infantry
                     // The pusher decides whether reaching the map edge is lethal.
                     // A non-destructive push stops at the boundary without moving
                     // any stack through the missing tile.
-                    if (pushSelfDestructOnInvalidIntermediateTile)
+                    foreach (var unit in stack.ToList())
                     {
-                        foreach (var unit in stack) DestroyPushedUnit(unit, gameManager);
+                        if (!unit.pushSelfDestructOnInvalidIntermediateTile) continue;
+                        DestroyPushedUnit(unit, gameManager);
                         pushResolved = true;
                     }
                     break;
@@ -1109,7 +1114,9 @@ public partial class Infantry
                 foreach (var unit in stack.ToList())
                 {
                     bool invalidTerrain = unit.GetMoveCostOnGrid(destination) >= 999;
-                    if (invalidTerrain && (pushSelfDestructOnInvalidIntermediateTile || finalStepForStack))
+                    bool invalidProperty = pushDestroyOnProperty && destination.city != null;
+                    if (invalidProperty || (invalidTerrain
+                        && (unit.pushSelfDestructOnInvalidIntermediateTile || finalStepForStack)))
                     {
                         DestroyPushedUnit(unit, gameManager);
                         pushResolved = true;
@@ -1243,7 +1250,8 @@ public partial class Infantry
             {
                 foreach (var unit in followStack.ToList())
                 {
-                    if (unit.GetMoveCostOnGrid(followDestination) >= 999)
+                    if (unit.GetMoveCostOnGrid(followDestination) >= 999
+                        || (pushDestroyOnProperty && followDestination.city != null))
                         DestroyPushedUnit(unit, gameManager);
                 }
                 followStack = followStack.Where(IsLivingUnit).ToList();
@@ -1274,8 +1282,9 @@ public partial class Infantry
                 ? null : gridManager.GetGridAt(currentGrid.GridIndex + retreatDirection);
             if (destination == null)
             {
-                if (pushSelfDestructOnInvalidIntermediateTile)
-                    foreach (var unit in pusherStack) DestroyPushedUnit(unit, gameManager);
+                foreach (var unit in pusherStack.ToList())
+                    if (unit.pushSelfDestructOnInvalidIntermediateTile)
+                        DestroyPushedUnit(unit, gameManager);
                 break;
             }
 
@@ -1283,7 +1292,9 @@ public partial class Infantry
             foreach (var unit in pusherStack.ToList())
             {
                 bool invalidTerrain = unit.GetMoveCostOnGrid(destination) >= 999;
-                if (invalidTerrain && (pushSelfDestructOnInvalidIntermediateTile || finalStep))
+                bool invalidProperty = pushDestroyOnProperty && destination.city != null;
+                if (invalidProperty || (invalidTerrain
+                    && (unit.pushSelfDestructOnInvalidIntermediateTile || finalStep)))
                     DestroyPushedUnit(unit, gameManager);
             }
             pusherStack = pusherStack.Where(IsLivingUnit).ToList();
