@@ -1002,7 +1002,11 @@ public partial class Infantry
                         if (collisionNext == null || GetLivingStack(collisionNext).Count > 0
                             || HasForeignMultiTileOccupant(collisionNext, blockers)
                             || !TryDisplaceWeaponAndFacility(blockers, collisionNext, direction, gridManager, i))
+                        {
+                            ApplyFragileCollisionEffects(stack);
+                            ApplyFragileCollisionEffects(blockers);
                             continue;
+                        }
 
                         foreach (var unit in blockers.ToList())
                         {
