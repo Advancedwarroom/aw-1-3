@@ -362,23 +362,13 @@ public partial class Grids : Node2D
                 { damage = 80; damageSource = "WHIRLPOOL"; }
                 break;
             case GridType.LAVA:
-                bool isExemptLava = unit.moveType == MoveType.AirPlane || unit.moveType == MoveType.AirShip ||
-                    unit.moveType == MoveType.AeroSpacer || unit.moveType == MoveType.SpaceShiper ||
-                    unit.moveType == MoveType.LAVARUNNER || unit.moveType == MoveType.LAVAHOVER;
-                if (unit.moveType == MoveType.Drone || unit.moveType == MoveType.HeliCopter) isExemptLava = false;
-                if (!isExemptLava) { isPercentage = true; percentage = 0.10f; damageSource = "LAVA"; }
+                if (!unit.terrainDamageImmunity.Contains(GridType.LAVA)) { isPercentage = true; percentage = 0.10f; damageSource = "LAVA"; }   // 开创人2026-11-11：免疫权下放进单位 Export 白名单
                 break;
             case GridType.LAVASIDE:
-                bool isExemptLavaSide = unit.moveType == MoveType.LAVAHOVER || unit.moveType == MoveType.AirPlane ||
-                    unit.moveType == MoveType.AirShip || unit.moveType == MoveType.AeroSpacer ||
-                    unit.moveType == MoveType.HeliCopter || unit.moveType == MoveType.SpaceShiper ||
-                    unit.moveType == MoveType.LAVARUNNER;
-                if (!isExemptLavaSide) { damage = 98; damageSource = "LAVASIDE"; }
+                if (!unit.terrainDamageImmunity.Contains(GridType.LAVASIDE)) { damage = 98; damageSource = "LAVASIDE"; }
                 break;
             case GridType.LAVAFOG:
-                bool isExemptLavaFOG = unit.moveType == MoveType.AeroSpacer || unit.moveType == MoveType.SpaceShiper;
-                if (unit.moveType == MoveType.Drone || unit.moveType == MoveType.HeliCopter) isExemptLavaFOG = false;
-                if (!isExemptLavaFOG) { isPercentage = true; percentage = 0.20f; damageSource = "LAVAFOG"; }
+                if (!unit.terrainDamageImmunity.Contains(GridType.LAVAFOG)) { isPercentage = true; percentage = 0.20f; damageSource = "LAVAFOG"; }
                 break;
         }
         if (isPercentage)

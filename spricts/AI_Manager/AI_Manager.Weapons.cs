@@ -29,11 +29,7 @@ public partial class AI_Manager
             // 黑炮/巨炮/死光自带 AI 只服务 P0/P-1，阵营兵器由这里按"能力"操作；激光自带 AI 不设阵营门，直接用
             if (w is Crystal) continue;   // 黑水晶等单位走位完再脉冲（见 PulseCrystals）
             // ✅ 阵营兵器AI用AI_Manager操作（带视野）；P0/P-1兵器走自带AI
-            bool acted = w is BlackCannon bc ? OperateCannon(bc)
-                : w is BlackArc arc ? OperateArc(arc)
-                : w is GrandBolt gb ? OperateGrandBolt(gb)
-                : w is SuperFactory sf ? OperateFactory(sf)
-                : RunBuiltinWeaponAI(w);
+            bool acted = w.OperateByAI(this);
             Next(acted ? stepDelay : 0.05f);
             return;
         }
@@ -85,7 +81,7 @@ public partial class AI_Manager
         }
     }
 
-    private bool RunBuiltinWeaponAI(Weapon w)
+    public bool RunBuiltinWeaponAI(Weapon w)
     {
         bool before = w.hasActed; int ra = w.remainingAttacks;
         w.ExecuteAI();
@@ -97,7 +93,7 @@ public partial class AI_Manager
     /// 阵营炮台 AI：遍历可转向的所有朝向，算出每个朝向下最佳开火方案（单体炮取最佳格，死光取整条光束），
     /// 选最高分转过去开火；无利可图则恢复原朝向不动。
     /// </summary>
-    private bool OperateCannon(BlackCannon bc)
+    public bool OperateCannon(BlackCannon bc)
     {
         if (bc.isDestroyed || !bc.CanAttack()) { Log($"兵器 {bc.GetType().Name}@{bc.grid?.GridIndex} 不可攻击（冷却/弹药/已行动）"); return false; }
         BuildContext();
@@ -220,7 +216,7 @@ public partial class AI_Manager
     // ========== 新兵器 AI 操作（黑色弧光/大雷弹/超级兵工厂）==========
 
     /// <summary>黑色弧光 AI：射程内找天基打击收益最大的目标格（只用本势力视野内的目标计分）</summary>
-    private bool OperateArc(BlackArc arc)
+    public bool OperateArc(BlackArc arc)
     {
         if (arc == null || !IsInstanceValid(arc) || arc.isDestroyed) return false;
         if (!arc.arcStrikeEnabled || arc.hasActed || !arc.ArcStrikeReady) return false;
@@ -233,7 +229,7 @@ public partial class AI_Manager
     }
 
     /// <summary>大雷弹 AI：蠕动压敌/逼近 + 绝境模式生产Oozium（只用本势力视野内的目标计分）</summary>
-    private bool OperateGrandBolt(GrandBolt gb)
+    public bool OperateGrandBolt(GrandBolt gb)
     {
         if (gb == null || !IsInstanceValid(gb) || gb.isDestroyed) return false;
         if (!TeamHelper.ShouldWeaponUseAI(gb.team)) return false;   // 玩家方兵器不在此操作
@@ -243,7 +239,7 @@ public partial class AI_Manager
     }
 
     /// <summary>超级兵工厂 AI：反制选兵（同城市生产评分），能产就产（出口被占满/次数用完为止）</summary>
-    private bool OperateFactory(SuperFactory f)
+    public bool OperateFactory(SuperFactory f)
     {
         if (f == null || !IsInstanceValid(f) || f.isDestroyed || !f.CanProduceNow()) return false;
         if (!TeamHelper.ShouldWeaponUseAI(f.team)) return false;   // 玩家方工厂由玩家操作

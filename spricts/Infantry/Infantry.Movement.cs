@@ -1532,4 +1532,9 @@ public static bool CanUnitMove(Infantry unit)
     if (unit != null && unit.IsTrappedByWeapon()) return false;   // ✅ issue#1：多格单位内部卡敌→不能移动
     return !unitsCannotMove.ContainsKey(unit);
 }
+
+    // ==================== 地形伤害免疫白名单（开创人2026-11-11：替原岩浆飞行系硬豁免）====================
+    /// 免疫这些地形伤害的地形枚举（编辑器勾选菜单）；空=全吃伤害。替原"飞行系不吃岩浆"硬编码。
+    [ExportGroup("地形伤害免疫")]
+    [Export] public Godot.Collections.Array<GridType> terrainDamageImmunity = new();
 }

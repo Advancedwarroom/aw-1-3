@@ -85,8 +85,7 @@ public partial class GameManager
         {
             if (wp == null || !IsInstanceValid(wp)) continue;
             if (wp.team != currentTeam) continue;
-            if (wp is GrandBolt gb) { gb.OnTurnStartGrandBolt(this); gb.EmpBurst(this); }   // ✅ 电磁爆：回合开始爆发
-            if (wp is BlackArc arc) arc.OnTurnStartArc();
+            wp.OnTurnStart(this);   // ✅ B组通用化：回合开始回调（GrandBolt=蠕动/生产/电磁爆，BlackArc=冷却/护卫联动）
         }
 
         // ✅ 资金系统：每回合开始时给当前phase的势力增加资金

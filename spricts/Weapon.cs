@@ -691,5 +691,9 @@ public partial class Weapon : Node2D
             }
         }
     }
+    /// B组通用化：回合开始回调（Turn 循环对所有兵器统一调用，子类覆写）。
+    public virtual void OnTurnStart(GameManager gm) { }
+    /// B组通用化：AI 操作入口（AI_Manager 不再按类型链式分派）。
+    public virtual bool OperateByAI(AI_Manager ai) => ai.RunBuiltinWeaponAI(this);
     public virtual bool CanAttack() { return !hasActed && remainingAttacks > 0; }
 }

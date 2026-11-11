@@ -16,6 +16,7 @@ public partial class MissileSilo : Weapon
     [Export(PropertyHint.Enum, "点击兵器直接发射,单位菜单发射,两者皆可")]
     public int siloLaunchMode = 1;                              // ① 0=点井本身弹发射；1=单位菜单内发射；2位置保留；3=①②皆可
     [Export] public string[] siloLaunchUnitWhitelist = new string[] { "Infantry", "Mech" };  // ② 模式1白名单（默认=原作AWDS：仅Infantry/Mech可发射；DoR风格加"Bike"；清空=放宽为全部非空军）
+    [Export] public string[] siloLaunchUnitBlacklist = System.Array.Empty<string>();   // 不能发射的单位(UnitTypeId/类名)；空=谁都能发（开创人2026-11-11：替原空军硬禁）
     [Export] public int siloLaunchRangeMin = 0;               // ③ 模式1距离带下限（0=含正上方/同格）
     [Export] public int siloLaunchRangeMax = 0;               // ④ 模式1距离带上限（0-0=仅站上；1-1=临格，均为n-m特例）
 
@@ -140,13 +141,10 @@ public partial class MissileSilo : Weapon
             if (!siloLaunchUnitWhitelist.Contains(unit.UnitTypeId) && !siloLaunchUnitWhitelist.Contains(unit.GetType().Name))
                 return false;
         }
-        else
-        {
-            if (unit.moveType == MoveType.AirPlane || unit.moveType == MoveType.AirShip ||
-                unit.moveType == MoveType.HeliCopter || unit.moveType == MoveType.Drone ||
-                unit.moveType == MoveType.AeroSpacer || unit.moveType == MoveType.SpaceShiper)
-                return false; // 空中单位不能发射
-        }
+        // 黑名单：命中即不能发射（开创人2026-11-11：替代原"空军一律不能发射"硬编码）
+        if (siloLaunchUnitBlacklist != null && siloLaunchUnitBlacklist.Length > 0
+            && (siloLaunchUnitBlacklist.Contains(unit.UnitTypeId) || siloLaunchUnitBlacklist.Contains(unit.GetType().Name)))
+            return false;
         if (!TargetUnitTeamOk(unit.team)) return false;
         if (!TeamCanFire(unit.team)) return false;
         return true;

@@ -183,6 +183,8 @@ public partial class BlackArc : Weapon
     }
 
     /// <summary>回合开始：冷却递减 + 护卫联动检查</summary>
+    public override void OnTurnStart(GameManager gm) { OnTurnStartArc(); }
+    public override bool OperateByAI(AI_Manager ai) => ai.OperateArc(this);
     public void OnTurnStartArc()
     {
         if (arcStrikeCooldownCounter > 0)

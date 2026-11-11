@@ -64,11 +64,11 @@ public partial class GridManager
                     int moveCost = infantry.GetMoveCostOnGrid(neighbor);   // ✅ 与实际移动一致（含港口靠泊等设施覆盖）
                     if (moveCost >= 999 || moveCost == int.MaxValue) continue;
 
-                    if (infantry is not Oozium && neighbor.weapon != null && !neighbor.weapon.AllowsPassage(infantry))
+                    if (neighbor.weapon != null && !neighbor.weapon.AllowsPassage(infantry))
                         continue;
 
                     // ✅ issue#1：他方多格机动单位足印阻挡（Oozium 豁免）
-                    if (infantry is not Oozium && neighbor.multiTileOccupant != null && neighbor.multiTileOccupant != infantry
+                    if (neighbor.multiTileOccupant != null && neighbor.multiTileOccupant != infantry
                         && IsInstanceValid(neighbor.multiTileOccupant) && !neighbor.multiTileOccupant.IsQueuedForDeletion())
                         continue;
 
@@ -416,11 +416,11 @@ public partial class GridManager
                 if (best.TryGetValue(neighbor, out int old) && newCost >= old) continue;
                 if (newCost > maxMove) continue;
 
-                if (infantry is not Oozium && neighbor.weapon != null && !neighbor.weapon.AllowsPassage(infantry))
+                if (neighbor.weapon != null && !neighbor.weapon.AllowsPassage(infantry))
                     continue;
 
                 // ✅ issue#1：他方多格机动单位足印阻挡（Oozium 豁免）
-                if (infantry is not Oozium && neighbor.multiTileOccupant != null && neighbor.multiTileOccupant != infantry
+                if (neighbor.multiTileOccupant != null && neighbor.multiTileOccupant != infantry
                     && IsInstanceValid(neighbor.multiTileOccupant) && !neighbor.multiTileOccupant.IsQueuedForDeletion())
                     continue;
 

@@ -122,8 +122,7 @@ public partial class GridManager
                     }
                     
                     // 检查2: 兵器阻挡（非Oozium单位；宇宙战舰/空天战机可飞越；导弹井可站上发射）
-                    if (infantry is not Oozium && g.weapon != null && !g.weapon.AllowsPassage(infantry) && !g.weapon.CanShelterUnit(infantry)
-                        && infantry.moveType != MoveType.SpaceShiper && infantry.moveType != MoveType.AeroSpacer)
+                    if (g.weapon != null && !g.weapon.AllowsPassage(infantry) && !g.weapon.CanShelterUnit(infantry))
                     {
                         TruncateAndMove(infantry, lastValidGrid);
                         return;
@@ -528,8 +527,7 @@ public partial class GridManager
             { hardBlocked = true; break; }
 
             // ✅ 检查2: 兵器阻挡（非Oozium；宇宙战舰/空天战机可飞越；导弹井可站上发射）
-            if (infantry is not Oozium && g.weapon != null && !g.weapon.AllowsPassage(infantry) && !g.weapon.CanShelterUnit(infantry)
-                && infantry.moveType != MoveType.SpaceShiper && infantry.moveType != MoveType.AeroSpacer) { hardBlocked = true; break; }
+            if (g.weapon != null && !g.weapon.AllowsPassage(infantry) && !g.weapon.CanShelterUnit(infantry)) { hardBlocked = true; break; }
 
             // ✅ 检查3: 地形不可移动
             int moveCost = infantry.GetMoveCostOnGrid(g);

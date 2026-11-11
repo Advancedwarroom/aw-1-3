@@ -227,4 +227,6 @@ public override void _Ready()
         };
         return $"{teamPrefix}_{dirSuffix}";
     }
+
+    public override bool OperateByAI(AI_Manager ai) => ai.OperateCannon(this);
 }

@@ -684,4 +684,6 @@ public partial class SuperFactory : Weapon
             if (!string.IsNullOrEmpty(err)) break;
         }
     }
+
+    public override bool OperateByAI(AI_Manager ai) => ai.OperateFactory(this);
 }

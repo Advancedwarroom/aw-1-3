@@ -628,6 +628,8 @@ public partial class GrandBolt : Weapon
     }
 
     // ✅ 回合开始：重置蠕动、Oozium生产、冷却、卡死规则扫描
+    public override void OnTurnStart(GameManager gm) { OnTurnStartGrandBolt(); EmpBurst(gm); }
+    public override bool OperateByAI(AI_Manager ai) => ai.OperateGrandBolt(this);
     public void OnTurnStartGrandBolt()
     {
         if (!grandBoltEnabled) return;   // ✅ 总开关：关闭则蠕动/生产/卡死扫描全部停摆
