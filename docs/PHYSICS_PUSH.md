@@ -20,7 +20,7 @@ For a separate action:
 - `weightScalesWithHealth` scales effective weight by current HP / maximum HP.
 - All infantry on one tile form a single stack. Stack weight is the sum of its members' effective weights; the whole stack moves together.
 - Equal-weight behavior is controlled by each entity's `equalWeightPushMode`. Both sides allowing simultaneous movement means the push proceeds; both sides set to stop means it stops; mixed settings resolve 50/50 once for that link.
-- `pushCanTargetInfantry`, `pushCanTargetWeapons`, and `pushCanTargetFacilities` independently filter target entity classes. The legacy `pushTargetClass` selector must still be set to `AnyPushableEntity` before weapons or facilities are eligible.
+- `pushCanTargetInfantry`, `pushCanTargetWeapons`, and `pushCanTargetFacilities` independently filter target entity classes.
 - `pushMaxChainUnits` limits the number of infantry in a chain without splitting co-located stacks. `pushMaxChainStacks` continues to limit occupied tiles.
 - `pushChainWeightMode` controls force transmission from the initiating pusher: constant force, add each displaced stack's mass, or subtract each displaced stack's mass. `pushChainMaxAccumulatedWeight` caps accumulated force when positive.
 - Weapon and facility weights use the same health-scaling model. They can be pushed when `pushableByPhysics` is enabled. Multi-tile weapons are intentionally excluded from displacement until footprint-safe movement is implemented.
