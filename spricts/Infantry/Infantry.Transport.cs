@@ -290,9 +290,9 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
     if (!transportedUnits.Contains(unit)) return false;
     if (targetGrid == null || grid == null) return false;
     if (targetGrid.gridType == GridType.METEORITE) return false;
-    int unloadDistance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
+    int unloadDx = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X), unloadDy = Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
     var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-    if (unloadDistance != 1 || gm?.gridManager == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, unloadCanCrossScreens)) return false;
+    if (Math.Max(unloadDx, unloadDy) != 1 || gm?.gridManager == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, unloadCanCrossScreens)) return false;
 
     // ✅ 开创人2026-11-11 拍板：废除 P-1 公共运输卸载限制——共用运输可装即可卸，无势力门禁
 
@@ -365,9 +365,9 @@ public virtual bool CanUnloadToGrid(Grids targetGrid)
     if (transportedUnits.Count == 0) return false;
     if (targetGrid == null || grid == null) return false;
     if (targetGrid.gridType == GridType.METEORITE) return false;
-    int unloadDistance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
+    int unloadDx = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X), unloadDy = Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
     var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-    if (unloadDistance != 1 || gm?.gridManager == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, unloadCanCrossScreens)) return false;
+    if (Math.Max(unloadDx, unloadDy) != 1 || gm?.gridManager == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, unloadCanCrossScreens)) return false;
     
     var blockingUnit = targetGrid.infantries.FirstOrDefault(u => 
         u != null && IsInstanceValid(u) && 
