@@ -83,7 +83,7 @@ public partial class ActionMenu
 
         // 隐藏绿色射程，显示黄色照明覆盖范围
         gm.gridManager?.HideFlareRange();
-        gm.gridManager?.ShowIlluminationRange(target, currentUnit.minIlluminationRange, currentUnit.maxIlluminationRange, currentUnit.grid, currentUnit.flareEffectCanCrossScreens);
+        gm.gridManager?.ShowIlluminationRange(target, currentUnit.minIlluminationRange, currentUnit.maxIlluminationRange, currentUnit.flareEffectCanCrossScreens);
 
         // 清除之前的回调
         foreach (var grid in gm.gridManager.grids)
