@@ -23,6 +23,60 @@ public partial class Infantry
         ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm);
     }
 
+    public void TryPushWeaponOnAttack(Weapon target)
+    {
+        if (!CanPushNonInfantryTarget(target?.grid, target?.pushableByPhysics, target?.GetEffectiveWeight(),
+            target?.equalWeightPushMode ?? EqualWeightPushMode.Stop, target == null || target.isDestroyed))
+            return;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager == null || target == null || target.isMultiTile) return;
+        Vector2I direction = GetPushDirection(target.grid);
+        if (direction == Vector2I.Zero) return;
+        for (int step = 0; step < pushDistance; step++)
+        {
+            var next = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
+            if (next == null || next.weapon != null || next.city != null
+                || GetLivingStack(next).Count > 0) break;
+            if (!target.MoveByPhysicsPush(next, gm.weaponManager)) break;
+        }
+    }
+
+    public void TryPushFacilityOnAttack(Facility target)
+    {
+        if (!CanPushNonInfantryTarget(target?.ParentGrid, target?.pushableByPhysics,
+            target?.GetEffectiveWeight(), target?.equalWeightPushMode ?? EqualWeightPushMode.Stop,
+            target == null || target.health <= 0))
+            return;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager == null || target == null) return;
+        Vector2I direction = GetPushDirection(target.ParentGrid);
+        if (direction == Vector2I.Zero) return;
+        for (int step = 0; step < pushDistance; step++)
+        {
+            var next = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
+            if (next == null || next.city != null || next.weapon != null
+                || GetLivingStack(next).Count > 0) break;
+            if (!target.MoveByPhysicsPush(next)) break;
+        }
+    }
+
+    private bool CanPushNonInfantryTarget(Grids targetGrid, bool? pushable, float? targetWeight,
+        EqualWeightPushMode targetMode, bool invalid)
+    {
+        if (!pushEnabled || pushTriggerMode != PushTriggerMode.Attack || pushDistance <= 0
+            || targetGrid == null || invalid || pushable != true || targetWeight == null)
+            return false;
+        float ownWeight = GetEffectiveWeight();
+        if (ownWeight > targetWeight.Value && !Mathf.IsEqualApprox(ownWeight, targetWeight.Value))
+            return true;
+        if (!Mathf.IsEqualApprox(ownWeight, targetWeight.Value)) return false;
+        if (equalWeightPushMode == EqualWeightPushMode.AllowSimultaneous
+            && targetMode == EqualWeightPushMode.AllowSimultaneous) return true;
+        if (equalWeightPushMode == EqualWeightPushMode.Stop && targetMode == EqualWeightPushMode.Stop)
+            return false;
+        return GD.Randf() < 0.5f;
+    }
+
     public void BeginSeparatePushTargetSelection()
     {
         if (!CanUseSeparatePushAction() || grid == null || pushDistance <= 0) return;
