@@ -811,7 +811,7 @@ public partial class Infantry
         var rebounder = preferredRebounder != null && IsLivingUnit(preferredRebounder)
             ? preferredRebounder
             : stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushReboundEnabled);
-        if (rebounder == null || origin == null || gm?.gridManager == null)
+        if (rebounder == null || origin == null || grid == null || gm?.gridManager == null)
             return false;
 
         int reboundRange = Math.Abs(origin.GridIndex.X - grid.GridIndex.X)
