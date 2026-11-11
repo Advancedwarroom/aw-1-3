@@ -1,21 +1,19 @@
 [gd_resource type="SpriteFrames" load_steps=2 format=3]
 
-[ext_resource type="Texture2D" path="res://res://art/official/overlay_blank.png" id="1"]
+[ext_resource type="Texture2D" path="res://art/official/AirPort_dark_overlay.png" id="1_a"]
 
 [resource]
 animations = [{
-"frames": [{"duration": 1.0, "texture": ExtResource("1")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1_a")}],
 "loop": true,
 "name": &"P0AirPort",
-"speed": 5.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("1")}],
+"speed": 5.0}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("1_a")}],
 "loop": true,
 "name": &"airportteam1",
-"speed": 5.0
-}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("1")}],
+"speed": 5.0}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("1_a")}],
 "loop": true,
 "name": &"airportteam2",
-"speed": 5.0
-}]
+"speed": 5.0}
+]
