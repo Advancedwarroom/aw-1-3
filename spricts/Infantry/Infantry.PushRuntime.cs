@@ -74,7 +74,7 @@ public partial class Infantry
         bool triggerReady = fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction
             : fromMovement ? CanUseMovementPush() : CanUseAttackPush();
         if (distance > 0 && triggerReady
-            && pushTargetClass == PushTargetClass.AnyPushableEntity && pushCanTargetWeapons
+            && pushCanTargetWeapons
             && target != null && target.grid != null
             && (fromMovement || IsWithinPushTargetRange(target.grid))
             && CanPushTeamName(target.team, target.GetType().Name)
@@ -120,7 +120,7 @@ public partial class Infantry
         bool triggerReady = fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction
             : fromMovement ? CanUseMovementPush() : CanUseAttackPush();
         if (distance <= 0 || !triggerReady
-            || pushTargetClass != PushTargetClass.AnyPushableEntity || !pushCanTargetFacilities
+            || !pushCanTargetFacilities
             || target == null || target.ParentGrid == null
             || (!fromMovement && !IsWithinPushTargetRange(target.ParentGrid))
             || !CanPushTeamName(target.facilityTeam, target.GetType().Name)
@@ -236,8 +236,7 @@ public partial class Infantry
                 || !gridManager.IsRangeAllowed(grid, tile, attackCanCrossScreens))
                 continue;
             var stack = GetLivingStack(tile);
-            bool hasPushableStatic = pushTargetClass == PushTargetClass.AnyPushableEntity
-                && ((pushCanTargetWeapons && (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+            bool hasPushableStatic = ((pushCanTargetWeapons && (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
                     && w.pushableByPhysics && CanPushTeamName(w.team, w.GetType().Name)) ?? false))
                     || (pushCanTargetFacilities && tile.city != null && tile.city.pushableByPhysics
                         && CanPushTeamName(tile.city.facilityTeam, tile.city.GetType().Name)));
@@ -606,17 +605,16 @@ public partial class Infantry
         var gridManager = gm?.gridManager;
         if (targetGrid == null || grid == null || gridManager == null) return;
         var stack = GetLivingStack(targetGrid);
-        bool staticTarget = stack.Count == 0 && pushTargetClass == PushTargetClass.AnyPushableEntity;
+        bool staticTarget = stack.Count == 0 && (pushCanTargetWeapons || pushCanTargetFacilities);
         if (stack.Count > 0 && !CanPushTargetTeam(stack)) return;
         if (staticTarget)
         {
-            var weapon = pushCanTargetWeapons && pushTargetClass == PushTargetClass.AnyPushableEntity
+            var weapon = pushCanTargetWeapons
                 ? targetGrid.weapons?.FirstOrDefault(w => w != null
                     && GodotObject.IsInstanceValid(w) && w.pushableByPhysics
                     && CanPushTeamName(w.team, w.GetType().Name))
                 : null;
-            var facility = pushCanTargetFacilities && pushTargetClass == PushTargetClass.AnyPushableEntity
-                && targetGrid.city != null && targetGrid.city.pushableByPhysics
+            var facility = pushCanTargetFacilities && targetGrid.city != null && targetGrid.city.pushableByPhysics
                 && CanPushTeamName(targetGrid.city.facilityTeam, targetGrid.city.GetType().Name)
                 ? targetGrid.city : null;
             if (weapon == null && facility == null) return;
@@ -849,7 +847,7 @@ public partial class Infantry
         Weapon blockingWeapon = blockingWeapons.FirstOrDefault();
         if (blockingWeapon != null)
         {
-            if (pushTargetClass != PushTargetClass.AnyPushableEntity || !pushCanTargetWeapons
+            if (!pushCanTargetWeapons
                 || !CanPushTeamName(blockingWeapon.team, blockingWeapon.GetType().Name))
                 return false;
             float obstacleWeight = blockingWeapon.GetEffectiveWeight();
@@ -862,7 +860,7 @@ public partial class Infantry
 
         if (blockingFacility != null)
         {
-            if (pushTargetClass != PushTargetClass.AnyPushableEntity || !pushCanTargetFacilities
+            if (!pushCanTargetFacilities
                 || !CanPushTeamName(blockingFacility.facilityTeam, blockingFacility.GetType().Name))
                 return false;
             float obstacleWeight = blockingFacility.GetEffectiveWeight();
