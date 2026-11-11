@@ -13,13 +13,17 @@ public class IlluminationEffect
     public int minRange;
     public int maxRange;
     public int remainingTurns;  // 剩余大回合数
+    public Grids sourceGrid;
+    public bool allowCrossScreens;
 
-    public IlluminationEffect(Grids center, int minR, int maxR, int duration)
+    public IlluminationEffect(Grids center, int minR, int maxR, int duration, Grids source = null, bool crossScreens = false)
     {
         centerGrid = center;
         minRange = minR;
         maxRange = maxR;
         remainingTurns = duration;
+        sourceGrid = source;
+        allowCrossScreens = crossScreens;
     }
 }
 
@@ -622,6 +626,7 @@ public partial class FogOfWarManager : Node
         foreach (var effect in activeIlluminations)
         {
             if (effect?.centerGrid == null) continue;
+            if (effect.sourceGrid != null && gridManager != null && !gridManager.IsRangeAllowed(effect.sourceGrid, g, effect.allowCrossScreens)) continue;
             int dist = Mathf.Abs(g.GridIndex.X - effect.centerGrid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - effect.centerGrid.GridIndex.Y);
             if (dist <= effect.maxRange && dist >= effect.minRange) return true;
         }
@@ -649,6 +654,8 @@ public partial class FogOfWarManager : Node
                     int dist = Mathf.Abs(dx) + Mathf.Abs(dy);
                     if (dist > maxRange) continue;
                     if (dist < minRange) continue; // 排除内圈（与UI黄色范围一致）
+                    var targetGrid = gridManager.GetGridAt(pos);
+                    if (effect.sourceGrid != null && !gridManager.IsRangeAllowed(effect.sourceGrid, targetGrid, effect.allowCrossScreens)) continue;
                     var pos = new Vector2I(center.X + dx, center.Y + dy);
                     if (pos.X >= 0 && pos.X < gridManager.searchRange.X &&
                         pos.Y >= 0 && pos.Y < gridManager.searchRange.Y)
@@ -689,10 +696,10 @@ public partial class FogOfWarManager : Node
     }
 
     // ✅ 添加新的照明弹效果
-    public void AddIllumination(Grids center, int minR, int maxR, int duration)
+    public void AddIllumination(Grids center, int minR, int maxR, int duration, Grids source = null, bool allowCrossScreens = false)
     {
         if (center == null || duration <= 0) return;
-        activeIlluminations.Add(new IlluminationEffect(center, minR, maxR, duration));
+        activeIlluminations.Add(new IlluminationEffect(center, minR, maxR, duration, source, allowCrossScreens));
         if (isFogOfWarEnabled) RefreshFog();
     }
 
