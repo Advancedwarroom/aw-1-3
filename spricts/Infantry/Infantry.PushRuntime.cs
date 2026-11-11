@@ -1311,6 +1311,18 @@ public partial class Infantry
                         if (!stack.Any(IsLivingUnit)) pushResolved = true;
                         continue;
                     }
+
+                    // A unit outside the configured chain (team/type filters or chain
+                    // limits) is an immovable obstacle, not an implicit extra link.
+                    bool isNextConfiguredLink = i + 1 < chain.Count
+                        && chain[i + 1].Any(unit => blockers.Contains(unit));
+                    if (!isNextConfiguredLink || !CanPushTargetTeam(blockers, i + 1))
+                    {
+                        ApplyFragileCollisionEffects(stack);
+                        ApplyFragileCollisionEffects(blockers);
+                        if (!stack.Any(IsLivingUnit)) pushResolved = true;
+                        continue;
+                    }
                     float movingWeight = GetStackWeight(stack);
                     float blockerWeight = GetStackWeight(blockers);
                     if (movingWeight > blockerWeight && !Mathf.IsEqualApprox(movingWeight, blockerWeight))
