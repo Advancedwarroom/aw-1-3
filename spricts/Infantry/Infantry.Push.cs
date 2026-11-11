@@ -47,6 +47,13 @@ public partial class Infantry
         PrimaryAmmo
     }
 
+    public enum PushChainWeightMode
+    {
+        Constant,
+        Accumulate,
+        Decrease
+    }
+
     [ExportGroup("推动模块")]
     [Export] public bool pushEnabled = false;
     [Export] public PushTriggerMode pushTriggerMode = PushTriggerMode.Disabled;
@@ -78,6 +85,9 @@ public partial class Infantry
     [Export] public Vector2I fixedPushDirection = Vector2I.Right;
     [Export] public PushTargetClass pushTargetClass = PushTargetClass.InfantryOnly;
     [Export] public int pushMaxChainStacks = 0; // 0 = unlimited
+    [Export] public int pushMaxChainUnits = 0; // 0 = unlimited; co-located stacks are never split
+    [Export] public PushChainWeightMode pushChainWeightMode = PushChainWeightMode.Constant;
+    [Export] public float pushChainMaxAccumulatedWeight = 0.0f; // 0 = unlimited
 
     [ExportSubgroup("推力与资源")]
     [Export] public bool pushForceScalesWithDistance = false;
