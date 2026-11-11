@@ -211,11 +211,10 @@ func _finish() -> void:
 	if game_instance != null and is_instance_valid(game_instance):
 		game_instance.free()
 	game_instance = null
-	print("[TEST_CLEANUP] found TranslateGroup: ", translate_group != null)
-	if translate_group != null:
-		translate_group.call("ReleaseRuntimeResources")
+	print("[TEST_CLEANUP] found TranslateGroup: ", is_instance_valid(TranslateGroup))
+	if is_instance_valid(TranslateGroup):
+		TranslateGroup.ReleaseRuntimeResources()
 		print("[TEST_CLEANUP] called ReleaseRuntimeResources")
-		translate_group.free()
 	game_manager = null
 	ai_manager = null
 	for child in tree.root.get_children(true):
