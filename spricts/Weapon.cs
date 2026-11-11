@@ -64,7 +64,7 @@ public partial class Weapon : Node2D
     [Export] public int cost = 0;
 
     [ExportGroup("推动模块")]
-    [Export(PropertyHint.Range, "0,9999,0.01")] public float weight = 1.0f;
+    [Export(PropertyHint.Range, "0,9999,0.01")] public float weight = 9999.0f;
     [Export] public bool weightScalesWithHealth = false;
     [Export] public bool pushableByPhysics = false;
     [Export] public bool pushBlocksInfantryWhenOverlapped = true;
