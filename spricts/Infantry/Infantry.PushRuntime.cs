@@ -687,6 +687,9 @@ public partial class Infantry
         Weapon blockingWeapon = blockingWeapons.FirstOrDefault();
         if (blockingWeapon != null)
         {
+            if (pushTargetClass != PushTargetClass.AnyPushableEntity || !pushCanTargetWeapons
+                || !CanPushTeamName(blockingWeapon.team, blockingWeapon.GetType().Name))
+                return false;
             float obstacleWeight = blockingWeapon.GetEffectiveWeight();
             if (!blockingWeapon.pushableByPhysics) return false;
             if (pushUsesWeight && movingWeight < obstacleWeight
@@ -697,6 +700,9 @@ public partial class Infantry
 
         if (blockingFacility != null)
         {
+            if (pushTargetClass != PushTargetClass.AnyPushableEntity || !pushCanTargetFacilities
+                || !CanPushTeamName(blockingFacility.facilityTeam, blockingFacility.GetType().Name))
+                return false;
             float obstacleWeight = blockingFacility.GetEffectiveWeight();
             if (!blockingFacility.pushableByPhysics) return false;
             if (pushUsesWeight && movingWeight < obstacleWeight
