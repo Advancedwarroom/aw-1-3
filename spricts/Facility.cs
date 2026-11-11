@@ -414,7 +414,7 @@ public partial class Facility : Node2D
             if (cannotProduceStatus != null)
                 return false;
 
-            return productionsThisTurn < maxProductionsPerTurn;
+            return productionsThisTurn < GetEffectiveMaxProductions();   // ✅ 与CanProduceNow同一条动态公式（血量/占领度绑定对P-1公共设施同样生效）
         }
 
         return facilityTeam == team;
