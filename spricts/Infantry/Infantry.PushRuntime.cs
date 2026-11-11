@@ -216,7 +216,7 @@ public partial class Infantry
     }
 
     private bool TryResolveWeaponFootprintCollisions(Weapon weapon, Grids nextAnchor,
-        Vector2I direction, GameManager gm, out bool movingWeaponDestroyed)
+        Vector2I direction, GameManager gm, out bool movingWeaponDestroyed, int chainIndex = 0)
     {
         movingWeaponDestroyed = false;
         if (weapon == null || nextAnchor == null || gm?.gridManager == null)
@@ -233,7 +233,7 @@ public partial class Infantry
             var tile = gm.gridManager.GetGridAt(index);
             if (tile == null) return false;
             if (!TryResolveStaticTargetCollision(tile, direction, weapon, null, gm,
-                out bool cellDestroyed))
+                out bool cellDestroyed, chainIndex))
             {
                 movingWeaponDestroyed = cellDestroyed;
                 return false;
@@ -276,7 +276,8 @@ public partial class Infantry
     }
 
     private bool TryResolveStaticTargetCollision(Grids destination, Vector2I direction,
-        Weapon movingWeapon, Facility movingFacility, GameManager gm, out bool movingStaticDestroyed)
+        Weapon movingWeapon, Facility movingFacility, GameManager gm,
+        out bool movingStaticDestroyed, int chainIndex = 0)
     {
         movingStaticDestroyed = false;
         if (destination == null) return false;
@@ -287,6 +288,11 @@ public partial class Infantry
 
         var stack = GetLivingStack(destination);
         if (stack.Count == 0) return true;
+        if (!CanPushTargetTeam(stack, chainIndex))
+        {
+            ApplyFragileCollisionEffects(stack);
+            return false;
+        }
         if (!pushUsesWeight)
         {
             ApplyFragileCollisionEffects(stack);
@@ -1533,7 +1539,7 @@ public partial class Infantry
 
             if (!TryResolveWeaponFootprintCollisions(blockingWeapon, nextGrid, direction,
                 GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager,
-                out bool weaponDestroyed))
+                out bool weaponDestroyed, chainIndex + 1))
             {
                 if (!weaponDestroyed) return false;
             }
@@ -1557,7 +1563,7 @@ public partial class Infantry
 
             if (!TryResolveStaticTargetCollision(nextGrid, direction, null, blockingFacility,
                 GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager,
-                out bool facilityDestroyed))
+                out bool facilityDestroyed, chainIndex + 1))
             {
                 if (!facilityDestroyed) return false;
             }
