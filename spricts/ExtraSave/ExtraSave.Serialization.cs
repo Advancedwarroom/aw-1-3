@@ -186,6 +186,7 @@ public partial class ExtraSave
             d["fixedAttackPerTurn"] = item.fixedAttackPerTurn;
             d["canOverMaxHealth"] = item.canOverMaxHealth;
             d["fixedMaxHealthChangePerTurn"] = item.fixedMaxHealthChangePerTurn;
+            d["fixedWeightChangePerTurn"] = item.fixedWeightChangePerTurn;
             d["fixedAmmoChangePerTurn"] = item.fixedAmmoChangePerTurn;
             d["ammoCanOverMax"] = item.ammoCanOverMax;
             d["ammoCanReachZero"] = item.ammoCanReachZero;
@@ -197,6 +198,10 @@ public partial class ExtraSave
             d["ammoChangeCamo"] = item.ammoChangeCamo;
             d["ammoChangeProduction"] = item.ammoChangeProduction;
             d["ammoChangeConstruction"] = item.ammoChangeConstruction;
+            d["ammoChangeSpecial"] = item.ammoChangeSpecial;
+            d["ammoChangePushRebound"] = item.ammoChangePushRebound;
+            d["ammoChangePushMitigation"] = item.ammoChangePushMitigation;
+            d["ammoChangeAntiGravityTransfer"] = item.ammoChangeAntiGravityTransfer;
             d["ammoMaxChangePrimary"] = item.ammoMaxChangePrimary;
             d["ammoMaxChangeExplode"] = item.ammoMaxChangeExplode;
             d["ammoMaxChangeFlare"] = item.ammoMaxChangeFlare;
@@ -205,6 +210,10 @@ public partial class ExtraSave
             d["ammoMaxChangeCamo"] = item.ammoMaxChangeCamo;
             d["ammoMaxChangeProduction"] = item.ammoMaxChangeProduction;
             d["ammoMaxChangeConstruction"] = item.ammoMaxChangeConstruction;
+            d["ammoMaxChangeSpecial"] = item.ammoMaxChangeSpecial;
+            d["ammoMaxChangePushRebound"] = item.ammoMaxChangePushRebound;
+            d["ammoMaxChangePushMitigation"] = item.ammoMaxChangePushMitigation;
+            d["ammoMaxChangeAntiGravityTransfer"] = item.ammoMaxChangeAntiGravityTransfer;
             d["fixedFuelChangePerTurn"] = item.fixedFuelChangePerTurn;
             d["fixedMaxFuelChangePerTurn"] = item.fixedMaxFuelChangePerTurn;
             d["fuelCanOverMax"] = item.fuelCanOverMax;
@@ -247,6 +256,7 @@ public partial class ExtraSave
                 fixedAttackPerTurn = d.GetValueOrDefault("fixedAttackPerTurn", 0).AsInt32(),
                 canOverMaxHealth = d.GetValueOrDefault("canOverMaxHealth", false).AsBool(),
                 fixedMaxHealthChangePerTurn = d.GetValueOrDefault("fixedMaxHealthChangePerTurn", 0).AsInt32(),
+                fixedWeightChangePerTurn = d.GetValueOrDefault("fixedWeightChangePerTurn", 0.0).AsDouble(),
                 fixedAmmoChangePerTurn = d.GetValueOrDefault("fixedAmmoChangePerTurn", 0).AsInt32(),
                 ammoCanOverMax = d.GetValueOrDefault("ammoCanOverMax", false).AsBool(),
                 ammoCanReachZero = d.GetValueOrDefault("ammoCanReachZero", true).AsBool(),
@@ -258,6 +268,10 @@ public partial class ExtraSave
                 ammoChangeCamo = d.GetValueOrDefault("ammoChangeCamo", 0).AsInt32(),
                 ammoChangeProduction = d.GetValueOrDefault("ammoChangeProduction", 0).AsInt32(),
                 ammoChangeConstruction = d.GetValueOrDefault("ammoChangeConstruction", 0).AsInt32(),
+                ammoChangeSpecial = d.GetValueOrDefault("ammoChangeSpecial", 0).AsInt32(),
+                ammoChangePushRebound = d.GetValueOrDefault("ammoChangePushRebound", 0).AsInt32(),
+                ammoChangePushMitigation = d.GetValueOrDefault("ammoChangePushMitigation", 0).AsInt32(),
+                ammoChangeAntiGravityTransfer = d.GetValueOrDefault("ammoChangeAntiGravityTransfer", 0).AsInt32(),
                 ammoMaxChangePrimary = d.GetValueOrDefault("ammoMaxChangePrimary", 0).AsInt32(),
                 ammoMaxChangeExplode = d.GetValueOrDefault("ammoMaxChangeExplode", 0).AsInt32(),
                 ammoMaxChangeFlare = d.GetValueOrDefault("ammoMaxChangeFlare", 0).AsInt32(),
@@ -266,6 +280,10 @@ public partial class ExtraSave
                 ammoMaxChangeCamo = d.GetValueOrDefault("ammoMaxChangeCamo", 0).AsInt32(),
                 ammoMaxChangeProduction = d.GetValueOrDefault("ammoMaxChangeProduction", 0).AsInt32(),
                 ammoMaxChangeConstruction = d.GetValueOrDefault("ammoMaxChangeConstruction", 0).AsInt32(),
+                ammoMaxChangeSpecial = d.GetValueOrDefault("ammoMaxChangeSpecial", 0).AsInt32(),
+                ammoMaxChangePushRebound = d.GetValueOrDefault("ammoMaxChangePushRebound", 0).AsInt32(),
+                ammoMaxChangePushMitigation = d.GetValueOrDefault("ammoMaxChangePushMitigation", 0).AsInt32(),
+                ammoMaxChangeAntiGravityTransfer = d.GetValueOrDefault("ammoMaxChangeAntiGravityTransfer", 0).AsInt32(),
                 fixedFuelChangePerTurn = d.GetValueOrDefault("fixedFuelChangePerTurn", 0).AsInt32(),
                 fixedMaxFuelChangePerTurn = d.GetValueOrDefault("fixedMaxFuelChangePerTurn", 0).AsInt32(),
                 fuelCanOverMax = d.GetValueOrDefault("fuelCanOverMax", false).AsBool(),
