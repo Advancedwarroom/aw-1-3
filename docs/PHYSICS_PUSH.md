@@ -47,6 +47,7 @@ For a separate action:
 - Facility/weapon chain stacks and mixed infantry/weapon/facility mass transmission are not yet unified into one chain solver.
 - Weapon and facility push targets support health damage, one-HP locking, healing, and maximum-health changes. Weapons also map the six compatible shared ammo kinds to their native ammo slots. Infantry additionally supports fuel and all shared ammo kinds.
 - When a pushed stack collides with another infantry stack, heavier mass wins and destroys the lighter stack; equal mass follows the two sides' simultaneous/stop rules. `pushChainEnabled=false` makes an occupied link stop both sides.
+- Moving weapons/facilities can overlap infantry when `pushBlocksInfantryWhenOverlapped=false`. When enabled, the moving static entity resolves the occupied destination by weight/equal-weight rules; the stationary tile occupant is not treated as the moving entity.
 - Infantry `pushFragileEnabled` applies configured fixed health/fuel/ammo impact to survivors of unit-stack and static-obstacle collisions. The current fragile damage mode is fixed-value only.
 - Rebound/transfer are implemented for infantry stacks, not static entities.
 - Visual push animation, continuous free-angle 0–360° direction selection (the current grid solver is eight-way), attack/funds-based fragile damage, and full simultaneous rebound/mitigation/transfer conflict arbitration remain future work.
