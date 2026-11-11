@@ -729,6 +729,8 @@ public partial class Infantry
         List<Infantry> pusherStack = GetLivingStack(grid);
         if (pusherStack.Count == 0) pusherStack.Add(this);
         float transmittedForce = GetStackWeight(pusherStack) * GetPushForceMultiplier(distance);
+        if (pushChainWeightMode == PushChainWeightMode.Accumulate && pushChainMaxAccumulatedWeight > 0.0f)
+            transmittedForce = Mathf.Min(transmittedForce, pushChainMaxAccumulatedWeight);
         for (int i = 0; i < chain.Count; i++)
         {
             if (!CanPushStackWithForce(pusherStack, transmittedForce, chain[i]))
