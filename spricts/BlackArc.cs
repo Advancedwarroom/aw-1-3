@@ -208,7 +208,14 @@ public partial class BlackArc : Weapon
             if (w is not BlackArc arc || !IsInstanceValid(w) || w.isDestroyed || w.IsQueuedForDeletion()) continue;
             if (!arc.forceFieldEnabled || arc.grid == null || arc.forceFieldGridOffsets.Count == 0) continue;
             var gmGrid = arc.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-            if (gmGrid?.gridManager != null && !gmGrid.gridManager.IsRangeAllowed(arc.grid, target, arc.forceFieldCanCrossScreens)) continue;
+            if (!arc.forceFieldCanCrossScreens)
+            {
+                if (gmGrid?.gridManager != null)
+                {
+                    if (!gmGrid.gridManager.IsRangeAllowed(arc.grid, target, false)) continue;
+                }
+                else if (arc.grid.screenId != target.screenId) continue;
+            }
             var anchor = arc.grid.GridIndex;
             foreach (var off in arc.forceFieldGridOffsets)
                 if (anchor.X + off.X == target.GridIndex.X && anchor.Y + off.Y == target.GridIndex.Y)
