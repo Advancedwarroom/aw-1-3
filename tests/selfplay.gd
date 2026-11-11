@@ -206,14 +206,10 @@ func _finish() -> void:
 	print("[SELFPLAY] 结果: %s | 阶段: %d | 失败: %d" % [report["result"], phase_changes, failures.size()])
 	var exit_code := 0 if failures.is_empty() else 1
 	var tree := get_tree()
-	# 只释放 TranslateGroup 静态注册表（防跨测试污染）；节点树交给 quit() 自然拆卸。
-	# 手动 free() 在树中节点会导致 C# 静态引用悬空 → "Cannot get path of node"+退出泄漏 ERROR 洪灾（CI grep 判挂）。
-	# 参考 tests/facility_recolor_check.gd：quit(0) 自然拆卸即干净退出（该断言 45 秒绿）。
-	if is_instance_valid(TranslateGroup):
-		TranslateGroup.ReleaseRuntimeResources()
+	# 最简退出：对照组 facility_recolor_check.gd 同款——零拆卸操作
+	# （手动free→悬空引用洪灾；ReleaseRuntimeResources→shutdown死锁冒烟124；全部拆除）
 	game_manager = null
 	ai_manager = null
-	# 最简退出：对照组 facility_recolor_check.gd 同款——零拆卸操作（ReleaseRuntimeResources会留悬空引用,shutdown死锁）
 	get_tree().quit(exit_code)
 
 func _parse_args() -> void:
