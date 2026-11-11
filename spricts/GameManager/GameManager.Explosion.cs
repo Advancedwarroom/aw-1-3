@@ -11,7 +11,7 @@ public partial class GameManager
     // ========== ✅ 爆炸执行 ==========
     public void ExecuteExplosion(Infantry unit)
     {
-        if (unit == null || !unit.canExplode) return;
+        if (unit == null || !unit.canExplode || gridManager == null || unitManager == null) return;
 
         // ✅ 无限自爆模式消耗自爆弹
         if (!unit.explosionDestroysSelf)
