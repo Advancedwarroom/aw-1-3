@@ -20,6 +20,8 @@ public partial class Infantry
 
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager?.map == null) return;
+        var initialStack = GetLivingStack(target.grid);
+        if (!CanPushTargetTeam(initialStack)) return;
         ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm);
     }
 
@@ -50,7 +52,18 @@ public partial class Infantry
             gridManager.attackRange.Add(tile);
             tile.OnClickGrid = selected => ExecuteSeparatePushOnGrid(selected);
         }
+        foreach (var tile in gridManager.grids)
+            if (tile != null && !gridManager.attackRange.Contains(tile))
+                tile.OnClickEmpty = CancelSeparatePushTargetSelection;
         gm.isSelectingAttackTarget = true;
+    }
+
+    private void CancelSeparatePushTargetSelection()
+    {
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        gm?.gridManager?.HideAttackRange();
+        gm?.gridManager?.ClearAllEmptyCallbacks();
+        if (gm != null) gm.isSelectingAttackTarget = false;
     }
 
     private bool CanPushTargetTeam(List<Infantry> stack)
@@ -59,7 +72,7 @@ public partial class Infantry
         {
             if (unit.team == team && !pushCanTargetFriendlies) continue;
             if (TeamHelper.AreAllied(team, unit.team) && unit.team != team && !pushCanTargetAllies) continue;
-            if (TeamHelper.IsEnemyForAttacker(team, unit.team, pushCanTargetFriendlies, pushCanTargetAllies)
+            if (unit.team != team && !TeamHelper.AreAllied(team, unit.team)
                 && pushCanTargetEnemies) return true;
             if (unit.team == team && pushCanTargetFriendlies) return true;
             if (TeamHelper.AreAllied(team, unit.team) && unit.team != team && pushCanTargetAllies) return true;
