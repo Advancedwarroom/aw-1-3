@@ -422,10 +422,11 @@ public partial class Infantry
     {
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null || targetGrid == null || grid == null) return;
+        if (!gm.gridManager.IsRangeAllowed(grid, targetGrid, spaceStrikeCanCrossScreens)) return;
         if (!spaceStrikeGlobal)
         {
             int targetDistance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
-            if (targetDistance < spaceStrikeMinRange || targetDistance > spaceStrikeMaxRange || !gm.gridManager.IsRangeAllowed(grid, targetGrid, spaceStrikeCanCrossScreens)) return;
+            if (targetDistance < spaceStrikeMinRange || targetDistance > spaceStrikeMaxRange) return;
         }
         if (spaceStrikeUsesThisTurn >= spaceStrikeMaxUses) return;
         spaceStrikeUsesThisTurn++;
