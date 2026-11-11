@@ -33,6 +33,9 @@ secondaryAntiArmor = false
 visionRange = 4
 useConfigVision = false
 cost = 16000
+pushEnabled = true
+pushTriggerMode = 1
+pushDistance = 2
 
 [sub_resource type="RectangleShape2D" id="RhinoCollision"]
 size = Vector2(32, 32)
