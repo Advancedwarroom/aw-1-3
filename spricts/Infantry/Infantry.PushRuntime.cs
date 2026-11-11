@@ -430,15 +430,11 @@ public partial class Infantry
         if (pushDirectionMode == PushDirectionMode.Fixed)
         {
             if (fixedPushDirection == Vector2I.Zero) return Vector2I.Zero;
-            return Mathf.Abs(fixedPushDirection.X) >= Mathf.Abs(fixedPushDirection.Y)
-                ? new Vector2I(Math.Sign(fixedPushDirection.X), 0)
-                : new Vector2I(0, Math.Sign(fixedPushDirection.Y));
+            return new Vector2I(Math.Sign(fixedPushDirection.X), Math.Sign(fixedPushDirection.Y));
         }
 
         Vector2I delta = targetGrid.GridIndex - grid.GridIndex;
-        return Math.Abs(delta.X) >= Math.Abs(delta.Y)
-            ? new Vector2I(Math.Sign(delta.X), 0)
-            : new Vector2I(0, Math.Sign(delta.Y));
+        return new Vector2I(Math.Sign(delta.X), Math.Sign(delta.Y));
     }
 
     private float GetPushForceMultiplier(int? requestedDistance = null) =>
@@ -695,10 +691,9 @@ public partial class Infantry
         int healthCost = Mathf.Max(0, transferUnit.pushTransferHealthCost);
         int fundsCost = Mathf.Max(0, transferUnit.pushTransferFundsCost);
 
-        Vector2I direction = transferUnit.pushTransferDirection;
-        direction = Mathf.Abs(direction.X) >= Mathf.Abs(direction.Y)
-            ? new Vector2I(Math.Sign(direction.X), 0)
-            : new Vector2I(0, Math.Sign(direction.Y));
+        Vector2I direction = new Vector2I(
+            Math.Sign(transferUnit.pushTransferDirection.X),
+            Math.Sign(transferUnit.pushTransferDirection.Y));
         if (direction == Vector2I.Zero) return false;
         var origin = stack.FirstOrDefault(IsLivingUnit)?.grid;
         var destination = origin == null ? null : gridManager.GetGridAt(origin.GridIndex + direction);
