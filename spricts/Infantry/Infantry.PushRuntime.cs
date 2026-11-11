@@ -1025,7 +1025,7 @@ public partial class Infantry
                     }
                 }
 
-                if (HasForeignMultiTileOccupant(destination, stack)) continue;
+                if (!stack.Any(IsLivingUnit) || HasForeignMultiTileOccupant(destination, stack)) continue;
                 if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager, i)) continue;
 
                 MoveStackByPush(stack, destination);
