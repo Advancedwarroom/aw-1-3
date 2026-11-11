@@ -206,7 +206,8 @@ public partial class Infantry
         if (pushTargetAmmoDelta != 0 && weaponAmmoType > 0)
         {
             int current = target.GetAmmoByType(weaponAmmoType);
-            int maximum = Math.Max(0, target.GetAmmoMaxByType(weaponAmmoType));
+            long maximum = pushTargetAmmoCanOverMax
+                ? int.MaxValue : Math.Max(0, target.GetAmmoMaxByType(weaponAmmoType));
             target.SetAmmoByType(weaponAmmoType,
                 (int)Math.Clamp((long)current + pushTargetAmmoDelta, 0L, maximum));
         }
