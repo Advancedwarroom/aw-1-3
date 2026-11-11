@@ -9,7 +9,7 @@ public partial class GameManager
 {
 
     // 资金系统
-    [ExportGroup("兵器摧毁胜利判定")]
+    [ExportGroup("资金系统配置")]
     [Export] public int p1Funds = 0;
     [Export] public int p2Funds = 0;
     [Export] public int p1FundsMax = 999999;
@@ -34,6 +34,14 @@ public partial class GameManager
         UpdateUnitLists();
     }
     
+    /// <summary>设置势力资金上限（支持任意数量势力）</summary>
+    public void SetTeamFundsMax(string team, int value)
+    {
+        if (team == "Player1") p1FundsMax = value;
+        else if (team == "Player2") p2FundsMax = value;
+        else _teamFundsMax[team] = value;
+    }
+
     /// <summary>获取势力资金上限</summary>
     public int GetTeamFundsMax(string team)
     {

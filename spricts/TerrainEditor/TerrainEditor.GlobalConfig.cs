@@ -812,85 +812,49 @@ private void RefreshAllUnitVision()
 
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
 
-        // P1 现有资金
-        var p1FundsHBox = new HBoxContainer();
-        p1FundsHBox.AddThemeConstantOverride("separation", 10);
-        var p1FundsLabel = new Label();
-        TranslateGroup.SetText(p1FundsLabel, "P1 现有资金:");
-        p1FundsLabel.CustomMinimumSize = new Vector2(120, 28);
-        p1FundsLabel.AddThemeFontSizeOverride("font_size", 13);
-        p1FundsHBox.AddChild(p1FundsLabel);
-        var p1FundsSpin = new SpinBox();
-        p1FundsSpin.MinValue = 0;
-        p1FundsSpin.MaxValue = 999999;
-        p1FundsSpin.Value = gm?.p1Funds ?? 0;
-        p1FundsSpin.CustomMinimumSize = new Vector2(100, 28);
-        p1FundsSpin.AddThemeFontSizeOverride("font_size", 12);
-        p1FundsSpin.ValueChanged += (newVal) => {
-            if (gm != null) gm.p1Funds = (int)newVal;
-        };
-        p1FundsHBox.AddChild(p1FundsSpin);
-        globalConfigContainer.AddChild(p1FundsHBox);
+        // ✅ P1~P8 全势力：现有资金 + 资金上限（循环生成，替代原硬编码 P1/P2 双块）
+        string[] fundTeamIds = { "Player1", "Player2", "Player3", "Player4", "Player5", "Player6", "Player7", "Player8" };
+        foreach (var fundTeamId in fundTeamIds)
+        {
+            int fundDisplayNum = int.Parse(fundTeamId.Substring("Player".Length));
 
-        // P1 资金上限
-        var p1MaxHBox = new HBoxContainer();
-        p1MaxHBox.AddThemeConstantOverride("separation", 10);
-        var p1MaxLabel = new Label();
-        TranslateGroup.SetText(p1MaxLabel, "P1 资金上限:");
-        p1MaxLabel.CustomMinimumSize = new Vector2(120, 28);
-        p1MaxLabel.AddThemeFontSizeOverride("font_size", 13);
-        p1MaxHBox.AddChild(p1MaxLabel);
-        var p1MaxSpin = new SpinBox();
-        p1MaxSpin.MinValue = 0;
-        p1MaxSpin.MaxValue = 9999999;
-        p1MaxSpin.Value = gm?.p1FundsMax ?? 999999;
-        p1MaxSpin.CustomMinimumSize = new Vector2(100, 28);
-        p1MaxSpin.AddThemeFontSizeOverride("font_size", 12);
-        p1MaxSpin.ValueChanged += (newVal) => {
-            if (gm != null) gm.p1FundsMax = (int)newVal;
-        };
-        p1MaxHBox.AddChild(p1MaxSpin);
-        globalConfigContainer.AddChild(p1MaxHBox);
+            var fundsHBox = new HBoxContainer();
+            fundsHBox.AddThemeConstantOverride("separation", 10);
+            var fundsLabel = new Label();
+            TranslateGroup.SetText(fundsLabel, $"P{fundDisplayNum} 现有资金:");
+            fundsLabel.AddThemeFontSizeOverride("font_size", 13);
+            fundsLabel.CustomMinimumSize = new Vector2(100, 30);
+            fundsHBox.AddChild(fundsLabel);
+            var fundsSpin = new SpinBox();
+            fundsSpin.MinValue = 0;
+            fundsSpin.MaxValue = gm?.GetTeamFundsMax(fundTeamId) ?? 999999;
+            fundsSpin.Step = 100;
+            fundsSpin.Value = gm?.GetTeamFunds(fundTeamId) ?? 0;
+            fundsSpin.ValueChanged += (newVal) => { if (gm != null) gm.SetTeamFunds(fundTeamId, (int)newVal); };
+            fundsHBox.AddChild(fundsSpin);
+            globalConfigContainer.AddChild(fundsHBox);
 
-        // P2 现有资金
-        var p2FundsHBox = new HBoxContainer();
-        p2FundsHBox.AddThemeConstantOverride("separation", 10);
-        var p2FundsLabel = new Label();
-        TranslateGroup.SetText(p2FundsLabel, "P2 现有资金:");
-        p2FundsLabel.CustomMinimumSize = new Vector2(120, 28);
-        p2FundsLabel.AddThemeFontSizeOverride("font_size", 13);
-        p2FundsHBox.AddChild(p2FundsLabel);
-        var p2FundsSpin = new SpinBox();
-        p2FundsSpin.MinValue = 0;
-        p2FundsSpin.MaxValue = 999999;
-        p2FundsSpin.Value = gm?.p2Funds ?? 0;
-        p2FundsSpin.CustomMinimumSize = new Vector2(100, 28);
-        p2FundsSpin.AddThemeFontSizeOverride("font_size", 12);
-        p2FundsSpin.ValueChanged += (newVal) => {
-            if (gm != null) gm.p2Funds = (int)newVal;
-        };
-        p2FundsHBox.AddChild(p2FundsSpin);
-        globalConfigContainer.AddChild(p2FundsHBox);
-
-        // P2 资金上限
-        var p2MaxHBox = new HBoxContainer();
-        p2MaxHBox.AddThemeConstantOverride("separation", 10);
-        var p2MaxLabel = new Label();
-        TranslateGroup.SetText(p2MaxLabel, "P2 资金上限:");
-        p2MaxLabel.CustomMinimumSize = new Vector2(120, 28);
-        p2MaxLabel.AddThemeFontSizeOverride("font_size", 13);
-        p2MaxHBox.AddChild(p2MaxLabel);
-        var p2MaxSpin = new SpinBox();
-        p2MaxSpin.MinValue = 0;
-        p2MaxSpin.MaxValue = 9999999;
-        p2MaxSpin.Value = gm?.p2FundsMax ?? 999999;
-        p2MaxSpin.CustomMinimumSize = new Vector2(100, 28);
-        p2MaxSpin.AddThemeFontSizeOverride("font_size", 12);
-        p2MaxSpin.ValueChanged += (newVal) => {
-            if (gm != null) gm.p2FundsMax = (int)newVal;
-        };
-        p2MaxHBox.AddChild(p2MaxSpin);
-        globalConfigContainer.AddChild(p2MaxHBox);
+            var maxHBox = new HBoxContainer();
+            maxHBox.AddThemeConstantOverride("separation", 10);
+            var maxLabel = new Label();
+            TranslateGroup.SetText(maxLabel, $"P{fundDisplayNum} 资金上限:");
+            maxLabel.AddThemeFontSizeOverride("font_size", 13);
+            maxLabel.CustomMinimumSize = new Vector2(100, 30);
+            maxHBox.AddChild(maxLabel);
+            var maxSpin = new SpinBox();
+            maxSpin.MinValue = 0;
+            maxSpin.MaxValue = 999999;
+            maxSpin.Step = 100;
+            maxSpin.Value = gm?.GetTeamFundsMax(fundTeamId) ?? 999999;
+            maxSpin.ValueChanged += (newVal) =>
+            {
+                if (gm == null) return;
+                gm.SetTeamFundsMax(fundTeamId, (int)newVal);
+                fundsSpin.MaxValue = (int)newVal;   // 同步现有资金框的上限
+            };
+            maxHBox.AddChild(maxSpin);
+            globalConfigContainer.AddChild(maxHBox);
+        }
 
         // ✅ AI 与地图导出配置
         var aiSection = CreateConfigSectionTitle(TranslateGroup.T("🤖 AI 控制与地图导出"));

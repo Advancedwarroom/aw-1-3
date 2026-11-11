@@ -45,9 +45,9 @@ public partial class GameManager : Node
     public int turnPhase = 1;
     public bool encounterPause = false;   // ✅ 回合中回合：遭遇战决策期间的全局冻结
     
-    // ✅ 通用资金字典（支持多势力，Player1/Player2 兼容旧存档）
-    private Godot.Collections.Dictionary<string, int> _teamFunds = new();
-    private Godot.Collections.Dictionary<string, int> _teamFundsMax = new();
+    // ✅ 通用资金字典（支持多势力，Player1/Player2 兼容旧存档；已Export：任意势力资金/上限可在检查器配置）
+    [Export] private Godot.Collections.Dictionary<string, int> _teamFunds = new();
+    [Export] private Godot.Collections.Dictionary<string, int> _teamFundsMax = new();
 
     // 当前选中的单位
     public Infantry selectedInfantry = null;
