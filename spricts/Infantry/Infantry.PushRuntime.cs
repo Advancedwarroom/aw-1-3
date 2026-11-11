@@ -248,6 +248,55 @@ public partial class Infantry
         return Mathf.Clamp(Mathf.FloorToInt(remaining * (1f - percent / 100f)), 0, requestedDistance);
     }
 
+    // Rebound and transfer compete for the same stack displacement. Resolve the
+    // conflict by effective weight, then HP ratio, then team-funds ratio. Only an
+    // exact tie is randomized; if the preferred module cannot legally execute, try
+    // the other one without charging resources for the failed attempt.
+    private bool TryResolveStackDisplacement(List<Infantry> stack, Grids origin,
+        Vector2I pushDirection, GridManager gridManager, GameManager gm)
+    {
+        var rebounder = stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushReboundEnabled);
+        var transferer = stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushTransferEnabled
+            && u.pushTransferDirection != Vector2I.Zero);
+
+        if (rebounder == null)
+            return TryTransferStack(stack, pushDirection, gridManager, gm);
+        if (transferer == null)
+            return TryReboundStack(stack, origin, pushDirection, gm);
+
+        int priority = CompareDisplacementPriority(rebounder, transferer, gm);
+        if (priority == 0)
+            priority = GD.Randf() < 0.5f ? 1 : -1;
+
+        if (priority > 0)
+            return TryReboundStack(stack, origin, pushDirection, gm)
+                || TryTransferStack(stack, pushDirection, gridManager, gm);
+        return TryTransferStack(stack, pushDirection, gridManager, gm)
+            || TryReboundStack(stack, origin, pushDirection, gm);
+    }
+
+    // Positive means first unit wins; negative means second unit wins.
+    private static int CompareDisplacementPriority(Infantry first, Infantry second, GameManager gm)
+    {
+        float firstWeight = first.GetEffectiveWeight();
+        float secondWeight = second.GetEffectiveWeight();
+        if (!Mathf.IsEqualApprox(firstWeight, secondWeight))
+            return firstWeight > secondWeight ? 1 : -1;
+
+        float firstHpRatio = (float)first.health / Mathf.Max(1, first.GetEffectiveMaxHealth());
+        float secondHpRatio = (float)second.health / Mathf.Max(1, second.GetEffectiveMaxHealth());
+        if (!Mathf.IsEqualApprox(firstHpRatio, secondHpRatio))
+            return firstHpRatio > secondHpRatio ? 1 : -1;
+
+        float firstFundsRatio = gm == null ? 0f :
+            (float)gm.GetTeamFunds(first.team) / Mathf.Max(1, gm.GetTeamFundsMax(first.team));
+        float secondFundsRatio = gm == null ? 0f :
+            (float)gm.GetTeamFunds(second.team) / Mathf.Max(1, gm.GetTeamFundsMax(second.team));
+        if (!Mathf.IsEqualApprox(firstFundsRatio, secondFundsRatio))
+            return firstFundsRatio > secondFundsRatio ? 1 : -1;
+        return 0;
+    }
+
     private bool TryReboundStack(List<Infantry> stack, Grids origin, Vector2I direction, GameManager gm)
     {
         var rebounder = stack.FirstOrDefault(u => IsLivingUnit(u) && u.pushReboundEnabled);
@@ -461,8 +510,8 @@ public partial class Infantry
             var stack = chain[i].Where(IsLivingUnit).ToList();
             if (stack.Count == 0) continue;
             var origin = originalTiles[i];
-            if (TryReboundStack(stack, origin, direction, gameManager)) continue;
-            if (TryTransferStack(stack, direction, gridManager, gameManager)) continue;
+            if (TryResolveStackDisplacement(stack, origin, direction, gridManager, gameManager))
+                continue;
             ApplyPushTargetEffects(stack, gameManager);
         }
 
