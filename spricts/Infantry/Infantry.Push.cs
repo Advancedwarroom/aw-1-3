@@ -113,12 +113,14 @@ public partial class Infantry
     [Export] public bool pushReboundEnabled = false;
     [Export] public bool pushReboundToOrigin = true;
     [Export] public int pushReboundAmmoCost = 0;
-    [Export] public AmmoKind pushReboundAmmoKind = AmmoKind.Primary;
+    [Export] public AmmoKind pushReboundAmmoKind = AmmoKind.PushRebound;
     [Export] public int pushReboundFuelCost = 0;
     [Export] public int pushReboundFundsCost = 0;
 
     [ExportSubgroup("缓冲模块")]
     [Export] public bool pushMitigationEnabled = false;
+    [Export] public AmmoKind pushMitigationAmmoKind = AmmoKind.PushMitigation;
+    [Export] public int pushMitigationAmmoCost = 0;
     [Export] public int pushMitigationTiles = 0;
     [Export(PropertyHint.Range, "0,100,1")] public float pushMitigationPercent = 0f;
 
@@ -126,7 +128,7 @@ public partial class Infantry
     [Export] public bool pushTransferEnabled = false;
     [Export] public Vector2I pushTransferDirection = Vector2I.Zero;
     [Export] public int pushTransferAmmoCost = 0;
-    [Export] public AmmoKind pushTransferAmmoKind = AmmoKind.Primary;
+    [Export] public AmmoKind pushTransferAmmoKind = AmmoKind.AntiGravityTransfer;
     [Export] public int pushTransferFuelCost = 0;
     [Export] public int pushTransferHealthCost = 0;
     [Export] public int pushTransferFundsCost = 0;
