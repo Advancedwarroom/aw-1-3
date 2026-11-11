@@ -142,7 +142,7 @@ public partial class BlackArc : Weapon
                 if (nx < 0 || ny < 0 || nx >= gm.gridManager.map.GetLength(0) || ny >= gm.gridManager.map.GetLength(1)) continue;
                 var g = gm.gridManager.map[nx, ny];
                 if (g == null) continue;
-                // ✅ N屏隔离：跨屏格子不受天基打击（开canCrossScreens才可跨图）
+                // 天基打击效果面是否跨屏由 arcEffectCanCrossScreens 独立控制
                 if (!gm.gridManager.IsRangeAllowed(targetGrid, g, arcEffectCanCrossScreens)) continue;
 
                 // 对范围内单位造成伤害
