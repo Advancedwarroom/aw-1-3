@@ -57,7 +57,7 @@ public partial class Infantry
     [ExportGroup("推动模块")]
     [Export] public bool pushEnabled = false;
     [Export] public PushTriggerMode pushTriggerMode = PushTriggerMode.Disabled;
-    [Export] public float weight = 1.0f;
+    [Export(PropertyHint.Range, "0,9999,0.01")] public float weight = 1.0f;
     [Export] public bool weightScalesWithHealth = false;
     [Export] public EqualWeightPushMode equalWeightPushMode = EqualWeightPushMode.Stop;
 
@@ -136,7 +136,7 @@ public partial class Infantry
 
     public float GetEffectiveWeight()
     {
-        float baseWeight = Mathf.Max(0.0f, weight);
+        float baseWeight = Mathf.Clamp(weight, 0.0f, 9999.0f);
         if (!weightScalesWithHealth)
             return baseWeight;
 
