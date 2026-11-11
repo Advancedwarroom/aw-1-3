@@ -41,16 +41,19 @@ public partial class Infantry
             Vector2I direction = GetPushDirection(target.grid);
             if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
             var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
-            if (!CanMoveStaticTargetTo(firstDestination)) return;
+            if (!CanMoveStaticTargetTo(firstDestination, target, null)) return;
 
-            PayPushCost(gm);
+            bool moved = false;
             for (int step = 0; step < pushDistance; step++)
             {
                 var next = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
-                if (!CanMoveStaticTargetTo(next) || !target.MoveByPhysicsPush(next, gm.weaponManager)) break;
+                if (!CanMoveStaticTargetTo(next, target, null)
+                    || !target.MoveByPhysicsPush(next, gm.weaponManager)) break;
+                moved = true;
             }
-            if (pushLockTargetToOneHp) target.health = 1;
-            else if (pushTargetDamage > 0) target.TakeDamage(pushTargetDamage, this);
+            if (!moved) return;
+            PayPushCost(gm);
+            ApplyStaticPushEffects(target);
         }
     }
 
@@ -68,23 +71,45 @@ public partial class Infantry
         Vector2I direction = GetPushDirection(target.ParentGrid);
         if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
         var firstDestination = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
-        if (!CanMoveStaticTargetTo(firstDestination)) return;
+        if (!CanMoveStaticTargetTo(firstDestination, null, target)) return;
 
-        PayPushCost(gm);
+        bool moved = false;
         for (int step = 0; step < pushDistance; step++)
         {
             var next = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
-            if (!CanMoveStaticTargetTo(next) || !target.MoveByPhysicsPush(next)) break;
+            if (!CanMoveStaticTargetTo(next, null, target) || !target.MoveByPhysicsPush(next)) break;
+            moved = true;
         }
+        if (!moved) return;
+        PayPushCost(gm);
+        ApplyStaticPushEffects(target);
+    }
+
+    private bool CanMoveStaticTargetTo(Grids destination, Weapon movingWeapon = null,
+        Facility movingFacility = null)
+    {
+        if (destination == null || GetLivingStack(destination).Count > 0
+            || HasForeignMultiTileOccupant(destination, new List<Infantry>()))
+            return false;
+        if (destination.city != null && destination.city != movingFacility)
+            return false;
+        return destination.weapons == null
+            || destination.weapons.All(w => w == null || !GodotObject.IsInstanceValid(w)
+                || w == movingWeapon);
+    }
+
+    private void ApplyStaticPushEffects(Weapon target)
+    {
+        if (target == null || !GodotObject.IsInstanceValid(target) || target.isDestroyed) return;
         if (pushLockTargetToOneHp) target.health = 1;
         else if (pushTargetDamage > 0) target.TakeDamage(pushTargetDamage, this);
     }
 
-    private bool CanMoveStaticTargetTo(Grids destination)
+    private void ApplyStaticPushEffects(Facility target)
     {
-        return destination != null && destination.city == null
-            && (destination.weapons == null || destination.weapons.Count == 0)
-            && GetLivingStack(destination).Count == 0;
+        if (target == null || !GodotObject.IsInstanceValid(target) || target.health <= 0) return;
+        if (pushLockTargetToOneHp) target.health = 1;
+        else if (pushTargetDamage > 0) target.TakeDamage(pushTargetDamage, this);
     }
 
     private bool CanPushNonInfantryTarget(Grids targetGrid, bool? pushable, float? targetWeight,
@@ -94,14 +119,16 @@ public partial class Infantry
             && pushTriggerMode != PushTriggerMode.SeparateAction) || pushDistance <= 0
             || targetGrid == null || invalid || pushable != true || targetWeight == null)
             return false;
-        float ownWeight = GetEffectiveWeight() * GetPushForceMultiplier();
+        var pusherStack = GetLivingStack(grid);
+        if (pusherStack.Count == 0) pusherStack.Add(this);
+        float ownWeight = GetStackWeight(pusherStack) * GetPushForceMultiplier();
         if (ownWeight > targetWeight.Value && !Mathf.IsEqualApprox(ownWeight, targetWeight.Value))
             return true;
         if (!Mathf.IsEqualApprox(ownWeight, targetWeight.Value)) return false;
-        if (equalWeightPushMode == EqualWeightPushMode.AllowSimultaneous
-            && targetMode == EqualWeightPushMode.AllowSimultaneous) return true;
-        if (equalWeightPushMode == EqualWeightPushMode.Stop && targetMode == EqualWeightPushMode.Stop)
-            return false;
+        bool pusherAllows = StackAllowsSimultaneous(pusherStack);
+        bool pusherStops = StackStopsOnEqual(pusherStack);
+        if (pusherAllows && targetMode == EqualWeightPushMode.AllowSimultaneous) return true;
+        if (pusherStops && targetMode == EqualWeightPushMode.Stop) return false;
         return GD.Randf() < 0.5f;
     }
 
