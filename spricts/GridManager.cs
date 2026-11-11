@@ -474,7 +474,7 @@ public partial class GridManager : Node
             var neighbor = map[vector.X, vector.Y];
 
             // ✅ N屏隔离：邻格与起点不同屏则不连通（跨屏只能走传送）
-            if (!allowCrossScreens && neighbor.screenId != grid.screenId) continue;
+            if (!IsRangeAllowed(grid, neighbor, allowCrossScreens)) continue;
 
             // ✅ 移除METEORITE硬编码：所有地形通行性由GetMoveCost统一控制
             // SpaceShiper等移动方式可以通过METEORITE

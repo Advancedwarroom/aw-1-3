@@ -223,20 +223,10 @@ public partial class Infantry
         else
         {
             // 外部：放到目标格（自动放置时由调用方选好格）
-            bool ExternalProductionTargetStillValid(Grids candidate)
-            {
-                if (candidate == null || grid == null) return false;
-                int d = Mathf.Abs(candidate.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(candidate.GridIndex.Y - grid.GridIndex.Y);
-                var rangeGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-                return d >= productionMinRange && d <= productionMaxRange
-                    && rangeGm?.gridManager != null
-                    && rangeGm.gridManager.IsRangeAllowed(grid, candidate, productionCanCrossScreens);
-            }
-            if (target == null || !IsInstanceValid(target) || !ExternalProductionTargetStillValid(target))
+            if (target == null || !IsInstanceValid(target))
                 target = FindValidExternalProductionGrid(unit);
-            // 完工复检：范围、屏幕、占位与通行性任一变化，都重新寻找合法落点。
-            if (target != null && (!ExternalProductionTargetStillValid(target)
-                || target.infantries.Any(u => u != null && IsInstanceValid(u))
+            // 完工复检：目标格被占/不可通行时回退自动找格。
+            if (target != null && (target.infantries.Any(u => u != null && IsInstanceValid(u))
                 || unit.GetMoveCostOnGrid(target) >= 999))
                 target = FindValidExternalProductionGrid(unit);
             if (target == null)

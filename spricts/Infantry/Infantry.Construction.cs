@@ -156,23 +156,11 @@ public partial class Infantry
 
         if (string.IsNullOrEmpty(facilityType)) return;
 
-        // 完工时再次验证：建造者可能在自动化/跨回合过程中移动，旧落点不再符合当前范围时重新选点。
-        // 内部建造不受此限制。
-        bool ExternalTargetStillValid(Grids candidate)
-        {
-            if (candidate == null || grid == null) return false;
-            int d = Mathf.Abs(candidate.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(candidate.GridIndex.Y - grid.GridIndex.Y);
-            var rangeGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-            return d >= constructionMinRange && d <= constructionMaxRange
-                && rangeGm?.gridManager != null
-                && rangeGm.gridManager.IsRangeAllowed(grid, candidate, constructionCanCrossScreens);
-        }
-
         // ✅ 地形建造条目（管道构造者：Terrain:PIPESEAM）
         var terrainBuild = ParseTerrainBuildEntry(facilityType);
         if (terrainBuild.HasValue)
         {
-            if (target == null || !IsInstanceValid(target) || !ExternalTargetStillValid(target))
+            if (target == null || !IsInstanceValid(target))
                 target = FindValidExternalConstructionGrid(facilityType);
             if (target != null) BuildTerrainOnGrid(terrainBuild.Value, target);
             return;
@@ -187,7 +175,7 @@ public partial class Infantry
                 return;
             }
             var wTarget = target;
-            if (wTarget == null || !IsInstanceValid(wTarget) || !ExternalTargetStillValid(wTarget))
+            if (wTarget == null || !IsInstanceValid(wTarget))
                 wTarget = FindValidExternalConstructionGrid(facilityType);
             if (wTarget == null) return;
             if (!SpawnWeaponOnGrid(facilityType, wTarget))

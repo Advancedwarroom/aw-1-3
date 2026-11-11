@@ -55,8 +55,7 @@ public partial class RelayJunction : Facility
             var myIdx = ParentGrid?.GridIndex ?? new Vector2I(-9999, -9999);
             foreach (var f in factories)
             {
-                if (f.grid == null) continue;
-                if (!allowCrossScreenBind && !gm.gridManager.IsSameScreen(myIdx, f.grid.GridIndex)) continue;   // 🌐 异屏厂不接管
+                if (f.grid == null || !gm.gridManager.IsRangeAllowed(ParentGrid, f.grid, allowCrossScreenBind)) continue;
                 foreach (var off in boundFactoryOffsets)
                 {
                     if (f.grid.GridIndex == myIdx + off)
@@ -76,8 +75,7 @@ public partial class RelayJunction : Facility
             float best = float.MaxValue;
             foreach (var f in factories)
             {
-                if (f.grid == null) continue;
-                if (!allowCrossScreenBind && !gm.gridManager.IsSameScreen(mine.GridIndex, f.grid.GridIndex)) continue;   // 🌐 自动最近也限同屏
+                if (f.grid == null || !gm.gridManager.IsRangeAllowed(mine, f.grid, allowCrossScreenBind)) continue;
                 float d = f.grid.GlobalPosition.DistanceSquaredTo(mine.GlobalPosition);
                 if (d < best) { best = d; nearest = f; }
             }

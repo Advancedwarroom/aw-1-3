@@ -208,14 +208,11 @@ public partial class BlackArc : Weapon
             if (w is not BlackArc arc || !IsInstanceValid(w) || w.isDestroyed || w.IsQueuedForDeletion()) continue;
             if (!arc.forceFieldEnabled || arc.grid == null || arc.forceFieldGridOffsets.Count == 0) continue;
             var gmGrid = arc.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-            if (!arc.forceFieldCanCrossScreens)
+            if (gmGrid?.gridManager != null)
             {
-                if (gmGrid?.gridManager != null)
-                {
-                    if (!gmGrid.gridManager.IsRangeAllowed(arc.grid, target, false)) continue;
-                }
-                else if (arc.grid.screenId != target.screenId) continue;
+                if (!gmGrid.gridManager.IsRangeAllowed(arc.grid, target, arc.forceFieldCanCrossScreens)) continue;
             }
+            else if (!arc.forceFieldCanCrossScreens && arc.grid.screenId != target.screenId) continue;
             var anchor = arc.grid.GridIndex;
             foreach (var off in arc.forceFieldGridOffsets)
                 if (anchor.X + off.X == target.GridIndex.X && anchor.Y + off.Y == target.GridIndex.Y)
@@ -239,7 +236,7 @@ public partial class BlackArc : Weapon
             if (ex < 0 || ey < 0 || ex >= map.GetLength(0) || ey >= map.GetLength(1)) continue;
             var g = map[ex, ey];
             if (g == null) continue;
-            if (!escortCanCrossScreens && !gm.gridManager.IsSameScreen(anchor, g.GridIndex)) continue;
+            if (!gm.gridManager.IsRangeAllowed(grid, g, escortCanCrossScreens)) continue;
             bool escortAlive = g.weapons.Any(w => w != null && IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed);
             if (escortAlive) return;   // 还有护卫活着
         }

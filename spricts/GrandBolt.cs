@@ -324,9 +324,8 @@ public partial class GrandBolt : Weapon
                     continue;   // 本次命中的不是这个绑定表里的弱点
                 var srcIndex = anchorIndex + shieldSourceOffsets[b];
                 if (srcIndex.X < 0 || srcIndex.Y < 0 || srcIndex.X >= gm.gridManager.searchRange.X || srcIndex.Y >= gm.gridManager.searchRange.Y) continue;
-                if (!allowCrossScreenBind && !gm.gridManager.IsSameScreen(anchorIndex, srcIndex)) continue;   // 🌐 异屏源不保护
-                var srcGrid = gm.gridManager.map[srcIndex.X, srcIndex.Y];
-                if (srcGrid == null) continue;
+                var srcGrid = gm.gridManager.GetGridAt(srcIndex);
+                if (!gm.gridManager.IsRangeAllowed(grid ?? gm.gridManager.GetGridAt(anchorIndex), srcGrid, allowCrossScreenBind)) continue;
                 foreach (var w in srcGrid.weapons)
                 {
                     if (w != null && IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed && w.GetType().Name == crystalTypeName)
@@ -530,8 +529,10 @@ public partial class GrandBolt : Weapon
         {
             if (idx.X < 0 || idx.Y < 0 || idx.X >= gm.gridManager.searchRange.X || idx.Y >= gm.gridManager.searchRange.Y)
                 return;
-            if (gm.gridManager.map[idx.X, idx.Y] == null) return;   // 屏间真空不可蠕动进入
-            if (!wriggleCanCrossScreens && !gm.gridManager.IsSameScreen(idx - (newAnchor - oldAnchor), idx)) return;
+            var targetGrid = gm.gridManager.map[idx.X, idx.Y];
+            if (targetGrid == null) return;   // 屏间真空不可蠕动进入
+            var sourceGrid = gm.gridManager.GetGridAt(idx - (newAnchor - oldAnchor));
+            if (!gm.gridManager.IsRangeAllowed(sourceGrid, targetGrid, wriggleCanCrossScreens)) return;
         }
 
         // ✅ 卡死规则：敌人卡足印→不能移动
