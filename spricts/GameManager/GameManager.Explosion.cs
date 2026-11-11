@@ -32,7 +32,7 @@ public partial class GameManager
         var affected = new List<Infantry>();
         foreach (var u in unitManager.AllUnits)
         {
-            if (u == null || !IsInstanceValid(u)) continue;
+            if (u == null || !IsInstanceValid(u) || u == unit) continue; // 自身伤害只由 explosionSelfDamageEnabled 专门控制
             var uGridPos = u.grid?.GridIndex ?? unitManager.WorldToGrid(u.Position);
             int dist = Mathf.Abs(uGridPos.X - gridPos.X) + Mathf.Abs(uGridPos.Y - gridPos.Y);
             if (dist >= minR && dist <= maxR && gridManager.IsRangeAllowed(sourceGrid, u.grid ?? gridManager.GetGridAt(uGridPos), unit.explosionCanCrossScreens))
