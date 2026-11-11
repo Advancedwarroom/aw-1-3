@@ -288,7 +288,8 @@ public partial class Infantry
 
         var stack = GetLivingStack(destination);
         if (stack.Count == 0) return true;
-        if (chainIndex > 0 && !pushChainEnabled)
+        if ((chainIndex > 0 && !pushChainEnabled)
+            || (pushMaxChainStacks > 0 && chainIndex >= pushMaxChainStacks))
         {
             ApplyFragileCollisionEffects(stack);
             return false;
