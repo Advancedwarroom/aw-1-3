@@ -25,6 +25,7 @@ public partial class BlackArc : Weapon
     // ========== 2. 打击范围（以该兵器为核心）==========
     [Export] public int arcStrikeMinRange = 1;               // 2.最小射程（0=可打自身所在格）
     [Export] public int arcStrikeMaxRange = 10;             // 2.最大射程
+    [Export] public bool arcStrikeCanCrossScreens = false; // 天基打击选点射程是否允许跨屏
 
     // ========== 3. 打击效果范围（以目标点为核心 x-y）==========
     [Export] public int arcEffectRangeX = 1;                 // 3.以目标格为核心 x 范围（±x）
@@ -79,7 +80,7 @@ public partial class BlackArc : Weapon
         var rangeGrids = gm.gridManager.grids.Where(g =>
         {
             int d = Mathf.Abs(g.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - grid.GridIndex.Y);
-            return d >= arcStrikeMinRange && d <= arcStrikeMaxRange && !IsScreenBlocked(g); // ✅ N屏：默认仅限己图
+            return d >= arcStrikeMinRange && d <= arcStrikeMaxRange && gm.gridManager.IsRangeAllowed(grid, g, arcStrikeCanCrossScreens);
         }).ToList();
 
         foreach (var g in rangeGrids)
@@ -126,7 +127,7 @@ public partial class BlackArc : Weapon
     {
         if (targetGrid == null || gm?.gridManager == null || grid == null) return;
         int strikeDistance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
-        if (strikeDistance < arcStrikeMinRange || strikeDistance > arcStrikeMaxRange || IsScreenBlocked(targetGrid)) return;
+        if (strikeDistance < arcStrikeMinRange || strikeDistance > arcStrikeMaxRange || !gm.gridManager.IsRangeAllowed(grid, targetGrid, arcStrikeCanCrossScreens)) return;
         if (!ArcStrikeReady) return;
 
         int cx = targetGrid.GridIndex.X;
