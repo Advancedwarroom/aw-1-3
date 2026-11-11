@@ -28,5 +28,8 @@ func _run_smoke() -> void:
 	# 参考 tests/facility_recolor_check.gd：quit(0) 自然拆卸即干净退出。
 	if is_instance_valid(TranslateGroup):
 		TranslateGroup.ReleaseRuntimeResources()
-	main_instance = null
+	game_manager = null
+	# 冲刷queue_free+让mono finalizer跑完，消除退出时假泄漏报告（228 CanvasItem/688 ObjectDB）
+	for i in 10:
+		await tree.process_frame
 	tree.quit(0)
