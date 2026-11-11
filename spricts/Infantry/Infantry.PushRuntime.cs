@@ -65,6 +65,11 @@ public partial class Infantry
                     || unit.IsQueuedForDeletion() || unit.grid == null)
                     continue;
 
+                var pusher = i == 0 ? this : chain[i - 1];
+                if (pusher == null || !GodotObject.IsInstanceValid(pusher)
+                    || !CanPushByWeight(pusher, unit))
+                    continue;
+
                 var destination = gridManager.GetGridAt(unit.grid.GridIndex + direction);
                 if (destination == null || unit.GetMoveCostOnGrid(destination) >= 999)
                 {
@@ -79,18 +84,7 @@ public partial class Infantry
                 if (blockers.Count > 0)
                 {
                     var blocker = blockers[0];
-                    float moverWeight = unit.GetEffectiveWeight();
-                    float blockerWeight = blocker.GetEffectiveWeight();
-                    bool canDisplace = moverWeight > blockerWeight;
-                    if (Mathf.IsEqualApprox(moverWeight, blockerWeight))
-                    {
-                        if (unit.equalWeightPushMode == EqualWeightPushMode.AllowSimultaneous
-                            && blocker.equalWeightPushMode == EqualWeightPushMode.AllowSimultaneous)
-                            canDisplace = true;
-                        else if (unit.equalWeightPushMode != blocker.equalWeightPushMode)
-                            canDisplace = GD.Randf() < 0.5f;
-                    }
-                    if (!canDisplace) continue;
+                    if (!CanPushByWeight(unit, blocker)) continue;
                     // Do not recursively move an unrelated stack; its own push module
                     // must be explicitly part of the chain to participate.
                     if (!chain.Contains(blocker)) continue;
@@ -103,6 +97,23 @@ public partial class Infantry
         gameManager?.fogOfWarManager?.OnUnitMoved();
         gameManager?.CallDeferred(nameof(GameManager.UpdateUnitLists));
         gameManager?.CallDeferred(nameof(GameManager.CheckVictoryCondition));
+    }
+
+    private static bool CanPushByWeight(Infantry pusher, Infantry target)
+    {
+        float pusherWeight = pusher.GetEffectiveWeight();
+        float targetWeight = target.GetEffectiveWeight();
+        if (pusherWeight > targetWeight && !Mathf.IsEqualApprox(pusherWeight, targetWeight))
+            return true;
+        if (!Mathf.IsEqualApprox(pusherWeight, targetWeight))
+            return false;
+
+        if (pusher.equalWeightPushMode == EqualWeightPushMode.AllowSimultaneous
+            && target.equalWeightPushMode == EqualWeightPushMode.AllowSimultaneous)
+            return true;
+        if (pusher.equalWeightPushMode != target.equalWeightPushMode)
+            return GD.Randf() < 0.5f;
+        return false;
     }
 
     private static void MoveUnitByPush(Infantry unit, Grids destination)
