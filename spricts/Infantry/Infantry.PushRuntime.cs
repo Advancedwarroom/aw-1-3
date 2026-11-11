@@ -1032,6 +1032,7 @@ public partial class Infantry
                 long damagedHealth = (long)unit.health - totalDamage;
                 if (damagedHealth <= 0 && pushDamageCanDestroy)
                 {
+                    if (mitigationUsed) PayMitigationAmmoCostForUnit(unit);
                     DestroyPushedUnit(unit, gm);
                     continue;
                 }
@@ -1371,21 +1372,18 @@ public partial class Infantry
 
         // Charge each active mitigation module once, and only for stacks that
         // actually moved at least one tile.
-        foreach (int i in movedStacks)
-        {
-            if (mitigatedDistances[i] < distance)
-                PayMitigationAmmoCost(chain[i], distance, mitigatedDistances[i]);
-        }
-
         // Resolve per-stack post-push modules once, after all chain movement is complete.
         foreach (int i in movedStacks.OrderByDescending(index => index))
         {
             var stack = chain[i].Where(IsLivingUnit).ToList();
             if (stack.Count == 0) continue;
             var origin = originalTiles[i];
-            if (TryResolveStackDisplacement(stack, origin, direction, gridManager, gameManager))
-                continue;
-            ApplyPushTargetEffects(stack, gameManager);
+            bool resolvedByModule = TryResolveStackDisplacement(stack, origin, direction,
+                gridManager, gameManager);
+            if (!resolvedByModule)
+                ApplyPushTargetEffects(stack, gameManager);
+            if (mitigatedDistances[i] < distance)
+                PayMitigationAmmoCost(chain[i], distance, mitigatedDistances[i]);
         }
 
         if (!fromMovement && pushDirectionMode == PushDirectionMode.OppositeSides && pushResolved)
@@ -1590,6 +1588,7 @@ public partial class Infantry
                 long remainingHealth = (long)unit.health - fragileDamage;
                 if (remainingHealth <= 0 && unit.pushFragileCanDestroy)
                 {
+                    if (mitigationUsed) PayMitigationAmmoCostForUnit(unit);
                     DestroyPushedUnit(unit, gm);
                     continue;
                 }
