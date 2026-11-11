@@ -206,13 +206,17 @@ func _finish() -> void:
 	print("[SELFPLAY] 结果: %s | 阶段: %d | 失败: %d" % [report["result"], phase_changes, failures.size()])
 	var exit_code := 0 if failures.is_empty() else 1
 	var tree := get_tree()
-	# Free the full game scene before quitting; otherwise Godot reports hundreds of
-	# live CanvasItems, physics RIDs and ObjectDB instances as shutdown leaks.
+	# Free the game scene and any transient nodes it reparented to the SceneTree root.
+	# Preserve the TranslateGroup autoload; it clears its static UI registry on exit.
 	if game_instance != null and is_instance_valid(game_instance):
-		game_instance.queue_free()
+		game_instance.free()
 	game_instance = null
 	game_manager = null
 	ai_manager = null
+	for child in tree.root.get_children():
+		if child == self or child.is_in_group("translate_group"):
+			continue
+		child.free()
 	await tree.process_frame
 	await tree.process_frame
 	tree.quit(exit_code)

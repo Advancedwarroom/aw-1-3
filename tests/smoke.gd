@@ -22,8 +22,16 @@ func _run_smoke() -> void:
 		await get_tree().process_frame
 
 	print("SMOKE_PASS: %d frames" % FRAMES_TO_RUN)
-	main_instance.queue_free()
+	var tree := get_tree()
+	if main_instance != null and is_instance_valid(main_instance):
+		main_instance.free()
 	main_instance = null
-	await get_tree().process_frame
-	await get_tree().process_frame
-	get_tree().quit(0)
+	# Some effects deliberately reparent themselves to the SceneTree root. They are
+	# transient in this test and must be freed before checking shutdown leaks.
+	for child in tree.root.get_children():
+		if child == self or child.is_in_group("translate_group"):
+			continue
+		child.free()
+	await tree.process_frame
+	await tree.process_frame
+	tree.quit(0)
