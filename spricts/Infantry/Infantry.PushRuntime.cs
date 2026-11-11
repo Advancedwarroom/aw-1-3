@@ -10,19 +10,20 @@ public partial class Infantry
 
     public bool TryPushWeaponOnMovement(Weapon target, Vector2I movementDirection)
     {
-        if (target == null || target.grid == null || movementDirection == Vector2I.Zero
-            || pushDirectionMode == PushDirectionMode.Fixed && fixedPushDirection == Vector2I.Zero)
+        if (target == null || target.grid == null || movementDirection == Vector2I.Zero)
             return false;
+        var origin = target.grid;
         TryPushWeaponOnAttack(target, fromMovement: true, directionOverride: movementDirection);
-        return target.grid != null && !target.grid.weapons.Contains(target);
+        return target.grid != null && target.grid != origin;
     }
 
     public bool TryPushFacilityOnMovement(Facility target, Vector2I movementDirection)
     {
         if (target == null || target.ParentGrid == null || movementDirection == Vector2I.Zero)
             return false;
+        var origin = target.ParentGrid;
         TryPushFacilityOnAttack(target, fromMovement: true, directionOverride: movementDirection);
-        return target.ParentGrid != null && target.ParentGrid.city != target;
+        return target.ParentGrid != null && target.ParentGrid != origin;
     }
 
     public bool TryPushTargetOnMovement(Grids targetGrid, Vector2I movementDirection)
