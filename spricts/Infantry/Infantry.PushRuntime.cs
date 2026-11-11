@@ -365,8 +365,13 @@ public partial class Infantry
                 gm?.SetTeamFunds(team, gm.GetTeamFunds(team) - cost);
                 break;
             case PushResourceType.Health:
-                health = Mathf.Max(1, health - cost);
-                UpdateHpLabel();
+                // A pusher may be destroyed by its own displacement (for example,
+                // retreating into water). Never resurrect it while charging the cost.
+                if (health > 0)
+                {
+                    health = Mathf.Max(1, health - cost);
+                    UpdateHpLabel();
+                }
                 break;
             case PushResourceType.Fuel:
                 fuel = Mathf.Max(0, fuel - cost);
@@ -765,7 +770,14 @@ public partial class Infantry
             {
                 var followStack = GetLivingStack(grid);
                 if (followStack.Count == 0) followStack.Add(this);
-                MoveStackByPush(followStack, followDestination);
+                foreach (var unit in followStack.ToList())
+                {
+                    if (unit.GetMoveCostOnGrid(followDestination) >= 999)
+                        DestroyPushedUnit(unit, gameManager);
+                }
+                followStack = followStack.Where(IsLivingUnit).ToList();
+                if (followStack.Count > 0)
+                    MoveStackByPush(followStack, followDestination);
             }
         }
 
