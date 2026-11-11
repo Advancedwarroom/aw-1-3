@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 
 public partial class Infantry
 {
@@ -182,6 +183,7 @@ public partial class Infantry
     [ExportSubgroup("运行时状态（自动保存）")]
     [Export] public bool pushRuntimeHasUsedThisTurn = false;
     [Export] public int pushRuntimeCooldownTurnsRemaining = 0;
+    private readonly HashSet<Infantry> mitigationAmmoPaidThisAction = new();
 
     public float GetEffectiveWeight()
     {
