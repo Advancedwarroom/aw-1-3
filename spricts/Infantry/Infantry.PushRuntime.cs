@@ -90,7 +90,7 @@ public partial class Infantry
             if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
             var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
             if (!TryResolveWeaponFootprintCollisions(target, firstDestination, direction,
-                gm, out bool firstDestroyed))
+                gm, out bool firstDestroyed, 1))
             {
                 if (!firstDestroyed) return;
             }
@@ -156,7 +156,7 @@ public partial class Infantry
         if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
         var firstDestination = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
         if (!TryResolveStaticTargetCollision(firstDestination, direction, null, target,
-            gm, out bool firstDestroyed))
+            gm, out bool firstDestroyed, 1))
         {
             if (!firstDestroyed) return;
         }
@@ -168,7 +168,7 @@ public partial class Infantry
         {
             var next = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
             if (!TryResolveStaticTargetCollision(next, direction, null, target, gm,
-                out bool destroyed))
+                out bool destroyed, 1))
             {
                 if (destroyed) moved = true;
                 break;
@@ -288,6 +288,11 @@ public partial class Infantry
 
         var stack = GetLivingStack(destination);
         if (stack.Count == 0) return true;
+        if (chainIndex > 0 && !pushChainEnabled)
+        {
+            ApplyFragileCollisionEffects(stack);
+            return false;
+        }
         if (!CanPushTargetTeam(stack, chainIndex))
         {
             ApplyFragileCollisionEffects(stack);
