@@ -103,8 +103,10 @@ public partial class Infantry
     [Export] public bool pushDamageCanDestroy = false;
     [Export] public bool pushLockTargetToOneHp = false;
     [Export] public int pushTargetFuelDelta = 0;
+    [Export] public bool pushTargetFuelCanOverMax = false;
     [Export] public int pushTargetAmmoDelta = 0;
     [Export] public AmmoKind pushTargetAmmoKind = AmmoKind.Primary;
+    [Export] public bool pushTargetAmmoCanOverMax = false;
     [Export] public int pushTargetHealAmount = 0;
     [Export] public bool pushTargetCanOverMaxHealth = false;
     [Export] public int pushTargetMaxHealthDelta = 0;
