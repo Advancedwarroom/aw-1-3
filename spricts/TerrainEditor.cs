@@ -83,6 +83,7 @@ public bool IsAnyMenuOpen()
 }
 public override void _Ready()
 {
+    ScreenErrorLogger.EnsureInstalled(this);   // 开创人2026-11-11：全引擎报错上屏
     AddToGroup("terrain_editor");
 
     // ✅ 自定义兵种（res://Prefabs/CustomUnits/）自动加入编辑器单位面板
