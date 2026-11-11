@@ -68,7 +68,9 @@ public partial class Infantry
     [Export] public bool pushOncePerTurn = true;
 
     [ExportSubgroup("基础推动参数")]
-    [Export] public int pushDistance = 1;
+    [Export] public int pushDistance = 1; // maximum displacement distance
+    [Export] public int pushMinDistance = 1;
+    [Export] public bool pushAutoDistance = true;
     [Export] public int pushMinTargetRange = 1;
     [Export] public int pushRange = 1;
     [Export] public bool pushCanTargetEnemies = true;
