@@ -7,7 +7,10 @@ using System.Collections.Generic;
 public partial class Infantry
 {
     [ExportGroup("友军火力")]
-    [Export] public bool canAttackFriendlies = false;  // ✅ 友军火力：勾选后可攻击同队单位/兵器/设施（默认关=原味；AI 不接线不会误伤；被打的友军仍会反击）
+    [Export] public bool canAttackFriendlies = false;  // ✅ 友军火力：勾选后可攻击同队单位/兵器/设施（默认关=原味；AI 不接线不会误伤）
+    [Export] public bool canAttackAllies = false;              // ✅ 友军火力·扩展：勾选后可攻击同盟势力（盟友）
+    [Export] public bool friendliesCanCounterFire = true;      // ✅ 打友军是否还手：false=被打的同队目标不还手（默认还手=原味）
+    [Export] public bool alliesCanCounterFire = true;          // ✅ 打盟友是否还手：false=被打的盟友不还手（默认还手=原味）
 
     [ExportGroup("补给")]
     [Export] public string[] excludedWeaponTargets = System.Array.Empty<string>();  // ⚔ 兵器攻击准入(攻击方)：不能攻击的兵器类型，"Weapon"=全部兵器，留空=均可攻击              // ✅ 合流模块：是否允许参与 Join 合流（false=该单位不可合流）
@@ -430,12 +433,20 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     int attackDamage = CalculateFinalDamage(target, weapon);
     int counterDamage = 0;
     
+    // ✅ 友军火力·反击裁决：同队/盟友目标是否还手，由攻击方的纪律开关决定（默认还手=原味）
+    bool CounterFireAllowed(Infantry target)
+    {
+        if (target.team == team) return friendliesCanCounterFire;
+        if (TeamHelper.AreAllied(team, target.team)) return alliesCanCounterFire;
+        return true;
+    }
+
     // 反击
     bool targetWillDie = (target.health - attackDamage) <= 0;
     bool canTargetCounter = !targetWillDie 
         && target.attackType != AttackType.NoAttack
         && target.IsTargetInCounterRange(this)
-        && TeamHelper.CanCounterAttack(target.team);
+        && TeamHelper.CanCounterAttack(target.team) && CounterFireAllowed(target);
 
     // ✅ CO 模块系统·模块10（逆转/先制反击）：防守方先手——反击先结算，攻击方按掉血后战力出手
     if (canTargetCounter && CoModuleSystem.GetFirstStrike(target))
@@ -686,7 +697,7 @@ public virtual void ReloadAmmo()
         loaded.health = keepHealth;
 
         if (IsInstanceValid(target) && target.health > 0 && target.attackType != AttackType.NoAttack
-            && target.IsTargetInCounterRange(this) && TeamHelper.CanCounterAttack(target.team))
+            && target.IsTargetInCounterRange(this) && TeamHelper.CanCounterAttack(target.team) && CounterFireAllowed(target))
         {
             int cd = target.CalculateCounterDamage(this);
             if (cd > 0 && !healthLocked)
