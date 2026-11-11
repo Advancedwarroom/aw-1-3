@@ -22,6 +22,7 @@ public partial class Infantry
     [Export(PropertyHint.Enum, "关闭,内部,外部,可选内外")] public int constructionLocationMode = 0;  // ② 建造位置
     [Export] public int constructionMinRange = 1;                                     // ③ 外部建造最小范围
     [Export] public int constructionMaxRange = 2;                                     // ③ 外部建造最大范围
+    [Export] public bool constructionCanCrossScreens = false;                        // 外部建造目标范围是否允许跨屏
     [Export] public bool constructionAutoPlace = false;                                // ④ 外部自动随机放置（false=手选目标格）
     [Export] public Godot.Collections.Array<string> constructionWhitelist = new();   // ⑤ 建造白名单（建筑类型名）
     [Export] public int maxConstructionAmmo = 0;                                      // ⑥ 建造弹药上限
@@ -95,6 +96,7 @@ public partial class Infantry
     public bool StartConstruction(string facilityType, bool internalMode, Grids externalTargetGrid = null)
     {
         if (!CanStartConstruction(internalMode)) return false;
+        if (!internalMode && (externalTargetGrid == null || !GetValidExternalConstructionGrids(facilityType).Contains(externalTargetGrid))) return false;
         // 支持三类条目：① FacilityDatabase 建筑；② "Terrain:地形名"；③ "Weapon:模板键"（兵器建造）
         if (FacilityDatabase.GetScenePath(facilityType) == null && !IsTerrainBuildEntry(facilityType) && !IsWeaponBuildEntry(facilityType)) return false;
 
@@ -335,7 +337,7 @@ public partial class Infantry
                 int dist = Math.Abs(gx - x) + Math.Abs(gy - y);
                 if (dist < constructionMinRange || dist > constructionMaxRange) continue;
                 var g = gm.gridManager.map[gx, gy];
-                if (g == null) continue;
+                if (g == null || !gm.gridManager.IsRangeAllowed(grid, g, constructionCanCrossScreens)) continue;
                 if (g.city != null && IsInstanceValid(g.city)) continue;   // 已有建筑
                 if (g.weapon != null) continue;                            // 兵器占位
                 if (!CanBuildFacilityOnTerrain(facilityType, g.gridType)) continue;   // ⑫ 可建造地形白名单（如临时港口只能建在海滩）
