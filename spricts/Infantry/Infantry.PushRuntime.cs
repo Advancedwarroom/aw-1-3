@@ -787,14 +787,17 @@ public partial class Infantry
         float transmittedForce = GetStackWeight(pusherStack) * GetPushForceMultiplier(distance);
         if (pushChainWeightMode == PushChainWeightMode.Accumulate && pushChainMaxAccumulatedWeight > 0.0f)
             transmittedForce = Mathf.Min(transmittedForce, pushChainMaxAccumulatedWeight);
+        bool pusherMovesSimultaneously = false;
+        List<Infantry> linkPusherRules = pusherStack;
         for (int i = 0; i < chain.Count; i++)
         {
-            if (!CanPushStackWithForce(pusherStack, transmittedForce, chain[i]))
+            if (!CanPushStackWithForce(linkPusherRules, transmittedForce, chain[i],
+                out bool simultaneousMove))
                 return false;
+            if (i == 0) pusherMovesSimultaneously = simultaneousMove;
 
-            // The initiating unit's Export controls force transmission through the
-            // entire chain. Constant preserves the original force; Accumulate adds
-            // each displaced stack's mass; Decrease consumes force by that mass.
+            // Only the initiating unit's Export controls force accumulation. Equal-
+            // weight arbitration still compares the two adjacent stacks at each link.
             float targetMass = GetStackWeight(chain[i]);
             switch (pushChainWeightMode)
             {
@@ -807,6 +810,7 @@ public partial class Infantry
                     transmittedForce = Mathf.Max(0.0f, transmittedForce - targetMass);
                     break;
             }
+            linkPusherRules = chain[i];
         }
 
         // Keep each stack's original tile so rebound is resolved once, after the
@@ -880,16 +884,17 @@ public partial class Infantry
         {
             MovePusherOppositeDirection(direction, distance, gridManager, gameManager);
         }
-        else if (!fromMovement && pushPusherFollowsChain && firstGrid != null && grid != null)
+        else if (!fromMovement && (pushPusherFollowsChain || pusherMovesSimultaneously)
+            && firstGrid != null && grid != null)
         {
             var followDestination = firstGrid;
-            bool canOverlapStatic = (followDestination.city == null || !followDestination.city.pushBlocksInfantryWhenOverlapped)
-                && (followDestination.weapons == null || followDestination.weapons.All(w =>
-                    w == null || !GodotObject.IsInstanceValid(w) || !w.pushBlocksInfantryWhenOverlapped));
-            if (canOverlapStatic && GetLivingStack(followDestination).Count == 0)
+            var followStack = GetLivingStack(grid);
+            if (followStack.Count == 0) followStack.Add(this);
+            bool hasBlocker = GetLivingStack(followDestination).Count > 0
+                || HasForeignMultiTileOccupant(followDestination, followStack);
+            if (!hasBlocker && TryDisplaceWeaponAndFacility(followStack, followDestination,
+                direction, gridManager))
             {
-                var followStack = GetLivingStack(grid);
-                if (followStack.Count == 0) followStack.Add(this);
                 foreach (var unit in followStack.ToList())
                 {
                     if (unit.GetMoveCostOnGrid(followDestination) >= 999)
@@ -1059,8 +1064,9 @@ public partial class Infantry
     }
 
     private bool CanPushStackWithForce(List<Infantry> pusherRules, float pusherWeight,
-        List<Infantry> target)
+        List<Infantry> target, out bool simultaneousMove)
     {
+        simultaneousMove = false;
         if (!pushUsesWeight) return true;
         float targetWeight = GetStackWeight(target);
         if (pusherWeight > targetWeight && !Mathf.IsEqualApprox(pusherWeight, targetWeight))
@@ -1072,9 +1078,14 @@ public partial class Infantry
         bool targetAllows = StackAllowsSimultaneous(target);
         bool pusherStops = StackStopsOnEqual(pusherRules);
         bool targetStops = StackStopsOnEqual(target);
-        if (pusherAllows && targetAllows) return true;
+        if (pusherAllows && targetAllows)
+        {
+            simultaneousMove = true;
+            return true;
+        }
         if (pusherStops && targetStops) return false;
-        return GD.Randf() < 0.5f;
+        simultaneousMove = GD.Randf() < 0.5f;
+        return simultaneousMove;
     }
 
     private static void MoveStackByPush(List<Infantry> stack, Grids destination)
