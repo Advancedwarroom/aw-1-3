@@ -175,6 +175,8 @@ public partial class Infantry
         if (pushTargetMaxHealthDelta != 0)
             target.maxHealth = (int)Math.Clamp((long)target.maxHealth + pushTargetMaxHealthDelta, 1L, int.MaxValue);
 
+        if (!pushTargetCanOverMaxHealth)
+            target.health = Math.Min(target.health, target.maxHealth);
         if (pushLockTargetToOneHp) target.health = 1;
         else if (pushTargetHealAmount > 0)
             target.health = (int)Math.Min(pushTargetCanOverMaxHealth ? int.MaxValue : target.maxHealth,
@@ -184,10 +186,17 @@ public partial class Infantry
             int damage = (int)Math.Clamp((long)pushTargetDamage + pushRamDamage, 0L, int.MaxValue);
             if (damage > 0)
             {
-                if (!pushDamageCanDestroy && (long)target.health - damage <= 0)
+                long remainingHealth = (long)target.health - damage;
+                if (remainingHealth <= 0 && !pushDamageCanDestroy)
                     target.health = 1;
-                else
-                    target.TakeDamage(damage, this);
+                else if (remainingHealth <= 0)
+                {
+                    target.health = 0;
+                    var origin = target.ParentGrid;
+                    if (origin != null && origin.city == target) origin.city = null;
+                    target.QueueFree();
+                }
+                else target.health = (int)remainingHealth;
             }
         }
 
@@ -217,6 +226,8 @@ public partial class Infantry
         if (pushTargetMaxHealthDelta != 0)
             target.maxHealth = (int)Math.Clamp((long)target.maxHealth + pushTargetMaxHealthDelta, 1L, int.MaxValue);
 
+        if (!pushTargetCanOverMaxHealth)
+            target.health = Math.Min(target.health, target.maxHealth);
         if (pushLockTargetToOneHp) target.health = 1;
         else if (pushTargetHealAmount > 0)
             target.health = (int)Math.Min(pushTargetCanOverMaxHealth ? int.MaxValue : target.maxHealth,
@@ -226,10 +237,18 @@ public partial class Infantry
             int damage = (int)Math.Clamp((long)pushTargetDamage + pushRamDamage, 0L, int.MaxValue);
             if (damage > 0)
             {
-                if (!pushDamageCanDestroy && (long)target.health - damage <= 0)
+                long remainingHealth = (long)target.health - damage;
+                if (remainingHealth <= 0 && !pushDamageCanDestroy)
                     target.health = 1;
-                else
-                    target.TakeDamage(damage, this);
+                else if (remainingHealth <= 0)
+                {
+                    target.health = 0;
+                    var origin = target.ParentGrid;
+                    if (origin != null && origin.city == target) origin.city = null;
+                    target.QueueFree();
+                    return;
+                }
+                else target.health = (int)remainingHealth;
             }
         }
         target.GetType().GetMethod("UpdateStatusBarUI",
@@ -631,6 +650,8 @@ public partial class Infantry
             if (!IsLivingUnit(unit)) continue;
             if (pushTargetMaxHealthDelta != 0)
                 unit.maxHealth = (int)Math.Clamp((long)unit.maxHealth + pushTargetMaxHealthDelta, 1L, int.MaxValue);
+            if (!pushTargetCanOverMaxHealth)
+                unit.health = Math.Min(unit.health, unit.GetEffectiveMaxHealth());
             if (pushLockTargetToOneHp) unit.health = 1;
             else if (pushTargetHealAmount > 0)
                 unit.health = (int)Math.Min(unit.pushTargetCanOverMaxHealth ? int.MaxValue : unit.GetEffectiveMaxHealth(),
