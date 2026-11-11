@@ -366,7 +366,10 @@ public partial class GameManager
 
             if (!IsInstanceValid(unit) || unit.health <= 0) continue;
 
-            // 4. 格子弹药变化（固定值加减，无判定）
+            // 4. 格子重量变化（固定值加减，0–9999）
+            grid.ApplyGridWeightChange(unit);
+
+            // 5. 格子弹药变化（固定值加减，无判定）
             grid.ApplyGridAmmoChange(unit);
 
             // 5. 格子燃料变化（固定值加减，无判定）
