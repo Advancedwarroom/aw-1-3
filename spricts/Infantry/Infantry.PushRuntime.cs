@@ -85,13 +85,31 @@ public partial class Infantry
             Vector2I direction = directionOverride ?? GetPushDirection(target.grid);
             if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
             var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
-            if (!CanMoveStaticTargetTo(firstDestination, target, null)) return;
+            if (!TryResolveStaticTargetCollision(firstDestination, direction, target, null,
+                gm, out bool firstDestroyed))
+            {
+                if (!firstDestroyed) return;
+            }
+            if (!firstDestroyed && !CanMoveStaticTargetTo(firstDestination, target, null,
+                allowInfantryOverlap: !target.pushBlocksInfantryWhenOverlapped)) return;
 
-            bool moved = false;
-            for (int step = 0; step < distance; step++)
+            bool moved = firstDestroyed;
+            for (int step = 0; step < distance && !firstDestroyed; step++)
             {
                 var next = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
-                if (!CanMoveStaticTargetTo(next, target, null)
+                if (!TryResolveStaticTargetCollision(next, direction, target, null, gm,
+                    out bool destroyed))
+                {
+                    if (destroyed) moved = true;
+                    break;
+                }
+                if (destroyed)
+                {
+                    moved = true;
+                    break;
+                }
+                if (!CanMoveStaticTargetTo(next, target, null,
+                    allowInfantryOverlap: !target.pushBlocksInfantryWhenOverlapped)
                     || !target.MoveByPhysicsPush(next, gm.weaponManager)) break;
                 moved = true;
             }
@@ -108,7 +126,8 @@ public partial class Infantry
             }
             else if (!TryMarkAttackPushUsed()) return;
             PayPushCost(gm);
-            ApplyStaticPushEffects(target);
+            if (GodotObject.IsInstanceValid(target) && !target.isDestroyed)
+                ApplyStaticPushEffects(target);
         }
     }
 
@@ -131,13 +150,32 @@ public partial class Infantry
         Vector2I direction = directionOverride ?? GetPushDirection(target.ParentGrid);
         if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
         var firstDestination = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
-        if (!CanMoveStaticTargetTo(firstDestination, null, target)) return;
+        if (!TryResolveStaticTargetCollision(firstDestination, direction, null, target,
+            gm, out bool firstDestroyed))
+        {
+            if (!firstDestroyed) return;
+        }
+        if (!firstDestroyed && !CanMoveStaticTargetTo(firstDestination, null, target,
+            allowInfantryOverlap: !target.pushBlocksInfantryWhenOverlapped)) return;
 
-        bool moved = false;
-        for (int step = 0; step < distance; step++)
+        bool moved = firstDestroyed;
+        for (int step = 0; step < distance && !firstDestroyed; step++)
         {
             var next = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
-            if (!CanMoveStaticTargetTo(next, null, target) || !target.MoveByPhysicsPush(next)) break;
+            if (!TryResolveStaticTargetCollision(next, direction, null, target, gm,
+                out bool destroyed))
+            {
+                if (destroyed) moved = true;
+                break;
+            }
+            if (destroyed)
+            {
+                moved = true;
+                break;
+            }
+            if (!CanMoveStaticTargetTo(next, null, target,
+                allowInfantryOverlap: !target.pushBlocksInfantryWhenOverlapped)
+                || !target.MoveByPhysicsPush(next)) break;
             moved = true;
         }
         if (!moved) return;
@@ -153,13 +191,14 @@ public partial class Infantry
         }
         else if (!TryMarkAttackPushUsed()) return;
         PayPushCost(gm);
-        ApplyStaticPushEffects(target);
+        if (GodotObject.IsInstanceValid(target) && target.ParentGrid != null)
+            ApplyStaticPushEffects(target);
     }
 
     private bool CanMoveStaticTargetTo(Grids destination, Weapon movingWeapon = null,
-        Facility movingFacility = null)
+        Facility movingFacility = null, bool allowInfantryOverlap = false)
     {
-        if (destination == null || GetLivingStack(destination).Count > 0
+        if (destination == null || (!allowInfantryOverlap && GetLivingStack(destination).Count > 0)
             || HasForeignMultiTileOccupant(destination, new List<Infantry>()))
             return false;
         if (destination.city != null && destination.city != movingFacility)
@@ -167,6 +206,89 @@ public partial class Infantry
         return destination.weapons == null
             || destination.weapons.All(w => w == null || !GodotObject.IsInstanceValid(w)
                 || w == movingWeapon);
+    }
+
+    private bool TryResolveStaticTargetCollision(Grids destination, Vector2I direction,
+        Weapon movingWeapon, Facility movingFacility, GameManager gm, out bool movingStaticDestroyed)
+    {
+        movingStaticDestroyed = false;
+        if (destination == null) return false;
+        bool blocksInfantry = movingWeapon != null
+            ? movingWeapon.pushBlocksInfantryWhenOverlapped
+            : movingFacility?.pushBlocksInfantryWhenOverlapped ?? false;
+        if (!blocksInfantry) return true;
+
+        var stack = GetLivingStack(destination);
+        if (stack.Count == 0) return true;
+        float staticWeight = movingWeapon != null
+            ? movingWeapon.GetEffectiveWeight()
+            : movingFacility.GetEffectiveWeight();
+        float unitWeight = GetStackWeight(stack);
+        EqualWeightPushMode staticMode = movingWeapon != null
+            ? movingWeapon.equalWeightPushMode : movingFacility.equalWeightPushMode;
+
+        if (staticWeight > unitWeight && !Mathf.IsEqualApprox(staticWeight, unitWeight))
+        {
+            DestroyCollisionLoser(stack);
+            return true;
+        }
+        if (unitWeight > staticWeight && !Mathf.IsEqualApprox(unitWeight, staticWeight))
+        {
+            DestroyStaticPushTarget(movingWeapon, movingFacility, gm);
+            movingStaticDestroyed = true;
+            ApplyFragileCollisionEffects(stack);
+            return false;
+        }
+
+        bool staticAllows = staticMode == EqualWeightPushMode.AllowSimultaneous;
+        bool staticStops = staticMode == EqualWeightPushMode.Stop;
+        bool unitAllows = StackAllowsSimultaneous(stack);
+        bool unitStops = StackStopsOnEqual(stack);
+        bool moveBoth = staticAllows && unitAllows
+            || !(staticStops && unitStops) && GD.Randf() < 0.5f;
+        if (!moveBoth)
+        {
+            ApplyFragileCollisionEffects(stack);
+            return false;
+        }
+
+        var next = gm?.gridManager?.GetGridAt(destination.GridIndex + direction);
+        if (next == null || GetLivingStack(next).Count > 0
+            || HasForeignMultiTileOccupant(next, stack)
+            || (next.city != null && next.city.pushBlocksInfantryWhenOverlapped)
+            || (next.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                && w.pushBlocksInfantryWhenOverlapped) ?? false))
+        {
+            ApplyFragileCollisionEffects(stack);
+            return false;
+        }
+
+        foreach (var unit in stack.ToList())
+        {
+            if (unit.GetMoveCostOnGrid(next) >= 999)
+                DestroyPushedUnit(unit, gm);
+        }
+        stack = stack.Where(IsLivingUnit).ToList();
+        if (stack.Count > 0) MoveStackByPush(stack, next);
+        ApplyFragileCollisionEffects(stack);
+        return true;
+    }
+
+    private void DestroyStaticPushTarget(Weapon weapon, Facility facility, GameManager gm)
+    {
+        if (weapon != null && GodotObject.IsInstanceValid(weapon) && !weapon.isDestroyed)
+        {
+            weapon.TakeDamage(int.MaxValue, this);
+            return;
+        }
+        if (facility != null && GodotObject.IsInstanceValid(facility))
+        {
+            var origin = facility.ParentGrid;
+            if (origin != null && origin.city == facility) origin.city = null;
+            facility.health = 0;
+            facility.QueueFree();
+            gm?.CallDeferred(nameof(GameManager.UpdateUnitLists));
+        }
     }
 
     private void ApplyStaticPushEffects(Weapon target)
