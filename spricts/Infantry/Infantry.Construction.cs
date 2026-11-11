@@ -206,7 +206,7 @@ public partial class Infantry
         }
 
         // 外部：直接放到目标格（自动放置时由调用方选好格）
-        if (target == null || !IsInstanceValid(target))
+        if (target == null || !IsInstanceValid(target) || !ExternalTargetStillValid(target))
             target = FindValidExternalConstructionGrid(facilityType);
         if (target == null) return;
         SpawnFacilityOnGrid(facilityType, target);
