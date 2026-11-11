@@ -715,6 +715,7 @@ private UnitCategory GetUnitCategory(Infantry unit)
         Seaplane _ => UnitCategory.Seaplane,
         ProducibleBoat _ => UnitCategory.ProducibleBoat,
         KamikazeBoat _ => UnitCategory.KamikazeBoat,
+        Infantry u when u.UnitTypeId == "Rhino" => UnitCategory.Tank,
         Infantry _ => UnitCategory.Infantry,
         _ => UnitCategory.Other
     };
