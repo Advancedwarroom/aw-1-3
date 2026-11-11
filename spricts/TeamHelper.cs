@@ -476,7 +476,7 @@ public static class TeamHelper
             DisplayName = "Player3",
             PrimaryColor = new Color(0.2f, 0.8f, 0.3f),
             SecondaryColor = new Color(0.1f, 0.6f, 0.2f),
-            IsActive = true,
+            IsActive = false,   // ✅ 开创人2026-11-11: 默认不激活——空势力进回合轮换会永久卡死阶段(自对弈#215实案)；测试P3请在全局配置激活并放置P3单位
             SortOrder = 3
         });
 
