@@ -31,6 +31,7 @@ public static class ExportFieldMapper
         try
         {
             object converted = ConvertString(value ?? "", field.FieldType);
+            converted = ClampSpecialExportValue(target, field, converted);
             field.SetValue(target, converted);
             return true;
         }
@@ -50,6 +51,7 @@ public static class ExportFieldMapper
             object old = field.GetValue(target);
             if (!IsNumeric(field.FieldType)) return false;
             double result = Convert.ToDouble(old, CultureInfo.InvariantCulture) + delta;
+            result = ClampSpecialExportNumber(target, field, result);
             field.SetValue(target, ConvertNumber(result, field.FieldType));
             return true;
         }
@@ -67,6 +69,7 @@ public static class ExportFieldMapper
         if (field == null || !IsNumeric(field.FieldType)) return null;
         object old = field.GetValue(target);
         double result = Convert.ToDouble(old, CultureInfo.InvariantCulture) + delta;
+        result = ClampSpecialExportNumber(target, field, result);
         return ConvertNumber(result, field.FieldType);
     }
 
@@ -100,8 +103,29 @@ public static class ExportFieldMapper
         foreach (var pair in captured)
         {
             var field = FindExportedField(target, pair.Key);
-            if (field != null) field.SetValue(target, pair.Value);
+            if (field != null)
+                field.SetValue(target, ClampSpecialExportValue(target, field, pair.Value));
         }
+    }
+
+    // Weight is a shared push-system stat. Clamp it at the common Export
+    // mapping boundary so internal services, empowerment, save restoration, and
+    // other reflection-based Export edits cannot leave an out-of-range base value.
+    private static object ClampSpecialExportValue(object target, FieldInfo field, object value)
+    {
+        if (value == null || field == null || field.Name != "weight"
+            || !(target is Infantry || target is Weapon || target is Facility))
+            return value;
+        double numeric = Convert.ToDouble(value, CultureInfo.InvariantCulture);
+        return (float)ClampSpecialExportNumber(target, field, numeric);
+    }
+
+    private static double ClampSpecialExportNumber(object target, FieldInfo field, double value)
+    {
+        if (field != null && field.Name == "weight"
+            && (target is Infantry || target is Weapon || target is Facility))
+            return Math.Clamp(value, 0.0, 9999.0);
+        return value;
     }
 
     private static bool IsNumeric(Type t)
