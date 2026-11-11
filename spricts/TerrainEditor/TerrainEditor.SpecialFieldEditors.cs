@@ -200,86 +200,142 @@ public partial class TerrainEditor
     }
 
     private Control CreateAttackMatrixEditor(
-    Godot.Collections.Dictionary<string, int> dict, 
-    string title,
-    Color titleColor,
-    Action<object> onChanged)
-{
-    var mainVbox = new VBoxContainer();
-    mainVbox.AddThemeConstantOverride("separation", 4);
-
-    var titleLabel = new Label();
-    titleLabel.Text = $"⚔️ {title}";
-    titleLabel.AddThemeFontSizeOverride("font_size", 13);
-    titleLabel.AddThemeColorOverride("font_color", titleColor);
-    mainVbox.AddChild(titleLabel);
-
-    if (title == TranslateGroup.T("主武器"))
+        System.Collections.Generic.IDictionary<string, int> dict,
+        string title,
+        Color titleColor,
+        Action<object> onChanged)
     {
-        var mulLabel = new Label();
-        mulLabel.Text = $"{TranslateGroup.T("反击系数")}: {((Infantry)currentEditingTarget).counterMul:F1}";
-        mulLabel.AddThemeFontSizeOverride("font_size", 10);
-        mulLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.7f));
-        mainVbox.AddChild(mulLabel);
-    }
+        var mainVbox = new VBoxContainer();
+        mainVbox.AddThemeConstantOverride("separation", 4);
 
-    string attackerType = currentEditingTarget?.GetType().Name ?? "Unknown";
-    string[] defenderTypes = { "Infantry", "Mech", "Bike", "Oozium", "Recon", "APC", "LightTank", "MdTank", "Artillery", "Rocket", "AntiAir", "AntiTank", "PipeRunner", "Flare", "RepairBoat", "FlyBomb", "Fighter", "Bomber", "BCopter", "TCopter", "AntiAirMissile", "Stealth", "Dog", "Battleship", "Cruiser", "Submarine", "Lander", "Carrier", "Gunboat", "Neotank", "Megatank", "WarTank", "Rig", "Duster", "Seaplane", "ProducibleBoat", "KamikazeBoat" };
+        var titleLabel = new Label();
+        titleLabel.Text = $"⚔️ {title}";
+        titleLabel.AddThemeFontSizeOverride("font_size", 13);
+        titleLabel.AddThemeColorOverride("font_color", titleColor);
+        mainVbox.AddChild(titleLabel);
 
-    foreach (var defenderType in defenderTypes)
-    {
-        var hbox = new HBoxContainer();
-        hbox.AddThemeConstantOverride("separation", 8);
-
-        var nameLabel = new Label();
-        nameLabel.Text = $"→ {defenderType}:";
-        nameLabel.CustomMinimumSize = new Vector2(100, 24);
-        nameLabel.AddThemeFontSizeOverride("font_size", 11);
-        hbox.AddChild(nameLabel);
-
-        string key = $"{attackerType}_{defenderType}";
-        int currentValue = dict.GetValueOrDefault(key, 0);
-
-        var spinBox = new SpinBox();
-        spinBox.MinValue = 0;
-        spinBox.MaxValue = 999;
-        spinBox.Value = currentValue;
-        spinBox.CustomMinimumSize = new Vector2(80, 24);
-        spinBox.AddThemeFontSizeOverride("font_size", 11);
-
-        string capturedKey = key;
-        spinBox.ValueChanged += (newVal) => {
-            dict[capturedKey] = (int)newVal;
-            onChanged(dict);
-        };
-
-        hbox.AddChild(spinBox);
-
-        if (currentValue == 0)
+        // 开创人2026-11-11 修复：null 字典不再走 null==null 误判主武器然后 InvalidCastException。
+        if (dict == null)
         {
-            var hintLabel = new Label();
-            hintLabel.Text = "-";
-            hintLabel.AddThemeColorOverride("font_color", Colors.Red);
-            hbox.AddChild(hintLabel);
-        }
-        else if (title == TranslateGroup.T("主武器"))
-        {
-            float mul = ((Infantry)currentEditingTarget).counterMul;
-            int counterVal = Mathf.RoundToInt(currentValue * mul);
-            var counterLabel = new Label();
-            counterLabel.Text = $"{TranslateGroup.T("反")}:{counterVal}";
-            counterLabel.AddThemeFontSizeOverride("font_size", 10);
-            counterLabel.AddThemeColorOverride("font_color", new Color(0.5f, 0.8f, 0.5f));
-            hbox.AddChild(counterLabel);
+            var nullLabel = new Label { Text = "（字典为空/未初始化，保存过一次后生效）" };
+            nullLabel.AddThemeColorOverride("font_color", Colors.Gray);
+            mainVbox.AddChild(nullLabel);
+            return mainVbox;
         }
 
-        mainVbox.AddChild(hbox);
+        bool legacy = currentEditingTarget is Infantry;   // 只有单位的攻击矩阵用 39 防御者硬表
+
+        if (legacy && title == TranslateGroup.T("主武器"))
+        {
+            var mulLabel = new Label();
+            mulLabel.Text = $"{TranslateGroup.T("反击系数")}: {((Infantry)currentEditingTarget).counterMul:F1}";
+            mulLabel.AddThemeFontSizeOverride("font_size", 10);
+            mulLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.7f));
+            mainVbox.AddChild(mulLabel);
+        }
+
+        if (legacy)
+        {
+            string attackerType = currentEditingTarget.GetType().Name;
+            string[] defenderTypes = { "Infantry", "Mech", "Bike", "Oozium", "Recon", "APC", "LightTank", "MdTank", "Artillery", "Rocket", "AntiAir", "AntiTank", "PipeRunner", "Flare", "RepairBoat", "FlyBomb", "Fighter", "Bomber", "BCopter", "TCopter", "AntiAirMissile", "Stealth", "Dog", "Battleship", "Cruiser", "Submarine", "Lander", "Carrier", "Gunboat", "Neotank", "Megatank", "WarTank", "Rig", "Duster", "Seaplane", "ProducibleBoat", "KamikazeBoat" };
+
+            foreach (var defenderType in defenderTypes)
+            {
+                var hbox = new HBoxContainer();
+                hbox.AddThemeConstantOverride("separation", 8);
+
+                var nameLabel = new Label();
+                nameLabel.Text = $"→ {defenderType}:";
+                nameLabel.CustomMinimumSize = new Vector2(100, 24);
+                nameLabel.AddThemeFontSizeOverride("font_size", 11);
+                hbox.AddChild(nameLabel);
+
+                string key = $"{attackerType}_{defenderType}";
+                int currentValue = dict.TryGetValue(key, out var v0) ? v0 : 0;
+
+                var spinBox = new SpinBox();
+                spinBox.MinValue = 0;
+                spinBox.MaxValue = 999;
+                spinBox.Value = currentValue;
+                spinBox.CustomMinimumSize = new Vector2(80, 24);
+                spinBox.AddThemeFontSizeOverride("font_size", 11);
+
+                string capturedKey = key;
+                spinBox.ValueChanged += (newVal) => {
+                    dict[capturedKey] = (int)newVal;
+                    onChanged(dict);
+                };
+
+                hbox.AddChild(spinBox);
+
+                if (currentValue == 0)
+                {
+                    var hintLabel = new Label();
+                    hintLabel.Text = "-";
+                    hintLabel.AddThemeColorOverride("font_color", Colors.Red);
+                    hbox.AddChild(hintLabel);
+                }
+                else if (title == TranslateGroup.T("主武器"))
+                {
+                    float mul = ((Infantry)currentEditingTarget).counterMul;
+                    int counterVal = Mathf.RoundToInt(currentValue * mul);
+                    var counterLabel = new Label();
+                    counterLabel.Text = $"{TranslateGroup.T("反")}:{counterVal}";
+                    counterLabel.AddThemeFontSizeOverride("font_size", 10);
+                    counterLabel.AddThemeColorOverride("font_color", new Color(0.5f, 0.8f, 0.5f));
+                    hbox.AddChild(counterLabel);
+                }
+
+                mainVbox.AddChild(hbox);
+            }
+        }
+        else
+        {
+            // 通用字典编辑器（开创人2026-11-11）：设施伤害表/兵器防御表等任意 string→int 字典——列出真实键，可增删改。
+            var keys = new List<string>(dict.Keys);
+            keys.Sort(StringComparer.Ordinal);
+            foreach (var key in keys)
+            {
+                var hbox = new HBoxContainer();
+                hbox.AddThemeConstantOverride("separation", 8);
+
+                var nameLabel = new Label { Text = $"→ {key}:" };
+                nameLabel.CustomMinimumSize = new Vector2(140, 24);
+                nameLabel.AddThemeFontSizeOverride("font_size", 11);
+                hbox.AddChild(nameLabel);
+
+                var spinBox = new SpinBox { MinValue = 0, MaxValue = 999999, Value = dict[key], CustomMinimumSize = new Vector2(80, 24) };
+                string capturedKey = key;
+                spinBox.ValueChanged += (newVal) => { dict[capturedKey] = (int)newVal; onChanged(dict); };
+                hbox.AddChild(spinBox);
+
+                var delBtn = new Button { Text = "×" };
+                delBtn.Pressed += () => { dict.Remove(capturedKey); onChanged(dict); BuildPropertyEditor(currentEditingTarget); };
+                hbox.AddChild(delBtn);
+
+                mainVbox.AddChild(hbox);
+            }
+
+            var addRow = new HBoxContainer();
+            var keyEdit = new LineEdit { PlaceholderText = "新键名(UnitTypeId/类名)", CustomMinimumSize = new Vector2(170, 24) };
+            var addBtn = new Button { Text = "＋添加" };
+            addBtn.Pressed += () =>
+            {
+                var k = keyEdit.Text.Trim();
+                if (k.Length == 0 || dict.ContainsKey(k)) return;
+                dict[k] = 0;
+                onChanged(dict);
+                BuildPropertyEditor(currentEditingTarget);
+            };
+            addRow.AddChild(keyEdit);
+            addRow.AddChild(addBtn);
+            mainVbox.AddChild(addRow);
+        }
+
+        return mainVbox;
     }
 
-    return mainVbox;
-}
-
-private void ApplyPreset(Godot.Collections.Dictionary<string, int> dict, string attackerType, string preset)
+private void ApplyPreset(System.Collections.Generic.IDictionary<string, int> dict, string attackerType, string preset)
 {
     string[] defenders = { "Infantry", "Mech", "Bike", "Oozium", "Recon", "APC", "LightTank", "MdTank", "Artillery", "Rocket", "AntiAir", "AntiTank", "PipeRunner", "Flare", "RepairBoat", "FlyBomb", "Fighter", "Bomber", "BCopter", "TCopter", "AntiAirMissile", "Stealth", "Dog", "Battleship", "Cruiser", "Submarine", "Lander", "Carrier", "Gunboat", "Neotank", "Megatank", "WarTank", "Rig", "Duster", "Seaplane", "ProducibleBoat", "KamikazeBoat" };
 

@@ -65,7 +65,7 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
         }
     };
 
-    Control editor = CreateEditorForType(memberType, value, getter, wrappedSetter);
+    Control editor = CreateEditorForType(memberType, value, getter, wrappedSetter, name);
 
     if (editor != null)
     {
@@ -76,7 +76,7 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
     propertyContainer.AddChild(hbox);
 }
 
-private Control CreateEditorForType(Type propType, object value, Func<object> getter, Action<object> onChanged)
+private Control CreateEditorForType(Type propType, object value, Func<object> getter, Action<object> onChanged, string fieldName = null)
 {
     if (propType == typeof(int))
     {
@@ -220,10 +220,11 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
         }
         if (keyType == typeof(string) && valueType == typeof(int))
         {
-            var dictin = value as Godot.Collections.Dictionary<string, int>;
-            bool isPrimary = (currentEditingTarget as Infantry)?.attackMatrix == dict;
-            string title = isPrimary ? TranslateGroup.T("主武器") : TranslateGroup.T("副武器");
-            Color color = isPrimary ? Colors.Red : Colors.Blue;
+            // 开创人2026-11-11 修复：.NET 与 Godot 字典通吃（IDictionary 接口直写原实例）；isPrimary 只对真正的单位攻击矩阵成立。
+            var dictin = value as System.Collections.Generic.IDictionary<string, int>;
+            bool isPrimary = currentEditingTarget is Infantry inf0 && inf0.attackMatrix == value;
+            string title = isPrimary ? TranslateGroup.T("主武器") : (fieldName ?? propType.Name);
+            Color color = isPrimary ? Colors.Red : new Color(0.5f, 0.8f, 0.5f);
             return CreateAttackMatrixEditor(dictin, title, color, (newDict) => onChanged(newDict));
         }
 
