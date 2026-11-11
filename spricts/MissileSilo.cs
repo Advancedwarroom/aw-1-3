@@ -58,6 +58,7 @@ public partial class MissileSilo : Weapon
     // ========== 12. 打击伤害面（以目标点为新圆心）==========
     [Export] public int blastMinRadius = 0;                     // 12.伤害面最小半径（盲区）
     [Export] public int blastMaxRadius = 2;                    // 12.伤害面最大半径（原作5×5菱形=2）
+    [Export] public bool blastCanCrossScreens = false;      // 弹着点周围的爆炸效果是否允许跨屏
     [Export] public string effectBlacklist = "";                        // 打击效果黑名单（类名逗号分隔；空=不屏蔽，导弹井沿用原作留空）
     [Export] public int[] effectAmmoDeltaPct = new int[8];              // 按弹药类型0-7：该弹药现有量百分比增减（可负）
     [Export] public int[] effectAmmoMaxPct = new int[8];                // 按弹药类型0-7：该弹药上限百分比增减（可负）
@@ -222,7 +223,7 @@ public partial class MissileSilo : Weapon
         var blastGrids = gm2.gridManager.grids.Where(g =>
         {
             int d = Mathf.Abs(g.GridIndex.X - targetGrid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - targetGrid.GridIndex.Y);
-            return d >= blastMinRadius && d <= blastMaxRadius;
+            return d >= blastMinRadius && d <= blastMaxRadius && gm2.gridManager.IsRangeAllowed(targetGrid, g, blastCanCrossScreens);
         }).ToList();
 
         foreach (var g in blastGrids) ApplyStrikeEffects(g, gm2);
