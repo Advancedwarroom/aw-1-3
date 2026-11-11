@@ -169,8 +169,11 @@ public partial class Facility : Node2D
     [Export] public int primaryAmmoSupply = 0;
     [Export] public int fuelSupply = 0;
     [Export] public int productionAmmoSupply = 0;     // ✅ 新弹药：生产弹补给（999=补满）
-    [Export] public int constructionAmmoSupply = 0;   // ✅ 新弹药：建造弹补给（999=补满）
-    [Export] public int specialAmmoSupply = 0;      // ✅ 第11资源：特殊弹补给（999=补满；useSpecialAmmo=false的单位不收）
+    [Export] public int constructionAmmoSupply = 0;   // 建造弹补给（999=补满）
+    [Export] public int specialAmmoSupply = 0;      // 特殊弹补给（999=补满）
+    [Export] public int pushReboundAmmoSupply = 0;
+    [Export] public int pushMitigationAmmoSupply = 0;
+    [Export] public int antiGravityTransferAmmoSupply = 0;
 
     [ExportGroup("补给支持兵种过滤（为空=不限制）")]
     [Export] public Godot.Collections.Array<string> supportedUnitTypesForHeal = new();
@@ -1059,6 +1062,42 @@ public partial class Facility : Node2D
                             if (supplyColor == Colors.Green) supplyColor = new Color(0.5f, 0.7f, 0.9f);
                         }
                     }
+                }
+            }
+
+            if (pushReboundAmmoSupply != 0)
+            {
+                int oldAmmo = unit.GetAmmo(Infantry.AmmoKind.PushRebound);
+                if (pushReboundAmmoSupply >= 999) unit.RefillAmmo(Infantry.AmmoKind.PushRebound);
+                else unit.AddAmmo(Infantry.AmmoKind.PushRebound, pushReboundAmmoSupply);
+                if (unit.GetAmmo(Infantry.AmmoKind.PushRebound) != oldAmmo)
+                {
+                    supplied = true;
+                    supplyParts.Add("Rebound+");
+                }
+            }
+
+            if (pushMitigationAmmoSupply != 0)
+            {
+                int oldAmmo = unit.GetAmmo(Infantry.AmmoKind.PushMitigation);
+                if (pushMitigationAmmoSupply >= 999) unit.RefillAmmo(Infantry.AmmoKind.PushMitigation);
+                else unit.AddAmmo(Infantry.AmmoKind.PushMitigation, pushMitigationAmmoSupply);
+                if (unit.GetAmmo(Infantry.AmmoKind.PushMitigation) != oldAmmo)
+                {
+                    supplied = true;
+                    supplyParts.Add("Mitigation+");
+                }
+            }
+
+            if (antiGravityTransferAmmoSupply != 0)
+            {
+                int oldAmmo = unit.GetAmmo(Infantry.AmmoKind.AntiGravityTransfer);
+                if (antiGravityTransferAmmoSupply >= 999) unit.RefillAmmo(Infantry.AmmoKind.AntiGravityTransfer);
+                else unit.AddAmmo(Infantry.AmmoKind.AntiGravityTransfer, antiGravityTransferAmmoSupply);
+                if (unit.GetAmmo(Infantry.AmmoKind.AntiGravityTransfer) != oldAmmo)
+                {
+                    supplied = true;
+                    supplyParts.Add("Transfer+");
                 }
             }
 
