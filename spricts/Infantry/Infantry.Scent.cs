@@ -15,6 +15,7 @@ public partial class Infantry
     [Export] public bool scentIgnoresStealth = false;
     [Export] public bool scentKeepObserving = false;
     [Export] public int scentTrackTurns = 1;
+    [Export] public bool scentCanCrossScreens = false; // 嗅探扫描是否允许跨屏
 
 
 
@@ -44,6 +45,7 @@ public partial class Infantry
             if (g == null || g == grid) continue;
             int dist = Math.Abs(g.GridIndex.X - grid.GridIndex.X) + Math.Abs(g.GridIndex.Y - grid.GridIndex.Y);
             if (dist < scentRangeMin || dist > scentRangeMax) continue;
+            if (!gridManager.IsRangeAllowed(grid, g, scentCanCrossScreens)) continue;
             foreach (var u in g.infantries)
             {
                 if (u == null || u.team == team || !GodotObject.IsInstanceValid(u)) continue;
