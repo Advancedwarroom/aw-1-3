@@ -541,8 +541,14 @@ public partial class Infantry
     {
         if (tile?.infantries == null) return new List<Infantry>();
         tile.infantries.RemoveAll(u => u == null || !GodotObject.IsInstanceValid(u)
-            || u.IsQueuedForDeletion() || u.health <= 0);
-        return tile.infantries.Distinct().Where(IsLivingUnit).ToList();
+            || u.IsQueuedForDeletion() || u.health <= 0 || u.grid != tile);
+        var living = tile.infantries.Distinct().Where(IsLivingUnit).ToList();
+        // Keep the legacy single-unit pointer consistent with the authoritative stack list.
+        if (tile.infantry == null || !GodotObject.IsInstanceValid(tile.infantry)
+            || tile.infantry.IsQueuedForDeletion() || tile.infantry.health <= 0
+            || tile.infantry.grid != tile || !living.Contains(tile.infantry))
+            tile.infantry = living.FirstOrDefault();
+        return living;
     }
 
     private static float GetStackWeight(List<Infantry> stack) =>
@@ -590,7 +596,10 @@ public partial class Infantry
         {
             unit.grid = destination;
             if (!destination.infantries.Contains(unit)) destination.infantries.Add(unit);
-            if (destination.infantry == null) destination.infantry = unit;
+            if (destination.infantry == null || !GodotObject.IsInstanceValid(destination.infantry)
+                || destination.infantry.IsQueuedForDeletion() || destination.infantry.health <= 0
+                || destination.infantry.grid != destination)
+                destination.infantry = unit;
             unit.Position = destination.Position;
         }
     }
@@ -598,10 +607,8 @@ public partial class Infantry
     private static void DestroyPushedUnit(Infantry unit, GameManager gameManager)
     {
         if (!IsLivingUnit(unit)) return;
-        unit.health = 0;
-        unit.UpdateHpLabel();
-        unit.OnDestroyed();
         var origin = unit.grid;
+        // Detach from occupancy before destruction callbacks, which may clear grid themselves.
         if (origin != null)
         {
             origin.infantries.Remove(unit);
@@ -609,6 +616,9 @@ public partial class Infantry
                 origin.infantry = origin.infantries.FirstOrDefault(IsLivingUnit);
             unit.grid = null;
         }
+        unit.health = 0;
+        unit.UpdateHpLabel();
+        unit.OnDestroyed();
         unit.ClearFootprint();
         unit.CallDeferred(Node.MethodName.QueueFree);
         gameManager?.RemovePiece(unit);
