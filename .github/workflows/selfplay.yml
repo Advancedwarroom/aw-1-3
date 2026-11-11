@@ -89,7 +89,10 @@ jobs:
       - name: 杀掉 MSBuild 服务进程
         run: dotnet build-server shutdown
       - name: City P-1 换色断言
-        run: timeout 120 godot --headless --path . res://tests/facility_recolor_check.tscn 2>&1 | tee build/recolor.log
+        run: |
+          mkdir -p build
+          timeout 120 godot --headless --path . res://tests/facility_recolor_check.tscn 2>&1 | tee build/recolor.log
+          exit ${PIPESTATUS[0]}
       - name: 断言日志上汇总页（截图即报错同款哲学）
         if: always()
         run: mkdir -p build && cat build/recolor.log >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
