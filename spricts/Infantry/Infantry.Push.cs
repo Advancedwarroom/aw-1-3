@@ -122,6 +122,9 @@ public partial class Infantry
 
     [ExportSubgroup("反弹模块")]
     [Export] public bool pushReboundEnabled = false;
+    [Export] public bool pushReboundCanTargetEnemies = true;
+    [Export] public bool pushReboundCanTargetFriendlies = false;
+    [Export] public bool pushReboundCanTargetAllies = false;
     [Export] public bool pushReboundToOrigin = true;
     [Export] public int pushReboundAmmoCost = 0;
     [Export] public AmmoKind pushReboundAmmoKind = AmmoKind.PushRebound;
