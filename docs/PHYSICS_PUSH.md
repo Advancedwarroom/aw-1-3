@@ -29,7 +29,7 @@ For a separate action:
 
 ## Direction, chain, costs and effects
 
-- `pushDirectionMode` supports away-from-pusher, fixed cardinal direction, and opposite-sides drag. In opposite-sides mode, the target is displaced along the push vector and the pusher retreats in the reverse direction; the pusher stops at blockers and applies its own invalid-tile destruction setting.
+- `pushDirectionMode` supports away-from-pusher, fixed eight-way grid direction, and opposite-sides drag. Transfer vectors also support eight-way grid directions. In opposite-sides mode, the target is displaced along the push vector and the pusher retreats in the reverse direction; the pusher stops at blockers and applies its own invalid-tile destruction setting.
 - `pushDistance` is the maximum displacement; `pushMinDistance` is the minimum. Attack-triggered pushes use the maximum. Separate actions use the maximum when `pushAutoDistance` is enabled; otherwise a popup lets the player choose a distance in the configured range.
 - When `pushForceScalesWithDistance` is enabled, force uses the actual selected displacement distance, not always the maximum.
 - `pushMaxChainStacks` and `pushMaxChainUnits` limit chain length.
@@ -48,7 +48,7 @@ For a separate action:
 - Weapon and facility push targets support health damage, one-HP locking, healing, and maximum-health changes. Weapons also map the six compatible shared ammo kinds to their native ammo slots. Infantry additionally supports fuel and all shared ammo kinds.
 - Infantry `pushFragileEnabled` applies configured fixed health/fuel/ammo impact to survivors of unit-stack and static-obstacle collisions. The current fragile damage mode is fixed-value only.
 - Rebound/transfer are implemented for infantry stacks, not static entities.
-- Visual push animation, free-angle direction selection, attack/funds-based fragile damage, and full simultaneous rebound/mitigation/transfer conflict arbitration remain future work.
+- Visual push animation, continuous free-angle 0–360° direction selection (the current grid solver is eight-way), attack/funds-based fragile damage, and full simultaneous rebound/mitigation/transfer conflict arbitration remain future work.
 - Chain force and per-link policy now apply to infantry stacks; a single unified solver for mixed infantry/weapon/facility chains is still outstanding.
 
 This is a staged implementation; run the Android CI workflow and in-game scenarios before merging.
