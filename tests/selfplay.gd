@@ -206,15 +206,15 @@ func _finish() -> void:
 	print("[SELFPLAY] 结果: %s | 阶段: %d | 失败: %d" % [report["result"], phase_changes, failures.size()])
 	var exit_code := 0 if failures.is_empty() else 1
 	var tree := get_tree()
-	# Free the game scene and any transient nodes it reparented to the SceneTree root.
-	# Preserve the TranslateGroup autoload; it clears its static UI registry on exit.
+	# Free the game scene and every root-level runtime/autoload node before shutdown.
+	# TranslateGroup._ExitTree clears its static UI registry and unregisters translations.
 	if game_instance != null and is_instance_valid(game_instance):
 		game_instance.free()
 	game_instance = null
 	game_manager = null
 	ai_manager = null
 	for child in tree.root.get_children():
-		if child == self or child.is_in_group("translate_group"):
+		if child == self:
 			continue
 		child.free()
 	await tree.process_frame

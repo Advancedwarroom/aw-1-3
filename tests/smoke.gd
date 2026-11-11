@@ -29,7 +29,7 @@ func _run_smoke() -> void:
 	# Some effects deliberately reparent themselves to the SceneTree root. They are
 	# transient in this test and must be freed before checking shutdown leaks.
 	for child in tree.root.get_children():
-		if child == self or child.is_in_group("translate_group"):
+		if child == self:
 			continue
 		child.free()
 	await tree.process_frame
