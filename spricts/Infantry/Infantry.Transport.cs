@@ -299,11 +299,13 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
     var blockingUnit = targetGrid.infantries.FirstOrDefault(u => 
         u != null && IsInstanceValid(u) && 
         u.overlapType == UnitOverlapType.NonOverlapping);
-    if (blockingUnit != null) return false;
-    
+    if (blockingUnit != null)
+    { ScreenErrorLogger.Diag($"[卸载] 拒绝：目标格被非重叠单位 {blockingUnit.Name}({blockingUnit.team}) 阻挡"); return false; }
+
     RemoveInternalExportService(unit);
     transportedUnits.Remove(unit);
     unit.isTransported = false;
+    ScreenErrorLogger.Diag($"[卸载] ✓ {unit.Name}({unit.team}) 在 ({targetGrid.GridIndex.X},{targetGrid.GridIndex.Y}) 下船");
     
     unit.Show();
     unit.ProcessMode = ProcessModeEnum.Inherit;
