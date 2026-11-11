@@ -491,14 +491,18 @@ public partial class Infantry
                 var destination = gridManager.GetGridAt(currentGrid.GridIndex + direction);
                 if (destination == null)
                 {
-                    foreach (var unit in stack) DestroyPushedUnit(unit, gameManager);
-                    continue;
+                    // The pusher decides whether reaching the map edge is lethal.
+                    // A non-destructive push stops at the boundary without moving
+                    // any stack through the missing tile.
+                    if (pushSelfDestructOnInvalidIntermediateTile)
+                        foreach (var unit in stack) DestroyPushedUnit(unit, gameManager);
+                    break;
                 }
 
                 foreach (var unit in stack.ToList())
                 {
                     bool invalidTerrain = unit.GetMoveCostOnGrid(destination) >= 999;
-                    if (invalidTerrain && (unit.pushSelfDestructOnInvalidIntermediateTile || finalStepForStack))
+                    if (invalidTerrain && (pushSelfDestructOnInvalidIntermediateTile || finalStepForStack))
                         DestroyPushedUnit(unit, gameManager);
                 }
                 stack = stack.Where(IsLivingUnit).ToList();
