@@ -23,19 +23,10 @@ func _run_smoke() -> void:
 
 	print("SMOKE_PASS: %d frames" % FRAMES_TO_RUN)
 	var tree := get_tree()
-	if main_instance != null and is_instance_valid(main_instance):
-		main_instance.free()
-	main_instance = null
-	print("[TEST_CLEANUP] found TranslateGroup: ", is_instance_valid(TranslateGroup))
+	# 只释放 TranslateGroup 静态注册表；节点树交给 quit() 自然拆卸。
+	# 手动 free() 在树中节点会导致 C# 静态引用悬空 → 退出 ERROR 洪灾（CI grep 判挂）。
+	# 参考 tests/facility_recolor_check.gd：quit(0) 自然拆卸即干净退出。
 	if is_instance_valid(TranslateGroup):
 		TranslateGroup.ReleaseRuntimeResources()
-		print("[TEST_CLEANUP] called ReleaseRuntimeResources")
-	# Some effects deliberately reparent themselves to the SceneTree root. They are
-	# transient in this test and must be freed before checking shutdown leaks.
-	for child in tree.root.get_children(true):
-		if child == self:
-			continue
-		child.free()
-	await tree.process_frame
-	await tree.process_frame
+	main_instance = null
 	tree.quit(0)
