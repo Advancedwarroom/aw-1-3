@@ -125,10 +125,10 @@ public partial class Grids : Node2D
     public Action OnMouseEnteredAttackGrid;
     public Action OnMouseExitedAttackGrid;
 
-    public bool HasEnemyWeapon(string myTeam, bool includeFriendly = false)
+    public bool HasEnemyWeapon(string myTeam, bool includeFriendly = false, bool includeAllies = false)
     {
-        // ✅ 盟友机制：同盟兵器不算敌方目标
-        return weapons.Any(w => IsInstanceValid(w) && !w.IsQueuedForDeletion() && TeamHelper.IsEnemyForAttacker(myTeam, w.team, includeFriendly));
+        // ✅ 盟友机制：同盟兵器不算敌方目标（友军火力·扩展放行）
+        return weapons.Any(w => IsInstanceValid(w) && !w.IsQueuedForDeletion() && TeamHelper.IsEnemyForAttacker(myTeam, w.team, includeFriendly, includeAllies));
     }
 
     public override void _Ready()
@@ -825,7 +825,7 @@ public partial class Grids : Node2D
     // ✅ 有效敌方目标：排除自身/已失效/阵亡/运输中/同队（P-1/P0 也不打自己队）
     public static bool IsLiveEnemyOf(Infantry reference, Infantry i)
         => i != null && i != reference && IsInstanceValid(i) && !i.IsQueuedForDeletion() && i.health > 0 && !i.isTransported
-           && TeamHelper.IsEnemyForAttacker(reference.team, i.team, reference.canAttackFriendlies);
+           && TeamHelper.IsEnemyForAttacker(reference.team, i.team, reference.canAttackFriendlies, reference.canAttackAllies);
     public List<Infantry> GetEnemyInfantries(Infantry reference)
     {
         var list = infantries.Where(i => IsLiveEnemyOf(reference, i)).ToList();
