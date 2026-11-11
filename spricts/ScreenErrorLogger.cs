@@ -1,4 +1,5 @@
-// ScreenErrorLogger.cs - 全局屏幕错误显示（开创人2026-11-11）：引擎所有报错/警告直接上屏，可关闭。
+    /// Godot 4 没有 Bb(string)，手写："[ " → "[lb]"。
+    private static string Bb(string s) => (s ?? "").Replace("[", "[lb]");\n// ScreenErrorLogger.cs - 全局屏幕错误显示（开创人2026-11-11）：引擎所有报错/警告直接上屏，可关闭。
 // 手机看不了 Godot 控制台——这个文件把全引擎错误流变成游戏画面里的滚动红字条。
 using Godot;
 using System.Collections.Generic;
@@ -21,14 +22,14 @@ public partial class ScreenErrorLogger : Godot.Logger
         var msg = string.IsNullOrEmpty(rationale) ? code : rationale;
         var color = errorType == (int)ErrorType.Warning ? "gold" : "tomato";
         var kind = errorType == (int)ErrorType.Warning ? "警告" : "错误";
-        ScreenErrorPump.Enqueue($"[color={color}][b]{kind}[/b] {msg.EscapeBBCode()}\n[i]{file}:{line} @{function}()[/i][/color]\n");
+        ScreenErrorPump.Enqueue($"[color={color}][b]{kind}[/b] {Bb(msg)}\n[i]{file}:{line} @{function}()[/i][/color]\n");
     }
 
     public override void _LogMessage(string message, bool error)
     {
         if (!error) return;                       // 只上屏 stderr 级，普通 print 不上屏
         if (message.Contains("ScreenError")) return;   // 防自激
-        ScreenErrorPump.Enqueue($"[color=orange]{message.EscapeBBCode()}[/color]\n");
+        ScreenErrorPump.Enqueue($"[color=orange]{Bb(message)}[/color]\n");
     }
 }
 
@@ -61,7 +62,7 @@ public partial class ScreenErrorPump : Node
         root.AddChild(layer);
 
         panel = new PanelContainer();
-        panel.SetAnchorsPreset(LayoutPreset.TopRight);
+        panel.SetAnchorsPreset(Control.LayoutPreset.TopRight);
         panel.Position = new Vector2(-472, 8);
         panel.CustomMinimumSize = new Vector2(462, 300);
         var vb = new VBoxContainer();
@@ -86,7 +87,7 @@ public partial class ScreenErrorPump : Node
         layer.AddChild(panel);
 
         reopenButton = new Button { Text = "⚠", Modulate = new Color(1f, 0.4f, 0.4f) };
-        reopenButton.SetAnchorsPreset(LayoutPreset.TopRight);
+        reopenButton.SetAnchorsPreset(Control.LayoutPreset.TopRight);
         reopenButton.Position = new Vector2(-42, 8);
         reopenButton.Visible = false;
         reopenButton.Pressed += () => { panel.Visible = true; reopenButton.Visible = false; };
