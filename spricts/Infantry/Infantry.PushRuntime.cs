@@ -8,6 +8,23 @@ public partial class Infantry
 {
     private PopupMenu pushDistancePopup;
 
+    public bool TryPushWeaponOnMovement(Weapon target, Vector2I movementDirection)
+    {
+        if (target == null || target.grid == null || movementDirection == Vector2I.Zero
+            || pushDirectionMode == PushDirectionMode.Fixed && fixedPushDirection == Vector2I.Zero)
+            return false;
+        TryPushWeaponOnAttack(target, fromMovement: true, directionOverride: movementDirection);
+        return target.grid != null && !target.grid.weapons.Contains(target);
+    }
+
+    public bool TryPushFacilityOnMovement(Facility target, Vector2I movementDirection)
+    {
+        if (target == null || target.ParentGrid == null || movementDirection == Vector2I.Zero)
+            return false;
+        TryPushFacilityOnAttack(target, fromMovement: true, directionOverride: movementDirection);
+        return target.ParentGrid != null && target.ParentGrid.city != target;
+    }
+
     public bool TryPushTargetOnMovement(Grids targetGrid, Vector2I movementDirection)
     {
         if (!CanUseMovementPush() || targetGrid == null || grid == null
@@ -35,7 +52,7 @@ public partial class Infantry
             || grid == null || target == null || !GodotObject.IsInstanceValid(target)
             || target.grid == null || !IsWithinPushTargetRange(target.grid)) return;
 
-        Vector2I direction = GetPushDirection(target.grid);
+        Vector2I direction = directionOverride ?? GetPushDirection(target.grid);
 
         if (direction == Vector2I.Zero) return;
 
@@ -49,11 +66,13 @@ public partial class Infantry
         PayPushCost(gm);
     }
 
-    public void TryPushWeaponOnAttack(Weapon target, bool fromSeparateAction = false, int? distanceOverride = null)
+    public void TryPushWeaponOnAttack(Weapon target, bool fromSeparateAction = false,
+        int? distanceOverride = null, bool fromMovement = false, Vector2I? directionOverride = null)
     {
         int distance = GetRequestedPushDistance(distanceOverride);
-        if (distance > 0
-            && (fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction : CanUseAttackPush())
+        bool triggerReady = fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction
+            : fromMovement ? CanUseMovementPush() : CanUseAttackPush();
+        if (distance > 0 && triggerReady
             && pushTargetClass == PushTargetClass.AnyPushableEntity && pushCanTargetWeapons
             && target != null && target.grid != null && IsWithinPushTargetRange(target.grid)
             && CanPushTeamName(target.team, target.GetType().Name)
@@ -76,11 +95,15 @@ public partial class Infantry
                 moved = true;
             }
             if (!moved) return;
-            if (pushDirectionMode == PushDirectionMode.OppositeSides)
+            if (!fromMovement && pushDirectionMode == PushDirectionMode.OppositeSides)
                 MovePusherOppositeDirection(direction, distance, gm.gridManager, gm);
             if (fromSeparateAction)
             {
                 if (!TryMarkPushActionUsed()) return;
+            }
+            else if (fromMovement)
+            {
+                if (!TryMarkMovementPushUsed()) return;
             }
             else if (!TryMarkAttackPushUsed()) return;
             PayPushCost(gm);
@@ -88,11 +111,13 @@ public partial class Infantry
         }
     }
 
-    public void TryPushFacilityOnAttack(Facility target, bool fromSeparateAction = false, int? distanceOverride = null)
+    public void TryPushFacilityOnAttack(Facility target, bool fromSeparateAction = false,
+        int? distanceOverride = null, bool fromMovement = false)
     {
         int distance = GetRequestedPushDistance(distanceOverride);
-        if (distance <= 0
-            || (fromSeparateAction ? pushTriggerMode != PushTriggerMode.SeparateAction : !CanUseAttackPush())
+        bool triggerReady = fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction
+            : fromMovement ? CanUseMovementPush() : CanUseAttackPush();
+        if (distance <= 0 || !triggerReady
             || pushTargetClass != PushTargetClass.AnyPushableEntity || !pushCanTargetFacilities
             || target == null || target.ParentGrid == null || !IsWithinPushTargetRange(target.ParentGrid)
             || !CanPushTeamName(target.facilityTeam, target.GetType().Name)
@@ -102,7 +127,7 @@ public partial class Infantry
 
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null) return;
-        Vector2I direction = GetPushDirection(target.ParentGrid);
+        Vector2I direction = directionOverride ?? GetPushDirection(target.ParentGrid);
         if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
         var firstDestination = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
         if (!CanMoveStaticTargetTo(firstDestination, null, target)) return;
@@ -115,11 +140,15 @@ public partial class Infantry
             moved = true;
         }
         if (!moved) return;
-        if (pushDirectionMode == PushDirectionMode.OppositeSides)
+        if (!fromMovement && pushDirectionMode == PushDirectionMode.OppositeSides)
             MovePusherOppositeDirection(direction, distance, gm.gridManager, gm);
         if (fromSeparateAction)
         {
             if (!TryMarkPushActionUsed()) return;
+        }
+        else if (fromMovement)
+        {
+            if (!TryMarkMovementPushUsed()) return;
         }
         else if (!TryMarkAttackPushUsed()) return;
         PayPushCost(gm);
@@ -165,7 +194,8 @@ public partial class Infantry
         EqualWeightPushMode targetMode, bool invalid, int distance)
     {
         if (!pushEnabled || (pushTriggerMode != PushTriggerMode.Attack
-            && pushTriggerMode != PushTriggerMode.SeparateAction) || distance <= 0
+            && pushTriggerMode != PushTriggerMode.SeparateAction
+            && pushTriggerMode != PushTriggerMode.Movement) || distance <= 0
             || targetGrid == null || invalid || pushable != true || targetWeight == null)
             return false;
         var pusherStack = GetLivingStack(grid);
