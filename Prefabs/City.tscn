@@ -27,7 +27,7 @@ frame_progress = 0.935788
 
 [node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(16, 16)
-scale = Vector2(0.99999994, 0.9166667)
+scale = Vector2(1, 1)
 visible = false
 sprite_frames = ExtResource("dl_base")
 
