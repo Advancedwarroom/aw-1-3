@@ -26,11 +26,22 @@ jobs:
           sudo ln -s $PWD/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64/Godot_v${GODOT_VERSION}-stable_mono_linux.x86_64 /usr/local/bin/godot
       - name: 导入资源
         run: |
+          set -euo pipefail
           mkdir -p build
-          set -o pipefail
-          godot --headless --editor --verbose --path . --quit 2>&1 | tee build/import.log
+          backup=""
+          if [ -f export_presets.cfg ]; then
+            backup="$(mktemp)"
+            mv export_presets.cfg "$backup"
+          fi
+          restore_export_presets() {
+            if [ -n "$backup" ] && [ -f "$backup" ]; then
+              mv "$backup" export_presets.cfg
+            fi
+          }
+          trap restore_export_presets EXIT
+          godot --headless --import --path . --quit 2>&1 | tee build/import.log
           if grep -E "SCRIPT ERROR|ERROR:" build/import.log; then
-            echo "Godot asset import/editor startup reported an error"; exit 1
+            echo "Godot asset import reported an error"; exit 1
           fi
       - name: 杀掉 MSBuild 服务进程
         run: dotnet build-server shutdown
@@ -63,7 +74,24 @@ jobs:
           unzip -o Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip
           sudo ln -s $PWD/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64/Godot_v${GODOT_VERSION}-stable_mono_linux.x86_64 /usr/local/bin/godot
       - name: 导入资源
-        run: godot --headless --import --path . --quit
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          backup=""
+          if [ -f export_presets.cfg ]; then
+            backup="$(mktemp)"
+            mv export_presets.cfg "$backup"
+          fi
+          restore_export_presets() {
+            if [ -n "$backup" ] && [ -f "$backup" ]; then
+              mv "$backup" export_presets.cfg
+            fi
+          }
+          trap restore_export_presets EXIT
+          godot --headless --import --path . --quit 2>&1 | tee build/import.log
+          if grep -E "SCRIPT ERROR|ERROR:" build/import.log; then
+            echo "Godot asset import reported an error"; exit 1
+          fi
       - name: 杀掉 MSBuild 服务进程
         run: dotnet build-server shutdown
       - name: 双AI自对弈 60 阶段
@@ -110,7 +138,24 @@ jobs:
           unzip -o Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64.zip
           sudo ln -s $PWD/Godot_v${GODOT_VERSION}-stable_mono_linux_x86_64/Godot_v${GODOT_VERSION}-stable_mono_linux.x86_64 /usr/local/bin/godot
       - name: 导入资源
-        run: godot --headless --import --path . --quit
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          backup=""
+          if [ -f export_presets.cfg ]; then
+            backup="$(mktemp)"
+            mv export_presets.cfg "$backup"
+          fi
+          restore_export_presets() {
+            if [ -n "$backup" ] && [ -f "$backup" ]; then
+              mv "$backup" export_presets.cfg
+            fi
+          }
+          trap restore_export_presets EXIT
+          godot --headless --import --path . --quit 2>&1 | tee build/import.log
+          if grep -E "SCRIPT ERROR|ERROR:" build/import.log; then
+            echo "Godot asset import reported an error"; exit 1
+          fi
       - name: 杀掉 MSBuild 服务进程
         run: dotnet build-server shutdown
       - name: City P-1 换色断言
