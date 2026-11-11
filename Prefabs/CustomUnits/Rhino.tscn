@@ -20,6 +20,7 @@ movePoints = 5
 maxFuel = 80
 fuel = 80
 consumeFuel = true
+baseAttack = 450
 hasPrimaryWeapon = true
 maxPrimaryAmmo = 8
 currentPrimaryAmmo = 8
