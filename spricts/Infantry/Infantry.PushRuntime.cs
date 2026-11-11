@@ -85,7 +85,7 @@ public partial class Infantry
             Vector2I direction = directionOverride ?? GetPushDirection(target.grid);
             if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
             var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
-            if (!TryResolveStaticTargetCollision(firstDestination, direction, target, null,
+            if (!TryResolveWeaponFootprintCollisions(target, firstDestination, direction,
                 gm, out bool firstDestroyed))
             {
                 if (!firstDestroyed) return;
@@ -97,7 +97,7 @@ public partial class Infantry
             for (int step = 0; step < distance && !firstDestroyed; step++)
             {
                 var next = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
-                if (!TryResolveStaticTargetCollision(next, direction, target, null, gm,
+                if (!TryResolveWeaponFootprintCollisions(target, next, direction, gm,
                     out bool destroyed))
                 {
                     if (destroyed) moved = true;
@@ -198,6 +198,8 @@ public partial class Infantry
     private bool CanMoveStaticTargetTo(Grids destination, Weapon movingWeapon = null,
         Facility movingFacility = null, bool allowInfantryOverlap = false)
     {
+        if (movingWeapon != null && movingWeapon.isMultiTile)
+            return CanMoveWeaponFootprintTo(movingWeapon, destination, allowInfantryOverlap);
         if (destination == null || (!allowInfantryOverlap && GetLivingStack(destination).Count > 0)
             || HasForeignMultiTileOccupant(destination, new List<Infantry>()))
             return false;
@@ -206,6 +208,54 @@ public partial class Infantry
         return destination.weapons == null
             || destination.weapons.All(w => w == null || !GodotObject.IsInstanceValid(w)
                 || w == movingWeapon);
+    }
+
+    private bool TryResolveWeaponFootprintCollisions(Weapon weapon, Grids nextAnchor,
+        Vector2I direction, GameManager gm, out bool movingWeaponDestroyed)
+    {
+        movingWeaponDestroyed = false;
+        if (weapon == null || nextAnchor == null || gm?.gridManager == null)
+            return false;
+        if (!weapon.pushBlocksInfantryWhenOverlapped) return true;
+
+        foreach (var index in weapon.GetOccupiedIndices(nextAnchor.GridIndex))
+        {
+            var tile = gm.gridManager.GetGridAt(index);
+            if (tile == null) return false;
+            if (!TryResolveStaticTargetCollision(tile, direction, weapon, null, gm,
+                out bool cellDestroyed))
+            {
+                movingWeaponDestroyed = cellDestroyed;
+                return false;
+            }
+            if (cellDestroyed)
+            {
+                movingWeaponDestroyed = true;
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private bool CanMoveWeaponFootprintTo(Weapon weapon, Grids nextAnchor,
+        bool allowInfantryOverlap)
+    {
+        if (weapon == null || nextAnchor == null) return false;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager == null) return false;
+        foreach (var index in weapon.GetOccupiedIndices(nextAnchor.GridIndex))
+        {
+            var tile = gm.gridManager.GetGridAt(index);
+            if (tile == null || tile.city != null
+                || (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                    && w != weapon) ?? false))
+                return false;
+            if (!allowInfantryOverlap && GetLivingStack(tile).Count > 0)
+                return false;
+            if (!allowInfantryOverlap && HasForeignMultiTileOccupant(tile, new List<Infantry>()))
+                return false;
+        }
+        return true;
     }
 
     private bool TryResolveStaticTargetCollision(Grids destination, Vector2I direction,
@@ -1378,7 +1428,7 @@ public partial class Infantry
             if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
                 && !CanResolveEqualWeight(movingStack, blockingWeapon.equalWeightPushMode)) return false;
 
-            if (!TryResolveStaticTargetCollision(nextGrid, direction, blockingWeapon, null,
+            if (!TryResolveWeaponFootprintCollisions(blockingWeapon, nextGrid, direction,
                 GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager,
                 out bool weaponDestroyed))
             {
