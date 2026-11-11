@@ -54,7 +54,9 @@ public partial class Grids : Node2D
     [Export] public int fixedDamagePerTurn = 0;
     [Export] public int fixedAttackPerTurn = 0;
     [Export] public bool canOverMaxHealth = false;
-    [Export] public int fixedMaxHealthChangePerTurn = 0; // ✦优化：最大血量每回合增减（正=增 负=减）
+    [Export] public int fixedMaxHealthChangePerTurn = 0; // 最大血量每回合增减（正=增 负=减）
+    [Export(PropertyHint.Range, "-9999,9999,0.01")]
+    public float fixedWeightChangePerTurn = 0.0f; // 单位重量每回合增减，自动限制在0–9999
 
     [ExportGroup("格子弹药/燃料系统")]
     [Export] public int fixedAmmoChangePerTurn = 0; // 主武器弹药增减（旧字段兼容保留，与下方种类增减可叠加）
@@ -436,6 +438,19 @@ public partial class Grids : Node2D
             ShowTerrainDamageEffect(unit, $"+{healAmount} (地形攻击)", new Color(0.3f, 1, 0.5f));
         }
         CheckUnitDeath(unit, "GridCustomAttack");
+    }
+
+    public void ApplyGridWeightChange(Infantry unit)
+    {
+        if (unit == null || !IsInstanceValid(unit) || fixedWeightChangePerTurn == 0.0f)
+            return;
+        float oldWeight = unit.weight;
+        unit.weight = Mathf.Clamp(unit.weight + fixedWeightChangePerTurn, 0.0f, 9999.0f);
+        float delta = unit.weight - oldWeight;
+        if (!Mathf.IsZeroApprox(delta))
+            ShowTerrainDamageEffect(unit,
+                $"重量{(delta > 0 ? "+" : "")}{delta:0.##} (地形)",
+                new Color(0.7f, 0.7f, 1.0f));
     }
 
     public void ApplyGridAmmoChange(Infantry unit)
