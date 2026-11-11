@@ -17,8 +17,8 @@ public partial class Crystal : Weapon
     // ========== 黑水晶专用配置 ==========
     [ExportGroup("黑水晶 - 范围治疗")]
     [Export] public int crystalHealMinRange = 0;        // 治疗最小范围（盲区）
-    [Export] public int crystalHealMaxRange = 3;
-    [Export] public bool crystalHealCanCrossScreens = false; // 黑水晶治疗范围是否允许跨屏        // 治疗最大范围
+    [Export] public int crystalHealMaxRange = 3;        // 治疗最大范围
+    [Export] public bool crystalHealCanCrossScreens = false; // 黑水晶治疗范围是否允许跨屏
     [Export] public float crystalHealPercent = 0.2f;    // 治疗百分比（0.2=20%）
     [Export] public bool crystalHealIncludeFriendly = true;
     [Export] public bool crystalHealIncludeEnemy = false;
