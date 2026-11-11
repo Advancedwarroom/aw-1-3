@@ -274,7 +274,7 @@ public partial class AI_Manager
                 var tg = t == u ? g : t.grid;
                 int d = Dist(g, tg);
                 if (d < u.explosionMinRange || d > u.explosionMaxRange || !gameManager.gridManager.IsRangeAllowed(g, tg, u.explosionCanCrossScreens)) continue;
-                if (t == u && u.explosionDestroysSelf) continue;
+                if (t == u && (u.explosionDestroysSelf || !u.explosionSelfDamageEnabled || u.explosionMinRange > 0)) continue;
                 bool isEnemy = t.team != u.team;
                 bool include = u.explosionTargetMode switch { 1 => isEnemy, 2 => !isEnemy, _ => true };
                 if (!include) continue;
