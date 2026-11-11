@@ -186,6 +186,28 @@ public static class UnitRegistry
             TransportUnitTypes = new[] { "Infantry", "Mech" },
         },
 
+        ["Rhino"] = new UnitConfig
+        {
+            UnitId = "Rhino",
+            DisplayName = TranslateGroup.T("犀牛"),
+            MoveType = MoveType.Treads,
+            MovePoints = 5,
+            Cost = 16000,
+            AnimPrefix = "rhino",
+            HasPrimaryWeapon = true,
+            MaxPrimaryAmmo = 8,
+            PrimaryAntiArmor = true,
+            PrimaryAntiInfantry = true,
+            HasSecondaryWeapon = true,
+            SecondaryAttack = 100,
+            SecondaryAntiInfantry = true,
+            SecondaryAntiArmor = false,
+            MaxFuel = 80,
+            ConsumeFuel = true,
+            IsArmoredUnit = true,
+            VisionRange = 4,
+        },
+
         ["MdTank"] = new UnitConfig
         {
             UnitId = "MdTank",
