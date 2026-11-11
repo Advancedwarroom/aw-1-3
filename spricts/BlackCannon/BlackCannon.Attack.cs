@@ -801,7 +801,8 @@ public override void TakeDamage(int damage, Infantry attacker = null)
 
     private void AttackWeapon(Weapon target)
     {
-        if (target == null) return;
+        var targetGrid = target?.GetWeakPointGrid() ?? target?.grid;
+        if (target == null || targetGrid == null || IsScreenBlocked(targetGrid) || !CalculateAttackRange().Contains(targetGrid)) return;
         int damage = Mathf.Max(1, Mathf.RoundToInt(target.maxHealth * fixedDamagePercent));
         target.TakeDamage(damage);
         hasActed = true;
