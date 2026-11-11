@@ -25,8 +25,8 @@ sprite_frames = ExtResource("2_lv8qx")
 animation = &"P0Base"
 
 [node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
-position = Vector2(16, 16)
-scale = Vector2(1, 1)
+position = Vector2(16, 3.9999986)
+scale = Vector2(0.99999994, 1.12)
 visible = false
 sprite_frames = ExtResource("dl_base")
 
