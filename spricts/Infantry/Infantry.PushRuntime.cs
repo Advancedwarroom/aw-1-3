@@ -74,7 +74,6 @@ public partial class Infantry
         bool triggerReady = fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction
             : fromMovement ? CanUseMovementPush() : CanUseAttackPush();
         if (distance > 0 && triggerReady
-            && pushCanTargetWeapons
             && target != null && target.grid != null
             && (fromMovement || IsWithinPushTargetRange(target.grid))
             && CanPushTeamName(target.team, target)
@@ -120,7 +119,6 @@ public partial class Infantry
         bool triggerReady = fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction
             : fromMovement ? CanUseMovementPush() : CanUseAttackPush();
         if (distance <= 0 || !triggerReady
-            || !pushCanTargetFacilities
             || target == null || target.ParentGrid == null
             || (!fromMovement && !IsWithinPushTargetRange(target.ParentGrid))
             || !CanPushTeamName(target.facilityTeam, target)
@@ -236,10 +234,13 @@ public partial class Infantry
                 || !gridManager.IsRangeAllowed(grid, tile, attackCanCrossScreens))
                 continue;
             var stack = GetLivingStack(tile);
+            var firstRule = GetPushChainRule(0);
+            bool allowWeapons = firstRule?.targetWeapons ?? pushCanTargetWeapons;
+            bool allowFacilities = firstRule?.targetFacilities ?? pushCanTargetFacilities;
             bool hasPushableStatic =
-                (pushCanTargetWeapons && (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                (allowWeapons && (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
                     && w.pushableByPhysics && CanPushTeamName(w.team, w)) ?? false))
-                || (pushCanTargetFacilities && tile.city != null && tile.city.pushableByPhysics
+                || (allowFacilities && tile.city != null && tile.city.pushableByPhysics
                     && CanPushTeamName(tile.city.facilityTeam, tile.city));
             if ((stack.Count == 0 || !CanPushTargetTeam(stack))
                 && !hasPushableStatic) continue;
@@ -654,16 +655,21 @@ public partial class Infantry
         if (targetGrid == null || grid == null || gridManager == null) return;
         var stack = GetLivingStack(targetGrid);
         bool infantryTarget = stack.Count > 0 && CanPushTargetTeam(stack);
-        bool staticTarget = !infantryTarget && (pushCanTargetWeapons || pushCanTargetFacilities);
+        var firstRule = GetPushChainRule(0);
+        bool staticTarget = !infantryTarget
+            && ((firstRule?.targetWeapons ?? pushCanTargetWeapons)
+                || (firstRule?.targetFacilities ?? pushCanTargetFacilities));
         if (stack.Count > 0 && !infantryTarget && !staticTarget) return;
         if (staticTarget)
         {
-            var weapon = pushCanTargetWeapons
+            bool allowWeapons = firstRule?.targetWeapons ?? pushCanTargetWeapons;
+            bool allowFacilities = firstRule?.targetFacilities ?? pushCanTargetFacilities;
+            var weapon = allowWeapons
                 ? targetGrid.weapons?.FirstOrDefault(w => w != null
                     && GodotObject.IsInstanceValid(w) && w.pushableByPhysics
                     && CanPushTeamName(w.team, w))
                 : null;
-            var facility = pushCanTargetFacilities && targetGrid.city != null && targetGrid.city.pushableByPhysics
+            var facility = allowFacilities && targetGrid.city != null && targetGrid.city.pushableByPhysics
                 && CanPushTeamName(targetGrid.city.facilityTeam, targetGrid.city)
                 ? targetGrid.city : null;
             if (weapon == null && facility == null) return;
