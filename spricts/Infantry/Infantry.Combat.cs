@@ -580,6 +580,12 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
         return;
     }
     
+    // Attack-mode push resolves only after the normal damage/counter/death pipeline.
+    // A target killed by the attack is already removed and cannot be pushed.
+    if (target != null && GodotObject.IsInstanceValid(target) && !target.IsQueuedForDeletion()
+        && target.health > 0)
+        TryPushTargetOnAttack(target);
+
     state = UnitState.Acted;
     FreezeToIdleDark();
     BattleTheater.Play(__theater, this);   // ✅ 剧场：常规收尾播放
