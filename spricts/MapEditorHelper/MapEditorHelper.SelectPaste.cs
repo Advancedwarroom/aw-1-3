@@ -191,6 +191,7 @@ public partial class MapEditorHelper
         cell.gridProperties["fixedDamagePerTurn"] = grid.fixedDamagePerTurn.ToString();
         cell.gridProperties["fixedAttackPerTurn"] = grid.fixedAttackPerTurn.ToString();
         cell.gridProperties["fixedMaxHealthChangePerTurn"] = grid.fixedMaxHealthChangePerTurn.ToString();
+        cell.gridProperties["fixedWeightChangePerTurn"] = grid.fixedWeightChangePerTurn.ToString(System.Globalization.CultureInfo.InvariantCulture);
         foreach (Infantry.AmmoKind k in Infantry.AllAmmoKinds)
         {
             cell.gridProperties[$"ammoChange#{(int)k}"] = grid.GetAmmoKindChange(k).ToString();
@@ -365,6 +366,8 @@ public partial class MapEditorHelper
                 g.fixedAttackPerTurn = int.Parse(fap);
             if (cell.gridProperties.TryGetValue("fixedMaxHealthChangePerTurn", out string fmh))
                 g.fixedMaxHealthChangePerTurn = int.Parse(fmh);
+            if (cell.gridProperties.TryGetValue("fixedWeightChangePerTurn", out string fw))
+                g.fixedWeightChangePerTurn = float.Parse(fw, System.Globalization.CultureInfo.InvariantCulture);
             foreach (Infantry.AmmoKind k in Infantry.AllAmmoKinds)
             {
                 if (cell.gridProperties.TryGetValue($"ammoChange#{(int)k}", out string ac))
