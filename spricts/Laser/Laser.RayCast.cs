@@ -123,6 +123,7 @@ public partial class Laser
             foreach (var rayInfo in rayGrids)
             {
                 var g = rayInfo.Grid;
+                if (g == null || IsScreenBlocked(g)) continue;
                 if (maxPiercePerLine > 0 && pierceCount >= maxPiercePerLine) break;
                 var targetsInGrid = GetValidTargetsInGrid(g);
                 foreach (var target in targetsInGrid)
