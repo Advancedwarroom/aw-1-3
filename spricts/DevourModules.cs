@@ -48,6 +48,8 @@ public partial class Infantry
     [ExportGroup("吞噬回血·作用资源（勾选生效）")]
     [Export] public bool devourHealHp = true;
     [Export] public bool devourHealFuel = false;
+    [Export] public bool devourHealWeight = false;
+    [Export(PropertyHint.Range, "-9999,9999,0.01")] public float devourHealWeightDelta = 0.0f;
     [Export] public bool devourHealAmmoPrimary = false;
     [Export] public bool devourHealAmmoExplode = false;
     [Export] public bool devourHealAmmoFlare = false;
@@ -69,6 +71,8 @@ public partial class Infantry
     [ExportGroup("吞噬消耗·作用资源（勾选生效）")]
     [Export] public bool devourCostHp = false;
     [Export] public bool devourCostFuel = false;
+    [Export] public bool devourCostWeight = false;
+    [Export(PropertyHint.Range, "-9999,9999,0.01")] public float devourCostWeightDelta = 0.0f;
     [Export] public bool devourCostAmmoPrimary = false;
     [Export] public bool devourCostAmmoExplode = false;
     [Export] public bool devourCostAmmoFlare = false;
@@ -112,6 +116,11 @@ public partial class Infantry
             DevourHealRes(devourHealMode, devourHealValue, money, devoured.health, health, maxHealth, cost, isHp: true, v => health = v);
         if (devourHealFuel)
             DevourHealRes(devourHealMode, devourHealValue, money, devoured.health, fuel, maxFuel, cost, isHp: false, v => fuel = v);
+        if (devourHealWeight)
+        {
+            float delta = devourHealNegative ? -devourHealWeightDelta : devourHealWeightDelta;
+            weight = Mathf.Clamp(weight + delta, 0.0f, 9999.0f);
+        }
         if (devourHealAmmoPrimary)
             DevourHealRes(devourHealMode, devourHealValue, money, devoured.health, currentPrimaryAmmo, maxPrimaryAmmo, cost, isHp: false, v => currentPrimaryAmmo = v);
         if (devourHealAmmoExplode)
@@ -158,6 +167,11 @@ public partial class Infantry
             DevourCostRes(devourCostMode, devourCostValue, money, health, maxHealth, cost, isHp: true, v => health = v);
         if (devourCostFuel)
             DevourCostRes(devourCostMode, devourCostValue, money, fuel, maxFuel, cost, isHp: false, v => fuel = v);
+        if (devourCostWeight)
+        {
+            float delta = devourCostNegative ? -devourCostWeightDelta : devourCostWeightDelta;
+            weight = Mathf.Clamp(weight - delta, 0.0f, 9999.0f);
+        }
         if (devourCostAmmoPrimary)
             DevourCostRes(devourCostMode, devourCostValue, money, currentPrimaryAmmo, maxPrimaryAmmo, cost, isHp: false, v => currentPrimaryAmmo = v);
         if (devourCostAmmoExplode)
