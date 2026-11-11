@@ -22,6 +22,7 @@ For a separate action:
 - All infantry on one tile form a single stack. Stack weight is the sum of its members' effective weights; the whole stack moves together.
 - Equal-weight behavior is controlled by each entity's `equalWeightPushMode`. Both sides allowing simultaneous movement means the push proceeds; both sides set to stop means it stops; mixed settings resolve 50/50 once for that link.
 - `pushCanTargetInfantry`, `pushCanTargetWeapons`, and `pushCanTargetFacilities` independently filter target entity classes.
+- `pushChainRules` is an indexed Resource array. Entry 0 controls the first displaced tile, entry 1 the second, and so on; each entry can override team policy, target classes, whitelist, and blacklist. Missing entries inherit the global Export settings. These rules are included in the shared Export persistence codec.
 - `pushMaxChainUnits` limits the number of infantry in a chain without splitting co-located stacks. `pushMaxChainStacks` continues to limit occupied tiles.
 - `pushChainWeightMode` controls force transmission from the initiating pusher: constant force, add each displaced stack's mass, or subtract each displaced stack's mass. `pushChainMaxAccumulatedWeight` caps accumulated force when positive.
 - Weapon and facility weights use the same health-scaling model. They can be pushed when `pushableByPhysics` is enabled. Multi-tile weapons are intentionally excluded from displacement until footprint-safe movement is implemented.
@@ -34,7 +35,7 @@ For a separate action:
 - `pushMaxChainStacks` and `pushMaxChainUnits` limit chain length.
 - Resource costs can use funds, HP, fuel, primary ammo, or any configured `AmmoKind` through `pushCostAmmoKind`.
 - Target ammo changes, rebound costs, and transfer costs each select their own `AmmoKind`, so the complete shared ammunition catalog is available rather than primary ammo only.
-- Target effects include damage, one-HP locking, healing, max-HP changes, fuel changes, and primary-ammo changes.
+- Infantry target effects include damage, one-HP locking, healing, max-HP changes, fuel changes, and changes to any configured `AmmoKind`.
 - Infantry stacks support configurable rebound, distance mitigation, and anti-gravity transfer Export settings.
 - `pushSelfDestructOnInvalidIntermediateTile` is configured on each infantry entity: enabled destroys it on any invalid intermediate tile; disabled only destroys it if the final requested tile is invalid.
 
@@ -44,6 +45,7 @@ For a separate action:
 - Facility/weapon chain stacks and mixed infantry/weapon/facility mass transmission are not yet unified into one chain solver.
 - Facility and weapon target effects currently support their health damage/one-HP behavior only; infantry has the broader resource and healing effects.
 - Rebound/transfer are implemented for infantry stacks, not static entities.
-- Visual push animation, dedicated direction-picker UI, opposite-sides drag mode, fragile collision outcomes, and full simultaneous rebound/mitigation/transfer conflict arbitration remain future work.
+- Visual push animation, free-angle direction selection, fragile collision outcomes, and full simultaneous rebound/mitigation/transfer conflict arbitration remain future work.
+- Chain force and per-link policy now apply to infantry stacks; a single unified solver for mixed infantry/weapon/facility chains is still outstanding.
 
 This is a staged implementation; run the Android CI workflow and in-game scenarios before merging.
