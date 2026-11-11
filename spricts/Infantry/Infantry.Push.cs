@@ -114,7 +114,10 @@ public partial class Infantry
 
     [ExportSubgroup("脆弱模块")]
     [Export] public bool pushFragileEnabled = false;
+    [Export] public PushFragileDamageMode pushFragileDamageMode = PushFragileDamageMode.Fixed;
     [Export] public int pushFragileDamage = 0;
+    [Export] public float pushFragileHealthScale = 0.1f;
+    [Export] public int pushFragileFundsPerDamage = 1000;
     [Export] public bool pushFragileCanDestroy = false;
     [Export] public bool pushFragileLockOneHp = false;
     [Export] public int pushFragileFuelDelta = 0;
