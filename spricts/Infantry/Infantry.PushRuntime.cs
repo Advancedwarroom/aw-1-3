@@ -28,6 +28,7 @@ public partial class Infantry
 
     public bool TryPushTargetOnMovement(Grids targetGrid, Vector2I movementDirection)
     {
+        mitigationAmmoPaidThisAction.Clear();
         if (!CanUseMovementPush() || targetGrid == null || grid == null
             || movementDirection == Vector2I.Zero || GetRequestedPushDistance() <= 0)
             return false;
@@ -46,8 +47,10 @@ public partial class Infantry
         return true;
     }
 
-    public void TryPushTargetOnAttack(Infantry target)
+    public void TryPushTargetOnAttack(Infantry target, WeaponType usedWeapon)
     {
+        mitigationAmmoPaidThisAction.Clear();
+        if (pushRequiresPrimaryWeapon && usedWeapon != WeaponType.Primary) return;
         int distance = GetRequestedPushDistance();
         if (!CanUseAttackPush() || distance <= 0
             || grid == null || target == null || !GodotObject.IsInstanceValid(target)
@@ -70,6 +73,7 @@ public partial class Infantry
     public void TryPushWeaponOnAttack(Weapon target, bool fromSeparateAction = false,
         int? distanceOverride = null, bool fromMovement = false, Vector2I? directionOverride = null)
     {
+        mitigationAmmoPaidThisAction.Clear();
         int distance = GetRequestedPushDistance(distanceOverride);
         bool triggerReady = fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction
             : fromMovement ? CanUseMovementPush() : CanUseAttackPush();
@@ -134,6 +138,7 @@ public partial class Infantry
     public void TryPushFacilityOnAttack(Facility target, bool fromSeparateAction = false,
         int? distanceOverride = null, bool fromMovement = false, Vector2I? directionOverride = null)
     {
+        mitigationAmmoPaidThisAction.Clear();
         int distance = GetRequestedPushDistance(distanceOverride);
         bool triggerReady = fromSeparateAction ? pushTriggerMode == PushTriggerMode.SeparateAction
             : fromMovement ? CanUseMovementPush() : CanUseAttackPush();
