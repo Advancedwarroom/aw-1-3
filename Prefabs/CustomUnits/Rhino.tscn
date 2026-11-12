@@ -4,6 +4,9 @@
 [ext_resource type="Texture2D" path="res://art/official/Rhino_base.png" id="2_base"]
 [ext_resource type="Texture2D" path="res://art/official/Rhino_overlay.png" id="3_overlay"]
 
+[sub_resource type="RectangleShape2D" id="RhinoCollision"]
+size = Vector2(32, 32)
+
 [node name="Rhino" type="Node2D" node_paths=PackedStringArray("baseSprite", "normalSprite")]
 script = ExtResource("1_script")
 baseSprite = NodePath("BaseSprite")
@@ -33,9 +36,6 @@ secondaryAntiArmor = false
 visionRange = 4
 useConfigVision = false
 cost = 16000
-
-[sub_resource type="RectangleShape2D" id="RhinoCollision"]
-size = Vector2(32, 32)
 
 [node name="Area2D" type="Area2D" parent="."]
 
