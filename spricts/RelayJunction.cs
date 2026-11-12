@@ -19,16 +19,6 @@ public partial class RelayJunction : Facility
         CallDeferred(nameof(TakeOverBoundFactories));
     }
 
-    /// <summary>中转口使用 docs/Lab.png 中的原始灰色精灵；不做灰度染色或半透明调制。</summary>
-    protected override void ApplyPaletteMaterial()
-    {
-        if (animSprite == null || !IsInstanceValid(animSprite)) return;
-        animSprite.Material = null;
-        animSprite.Show();
-        baseAnimSprite?.Hide();
-        normalAnimSprite?.Hide();
-    }
-
     protected override (string neutral, string red, string blue)? GetTeamAnimNames()
         => ("RelayJunction", "RelayJunction", "RelayJunction");
 
