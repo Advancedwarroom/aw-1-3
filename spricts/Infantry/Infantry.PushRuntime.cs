@@ -40,7 +40,9 @@ public partial class Infantry
         if (!CanPushTargetTeam(targetStack) || !CanPayPushCost(gm))
             return false;
 
-        if (!ResolvePushChain(targetGrid, movementDirection, GetRequestedPushDistance(),
+        var movementPath = Enumerable.Repeat(movementDirection,
+            GetRequestedPushDistance() + Mathf.Max(0, pushMaxChainStacks)).ToList();
+        if (!ResolvePushChain(targetGrid, movementPath, GetRequestedPushDistance(),
             gm.gridManager, gm, fromMovement: true))
             return false;
         if (!TryMarkMovementPushUsed()) return false;
@@ -666,17 +668,61 @@ public partial class Infantry
             return new Vector2I(Math.Sign(fixedPushDirection.X), Math.Sign(fixedPushDirection.Y));
         }
         if (pushDirectionMode == PushDirectionMode.FreeAngle)
-        {
-            float degrees = Mathf.PosMod(selectedAngle ?? pushFreeAngleDegrees, 360.0f);
-            float radians = Mathf.DegToRad(degrees);
-            // The angle remains a 0-360 degree value. A square tile map advances
-            // through its nearest adjacent cell direction for each displacement step.
-            var vector = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians));
-            return new Vector2I(Mathf.RoundToInt(vector.X), Mathf.RoundToInt(vector.Y));
-        }
+            return BuildAnglePushPath(selectedAngle ?? pushFreeAngleDegrees, 1).FirstOrDefault();
 
         Vector2I delta = targetGrid.GridIndex - grid.GridIndex;
         return new Vector2I(Math.Sign(delta.X), Math.Sign(delta.Y));
+    }
+
+    // Grid DDA: each returned vector is one actual cell-boundary crossing along
+    // the selected continuous angle. Diagonal crossings happen only at exact
+    // corner intersections; shallow angles naturally produce longer cardinal runs.
+    private List<Vector2I> BuildAnglePushPath(float angleDegrees, int cellSteps)
+    {
+        var result = new List<Vector2I>();
+        if (cellSteps <= 0) return result;
+        float radians = Mathf.DegToRad(Mathf.PosMod(angleDegrees, 360.0f));
+        double dx = Math.Cos(radians);
+        double dy = Math.Sin(radians);
+        const double epsilon = 1e-9;
+        int sx = Math.Abs(dx) < epsilon ? 0 : Math.Sign(dx);
+        int sy = Math.Abs(dy) < epsilon ? 0 : Math.Sign(dy);
+        if (sx == 0 && sy == 0) return result;
+        double txDelta = sx == 0 ? double.PositiveInfinity : 1.0 / Math.Abs(dx);
+        double tyDelta = sy == 0 ? double.PositiveInfinity : 1.0 / Math.Abs(dy);
+        double tx = sx == 0 ? double.PositiveInfinity : 0.5 / Math.Abs(dx);
+        double ty = sy == 0 ? double.PositiveInfinity : 0.5 / Math.Abs(dy);
+        for (int i = 0; i < cellSteps; i++)
+        {
+            if (Math.Abs(tx - ty) <= epsilon)
+            {
+                result.Add(new Vector2I(sx, sy));
+                tx += txDelta;
+                ty += tyDelta;
+            }
+            else if (tx < ty)
+            {
+                result.Add(new Vector2I(sx, 0));
+                tx += txDelta;
+            }
+            else
+            {
+                result.Add(new Vector2I(0, sy));
+                ty += tyDelta;
+            }
+        }
+        return result;
+    }
+
+    private List<Vector2I> BuildPushPath(Grids targetGrid, int distance, float? selectedAngle = null)
+    {
+        if (distance <= 0) return new List<Vector2I>();
+        if (pushDirectionMode == PushDirectionMode.FreeAngle)
+            return BuildAnglePushPath(selectedAngle ?? pushFreeAngleDegrees,
+                distance + Mathf.Max(0, pushMaxChainStacks));
+        Vector2I direction = GetPushDirection(targetGrid, selectedAngle);
+        return direction == Vector2I.Zero ? new List<Vector2I>()
+            : Enumerable.Repeat(direction, distance + Mathf.Max(0, pushMaxChainStacks)).ToList();
     }
 
     private float GetPushForceMultiplier(int? requestedDistance = null) =>
@@ -1243,10 +1289,10 @@ public partial class Infantry
             return;
         }
 
-        Vector2I direction = GetPushDirection(targetGrid, selectedAngle);
-        if (direction == Vector2I.Zero) return;
+        var pushPath = BuildPushPath(targetGrid, distance, selectedAngle);
+        if (pushPath.Count < distance) return;
         if (!CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
-        if (!ResolvePushChain(targetGrid, direction, distance, gridManager, gm))
+        if (!ResolvePushChain(targetGrid, pushPath, distance, gridManager, gm))
             return;
         if (!TryMarkPushActionUsed())
             return;
@@ -1257,12 +1303,13 @@ public partial class Infantry
         actionMenu?.Hide();
     }
 
-    private bool ResolvePushChain(Grids firstGrid, Vector2I direction, int distance,
+    private bool ResolvePushChain(Grids firstGrid, IReadOnlyList<Vector2I> pushPath, int distance,
         GridManager gridManager, GameManager gameManager, bool fromMovement = false)
     {
         // A stack is all living infantry occupying one tile. Its effective mass is the
         // sum of each member's health-adjusted weight.
         var chain = new List<List<Infantry>>();
+        if (pushPath == null || pushPath.Count < distance) return false;
         var cursor = firstGrid;
         int chainUnitCount = 0;
         while (cursor != null)
@@ -1277,7 +1324,9 @@ public partial class Infantry
                 || (pushMaxChainStacks > 0 && chain.Count >= pushMaxChainStacks)
                 || (pushMaxChainUnits > 0 && chainUnitCount >= pushMaxChainUnits))
                 break;
-            cursor = gridManager.GetGridAt(cursor.GridIndex + direction);
+            int nextLinkIndex = chain.Count;
+            if (nextLinkIndex >= pushPath.Count) break;
+            cursor = gridManager.GetGridAt(cursor.GridIndex + pushPath[nextLinkIndex]);
         }
         if (chain.Count == 0) return false;
 
@@ -1325,6 +1374,7 @@ public partial class Infantry
 
         for (int step = 0; step < distance; step++)
         {
+            Vector2I stepDirection = pushPath[step];
             for (int i = chain.Count - 1; i >= 0; i--)
             {
                 var stack = chain[i].Where(IsLivingUnit).ToList();
@@ -1334,7 +1384,7 @@ public partial class Infantry
                 bool finalStepForStack = step == stackDistance - 1;
                 var currentGrid = stack[0].grid;
                 if (currentGrid == null) continue;
-                var destination = gridManager.GetGridAt(currentGrid.GridIndex + direction);
+                var destination = gridManager.GetGridAt(currentGrid.GridIndex + stepDirection);
                 if (destination == null)
                 {
                     // The pusher decides whether reaching the map edge is lethal.
@@ -1419,10 +1469,10 @@ public partial class Infantry
                             continue;
                         }
 
-                        var collisionNext = gridManager.GetGridAt(destination.GridIndex + direction);
+                        var collisionNext = gridManager.GetGridAt(destination.GridIndex + stepDirection);
                         if (collisionNext == null || GetLivingStack(collisionNext).Count > 0
                             || HasForeignMultiTileOccupant(collisionNext, blockers)
-                            || !TryDisplaceWeaponAndFacility(blockers, collisionNext, direction, gridManager, i))
+                            || !TryDisplaceWeaponAndFacility(blockers, collisionNext, stepDirection, gridManager, i))
                         {
                             ApplyFragileCollisionEffects(stack, blockers);
                             ApplyFragileCollisionEffects(blockers, stack);
@@ -1449,7 +1499,7 @@ public partial class Infantry
                     continue;
                 }
                 if (HasForeignMultiTileOccupant(destination, stack)) continue;
-                if (!TryDisplaceWeaponAndFacility(stack, destination, direction, gridManager, i)) continue;
+                if (!TryDisplaceWeaponAndFacility(stack, destination, stepDirection, gridManager, i)) continue;
                 if (!stack.Any(IsLivingUnit))
                 {
                     pushResolved = true;
