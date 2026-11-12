@@ -5,14 +5,46 @@ using System.Linq;
 
 public partial class WeaponManager : Node
 {
-    /// <summary>注销武器: 从占据格/总表移除并销毁(巨雷地板吞噬等流程用)</summary>
+    /// <summary>注销武器: 清理完整占据足迹/总表并销毁(巨雷地板吞噬等流程用)</summary>
     public void UnregisterWeapon(Weapon weapon)
     {
-        if (weapon == null || !IsInstanceValid(weapon)) return;
-        var g = weapon.grid;
-        g?.weapons?.Remove(weapon);
+        if (weapon == null || !GodotObject.IsInstanceValid(weapon)) return;
+        RemoveWeaponOccupancyReferences(weapon);
         AllWeapons.Remove(weapon);
+
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm != null)
+        {
+            if (gm.selectedWeapon == weapon) gm.selectedWeapon = null;
+            gm.weapons.Remove(weapon);
+        }
         weapon.QueueFree();
+    }
+
+    /// <summary>
+    /// Remove an entity from every tile in its footprint and keep the legacy
+    /// single-weapon pointer synchronized with the authoritative weapons list.
+    /// </summary>
+    private static void RemoveWeaponOccupancyReferences(Weapon weapon)
+    {
+        if (weapon == null || !GodotObject.IsInstanceValid(weapon)) return;
+
+        var occupied = (weapon.occupiedGrids ?? new List<Grids>())
+            .Where(g => g != null && GodotObject.IsInstanceValid(g))
+            .ToList();
+        if (weapon.grid != null && GodotObject.IsInstanceValid(weapon.grid))
+            occupied.Add(weapon.grid);
+
+        foreach (var tile in occupied.Distinct())
+        {
+            tile.weapons?.RemoveAll(w => w == null || !GodotObject.IsInstanceValid(w)
+                || w == weapon || w.IsQueuedForDeletion());
+            if (tile.weapon == weapon || tile.weapon == null
+                || !GodotObject.IsInstanceValid(tile.weapon) || tile.weapon.IsQueuedForDeletion())
+                tile.weapon = tile.weapons?.FirstOrDefault(w => w != null
+                    && GodotObject.IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed);
+        }
+        weapon.occupiedGrids?.Clear();
     }
 
     [Export] public GridManager gridManager;
@@ -173,11 +205,13 @@ public partial class WeaponManager : Node
             return null;
         }
 
-        // 检查格子是否已有兵器
-        if (grid.weapon != null)
-        {
+        // Preserve the no-overwrite spawn rule using the complete occupancy list.
+        // The legacy primary pointer alone is insufficient when several weapons share a tile.
+        if ((grid.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                && !w.IsQueuedForDeletion() && !w.isDestroyed) ?? false)
+            || (grid.weapon != null && GodotObject.IsInstanceValid(grid.weapon)
+                && !grid.weapon.IsQueuedForDeletion() && !grid.weapon.isDestroyed))
             return null;
-        }
 
         var weapon = weaponScene.Instantiate<Weapon>();
         if (weapon == null)
@@ -208,77 +242,56 @@ public partial class WeaponManager : Node
     // 移除兵器（支持多格）
     public void RemoveWeapon(Weapon weapon)
     {
-        if (weapon == null) return;
+        if (weapon == null || !GodotObject.IsInstanceValid(weapon)) return;
 
-        // 多格兵器：从所有占据格子清除
-        if (weapon.isMultiTile)
+        var anchor = weapon.grid;
+        bool restoreSpecialTerrain = !weapon.isMultiTile && anchor != null
+            && (anchor.gridType == GridType.PIPESEAM || anchor.gridType == GridType.METEORITE);
+        string terrainName = restoreSpecialTerrain
+            ? (anchor.gridType == GridType.PIPESEAM ? "PIPESEAM" : "METEORITE")
+            : null;
+
+        RemoveWeaponOccupancyReferences(weapon);
+
+        if (restoreSpecialTerrain)
         {
-            foreach (var og in weapon.occupiedGrids.ToList())
+            anchor.gridType = GridType.BROKENPIPE;
+            var sprite = anchor.GetNodeOrNull<Sprite2D>("Sprite2D");
+            if (sprite != null)
             {
-                if (og != null && IsInstanceValid(og))
-                {
-                    og.weapons.Remove(weapon);
-                    if (og.weapon == weapon)
-                        og.weapon = og.weapons.Count > 0 ? og.weapons[0] : null;
-                }
-            }
-            weapon.occupiedGrids.Clear();
-        }
-        else
-        {
-            // ✅ 特殊地形自动切换
-            if (weapon.grid != null && (weapon.grid.gridType == GridType.PIPESEAM || weapon.grid.gridType == GridType.METEORITE))
-            {
-                string terrainName = weapon.grid.gridType == GridType.PIPESEAM ? "PIPESEAM" : "METEORITE";
-                var targetGrid = weapon.grid;
-
-                targetGrid.weapons.Remove(weapon);
-                if (targetGrid.weapon == weapon)
-                    targetGrid.weapon = null;
-
-                targetGrid.gridType = GridType.BROKENPIPE;
-
-                var sprite = targetGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
-                if (sprite != null)
-                {
-                    var tween = CreateTween();
-                    tween.TweenProperty(sprite, "modulate", new Color(0.3f, 0.3f, 0.3f), 0.5f)
-                         .SetTrans(Tween.TransitionType.Sine)
-                         .SetEase(Tween.EaseType.InOut);
-                }
-            }
-            else
-            {
-                // 普通地形：只清理引用
-                if (weapon.grid != null)
-                {
-                    weapon.grid.weapons.Remove(weapon);
-                    if (weapon.grid.weapon == weapon)
-                    {
-                        weapon.grid.weapon = weapon.grid.weapons.Count > 0 ? weapon.grid.weapons[0] : null;
-                    }
-                }
+                var tween = CreateTween();
+                tween.TweenProperty(sprite, "modulate", new Color(0.3f, 0.3f, 0.3f), 0.5f)
+                     .SetTrans(Tween.TransitionType.Sine)
+                     .SetEase(Tween.EaseType.InOut);
             }
         }
 
         AllWeapons.Remove(weapon);
 
-        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm != null)
         {
             if (gm.selectedWeapon == weapon)
                 gm.selectedWeapon = null;
-            gm.weapons.Remove(weapon); 
+            gm.weapons.Remove(weapon);
         }
 
-        // 节点销毁
         weapon.QueueFree();
     }
     public Weapon GetWeaponAt(Vector2I gridPos)
     {
         if (!IsValidGrid(gridPos)) return null;
         var grid = gridManager.map[gridPos.X, gridPos.Y];
-        return grid?.weapon;
+        if (grid == null) return null;
+
+        if (grid.weapon != null && GodotObject.IsInstanceValid(grid.weapon)
+            && !grid.weapon.IsQueuedForDeletion() && !grid.weapon.isDestroyed)
+            return grid.weapon;
+
+        grid.weapons?.RemoveAll(w => w == null || !GodotObject.IsInstanceValid(w)
+            || w.IsQueuedForDeletion() || w.isDestroyed);
+        grid.weapon = grid.weapons?.FirstOrDefault();
+        return grid.weapon;
     }
 
     // 获取某队伍的所有兵器
@@ -292,7 +305,14 @@ public partial class WeaponManager : Node
     {
         if (!IsValidGrid(gridPos)) return new List<Weapon>();
         var grid = gridManager.map[gridPos.X, gridPos.Y];
-        return grid?.weapons.ToList() ?? new List<Weapon>();
+        if (grid?.weapons == null) return new List<Weapon>();
+        grid.weapons.RemoveAll(w => w == null || !GodotObject.IsInstanceValid(w)
+            || w.IsQueuedForDeletion() || w.isDestroyed);
+        if (grid.weapon == null || !GodotObject.IsInstanceValid(grid.weapon)
+            || grid.weapon.IsQueuedForDeletion() || grid.weapon.isDestroyed
+            || !grid.weapons.Contains(grid.weapon))
+            grid.weapon = grid.weapons.FirstOrDefault();
+        return grid.weapons.ToList();
     }
 
     // 世界坐标转格子坐标
