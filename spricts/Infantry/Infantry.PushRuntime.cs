@@ -1667,7 +1667,7 @@ public partial class Infantry
         int chainUnitCount = 0;
         while (cursor != null)
         {
-            var stack = GetLivingStack(cursor);
+            var stack = GetLivingStackSnapshot(cursor);
             if (stack.Count == 0 || !CanPushTargetTeam(stack, chain.Count)) break;
             if (pushMaxChainUnits > 0 && chainUnitCount + stack.Count > pushMaxChainUnits)
                 break;
@@ -1691,7 +1691,7 @@ public partial class Infantry
         // Force must be transmitted through every occupied stack in order.
         // If any link cannot move, the chain is mechanically blocked: stacks farther
         // ahead are not independently pushed through the failed link.
-        List<Infantry> pusherStack = GetLivingStack(grid);
+        List<Infantry> pusherStack = GetLivingStackSnapshot(grid);
         if (pusherStack.Count == 0) pusherStack.Add(this);
         float transmittedForce = GetStackWeight(pusherStack) * GetPushForceMultiplier(distance);
         if (pushChainWeightMode == PushChainWeightMode.Accumulate && pushChainMaxAccumulatedWeight > 0.0f)
@@ -1789,7 +1789,7 @@ public partial class Infantry
 
                 // A non-chain infantry stack can still collide with the moving stack.
                 // Weight decides the winner; equal weight follows both stacks' tie rules.
-                var blockers = GetLivingStack(destination).Where(u => !stack.Contains(u)).ToList();
+                var blockers = GetLivingStackSnapshot(destination).Where(u => !stack.Contains(u)).ToList();
                 if (blockers.Count > 0)
                 {
                     // With domino chaining disabled, a blocked link stops both sides.
@@ -1844,7 +1844,7 @@ public partial class Infantry
                         }
 
                         var collisionNext = gridManager.GetGridAt(destination.GridIndex + stepDirection);
-                        if (collisionNext == null || GetLivingStack(collisionNext).Count > 0
+                        if (collisionNext == null || GetLivingStackSnapshot(collisionNext).Count > 0
                             || HasForeignMultiTileOccupant(collisionNext, blockers)
                             || !TryDisplaceWeaponAndFacility(blockers, collisionNext, stepDirection, gridManager, i))
                         {
@@ -1913,9 +1913,9 @@ public partial class Infantry
             && firstGrid != null && grid != null)
         {
             var followDestination = firstGrid;
-            var followStack = GetLivingStack(grid);
+            var followStack = GetLivingStackSnapshot(grid);
             if (followStack.Count == 0) followStack.Add(this);
-            bool hasBlocker = GetLivingStack(followDestination).Count > 0
+            bool hasBlocker = GetLivingStackSnapshot(followDestination).Count > 0
                 || HasForeignMultiTileOccupant(followDestination, followStack);
             if (!hasBlocker && TryDisplaceWeaponAndFacility(followStack, followDestination,
                 overallDirection, gridManager))
@@ -2230,6 +2230,15 @@ public partial class Infantry
     {
         var occupant = tile?.multiTileOccupant;
         return IsLivingUnit(occupant) && (movingStack == null || !movingStack.Contains(occupant));
+    }
+
+    // Read-only occupancy snapshot for push-chain planning. Unlike GetLivingStack,
+    // this helper never prunes tile lists or repairs the legacy single-unit pointer;
+    // a failed preflight must leave even stale occupancy metadata untouched.
+    private static List<Infantry> GetLivingStackSnapshot(Grids tile)
+    {
+        if (tile?.infantries == null) return new List<Infantry>();
+        return tile.infantries.Distinct().Where(unit => IsLivingUnit(unit) && unit.grid == tile).ToList();
     }
 
     private static List<Infantry> GetLivingStack(Grids tile)
