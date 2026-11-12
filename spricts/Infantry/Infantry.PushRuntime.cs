@@ -9,6 +9,17 @@ public partial class Infantry
     private PopupMenu pushDistancePopup;
     private PopupMenu pushDirectionPopup;
 
+    // A collision plan contains only decisions. Building it must not move, damage,
+    // destroy, or otherwise mutate game entities.
+    private sealed class PlannedStaticInfantryCollision
+    {
+        public List<Infantry> destroyUnits = new();
+        public List<Infantry> moveUnits = new();
+        public List<Infantry> fragileUnits = new();
+        public Grids infantryDestination;
+        public bool destroyMovingStatic;
+    }
+
     public bool TryPushWeaponOnMovement(Weapon target, Vector2I movementDirection)
     {
         if (target == null || target.grid == null || movementDirection == Vector2I.Zero)
@@ -295,18 +306,52 @@ public partial class Infantry
         WeaponManager manager,
         List<(Grids tile, Vector2I direction, Weapon weapon, int chainIndex)> plannedInfantryCollisions = null)
     {
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var collisionPlans = new List<PlannedStaticInfantryCollision>();
+        bool hasBlockingCollision = false;
         if (plannedInfantryCollisions != null)
         {
-            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            var reservedInfantryDestinations = new HashSet<Grids>();
             foreach (var collision in plannedInfantryCollisions)
             {
                 if (collision.tile == null || collision.weapon == null
-                    || !GodotObject.IsInstanceValid(collision.weapon)) continue;
-                if (!TryResolveStaticTargetCollision(collision.tile, collision.direction,
-                    collision.weapon, null, gm, out bool destroyed, collision.chainIndex) && !destroyed)
+                    || !GodotObject.IsInstanceValid(collision.weapon)
+                    || collision.weapon.IsQueuedForDeletion()) continue;
+                if (!TryPlanStaticInfantryCollision(collision.tile, collision.direction,
+                    collision.weapon, null, gm, collision.chainIndex,
+                    out var plan, out bool blocked))
                     return false;
-                if (destroyed) return false;
+                if (plan == null) continue;
+                if (plan.infantryDestination != null
+                    && !reservedInfantryDestinations.Add(plan.infantryDestination))
+                    return false;
+                collisionPlans.Add(plan);
+                hasBlockingCollision |= blocked;
             }
+        }
+
+        // If any collision stops the chain, do not apply any successful sibling
+        // collision's movement or damage. Only the stopping collision's explicitly
+        // planned collision effects are committed.
+        if (hasBlockingCollision)
+        {
+            foreach (var plan in collisionPlans.Where(p => p.destroyMovingStatic))
+                DestroyStaticPushTarget(null, null, gm);
+            foreach (var plan in collisionPlans.Where(p => p.fragileUnits.Count > 0))
+                ApplyFragileCollisionEffects(plan.fragileUnits);
+            return false;
+        }
+
+        // All collision outcomes have now been validated. Commit the staged
+        // infantry consequences, then the corresponding weapon displacement.
+        foreach (var plan in collisionPlans)
+        {
+            foreach (var unit in plan.destroyUnits.ToList())
+                DestroyPushedUnit(unit, gm);
+            if (plan.moveUnits.Count > 0 && plan.infantryDestination != null)
+                MoveStackByPush(plan.moveUnits, plan.infantryDestination);
+            if (plan.fragileUnits.Count > 0)
+                ApplyFragileCollisionEffects(plan.fragileUnits);
         }
         foreach (var move in plannedMoves)
         {
@@ -315,6 +360,91 @@ public partial class Infantry
             if (!move.weapon.MoveByPhysicsPush(move.destination, manager))
                 return false;
         }
+        return true;
+    }
+
+    private bool TryPlanStaticInfantryCollision(Grids destination, Vector2I direction,
+        Weapon movingWeapon, Facility movingFacility, GameManager gm, int chainIndex,
+        out PlannedStaticInfantryCollision plan, out bool blocked)
+    {
+        plan = null;
+        blocked = false;
+        if (destination == null) return false;
+        bool blocksInfantry = movingWeapon != null
+            ? movingWeapon.pushBlocksInfantryWhenOverlapped
+            : movingFacility?.pushBlocksInfantryWhenOverlapped ?? false;
+        if (!blocksInfantry) return true;
+
+        var stack = (destination.infantries ?? new List<Infantry>())
+            .Where(IsLivingUnit).Where(u => u.grid == destination).Distinct().ToList();
+        if (stack.Count == 0) return true;
+        plan = new PlannedStaticInfantryCollision();
+
+        if ((chainIndex > 0 && !pushChainEnabled)
+            || (pushMaxChainStacks > 0 && chainIndex >= pushMaxChainStacks)
+            || !CanPushTargetTeam(stack, chainIndex))
+        {
+            plan.fragileUnits.AddRange(stack);
+            blocked = true;
+            return true;
+        }
+
+        float staticWeight = movingWeapon != null
+            ? movingWeapon.GetEffectiveWeight()
+            : movingFacility.GetEffectiveWeight();
+        float unitWeight = GetStackWeight(stack);
+        EqualWeightPushMode staticMode = movingWeapon != null
+            ? movingWeapon.equalWeightPushMode : movingFacility.equalWeightPushMode;
+
+        if (pushUsesWeight && !Mathf.IsEqualApprox(staticWeight, unitWeight))
+        {
+            if (staticWeight > unitWeight)
+            {
+                plan.destroyUnits.AddRange(stack);
+                return true;
+            }
+            plan.destroyMovingStatic = true;
+            plan.fragileUnits.AddRange(stack);
+            blocked = true;
+            return true;
+        }
+
+        bool staticAllows = staticMode == EqualWeightPushMode.AllowSimultaneous;
+        bool staticStops = staticMode == EqualWeightPushMode.Stop;
+        bool unitAllows = StackAllowsSimultaneous(stack);
+        bool unitStops = StackStopsOnEqual(stack);
+        bool moveBoth = staticAllows && unitAllows
+            || !(staticStops && unitStops) && GD.Randf() < 0.5f;
+        if (!moveBoth)
+        {
+            plan.fragileUnits.AddRange(stack);
+            blocked = true;
+            return true;
+        }
+
+        var next = gm?.gridManager?.GetGridAt(destination.GridIndex + direction);
+        if (next == null
+            || (next.infantries?.Any(u => IsLivingUnit(u) && u.grid == next) ?? false)
+            || HasForeignMultiTileOccupant(next, stack)
+            || (next.city != null && next.city.pushBlocksInfantryWhenOverlapped)
+            || (next.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                && !w.IsQueuedForDeletion() && w.pushBlocksInfantryWhenOverlapped) ?? false))
+        {
+            plan.fragileUnits.AddRange(stack);
+            blocked = true;
+            return true;
+        }
+
+        foreach (var unit in stack)
+        {
+            if (unit.GetMoveCostOnGrid(next) >= 999
+                || (pushDestroyOnProperty && next.city != null))
+                plan.destroyUnits.Add(unit);
+            else
+                plan.moveUnits.Add(unit);
+        }
+        plan.infantryDestination = next;
+        plan.fragileUnits.AddRange(plan.moveUnits);
         return true;
     }
 
