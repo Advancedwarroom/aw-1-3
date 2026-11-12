@@ -56,12 +56,12 @@ shape = SubResource("RectangleShape2D_rhino1")
 
 [node name="BaseSprite" type="Sprite2D" parent="." unique_id=880000004]
 position = Vector2(16, 16)
-scale = Vector2(2, 2)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_base")
 
 [node name="NormalSprite" type="Sprite2D" parent="." unique_id=880000005]
 position = Vector2(16, 16)
-scale = Vector2(2, 2)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("3_overlay")
 
 [connection signal="input_event" from="Area2D" to="." method="InputClick"]
