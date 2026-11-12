@@ -2017,6 +2017,23 @@ public partial class Infantry
                 moveFacility = true;
         }
 
+        // Validate every operation's runtime prerequisites before applying any
+        // staged collision effect. BindWeaponToGrid can then only fail for a
+        // destination outside the already-checked map footprint.
+        if ((plannedWeaponMoves.Count > 0 || movableWeapons.Count > 0) && gm?.weaponManager == null)
+            return false;
+        if (plannedWeaponMoves.Any(move => move.weapon == null
+            || !GodotObject.IsInstanceValid(move.weapon) || move.weapon.IsQueuedForDeletion()
+            || !move.weapon.pushableByPhysics || move.destination == null))
+            return false;
+        if (movableWeapons.Any(weapon => weapon == null
+            || !GodotObject.IsInstanceValid(weapon) || weapon.IsQueuedForDeletion()
+            || !weapon.pushableByPhysics))
+            return false;
+        if (moveFacility && !CanMoveStaticTargetTo(nextGrid, null, blockingFacility,
+            allowInfantryOverlap: true, plannedToVacate: allPlannedWeapons))
+            return false;
+
         // Phase 2: commit the preflighted group. WeaponManager now supports
         // multiple weapon references per tile, so siblings can share the same
         // destination without racing for Grids.weapon's legacy primary slot.
