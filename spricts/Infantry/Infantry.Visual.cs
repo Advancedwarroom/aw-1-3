@@ -108,6 +108,8 @@ public virtual void UpdateTeamVisual()
         if (baseSprite != null && IsInstanceValid(baseSprite) && 
             normalSprite != null && IsInstanceValid(normalSprite))
         {
+            // ⚠️ 临时诊断（2026-11-13）：读取后删除。排查犀牛底图不可见。
+            GD.PushError($"[诊断] 双图层染色 team={team} baseVisible={baseSprite.Visible} texNull={baseSprite.Texture==null} matNull={baseSprite.Material==null} modulate={baseSprite.Modulate} scale={baseSprite.Scale} texSize={(baseSprite.Texture==null?"?":$"{baseSprite.Texture.GetWidth()}x{baseSprite.Texture.GetHeight()}")}");
             var baseMat = FactionPaletteManager.GetBaseLayerMaterial(team);
             if (baseMat != null)
             {
