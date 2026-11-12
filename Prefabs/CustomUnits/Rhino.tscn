@@ -15,6 +15,9 @@ targetEnemies = true
 targetFriendlies = false
 targetAllies = false
 
+[sub_resource type="RectangleShape2D" id="RhinoCollision"]
+size = Vector2(32, 32)
+
 [node name="Rhino" type="Node2D" node_paths=PackedStringArray("baseSprite", "normalSprite")]
 script = ExtResource("1_script")
 baseSprite = NodePath("BaseSprite")
@@ -57,10 +60,6 @@ pushCanTargetFriendlies = true
 pushCanTargetAllies = true
 pushDestroyOnProperty = true
 pushChainRules = Array[ExtResource("4_push_rule")]([SubResource("RhinoPrimaryPushRule")])
-
-[sub_resource type="RectangleShape2D" id="RhinoCollision"]
-size = Vector2(32, 32)
-
 [node name="Area2D" type="Area2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
