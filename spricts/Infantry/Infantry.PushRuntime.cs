@@ -1044,4 +1044,128 @@ public partial class Infantry
         unit.CallDeferred(Node.MethodName.QueueFree);
         gameManager?.RemovePiece(unit);
     }
+    // ===== 冷却与操作标记 =====
+    public bool IsPushOnCooldown() => cooldown > 0;
+    public void ResetPushCooldown()
+    {
+        if (pushCooldownTurns > 0) cooldown = pushCooldownTurns;
+    }
+    public void CountdownPushCooldowns()
+    {
+        if (cooldown > 0) cooldown--;
+    }
+    public bool TryMarkPushActionUsed()
+    {
+        if (pushOncePerTurn && pushActionUsed) return false;
+        pushActionUsed = true;
+        return true;
+    }
+
+    // 原文第n环势力规则（按 main 实际枚举成员：EnemiesOnly/FriendliesOnly/AlliesOnly/Everyone/Custom）
+    private bool CanPushTargetTeamAtDepth(List<Infantry> targetStack, int depth)
+    {
+        if (depth - 1 < pushChainDepthTeamModes.Count)
+        {
+            var mode = pushChainDepthTeamModes[depth - 1];
+            string targetTeam = targetStack.FirstOrDefault(u => IsLivingUnit(u))?.team;
+            return mode switch
+            {
+                PushTargetTeamMode.Everyone => true,
+                PushTargetTeamMode.EnemiesOnly => !string.IsNullOrEmpty(targetTeam) && targetTeam != team,
+                PushTargetTeamMode.FriendliesOnly => !string.IsNullOrEmpty(targetTeam) && targetTeam == team,
+                PushTargetTeamMode.AlliesOnly => CanPushTargetTeam(targetStack),
+                PushTargetTeamMode.Custom => CanPushTargetTeam(targetStack),
+                _ => CanPushTargetTeam(targetStack),
+            };
+        }
+        return CanPushTargetTeam(targetStack);
+    }
+
+    private bool IsBlacklistedAtDepth(Infantry unit, int depth)
+    {
+        if (depth - 1 >= pushChainDepthBlacklists.Count) return false;
+        var list = pushChainDepthBlacklists[depth - 1];
+        if (string.IsNullOrEmpty(list)) return false;
+        var id = unit.unitTypeId;
+        return !string.IsNullOrEmpty(id) && list.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Any(x => x.Trim() == id);
+    }
+
+    private Grids AutoPickPushTarget(Grids preferred, GridManager gridManager)
+    {
+        Vector2I? dir = null;
+        if (preferred != null && grid != null)
+        {
+            var d = preferred.GridIndex - grid.GridIndex;
+            if (d != Vector2I.Zero) dir = d;
+        }
+        var dirs = dir.HasValue ? new List<Vector2I> { dir.Value }
+            : new List<Vector2I> { new(1,0), new(-1,0), new(0,1), new(0,-1), new(1,1), new(1,-1), new(-1,1), new(-1,-1) };
+        for (int n = Mathf.Max(1, pushRange); n >= 1; n--)
+        {
+            foreach (var d in dirs)
+            {
+                var t = gridManager.GetGridAt(grid.GridIndex + d * n);
+                if (t == null || t == grid) continue;
+                if (IsCompliantPushTarget(t)) return t;
+            }
+        }
+        return null;
+    }
+
+    private bool IsCompliantPushTarget(Grids tile)
+    {
+        if (tile == null) return false;
+        var stack = GetLivingStack(tile);
+        if (stack.Count > 0) return CanPushTargetTeam(stack);
+        if (pushTargetClass != PushTargetClass.AnyPushableEntity) return false;
+        return (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                && w.pushableByPhysics) ?? false)
+            || (tile.city != null && tile.city.pushableByPhysics);
+    }
+
+    private static float GetStaticMitigatedWeight(float baseWeight, bool mitigationEnabled,
+        bool ceremony, bool weakensWeight, MitigationValueMode mode, float value)
+    {
+        if (!mitigationEnabled || !ceremony || !weakensWeight || value <= 0) return baseWeight;
+        float cut = mode == MitigationValueMode.Percent
+            ? baseWeight * value / 100f : value;
+        return Mathf.Max(0f, baseWeight - cut);
+    }
+
+    private static void QueueStaticFragile(Weapon weapon, Facility facility, List<PushEffect> effects)
+    {
+        if (weapon != null)
+        {
+            int dmg = weapon.fragileDamageMode == FragileDamageMode.LockOneHp
+                ? weapon.health - 1 : Mathf.Abs(weapon.fragileDamageAmount);
+            if (dmg > 0) effects.Add(PushEffect.DamageWeapon(weapon, dmg));
+            return;
+        }
+        if (facility != null && facility.fragile)
+        {
+            int dmg = facility.fragileDamageMode == FragileDamageMode.LockOneHp
+                ? facility.health - 1 : Mathf.Abs(facility.fragileDamageAmount);
+            if (dmg > 0) effects.Add(PushEffect.DamageFacility(facility, dmg));
+        }
+    }
+
+    private bool PlanStaticRebound(Facility facility, Weapon weapon, List<Infantry> movingStack,
+        Grids destination, Vector2I direction, GridManager gridManager,
+        PushVirtualBoard board, List<PushMovePlan> movePlans)
+    {
+        var mode = weapon != null ? weapon.pushReboundMode : facility.pushReboundMode;
+        if (mode == Weapon.StaticReboundMode.Stay) return false;
+        var backGrid = gridManager.GetGridAt(destination.GridIndex - direction * 2);
+        if (backGrid == null) return false;
+        var backTile = board.Of(backGrid);
+        if (backTile.Stack.Count > 0 || backTile.City != null
+            || backTile.Weapons.Count > 0 || backTile.MultiTileOccupant != null)
+            return false;
+        var fromTile = gridManager.GetGridAt(destination.GridIndex - direction);
+        VMoveStack(board, fromTile, backGrid, movingStack);
+        movePlans.Add(PushMovePlan.ForStack(movingStack, backGrid));
+        return false;
+    }
+
 }

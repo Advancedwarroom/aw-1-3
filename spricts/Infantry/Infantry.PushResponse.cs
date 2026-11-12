@@ -170,7 +170,8 @@ public partial class Infantry
             case FragileDamageMode.AttackCalculation:
                 // 按两个单位攻击一次计算：以对方攻击力结算（无对方时用自身）
                 var src = attacker != null ? attacker : survivor;
-                int dmg = src.GetAttackDamage(survivor, true);
+                float hpPct = src.GetEffectiveMaxHealth() > 0 ? (float)src.health / src.GetEffectiveMaxHealth() : 1f;
+                int dmg = Mathf.Max(0, Mathf.RoundToInt(src.baseAttack * hpPct));
                 effects.Add(PushEffect.DamageUnit(survivor, dmg, true));
                 break;
             case FragileDamageMode.HealthFundsRatio:
@@ -233,10 +234,10 @@ public partial class Infantry
         }
 
         // 原文：副作用=削减/增强的差值，按比例作用到副作用目标
-        float cut = rawWeight - weight;
-        if (mitigationSideEffectTarget != MitigationSideEffectTarget.None && cut != 0f && attacker != null)
+        float cutDiff = rawWeight - weight;
+        if (mitigationSideEffectTarget != MitigationSideEffectTarget.None && cutDiff != 0f && attacker != null)
         {
-            int side = Mathf.Max(0, Mathf.RoundToInt(Mathf.Abs(cut) * mitigationSideEffectScale / 100f));
+            int side = Mathf.Max(0, Mathf.RoundToInt(Mathf.Abs(cutDiff) * mitigationSideEffectScale / 100f));
             if (side > 0)
                 effects.Add(PushEffect.DamageUnit(attacker, side, true));
         }
@@ -245,10 +246,10 @@ public partial class Infantry
         var spreadSource = pushChosenSpreadDirections != null && pushChosenSpreadDirections.Count > 0
             ? pushChosenSpreadDirections : mitigationSpreadDirections;
         if (spreadSource != null && spreadSource.Count > 0
-            && board != null && originTile != null && cut != 0f)
+            && board != null && originTile != null && cutDiff != 0f)
         {
             // 均分实现：对每个方向格上的所有单位均摊差值
-            int share = Mathf.Max(1, Mathf.RoundToInt(Mathf.Abs(cut) * mitigationSideEffectScale / 100f
+            int share = Mathf.Max(1, Mathf.RoundToInt(Mathf.Abs(cutDiff) * mitigationSideEffectScale / 100f
                 / Mathf.Max(1, spreadSource.Count)));
             foreach (var d in mitigationSpreadDirections)
             {
