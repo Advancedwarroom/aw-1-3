@@ -314,11 +314,6 @@ public partial class Infantry
             ApplyFragileCollisionEffects(stack);
             return false;
         }
-        if (!pushUsesWeight)
-        {
-            ApplyFragileCollisionEffects(stack);
-            return false;
-        }
         float staticWeight = movingWeapon != null
             ? movingWeapon.GetEffectiveWeight()
             : movingFacility.GetEffectiveWeight();
@@ -326,23 +321,23 @@ public partial class Infantry
         EqualWeightPushMode staticMode = movingWeapon != null
             ? movingWeapon.equalWeightPushMode : movingFacility.equalWeightPushMode;
 
-        if (staticWeight > unitWeight && !Mathf.IsEqualApprox(staticWeight, unitWeight))
+        bool moveBoth;
+        if (pushUsesWeight && !Mathf.IsEqualApprox(staticWeight, unitWeight))
         {
-            DestroyCollisionLoser(stack);
-            return true;
-        }
-        if (unitWeight > staticWeight && !Mathf.IsEqualApprox(unitWeight, staticWeight))
-        {
+            if (staticWeight > unitWeight)
+            {
+                DestroyCollisionLoser(stack);
+                return true;
+            }
             movingStaticDestroyed = DestroyStaticPushTarget(movingWeapon, movingFacility, gm);
             ApplyFragileCollisionEffects(stack);
             return false;
         }
-
         bool staticAllows = staticMode == EqualWeightPushMode.AllowSimultaneous;
         bool staticStops = staticMode == EqualWeightPushMode.Stop;
         bool unitAllows = StackAllowsSimultaneous(stack);
         bool unitStops = StackStopsOnEqual(stack);
-        bool moveBoth = staticAllows && unitAllows
+        moveBoth = staticAllows && unitAllows
             || !(staticStops && unitStops) && GD.Randf() < 0.5f;
         if (!moveBoth)
         {
@@ -1703,22 +1698,16 @@ public partial class Infantry
         var blockingFacility = destination.city != null && destination.city.pushBlocksInfantryWhenOverlapped
             ? destination.city : null;
 
-        // A tile can hold one facility and one weapon. They share the destination
-        // tile but occupy independent engine slots, so resolve both as one obstacle set.
-        // Multiple weapons cannot be rebound into one slot by WeaponManager; reject that
-        // configuration before moving anything rather than corrupting occupancy.
-        if (blockingWeapons.Count > 1) return false;
-        // Multi-tile weapons can be pushed as direct targets with full-footprint
-        // validation, but a mixed infantry/static chain needs a footprint-aware
-        // domino solver before it can safely move one as an intermediate obstacle.
-        if (blockingWeapons.Any(w => w.isMultiTile)) return false;
+        // Resolve every static occupant through its own Export. A tile may
+        // contain several weapon instances; none is silently rejected by count.
         if (blockingWeapons.Count == 0 && blockingFacility == null) return true;
         if (nextGrid == null) return false;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
 
-        Weapon blockingWeapon = blockingWeapons.FirstOrDefault();
-        if (blockingWeapon != null)
+        foreach (var blockingWeapon in blockingWeapons.ToList())
         {
-            if (!CanPushTeamName(blockingWeapon.team, blockingWeapon, chainIndex))
+            if (!CanPushTeamName(blockingWeapon.team, blockingWeapon, chainIndex)
+                || !blockingWeapon.pushableByPhysics)
                 return false;
             float obstacleWeight = blockingWeapon.GetEffectiveWeight();
             if (pushUsesWeight && movingWeight < obstacleWeight
@@ -1727,22 +1716,25 @@ public partial class Infantry
                 DestroyCollisionLoser(movingStack);
                 return true;
             }
-            if (!blockingWeapon.pushableByPhysics) return false;
             if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
-                && !CanResolveEqualWeight(movingStack, blockingWeapon.equalWeightPushMode)) return false;
-
+                && !CanResolveEqualWeight(movingStack, blockingWeapon.equalWeightPushMode))
+                return false;
             if (!TryResolveWeaponFootprintCollisions(blockingWeapon, nextGrid, direction,
-                GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager,
-                out bool weaponDestroyed, chainIndex + 1))
+                gm, out bool weaponDestroyed, chainIndex + 1))
             {
                 if (!weaponDestroyed) return false;
             }
-            if (weaponDestroyed) blockingWeapon = null;
+            if (weaponDestroyed) continue;
+            if (!CanMoveStaticTargetTo(nextGrid, blockingWeapon, allowInfantryOverlap: true))
+                return false;
+            if (!blockingWeapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager))
+                return false;
         }
 
         if (blockingFacility != null)
         {
-            if (!CanPushTeamName(blockingFacility.facilityTeam, blockingFacility, chainIndex))
+            if (!CanPushTeamName(blockingFacility.facilityTeam, blockingFacility, chainIndex)
+                || !blockingFacility.pushableByPhysics)
                 return false;
             float obstacleWeight = blockingFacility.GetEffectiveWeight();
             if (pushUsesWeight && movingWeight < obstacleWeight
@@ -1751,20 +1743,21 @@ public partial class Infantry
                 DestroyCollisionLoser(movingStack);
                 return true;
             }
-            if (!blockingFacility.pushableByPhysics) return false;
             if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
-                && !CanResolveEqualWeight(movingStack, blockingFacility.equalWeightPushMode)) return false;
-
+                && !CanResolveEqualWeight(movingStack, blockingFacility.equalWeightPushMode))
+                return false;
             if (!TryResolveStaticTargetCollision(nextGrid, direction, null, blockingFacility,
-                GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager,
-                out bool facilityDestroyed, chainIndex + 1))
+                gm, out bool facilityDestroyed, chainIndex + 1))
             {
                 if (!facilityDestroyed) return false;
             }
-            if (facilityDestroyed) blockingFacility = null;
+            if (!facilityDestroyed && !blockingFacility.MoveByPhysicsPush(nextGrid))
+                return false;
         }
 
-        if (blockingWeapon == null && blockingFacility == null) return true;
+        ApplyFragileCollisionEffects(movingStack);
+        return true;
+
         if (!CanMoveStaticTargetTo(nextGrid, blockingWeapon, blockingFacility)) return false;
 
         // All weight and destination checks have passed. Move the weapon first because
