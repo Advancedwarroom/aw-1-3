@@ -20,6 +20,7 @@ public partial class Infantry
         public Weapon movingWeapon;
         public Facility movingFacility;
         public bool destroyMovingStatic;
+        public bool blocked;
     }
 
     public bool TryPushWeaponOnMovement(Weapon target, Vector2I movementDirection)
@@ -327,6 +328,7 @@ public partial class Infantry
                 if (plan.infantryDestination != null
                     && !reservedInfantryDestinations.Add(plan.infantryDestination))
                     return false;
+                plan.blocked = blocked;
                 collisionPlans.Add(plan);
                 hasBlockingCollision |= blocked;
             }
@@ -337,9 +339,9 @@ public partial class Infantry
         // planned collision effects are committed.
         if (hasBlockingCollision)
         {
-            foreach (var plan in collisionPlans.Where(p => p.destroyMovingStatic))
+            foreach (var plan in collisionPlans.Where(p => p.blocked && p.destroyMovingStatic))
                 DestroyStaticPushTarget(plan.movingWeapon, plan.movingFacility, gm);
-            foreach (var plan in collisionPlans.Where(p => p.fragileUnits.Count > 0))
+            foreach (var plan in collisionPlans.Where(p => p.blocked && p.fragileUnits.Count > 0))
                 ApplyFragileCollisionEffects(plan.fragileUnits);
             return false;
         }
