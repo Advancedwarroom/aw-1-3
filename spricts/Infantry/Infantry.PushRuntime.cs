@@ -220,10 +220,11 @@ public partial class Infantry
     }
 
     private bool CanMoveStaticTargetTo(Grids destination, Weapon movingWeapon = null,
-        Facility movingFacility = null, bool allowInfantryOverlap = false)
+        Facility movingFacility = null, bool allowInfantryOverlap = false,
+        HashSet<Weapon> plannedToVacate = null)
     {
         if (movingWeapon != null && movingWeapon.isMultiTile)
-            return CanMoveWeaponFootprintTo(movingWeapon, destination, allowInfantryOverlap);
+            return CanMoveWeaponFootprintTo(movingWeapon, destination, allowInfantryOverlap, plannedToVacate);
         if (destination == null || (!allowInfantryOverlap && GetLivingStack(destination).Count > 0)
             || HasForeignMultiTileOccupant(destination, new List<Infantry>()))
             return false;
@@ -231,7 +232,7 @@ public partial class Infantry
             return false;
         return destination.weapons == null
             || destination.weapons.All(w => w == null || !GodotObject.IsInstanceValid(w)
-                || w == movingWeapon);
+                || w == movingWeapon || (plannedToVacate?.Contains(w) ?? false));
     }
 
     private bool TryResolveWeaponFootprintCollisions(Weapon weapon, Grids nextAnchor,
@@ -305,7 +306,7 @@ public partial class Infantry
     }
 
     private bool CanMoveWeaponFootprintTo(Weapon weapon, Grids nextAnchor,
-        bool allowInfantryOverlap)
+        bool allowInfantryOverlap, HashSet<Weapon> plannedToVacate = null)
     {
         if (weapon == null || nextAnchor == null) return false;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
@@ -320,7 +321,7 @@ public partial class Infantry
             if (!oldFootprint.Contains(index)
                 && (tile.city != null
                     || (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
-                        && w != weapon) ?? false)))
+                        && w != weapon && !(plannedToVacate?.Contains(w) ?? false)) ?? false)))
                 return false;
             if (!allowInfantryOverlap && !oldFootprint.Contains(index)
                 && GetLivingStack(tile).Count > 0)
@@ -1778,7 +1779,10 @@ public partial class Infantry
             }
             if (!weaponDestroyed)
             {
-                if (!CanMoveStaticTargetTo(nextGrid, blockingWeapon, allowInfantryOverlap: true))
+                var plannedToVacate = plannedWeaponMoves.Select(move => move.weapon)
+                    .Concat(blockingWeapons).ToHashSet();
+                if (!CanMoveStaticTargetTo(nextGrid, blockingWeapon, allowInfantryOverlap: true,
+                    plannedToVacate: plannedToVacate))
                     return false;
                 movableWeapons.Add(blockingWeapon);
             }
