@@ -241,12 +241,37 @@ public partial class Infantry
         var oldFootprint = weapon.grid == null
             ? new HashSet<Vector2I>()
             : weapon.GetOccupiedIndices(weapon.grid.GridIndex).ToHashSet();
+        var processedWeapons = new HashSet<Weapon> { weapon };
         foreach (var index in weapon.GetOccupiedIndices(nextAnchor.GridIndex)
             .Where(index => !oldFootprint.Contains(index))
             .OrderByDescending(index => index.X * direction.X + index.Y * direction.Y))
         {
             var tile = gm.gridManager.GetGridAt(index);
             if (tile == null) return false;
+
+            // Every newly occupied cell participates in the same mixed chain.
+            // Resolve all weapons on that cell (not only Grids.weapon's primary
+            // reference), then resolve infantry/facilities through the shared
+            // static-collision path.
+            foreach (var blocker in (tile.weapons ?? new List<Weapon>())
+                .Where(other => other != null && GodotObject.IsInstanceValid(other)
+                    && other != weapon && other != this && !other.IsQueuedForDeletion())
+                .ToList())
+            {
+                if (!processedWeapons.Add(blocker)) continue;
+                if (!blocker.pushableByPhysics || !CanPushTeamName(blocker.team, blocker, chainIndex))
+                    return false;
+                var blockerNext = gm.gridManager.GetGridAt(blocker.grid.GridIndex + direction);
+                if (blockerNext == null) return false;
+                if (!TryResolveWeaponFootprintCollisions(blocker, blockerNext, direction,
+                    gm, out bool blockerDestroyed, chainIndex + 1))
+                {
+                    if (!blockerDestroyed) return false;
+                }
+                if (!blockerDestroyed && !blocker.MoveByPhysicsPush(blockerNext, gm.weaponManager))
+                    return false;
+            }
+
             if (!TryResolveStaticTargetCollision(tile, direction, weapon, null, gm,
                 out bool cellDestroyed, chainIndex))
             {
