@@ -1704,7 +1704,11 @@ public partial class Infantry
         if (nextGrid == null) return false;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
 
-        foreach (var blockingWeapon in blockingWeapons.ToList())
+        var movableWeapons = new List<Weapon>();
+        // Phase 1: validate every member of the co-located weapon group before
+        // moving any of them. This prevents the first weapon from claiming the
+        // destination and falsely blocking its siblings.
+        foreach (var blockingWeapon in blockingWeapons)
         {
             if (!CanPushTeamName(blockingWeapon.team, blockingWeapon, chainIndex)
                 || !blockingWeapon.pushableByPhysics)
@@ -1724,13 +1728,15 @@ public partial class Infantry
             {
                 if (!weaponDestroyed) return false;
             }
-            if (weaponDestroyed) continue;
-            if (!CanMoveStaticTargetTo(nextGrid, blockingWeapon, allowInfantryOverlap: true))
-                return false;
-            if (!blockingWeapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager))
-                return false;
+            if (!weaponDestroyed)
+            {
+                if (!CanMoveStaticTargetTo(nextGrid, blockingWeapon, allowInfantryOverlap: true))
+                    return false;
+                movableWeapons.Add(blockingWeapon);
+            }
         }
 
+        bool moveFacility = false;
         if (blockingFacility != null)
         {
             if (!CanPushTeamName(blockingFacility.facilityTeam, blockingFacility, chainIndex)
@@ -1751,9 +1757,19 @@ public partial class Infantry
             {
                 if (!facilityDestroyed) return false;
             }
-            if (!facilityDestroyed && !blockingFacility.MoveByPhysicsPush(nextGrid))
+            moveFacility = !facilityDestroyed;
+        }
+
+        // Phase 2: commit the preflighted group. WeaponManager now supports
+        // multiple weapon references per tile, so siblings can share the same
+        // destination without racing for Grids.weapon's legacy primary slot.
+        foreach (var weapon in movableWeapons)
+        {
+            if (!weapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager))
                 return false;
         }
+        if (moveFacility && !blockingFacility.MoveByPhysicsPush(nextGrid))
+            return false;
 
         ApplyFragileCollisionEffects(movingStack);
         return true;
