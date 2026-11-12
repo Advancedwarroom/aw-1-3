@@ -1324,8 +1324,8 @@ public partial class Infantry
                 || (pushMaxChainStacks > 0 && chain.Count >= pushMaxChainStacks)
                 || (pushMaxChainUnits > 0 && chainUnitCount >= pushMaxChainUnits))
                 break;
-            int nextLinkIndex = chain.Count;
-            if (nextLinkIndex >= pushPath.Count) break;
+            int nextLinkIndex = chain.Count - 1;
+            if (nextLinkIndex < 0 || nextLinkIndex >= pushPath.Count) break;
             cursor = gridManager.GetGridAt(cursor.GridIndex + pushPath[nextLinkIndex]);
         }
         if (chain.Count == 0) return false;
