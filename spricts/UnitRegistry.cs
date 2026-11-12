@@ -202,6 +202,7 @@ public static class UnitRegistry
             SecondaryAttack = 100,
             SecondaryAntiInfantry = true,
             SecondaryAntiArmor = false,
+            CanAttackAfterMoving = true,
             MaxFuel = 80,
             ConsumeFuel = true,
             IsArmoredUnit = true,
