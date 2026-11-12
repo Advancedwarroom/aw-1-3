@@ -255,11 +255,12 @@ public partial class Infantry
             // static-collision path.
             foreach (var blocker in (tile.weapons ?? new List<Weapon>())
                 .Where(other => other != null && GodotObject.IsInstanceValid(other)
-                    && other != weapon && other != this && !other.IsQueuedForDeletion())
+                    && other != weapon && !other.IsQueuedForDeletion())
                 .ToList())
             {
                 if (!processedWeapons.Add(blocker)) continue;
-                if (!blocker.pushableByPhysics || !CanPushTeamName(blocker.team, blocker, chainIndex))
+                if (!blocker.pushableByPhysics || blocker.grid == null
+                    || !CanPushTeamName(blocker.team, blocker, chainIndex))
                     return false;
                 var blockerNext = gm.gridManager.GetGridAt(blocker.grid.GridIndex + direction);
                 if (blockerNext == null) return false;
