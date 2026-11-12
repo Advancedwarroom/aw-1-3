@@ -66,4 +66,3 @@ public void RemoveWeapon(Weapon weapon)
     UpdateUnitLists();
 }
 }
-}
