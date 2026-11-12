@@ -63,6 +63,8 @@ public partial class Infantry
 
     [ExportSubgroup("基础推动参数")]
     [Export] public int pushDistance = 1;
+    [Export(PropertyHint.Enum, "自动推满,手动选择推动格数")] public int pushDistanceSelectionMode = 0;  // 推动距离选择：0=自动推满（默认）；1=推动前在预选择菜单手动选 1~pushDistance 格
+    public int? pushChosenDistance = null;   // 手动选定的推动格数（null=自动推满；单次推动结算后清零）——与 pushChosenReboundRange 同款运行时字段
     [Export] public int pushMinTargetRange = 1;
     [Export] public int pushRange = 1;
     [Export] public bool pushCanTargetEnemies = true;
