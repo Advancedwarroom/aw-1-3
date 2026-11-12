@@ -328,6 +328,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
 
         // ✅ N屏地图：传送按钮（站在有出链的格子上时显示）
         UpdateTeleportButtonVisibility(unit);
+        UpdatePushChoiceButtonVisibility(unit);
 
         // ✅ CO 三十模块体系：COP/SCOP 按钮（能量条攒满时显示）
         UpdateCoPowerButtons(unit);

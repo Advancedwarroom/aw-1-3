@@ -312,6 +312,8 @@ public partial class GridManager
     public void MoveTo(Infantry infantry, Grids to, bool showMenu = true, System.Collections.Generic.List<Grids> forcedPath = null)
     {
         if (infantry == null || to == null) return;
+        // 移动时推动（原文方式①）：记录出发格，落子后沿移动方向触发推挤
+        var pushFromIndex = infantry.grid?.GridIndex;
         // 最终安全门：任何调用路径都不能把单位停进禁停地形；经过禁停格不受影响。
         if (to.PreventsUnitStop(this)) return;
         // ✅ forcedPath：手画路径模式——路程/绕圈以画线为准，不再重算最短路径
@@ -469,7 +471,12 @@ public partial class GridManager
         if (enableWalkAnim && path.Count > 1)
         {
             infantry.Position = path[0].Position;
-            StartWalkAlongPath(infantry, path, PostMoveActions);
+            StartWalkAlongPath(infantry, path, () =>
+            {
+                PostMoveActions();
+            infantry.TryPushOnMove(to, pushFromIndex, this);
+                infantry.TryPushOnMove(to, pushFromIndex, this);
+            });
         }
         else
         {

@@ -339,6 +339,8 @@ public virtual bool ConsumePrimaryAmmo()
             var gmAtk = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gmAtk != null) gmAtk.CurrentAttackerGrid = grid; // 巨雷弱点判定: 记录攻击来源格
         weapon.TakeDamage(damage, this);
+        if (weapon.health > 0 && !weapon.isDestroyed)
+            TryPushWeaponOnAttack(weapon);
         if (gmAtk != null) gmAtk.CurrentAttackerGrid = null;
             __theater?.AddVolley(true, damage, Math.Max(0, weapon.health), BattleAnimCatalog.GetFireClass(this, selectedWeapon, null));
 
@@ -365,6 +367,8 @@ public virtual bool ConsumePrimaryAmmo()
             isAttacked = true; isMoved = true; originalGrid = null;
             int damage = facility.CalculateDamageFrom(this, selectedWeapon);
             facility.TakeDamage(damage, this);
+            if (facility.health > 0)
+                TryPushFacilityOnAttack(facility);
             state = UnitState.Acted; FreezeToIdleDark();
             var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
             gm?.gridManager?.HideAttackRange(); gm?.ClearSelectedInfantry();
@@ -443,6 +447,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
 
     // 计算伤害（新：攻防表公式）
     int attackDamage = CalculateFinalDamage(target, weapon);
+    if (attackUsesFixedDamage) attackDamage = -attackFixedDamage;   // 固定值攻击：配置正值=给目标加血
     int counterDamage = 0;
     
     // 反击
@@ -580,6 +585,12 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
         return;
     }
     
+    // Attack-mode push resolves only after the normal damage/counter/death pipeline.
+    // A target killed by the attack is already removed and cannot be pushed.
+    if (target != null && GodotObject.IsInstanceValid(target) && !target.IsQueuedForDeletion()
+        && target.health > 0)
+        TryPushTargetOnAttack(target);
+
     state = UnitState.Acted;
     FreezeToIdleDark();
     BattleTheater.Play(__theater, this);   // ✅ 剧场：常规收尾播放

@@ -63,6 +63,48 @@ public partial class Weapon : Node2D
     [Export] public int maxAttacksPerTurn = 1;
     [Export] public int cost = 0;
 
+    [ExportGroup("推动模块")]
+    [Export] public float weight = 1.0f;
+    [Export] public bool weightScalesWithHealth = false;
+    [Export] public bool pushableByPhysics = false;
+    [Export] public bool pushBlocksInfantryWhenOverlapped = true;
+    [Export] public Infantry.EqualWeightPushMode equalWeightPushMode = Infantry.EqualWeightPushMode.Stop;
+    [ExportGroup("反弹（被推动方响应）")]
+    [Export] public bool pushReboundEnabled = false;            // 被推动时反弹
+    [Export] public StaticReboundMode pushReboundMode = StaticReboundMode.Stay; // Stay=原地不动弹回链环；CounterPush=按重量反推发动栈
+    public enum StaticReboundMode { Stay, CounterPush }
+    [ExportGroup("卸力（被推动方响应）")]
+    [Export] public bool pushMitigationEnabled = false;
+    [Export] public bool pushMitigationCeremony = false;      // 开启重量卸力仪式
+    [Export] public bool mitigationWeakensWeight = false;
+    [Export] public Infantry.MitigationValueMode mitigationWeightWeakenMode = Infantry.MitigationValueMode.Fixed;
+    [Export] public float mitigationWeightWeakenValue = 0f;
+    [ExportGroup("转移（被推动方响应）")]
+    [Export] public bool pushTransferEnabled = false;         // 被推动时改向：落到 pushTransferDirection 指定格
+    [Export] public Vector2I pushTransferDirection = Vector2I.Zero;
+    [ExportGroup("脆弱（冲突存活冲击）")]
+    [Export] public bool fragile = false;                     // 冲突存活后仍受冲击
+    [Export] public Infantry.FragileDamageMode fragileDamageMode = Infantry.FragileDamageMode.Fixed;
+    [Export] public int fragileDamageAmount = 0;              // 固定值：扣（负值对兵器=修复）
+
+    public virtual float GetEffectiveWeight() => Mathf.Max(0f, weight) * (weightScalesWithHealth ? Mathf.Clamp((float)health / Mathf.Max(1, maxHealth), 0f, 1f) : 1f);
+
+    public virtual bool MoveByPhysicsPush(Grids destination, WeaponManager manager)
+    {
+        if (!pushableByPhysics || isDestroyed || destination == null || manager == null)
+            return false;
+
+        // BindWeaponToGrid validates the full occupied footprint for multi-tile weapons.
+        // Preserve the old transform if the destination footprint cannot be rebound.
+        Vector2 previousPosition = Position;
+        Position = destination.Position;
+        if (manager.BindWeaponToGrid(this, true))
+            return true;
+
+        Position = previousPosition;
+        return false;
+    }
+
     // ✅ 力场bypass：坠落等引擎流程内部使用（黑弧护卫全毁坠落时绕过力场）
     public bool ignoreForceField = false; 
 

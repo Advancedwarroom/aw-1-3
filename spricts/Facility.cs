@@ -132,6 +132,49 @@ public partial class Facility : Node2D
     [Export] public int surviveVictoryTurns = 0;   // 本设施存活满 N 大回合 → 所属势力直接胜利（0=关闭）
     [Export] public int surviveDefeatTurns = 0;    // 本设施存活满 N 大回合 → 所属势力失败出局（0=关闭）
     [Export] public int survivedTurns = 0;         // 已存活大回合数（计时器；[Export] 随存档/导出/导入自动带走）
+    [ExportGroup("推动模块")]
+    [Export] public float weight = 1.0f;
+    [Export] public bool weightScalesWithHealth = false;
+    [Export] public bool pushableByPhysics = false;
+    [Export] public bool pushBlocksInfantryWhenOverlapped = true;
+    [Export] public Infantry.EqualWeightPushMode equalWeightPushMode = Infantry.EqualWeightPushMode.Stop;
+    [ExportGroup("反弹（被推动方响应）")]
+    [Export] public bool pushReboundEnabled = false;
+    [Export] public Weapon.StaticReboundMode pushReboundMode = Weapon.StaticReboundMode.Stay;
+    [ExportGroup("卸力（被推动方响应）")]
+    [Export] public bool pushMitigationEnabled = false;
+    [Export] public bool pushMitigationCeremony = false;      // 开启重量卸力仪式
+    [Export] public bool mitigationWeakensWeight = false;
+    [Export] public Infantry.MitigationValueMode mitigationWeightWeakenMode = Infantry.MitigationValueMode.Fixed;
+    [Export] public float mitigationWeightWeakenValue = 0f;
+    [ExportGroup("转移（被推动方响应）")]
+    [Export] public bool pushTransferEnabled = false;         // 被推动时改向：落到 pushTransferDirection 指定格
+    [Export] public Vector2I pushTransferDirection = Vector2I.Zero;
+    [ExportGroup("脆弱（冲突存活冲击）")]
+    [Export] public bool fragile = false;                     // 冲突存活后仍受冲击
+    [Export] public Infantry.FragileDamageMode fragileDamageMode = Infantry.FragileDamageMode.Fixed;
+    [Export] public int fragileDamageAmount = 0;              // 固定值：扣（负值对兵器=修复）
+
+    public virtual float GetEffectiveWeight() => Mathf.Max(0f, weight) * (weightScalesWithHealth ? Mathf.Clamp((float)health / Mathf.Max(1, maxHealth), 0f, 1f) : 1f);
+
+    public virtual bool MoveByPhysicsPush(Grids destination)
+    {
+        var origin = ParentGrid;
+        if (!pushableByPhysics || origin == null || destination == null
+            || destination == origin || destination.city != null)
+            return false;
+
+        // Clear the source occupancy before reparenting so grid ownership never
+        // temporarily points at the destination while the old tile still owns it.
+        if (origin.city == this)
+            origin.city = null;
+        Reparent(destination, true);
+        ParentGrid = destination;
+        destination.city = this;
+        GlobalPosition = destination.GlobalPosition;
+        return true;
+    }
+
     [Export] public int capturePointsRequired = 20;
     [Export] public int healMode = 0;
     [Export] public int healAmount = 0;

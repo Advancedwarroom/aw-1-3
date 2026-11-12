@@ -4,9 +4,6 @@
 [ext_resource type="Texture2D" path="res://art/official/Rhino_base.png" id="2_base"]
 [ext_resource type="Texture2D" path="res://art/official/Rhino_overlay.png" id="3_overlay"]
 
-[sub_resource type="RectangleShape2D" id="RhinoCollision"]
-size = Vector2(32, 32)
-
 [node name="Rhino" type="Node2D" node_paths=PackedStringArray("baseSprite", "normalSprite")]
 script = ExtResource("1_script")
 baseSprite = NodePath("BaseSprite")
@@ -14,7 +11,7 @@ normalSprite = NodePath("NormalSprite")
 useDefaultConfig = true
 unitTypeId = "Rhino"
 unitDisplayName = "犀牛"
-templateType = "MdTank"
+templateType = ""
 unitCategory = 1
 isArmoredUnit = true
 moveType = 3
@@ -25,8 +22,8 @@ fuel = 80
 consumeFuel = true
 baseAttack = 450
 hasPrimaryWeapon = true
-maxPrimaryAmmo = 8
-currentPrimaryAmmo = 8
+maxPrimaryAmmo = 100
+currentPrimaryAmmo = 100
 primaryAntiArmor = true
 primaryAntiInfantry = true
 hasSecondaryWeapon = true
@@ -36,6 +33,34 @@ secondaryAntiArmor = false
 visionRange = 4
 useConfigVision = false
 cost = 16000
+pushEnabled = true
+pushTriggerMode = 1
+weight = 10.0
+pushDistance = 2
+pushTargetClass = 1
+pushCanTargetFriendlies = true
+equalWeightPushMode = 1
+pushSelfDestructOnInvalidIntermediateTile = true
+attackMatrix = {
+"Rhino_Infantry": 23, "Rhino_Mech": 23, "Rhino_Dog": 23,
+"Rhino_Recon": 12, "Rhino_Bike": 14, "Rhino_Rig": 14,
+"Rhino_LightTank": 8, "Rhino_MdTank": 8, "Rhino_WarTank": 8,
+"Rhino_Neotank": 8, "Rhino_Megatank": 4, "Rhino_APC": 8,
+"Rhino_AntiTank": 8, "Rhino_Flare": 9, "Rhino_Artillery": 9,
+"Rhino_Rocket": 11, "Rhino_AntiAir": 9, "Rhino_AntiAirMissile": 11,
+"Rhino_PipeRunner": 11, "Rhino_Oozium": 4
+}
+secondaryAttackMatrix = {
+"Rhino_BCopter": 7, "Rhino_TCopter": 10, "Rhino_Duster": 7,
+"Rhino_Fighter": 1, "Rhino_Bomber": 1, "Rhino_Stealth": 1,
+"Rhino_Seaplane": 5, "Rhino_FlyBomb": 5,
+"Rhino_Gunboat": 15, "Rhino_Lander": 15, "Rhino_ProducibleBoat": 15,
+"Rhino_RepairBoat": 15, "Rhino_KamikazeBoat": 15,
+"Rhino_Cruiser": 5, "Rhino_Battleship": 5, "Rhino_Submarine": 5, "Rhino_Carrier": 5
+}
+
+[sub_resource type="RectangleShape2D" id="RhinoCollision"]
+size = Vector2(32, 32)
 
 [node name="Area2D" type="Area2D" parent="."]
 
