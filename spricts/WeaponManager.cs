@@ -48,6 +48,12 @@ public partial class WeaponManager : Node
         weapon.occupiedGrids?.Clear();
     }
 
+    /// <summary>Detach a weapon from every tile in its footprint without destroying it.</summary>
+    public void UnbindWeaponFromGrid(Weapon weapon)
+    {
+        RemoveWeaponOccupancyReferences(weapon);
+    }
+
     [Export] public GridManager gridManager;
     [Export] public Node weaponsNode;  // 存放兵器的父节点
 

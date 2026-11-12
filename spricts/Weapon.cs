@@ -583,30 +583,64 @@ public partial class Weapon : Node2D
     public virtual void OnDestroyed()
     {
         if (TryDeathTransform()) return; // 直接销毁入口同样支持尸化；attempted 防重入。
-        isDestroyed = true; // ✅ 关键：标记为已摧毁，确保胜利判定正确识别
+        isDestroyed = true;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         gm?.gridManager?.ClearWeaponRange();
         Grids.IsForceActionMode = false;
-        if (grid != null && grid.gridType == GridType.PIPESEAM)
+        var destroyedGrid = grid;
+
+        if (gm?.weaponManager != null)
         {
-            var targetGrid = grid;
-            targetGrid.weapons.Remove(this);
-            if (targetGrid.weapon == this) targetGrid.weapon = targetGrid.weapons.Count > 0 ? targetGrid.weapons[0] : null;
-            targetGrid.gridType = GridType.BROKENPIPE;
-            if (targetGrid.city != null)
-                targetGrid.city.healAmount = 0; targetGrid.city.flareAmmoSupply = 0; targetGrid.city.explodeAmmoSupply = 0; targetGrid.city.primaryAmmoSupply = 0; targetGrid.city.fuelSupply = 0;
-            var sprite = targetGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
-            if (sprite != null) { var tween = CreateTween(); tween.TweenProperty(sprite, "modulate", new Color(0.4f, 0.7f, 0.3f), 0.5f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut); }
+            gm.weaponManager.UnbindWeaponFromGrid(this);
         }
-        else if (grid != null && grid.gridType == GridType.METEORITE)
+        else
         {
-            // ✅ 陨石被毁：原格恢复平原 + 相连等离子全部消失（DoR原作机制）
-            var targetGrid = grid;
-            targetGrid.weapons.Remove(this);
-            if (targetGrid.weapon == this) targetGrid.weapon = targetGrid.weapons.Count > 0 ? targetGrid.weapons[0] : null;
-            targetGrid.gridType = GridType.GROUND;
-            var sprite = targetGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
-            if (sprite != null) { var tween = CreateTween(); tween.TweenProperty(sprite, "modulate", new Color(0.4f, 0.7f, 0.3f), 0.5f).SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut); }
+            // Fallback when the manager is unavailable: remove every footprint
+            // reference, not just the anchor tile.
+            var occupied = new List<Grids>(occupiedGrids);
+            if (destroyedGrid != null && !occupied.Contains(destroyedGrid))
+                occupied.Add(destroyedGrid);
+            foreach (var tile in occupied)
+            {
+                if (tile == null || !GodotObject.IsInstanceValid(tile)) continue;
+                tile.weapons?.Remove(this);
+                if (tile.weapon == this)
+                {
+                    tile.weapon = null;
+                    if (tile.weapons != null)
+                        foreach (var candidate in tile.weapons)
+                            if (candidate != null && GodotObject.IsInstanceValid(candidate)
+                                && !candidate.IsQueuedForDeletion() && !candidate.isDestroyed)
+                            { tile.weapon = candidate; break; }
+                }
+            }
+            occupiedGrids.Clear();
+        }
+
+        if (destroyedGrid != null && destroyedGrid.gridType == GridType.PIPESEAM)
+        {
+            destroyedGrid.gridType = GridType.BROKENPIPE;
+            if (destroyedGrid.city != null)
+                destroyedGrid.city.healAmount = 0;
+            var sprite = destroyedGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
+            if (sprite != null)
+            {
+                var tween = CreateTween();
+                tween.TweenProperty(sprite, "modulate", new Color(0.4f, 0.7f, 0.3f), 0.5f)
+                     .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+            }
+        }
+        else if (destroyedGrid != null && destroyedGrid.gridType == GridType.METEORITE)
+        {
+            // 陨石被毁：原格恢复平原 + 相连等离子全部消失（DoR原作机制）
+            destroyedGrid.gridType = GridType.GROUND;
+            var sprite = destroyedGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
+            if (sprite != null)
+            {
+                var tween = CreateTween();
+                tween.TweenProperty(sprite, "modulate", new Color(0.4f, 0.7f, 0.3f), 0.5f)
+                     .SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+            }
         }
         gm?.CheckVictoryCondition();
         QueueFree();

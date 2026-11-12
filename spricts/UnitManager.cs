@@ -334,8 +334,24 @@ public bool CanMoveTo(Vector2I gridPos, Infantry unit)
         if (grid.gridType == GridType.METEORITE) return false;
     }
 
-    // ✅ 兵器阻挡（非Oozium不能通过兵器格子）
-    if (grid.weapon != null && !grid.weapon.AllowsPassage(unit) && !grid.weapon.CanShelterUnit(unit))
+    // Check the complete weapon collection. grid.weapon is only the legacy
+    // primary pointer and may not be the only weapon occupying this tile.
+    if (grid.weapons != null)
+    {
+        foreach (var blocker in grid.weapons)
+        {
+            if (blocker == null || !GodotObject.IsInstanceValid(blocker)
+                || blocker.IsQueuedForDeletion() || blocker.isDestroyed) continue;
+            if (!blocker.AllowsPassage(unit) && !blocker.CanShelterUnit(unit))
+                return false;
+        }
+    }
+    // Backward compatibility for old maps whose primary pointer was not mirrored
+    // into the collection yet.
+    if (grid.weapon != null && GodotObject.IsInstanceValid(grid.weapon)
+        && !grid.weapon.IsQueuedForDeletion() && !grid.weapon.isDestroyed
+        && !(grid.weapons?.Contains(grid.weapon) ?? false)
+        && !grid.weapon.AllowsPassage(unit) && !grid.weapon.CanShelterUnit(unit))
         return false;
     // ✅ issue#1 多格机动单位：他方多格足印占据格一律不可进入（敌我皆挡；死亡残留惰性失效）
     if (grid.multiTileOccupant != null && grid.multiTileOccupant != unit

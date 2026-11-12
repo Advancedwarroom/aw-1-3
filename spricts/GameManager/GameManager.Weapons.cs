@@ -29,66 +29,41 @@ public void OnSelectWeapon(Weapon weapon)
     // ✅ 修改：移除兵器现在通过WeaponManager处理
 public void RemoveWeapon(Weapon weapon)
 {
-    if (weapon == null) return;
+    if (weapon == null || !GodotObject.IsInstanceValid(weapon)) return;
 
-    // ✅ 多格兵器：必须彻底清理所有占据格子的引用，不能只做单格清理
-    if (weapon.isMultiTile)
+    // Keep tile.weapons and the legacy tile.weapon pointer synchronized for
+    // both single-tile and multi-tile removals.
+    if (weaponManager != null)
     {
-        if (weaponManager != null && weaponManager.AllWeapons.Contains(weapon))
-        {
-            weaponManager.RemoveWeapon(weapon);
-            UpdateUnitLists();
-            return;
-        }
-        // 备用：手动清理多格引用
-        foreach (var og in weapon.occupiedGrids.ToList())
-        {
-            if (og != null && IsInstanceValid(og))
-            {
-                og.weapons.Remove(weapon);
-                if (og.weapon == weapon)
-                    og.weapon = og.weapons.Count > 0 ? og.weapons[0] : null;
-            }
-        }
-        weapon.occupiedGrids.Clear();
-        weapons.Remove(weapon);
-        if (selectedWeapon == weapon) selectedWeapon = null;
-        if (weapon != null && IsInstanceValid(weapon))
-            weapon.QueueFree();
-        UpdateUnitLists();
-        return;
-    }
-
-    // ✅ 修复：先检查 weaponManager 是否为 null，避免递归时重复操作
-    if (weaponManager != null && weaponManager.AllWeapons.Contains(weapon))
-    {
-        // 使用临时变量避免递归
-        var wm = weaponManager;
-        // 直接从 GameManager 的列表移除
-        weapons.Remove(weapon);
-        if (selectedWeapon == weapon)
-            selectedWeapon = null;
-
-        // 通知 WeaponManager 清理（但不触发回调）
-        wm.AllWeapons.Remove(weapon);
-        if (weapon.grid != null)
-        {
-            weapon.grid.weapons.Remove(weapon);
-            if (weapon.grid.weapon == weapon)
-                weapon.grid.weapon = null;
-        }
-        weapon.QueueFree();
+        weaponManager.UnbindWeaponFromGrid(weapon);
+        weaponManager.AllWeapons.Remove(weapon);
     }
     else
     {
-        // 备用：直接处理
-        weapons.Remove(weapon);
-        if (selectedWeapon == weapon)
-            selectedWeapon = null;
-        if (weapon != null && IsInstanceValid(weapon))
-            weapon.QueueFree();
+        var occupied = new List<Grids>(weapon.occupiedGrids);
+        if (weapon.grid != null && !occupied.Contains(weapon.grid))
+            occupied.Add(weapon.grid);
+        foreach (var tile in occupied)
+        {
+            if (tile == null || !GodotObject.IsInstanceValid(tile)) continue;
+            tile.weapons?.Remove(weapon);
+            if (tile.weapon == weapon)
+            {
+                tile.weapon = null;
+                if (tile.weapons != null)
+                    foreach (var candidate in tile.weapons)
+                        if (candidate != null && GodotObject.IsInstanceValid(candidate)
+                            && !candidate.IsQueuedForDeletion() && !candidate.isDestroyed)
+                        { tile.weapon = candidate; break; }
+            }
+        }
+        weapon.occupiedGrids.Clear();
     }
 
+    weapons.Remove(weapon);
+    if (selectedWeapon == weapon) selectedWeapon = null;
+    weapon.QueueFree();
     UpdateUnitLists();
+}
 }
 }
