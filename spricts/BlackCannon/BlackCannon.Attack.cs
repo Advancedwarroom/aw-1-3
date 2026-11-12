@@ -49,13 +49,16 @@ public override void TakeDamage(int damage, Infantry attacker = null)
         // ✅ 修复：保存 grid 引用，不要在这里清空
         var destroyedGrid = grid;
         
-        // 从格子移除引用（但不要清空自己的 grid 字段）
-        if (grid != null)
+        // Remove the full occupancy footprint while retaining grid for the
+        // special-terrain destruction logic below.
+        if (gm?.weaponManager != null)
+            gm.weaponManager.UnbindWeaponFromGrid(this);
+        else if (grid != null)
         {
             grid.weapons.Remove(this);
             if (grid.weapon == this)
-                grid.weapon = null;
-            // ❌ 不要：grid = null;
+                grid.weapon = grid.weapons.FirstOrDefault(w => w != null
+                    && GodotObject.IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed);
         }
 
         if (gm != null && gm.selectedWeapon == this)
@@ -255,19 +258,30 @@ public override void TakeDamage(int damage, Infantry attacker = null)
         if (weapon == null) return;
 
 
-        // 1. 从格子移除
-        if (weapon.grid != null)
+        // 1. 从完整占据足迹移除
+        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.weaponManager != null)
         {
-            weapon.grid.weapons.Remove(weapon);
-            if (weapon.grid.weapon == weapon)
-            {
-                weapon.grid.weapon = null;
-            }
-            weapon.grid = null;
+            gm.weaponManager.UnbindWeaponFromGrid(weapon);
+            gm.weaponManager.AllWeapons.Remove(weapon);
         }
+        else if (weapon.grid != null)
+        {
+            var occupied = new List<Grids>(weapon.occupiedGrids);
+            if (!occupied.Contains(weapon.grid)) occupied.Add(weapon.grid);
+            foreach (var tile in occupied)
+            {
+                if (tile == null || !GodotObject.IsInstanceValid(tile)) continue;
+                tile.weapons?.Remove(weapon);
+                if (tile.weapon == weapon)
+                    tile.weapon = tile.weapons?.FirstOrDefault(w => w != null
+                        && GodotObject.IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed);
+            }
+            weapon.occupiedGrids.Clear();
+        }
+        weapon.grid = null;
 
         // 2. 从 GameManager 移除选中
-        var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm != null)
         {
             if (gm.selectedWeapon == weapon)
@@ -275,11 +289,7 @@ public override void TakeDamage(int damage, Infantry attacker = null)
                 gm.selectedWeapon = null;
             }
 
-            // 3. 从 WeaponManager 列表移除（但不销毁）
-            if (gm.weaponManager != null && gm.weaponManager.AllWeapons.Contains(weapon))
-            {
-                gm.weaponManager.AllWeapons.Remove(weapon);
-            }
+            gm.weapons.Remove(weapon);
         }
 
         // 4. 禁用交互
@@ -345,11 +355,8 @@ public override void TakeDamage(int damage, Infantry attacker = null)
                     }
                 }
 
-                // 再次确保从列表移除
-                gm.weaponManager.AllWeapons.Remove(weapon);
-
-                // 安全销毁
-                SafeQueueFree(weapon);
+                // Use the centralized footprint cleanup for all registries.
+                gm.weaponManager.RemoveWeapon(weapon);
                 return;
             }
         }
@@ -368,7 +375,7 @@ public override void TakeDamage(int damage, Infantry attacker = null)
                 }
                 else
                 {
-                    SafeQueueFree(w);
+                    gm.weaponManager.RemoveWeapon(w);
                 }
             }
         }
