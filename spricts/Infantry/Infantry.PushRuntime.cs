@@ -1044,22 +1044,6 @@ public partial class Infantry
         unit.CallDeferred(Node.MethodName.QueueFree);
         gameManager?.RemovePiece(unit);
     }
-    // ===== 冷却与操作标记 =====
-    public bool IsPushOnCooldown() => cooldown > 0;
-    public void ResetPushCooldown()
-    {
-        if (pushCooldownTurns > 0) cooldown = pushCooldownTurns;
-    }
-    public void CountdownPushCooldowns()
-    {
-        if (cooldown > 0) cooldown--;
-    }
-    public bool TryMarkPushActionUsed()
-    {
-        if (pushOncePerTurn && pushActionUsed) return false;
-        pushActionUsed = true;
-        return true;
-    }
 
     // 原文第n环势力规则（按 main 实际枚举成员：EnemiesOnly/FriendliesOnly/AlliesOnly/Everyone/Custom）
     private bool CanPushTargetTeamAtDepth(List<Infantry> targetStack, int depth)
@@ -1166,6 +1150,13 @@ public partial class Infantry
         VMoveStack(board, fromTile, backGrid, movingStack);
         movePlans.Add(PushMovePlan.ForStack(movingStack, backGrid));
         return false;
+    }
+
+    // 冷却读真实状态 pushCooldownTurnsRemaining（Push.cs 原版系统字段）
+    public bool IsPushOnCooldown() => pushCooldownTurnsRemaining > 0;
+    public void CountdownPushCooldowns()
+    {
+        if (pushCooldownTurnsRemaining > 0) pushCooldownTurnsRemaining--;
     }
 
 }

@@ -87,9 +87,6 @@ public partial class Infantry
     [Export] public PushResourceType pushCostResource = PushResourceType.None;
     [Export] public int pushCostAmount = 0;
     [Export] public int pushCooldownTurns = 0;
-    public int cooldown = 0;
-    public bool pushActionUsed = false;
-    private int? pushCostDistanceScale = null;
 
     [ExportSubgroup("目标状态效果")]
     [Export] public int pushTargetDamage = 0;

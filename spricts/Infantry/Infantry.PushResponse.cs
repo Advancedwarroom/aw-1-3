@@ -39,8 +39,8 @@ public partial class Infantry
     {
         if (!pushEnabled || pushTriggerMode != PushTriggerMode.OnMove) return;
         if (arrivedAt == null || fromIndex == null || gridManager == null) return;
-        if (IsPushOnCooldown()) return;
-        if (pushOncePerTurn && pushActionUsed) return;
+        if (pushCooldownTurnsRemaining > 0) return;
+        if (!CanUseSeparatePushAction()) return;
         var stack = GetLivingStack(arrivedAt);
         var target = stack.FirstOrDefault(u => u != this && CanPushTargetTeam(new List<Infantry> { u }));
         if (target == null) return;
