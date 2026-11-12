@@ -369,8 +369,52 @@ public partial class Infantry
             return false;
         }
 
-        // All collision outcomes have now been validated. Commit the staged
-        // infantry consequences, then the corresponding weapon displacement.
+        // Preflight every weapon move before applying any collision side effect.
+        // The recursive list is deepest-first, so its commit order vacates each
+        // destination before the parent weapon enters it.
+        var plannedWeaponSet = new HashSet<Weapon>();
+        foreach (var move in plannedMoves)
+        {
+            if (move.weapon == null || !GodotObject.IsInstanceValid(move.weapon)
+                || move.weapon.IsQueuedForDeletion() || move.weapon.isDestroyed
+                || !move.weapon.pushableByPhysics || move.destination == null
+                || !plannedWeaponSet.Add(move.weapon))
+                return false;
+        }
+        if (plannedWeaponSet.Count > 0 && manager == null)
+            return false;
+        foreach (var move in plannedMoves)
+        {
+            if (!CanMoveStaticTargetTo(move.destination, move.weapon,
+                allowInfantryOverlap: true, plannedToVacate: plannedWeaponSet))
+                return false;
+        }
+
+        // Move the static chain before applying infantry damage/destruction. This
+        // keeps a failed BindWeaponToGrid from leaving collision effects behind.
+        var committedWeaponMoves = new List<(Weapon weapon, Grids origin)>();
+        foreach (var move in plannedMoves)
+        {
+            var origin = move.weapon.grid;
+            if (!move.weapon.MoveByPhysicsPush(move.destination, manager))
+            {
+                // A failed bind should be impossible after preflight, but retain
+                // a rollback path for unexpected runtime changes.
+                for (int i = committedWeaponMoves.Count - 1; i >= 0; i--)
+                {
+                    var committed = committedWeaponMoves[i];
+                    if (GodotObject.IsInstanceValid(committed.weapon)
+                        && !committed.weapon.IsQueuedForDeletion()
+                        && committed.origin != null)
+                        committed.weapon.MoveByPhysicsPush(committed.origin, manager);
+                }
+                return false;
+            }
+            committedWeaponMoves.Add((move.weapon, origin));
+        }
+
+        // All weapon bindings succeeded. The remaining staged consequences use
+        // prevalidated infantry destinations and do not perform further weapon binds.
         foreach (var plan in collisionPlans)
         {
             if (plan.destroyMovingStatic)
@@ -381,13 +425,6 @@ public partial class Infantry
                 MoveStackByPush(plan.moveUnits, plan.infantryDestination);
             if (plan.fragileUnits.Count > 0)
                 ApplyFragileCollisionEffects(plan.fragileUnits);
-        }
-        foreach (var move in plannedMoves)
-        {
-            if (move.weapon == null || !GodotObject.IsInstanceValid(move.weapon)
-                || move.weapon.IsQueuedForDeletion() || move.weapon.isDestroyed) continue;
-            if (!move.weapon.MoveByPhysicsPush(move.destination, manager))
-                return false;
         }
         return true;
     }
