@@ -24,7 +24,7 @@ public partial class Infantry
         if (!CanPushTargetTeam(initialStack)
             || !CanPushStack(pusherStack, initialStack, GetPushForceMultiplier())
             || !CanPayPushCost(gm)) return;
-        ResolvePushChain(target.grid, direction, pushDistance, gm.gridManager, gm);
+        ResolvePushChain(target.grid, direction, ConsumeEffectivePushDistance(), gm.gridManager, gm);
     }
 
     public void TryPushWeaponOnAttack(Weapon target, bool fromSeparateAction = false)
@@ -140,6 +140,15 @@ public partial class Infantry
         if (pusherAllows && targetMode == EqualWeightPushMode.AllowSimultaneous) return true;
         if (pusherStops && targetMode == EqualWeightPushMode.Stop) return false;
         return GD.Randf() < 0.5f;
+    }
+
+    // 手动选择推动格数（pushDistanceSelectionMode=1）：选定值夹取 1~pushDistance；单次结算后清零回自动
+    private int ConsumeEffectivePushDistance()
+    {
+        if (pushDistanceSelectionMode != 1 || pushChosenDistance == null) return pushDistance;
+        int d = Mathf.Clamp(pushChosenDistance.Value, 1, pushDistance);
+        pushChosenDistance = null;
+        return d;
     }
 
     public void BeginSeparatePushTargetSelection()
@@ -638,7 +647,7 @@ public partial class Infantry
         gridManager.ClearAllEmptyCallbacks();
         gm.isSelectingAttackTarget = false;
         actionMenu?.Hide();
-        ResolvePushChain(targetGrid, direction, pushDistance, gridManager, gm);
+        ResolvePushChain(targetGrid, direction, ConsumeEffectivePushDistance(), gridManager, gm);
     }
 
     private void ResolvePushChain(Grids firstGrid, Vector2I direction, int distance,
