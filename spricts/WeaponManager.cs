@@ -38,9 +38,10 @@ public partial class WeaponManager : Node
         foreach (var tile in occupied.Distinct())
         {
             tile.weapons?.RemoveAll(w => w == null || !GodotObject.IsInstanceValid(w)
-                || w == weapon || w.IsQueuedForDeletion());
+                || w == weapon || w.IsQueuedForDeletion() || w.isDestroyed);
             if (tile.weapon == weapon || tile.weapon == null
-                || !GodotObject.IsInstanceValid(tile.weapon) || tile.weapon.IsQueuedForDeletion())
+                || !GodotObject.IsInstanceValid(tile.weapon) || tile.weapon.IsQueuedForDeletion()
+                || tile.weapon.isDestroyed || tile.weapons == null || !tile.weapons.Contains(tile.weapon))
                 tile.weapon = tile.weapons?.FirstOrDefault(w => w != null
                     && GodotObject.IsInstanceValid(w) && !w.IsQueuedForDeletion() && !w.isDestroyed);
         }
@@ -156,7 +157,9 @@ public partial class WeaponManager : Node
         {
             targetGrid.weapons.Add(weapon);
         }
-        if (targetGrid.weapon == null || !IsInstanceValid(targetGrid.weapon))
+        if (targetGrid.weapon == null || !IsInstanceValid(targetGrid.weapon)
+            || targetGrid.weapon.IsQueuedForDeletion() || targetGrid.weapon.isDestroyed
+            || !targetGrid.weapons.Contains(targetGrid.weapon))
             targetGrid.weapon = weapon;
 
         // 多格兵器：绑定所有占据格子
@@ -170,7 +173,9 @@ public partial class WeaponManager : Node
                 {
                     if (!g.weapons.Contains(weapon)) g.weapons.Add(weapon);
                     // 被占据的格子如果没有自己的weapon，就设为这个多格兵器
-                    if (g.weapon == null || !IsInstanceValid(g.weapon)) g.weapon = weapon;
+                    if (g.weapon == null || !IsInstanceValid(g.weapon)
+                        || g.weapon.IsQueuedForDeletion() || g.weapon.isDestroyed
+                        || !g.weapons.Contains(g.weapon)) g.weapon = weapon;
                     weapon.occupiedGrids.Add(g);
                 }
             }
@@ -247,10 +252,6 @@ public partial class WeaponManager : Node
         var anchor = weapon.grid;
         bool restoreSpecialTerrain = !weapon.isMultiTile && anchor != null
             && (anchor.gridType == GridType.PIPESEAM || anchor.gridType == GridType.METEORITE);
-        string terrainName = restoreSpecialTerrain
-            ? (anchor.gridType == GridType.PIPESEAM ? "PIPESEAM" : "METEORITE")
-            : null;
-
         RemoveWeaponOccupancyReferences(weapon);
 
         if (restoreSpecialTerrain)
@@ -285,7 +286,8 @@ public partial class WeaponManager : Node
         if (grid == null) return null;
 
         if (grid.weapon != null && GodotObject.IsInstanceValid(grid.weapon)
-            && !grid.weapon.IsQueuedForDeletion() && !grid.weapon.isDestroyed)
+            && !grid.weapon.IsQueuedForDeletion() && !grid.weapon.isDestroyed
+            && (grid.weapons?.Contains(grid.weapon) ?? false))
             return grid.weapon;
 
         grid.weapons?.RemoveAll(w => w == null || !GodotObject.IsInstanceValid(w)
