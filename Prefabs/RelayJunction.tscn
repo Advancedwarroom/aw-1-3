@@ -3,11 +3,11 @@
 [ext_resource type="Script" path="res://spricts/RelayJunction.cs" id="1_relay"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/RelayJunction.tres" id="2_relay"]
 
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/RelayJunction_base.tres" id="99_cbase"]
+[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/RelayJunction_overlay.tres" id="99_cover"]
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_relay"]
 size = Vector2(33, 33)
 
-[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/RelayJunction_base.tres" id="99_cbase"]
-[ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/RelayJunction_overlay.tres" id="99_cover"]
 [node name="RelayJunction" type="Node2D" unique_id=607771401]
 z_index = 1
 script = ExtResource("1_relay")
