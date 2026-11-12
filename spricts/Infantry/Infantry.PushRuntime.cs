@@ -589,77 +589,26 @@ public partial class Infantry
         out bool movingStaticDestroyed, int chainIndex = 0)
     {
         movingStaticDestroyed = false;
-        if (destination == null) return false;
-        bool blocksInfantry = movingWeapon != null
-            ? movingWeapon.pushBlocksInfantryWhenOverlapped
-            : movingFacility?.pushBlocksInfantryWhenOverlapped ?? false;
-        if (!blocksInfantry) return true;
+        if (destination == null || gm?.gridManager == null) return false;
 
-        var stack = GetLivingStack(destination);
-        if (stack.Count == 0) return true;
-        if ((chainIndex > 0 && !pushChainEnabled)
-            || (pushMaxChainStacks > 0 && chainIndex >= pushMaxChainStacks))
-        {
-            ApplyFragileCollisionEffects(stack);
+        // Reuse the same side-effect-free collision planner as footprint pushes.
+        // Random tie-breaks are sampled once into the plan and are not rerolled
+        // during commit.
+        if (!TryPlanStaticInfantryCollision(destination, direction, movingWeapon,
+            movingFacility, gm, chainIndex, out var plan, out bool blocked))
             return false;
-        }
-        if (!CanPushTargetTeam(stack, chainIndex))
-        {
-            ApplyFragileCollisionEffects(stack);
-            return false;
-        }
-        float staticWeight = movingWeapon != null
-            ? movingWeapon.GetEffectiveWeight()
-            : movingFacility.GetEffectiveWeight();
-        float unitWeight = GetStackWeight(stack);
-        EqualWeightPushMode staticMode = movingWeapon != null
-            ? movingWeapon.equalWeightPushMode : movingFacility.equalWeightPushMode;
+        if (plan == null) return true;
 
-        bool moveBoth;
-        if (pushUsesWeight && !Mathf.IsEqualApprox(staticWeight, unitWeight))
+        plan.blocked = blocked;
+        movingStaticDestroyed = plan.destroyMovingStatic;
+        var collisions = new List<(Grids tile, Vector2I direction, Weapon weapon,
+            Facility facility, int chainIndex, PlannedStaticInfantryCollision plan)>
         {
-            if (staticWeight > unitWeight)
-            {
-                DestroyCollisionLoser(stack);
-                return true;
-            }
-            movingStaticDestroyed = DestroyStaticPushTarget(movingWeapon, movingFacility, gm);
-            ApplyFragileCollisionEffects(stack);
-            return false;
-        }
-        bool staticAllows = staticMode == EqualWeightPushMode.AllowSimultaneous;
-        bool staticStops = staticMode == EqualWeightPushMode.Stop;
-        bool unitAllows = StackAllowsSimultaneous(stack);
-        bool unitStops = StackStopsOnEqual(stack);
-        moveBoth = staticAllows && unitAllows
-            || !(staticStops && unitStops) && GD.Randf() < 0.5f;
-        if (!moveBoth)
-        {
-            ApplyFragileCollisionEffects(stack);
-            return false;
-        }
-
-        var next = gm?.gridManager?.GetGridAt(destination.GridIndex + direction);
-        if (next == null || GetLivingStack(next).Count > 0
-            || HasForeignMultiTileOccupant(next, stack)
-            || (next.city != null && next.city.pushBlocksInfantryWhenOverlapped)
-            || (next.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
-                && w.pushBlocksInfantryWhenOverlapped) ?? false))
-        {
-            ApplyFragileCollisionEffects(stack);
-            return false;
-        }
-
-        foreach (var unit in stack.ToList())
-        {
-            if (unit.GetMoveCostOnGrid(next) >= 999
-                || (pushDestroyOnProperty && next.city != null))
-                DestroyPushedUnit(unit, gm);
-        }
-        stack = stack.Where(IsLivingUnit).ToList();
-        if (stack.Count > 0) MoveStackByPush(stack, next);
-        ApplyFragileCollisionEffects(stack);
-        return true;
+            (destination, direction, movingWeapon, movingFacility, chainIndex, plan)
+        };
+        bool committed = CommitPlannedWeaponMoves(
+            new List<(Weapon weapon, Grids destination)>(), gm.weaponManager, collisions);
+        return committed && !blocked && !movingStaticDestroyed;
     }
 
     private bool DestroyStaticPushTarget(Weapon weapon, Facility facility, GameManager gm)
