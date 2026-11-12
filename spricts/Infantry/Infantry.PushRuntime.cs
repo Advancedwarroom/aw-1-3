@@ -315,7 +315,7 @@ public partial class Infantry
 
             // Defer infantry movement/destruction until recursive weapon discovery
             // and all footprint checks have completed.
-            if (weapon.pushBlocksInfantryWhenOverlapped && GetLivingStack(tile).Count > 0
+            if (weapon.pushBlocksInfantryWhenOverlapped && GetLivingStackSnapshot(tile).Count > 0
                 && !plannedInfantryCollisions.Any(c => c.tile == tile && c.weapon == weapon))
                 plannedInfantryCollisions.Add((tile, direction, weapon, null, chainIndex, null));
         }
