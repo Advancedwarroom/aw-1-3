@@ -1846,7 +1846,8 @@ public partial class Infantry
                         var collisionNext = gridManager.GetGridAt(destination.GridIndex + stepDirection);
                         if (collisionNext == null || GetLivingStackSnapshot(collisionNext).Count > 0
                             || HasForeignMultiTileOccupant(collisionNext, blockers)
-                            || !TryDisplaceWeaponAndFacility(blockers, collisionNext, stepDirection, gridManager, i))
+                            || !TryDisplaceWeaponAndFacility(blockers, collisionNext, stepDirection, gridManager, i,
+                            deferMovingStackCollisionEffects: true))
                         {
                             ApplyFragileCollisionEffects(stack, blockers);
                             ApplyFragileCollisionEffects(blockers, stack);
@@ -1873,7 +1874,8 @@ public partial class Infantry
                     continue;
                 }
                 if (HasForeignMultiTileOccupant(destination, stack)) continue;
-                if (!TryDisplaceWeaponAndFacility(stack, destination, stepDirection, gridManager, i)) continue;
+                if (!TryDisplaceWeaponAndFacility(stack, destination, stepDirection, gridManager, i,
+                    deferMovingStackCollisionEffects: true)) continue;
                 if (!stack.Any(IsLivingUnit))
                 {
                     pushResolved = true;
@@ -1881,6 +1883,8 @@ public partial class Infantry
                 }
 
                 MoveStackByPush(stack, destination);
+                if (stack.Any(IsLivingUnit))
+                    ApplyFragileCollisionEffects(stack);
                 if (stack.Any(IsLivingUnit))
                 {
                     movedStacks.Add(i);
@@ -1982,7 +1986,8 @@ public partial class Infantry
     }
 
     private bool TryDisplaceWeaponAndFacility(List<Infantry> movingStack,
-        Grids destination, Vector2I direction, GridManager gridManager, int chainIndex = 0)
+        Grids destination, Vector2I direction, GridManager gridManager, int chainIndex = 0,
+        bool deferMovingStackCollisionEffects = false)
     {
         float movingWeight = GetStackWeight(movingStack);
         var nextGrid = gridManager.GetGridAt(destination.GridIndex + direction);
@@ -2117,7 +2122,11 @@ public partial class Infantry
             moveFacility ? nextGrid : null))
             return false;
 
-        ApplyFragileCollisionEffects(movingStack);
+        // The infantry-chain caller applies these effects only after its
+        // planned stack move succeeds. Standalone callers retain the legacy
+        // immediate behavior.
+        if (!deferMovingStackCollisionEffects)
+            ApplyFragileCollisionEffects(movingStack);
         return true;
 
     }
