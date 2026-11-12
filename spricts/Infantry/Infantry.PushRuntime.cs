@@ -475,8 +475,9 @@ public partial class Infantry
             : movingFacility?.pushBlocksInfantryWhenOverlapped ?? false;
         if (!blocksInfantry) return true;
 
-        var stack = (destination.infantries ?? new List<Infantry>())
-            .Where(IsLivingUnit).Where(u => u.grid == destination).Distinct().ToList();
+        // Use the same de-duplicated, read-only occupancy view as the main
+        // push planner so stale duplicate list entries cannot receive effects twice.
+        var stack = GetLivingStackSnapshot(destination);
         if (stack.Count == 0) return true;
         plan = new PlannedStaticInfantryCollision
         {
