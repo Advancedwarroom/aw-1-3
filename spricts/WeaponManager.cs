@@ -18,12 +18,6 @@ public partial class WeaponManager : Node
             if (gm.selectedWeapon == weapon) gm.selectedWeapon = null;
             gm.weapons.Remove(weapon);
         }
-        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm != null)
-        {
-            if (gm.selectedWeapon == weapon) gm.selectedWeapon = null;
-            gm.weapons.Remove(weapon);
-        }
         weapon.QueueFree();
     }
 
