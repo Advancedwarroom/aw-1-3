@@ -83,49 +83,18 @@ public partial class WeaponManager : Node
             return false;
         }
 
-        // 多格兵器：检查所有被占据格子是否在地图内且未被其他兵器占据
+        // A tile stores a collection of weapons. Multiple weapons may share
+        // cells; only map bounds and missing grid cells constrain the footprint.
+        // Collision/push rules are resolved by the physics-push planner, not by
+        // this occupancy index.
         if (weapon.isMultiTile)
         {
-            var occupiedIndices = weapon.GetOccupiedIndices(gridPos);
-            foreach (var idx in occupiedIndices)
+            foreach (var idx in weapon.GetOccupiedIndices(gridPos))
             {
                 if (!IsValidGrid(idx)) return false;
-                var g = gridManager.map[idx.X, idx.Y];
-                if (g == null) return false;
-                // 检查是否已有其他兵器占据（排除自己已在的格子）
-                if (g.weapon != null && g.weapon != weapon)
-                {
-                    // ✅ 清理无效引用，防止已销毁兵器残留导致无法放置
-                    if (!IsInstanceValid(g.weapon))
-                    {
-                        g.weapon = null;
-                        g.weapons.RemoveAll(w => w != null && !IsInstanceValid(w));
-                    }
-                    else if (g.weapon.isMultiTile && g.weapon != weapon)
-                    {
-                        return false;
-                    }
-                    else if (!g.weapon.isMultiTile)
-                    {
-                        return false;
-                    }
-                }
-                // 检查是否被其他多格兵器占据（通过occupiedGrids检查）
-                // ✅ 先清理 AllWeapons 中的无效引用
-                AllWeapons.RemoveAll(w => w == null || !IsInstanceValid(w));
-                foreach (var otherW in AllWeapons)
-                {
-                    if (otherW != weapon && IsInstanceValid(otherW) && otherW.isMultiTile && otherW.occupiedGrids.Contains(g))
-                        return false;
-                }
-            }
-        }
-        else
-        {
-            // 单格兵器原有检查
-            if (targetGrid.weapon != null && targetGrid.weapon != weapon)
-            {
-                return false;
+                var occupiedGrid = gridManager.map[idx.X, idx.Y];
+                if (occupiedGrid == null) return false;
+                occupiedGrid.weapons?.RemoveAll(w => w == null || !IsInstanceValid(w));
             }
         }
 
@@ -135,7 +104,7 @@ public partial class WeaponManager : Node
             foreach (var og in weapon.occupiedGrids.ToList())
             {
                 og.weapons.Remove(weapon);
-                if (og.weapon == weapon) og.weapon = null;
+                if (og.weapon == weapon) og.weapon = og.weapons.FirstOrDefault(w => w != null && IsInstanceValid(w) && w != weapon);
             }
             weapon.occupiedGrids.Clear();
         }
@@ -145,7 +114,7 @@ public partial class WeaponManager : Node
             {
                 weapon.grid.weapons.Remove(weapon);
                 if (weapon.grid.weapon == weapon)
-                    weapon.grid.weapon = null;
+                    weapon.grid.weapon = weapon.grid.weapons.FirstOrDefault(w => w != null && IsInstanceValid(w) && w != weapon);
             }
         }
 
@@ -155,7 +124,8 @@ public partial class WeaponManager : Node
         {
             targetGrid.weapons.Add(weapon);
         }
-        targetGrid.weapon = weapon;
+        if (targetGrid.weapon == null || !IsInstanceValid(targetGrid.weapon))
+            targetGrid.weapon = weapon;
 
         // 多格兵器：绑定所有占据格子
         if (weapon.isMultiTile)
@@ -168,7 +138,7 @@ public partial class WeaponManager : Node
                 {
                     if (!g.weapons.Contains(weapon)) g.weapons.Add(weapon);
                     // 被占据的格子如果没有自己的weapon，就设为这个多格兵器
-                    if (g.weapon == null) g.weapon = weapon;
+                    if (g.weapon == null || !IsInstanceValid(g.weapon)) g.weapon = weapon;
                     weapon.occupiedGrids.Add(g);
                 }
             }
