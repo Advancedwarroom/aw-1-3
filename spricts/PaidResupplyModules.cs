@@ -25,6 +25,7 @@ public partial class Infantry
     [Export] public int paidResupplyRefillAmount = 0;               // 0=补满；>0=固定量
     [Export] public bool prTargetHp = true;
     [Export] public bool prTargetFuel = false;
+    [Export] public bool prTargetWeight = false;
     [Export] public bool prTargetAmmoPrimary = true;
     [Export] public bool prTargetAmmoExplode = false;
     [Export] public bool prTargetAmmoFlare = false;
