@@ -78,7 +78,8 @@ public partial class Infantry
     }
 
     public void TryPushWeaponOnAttack(Weapon target, bool fromSeparateAction = false,
-        int? distanceOverride = null, bool fromMovement = false, Vector2I? directionOverride = null)
+        int? distanceOverride = null, bool fromMovement = false, Vector2I? directionOverride = null,
+        IReadOnlyList<Vector2I> pathOverride = null)
     {
         mitigationAmmoPaidThisAction.Clear();
         int distance = GetRequestedPushDistance(distanceOverride);
@@ -94,9 +95,10 @@ public partial class Infantry
             var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
             if (gm?.gridManager == null || target == null) return;
             Vector2I direction = directionOverride ?? GetPushDirection(target.grid);
-            if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
-            var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
-            if (!TryResolveWeaponFootprintCollisions(target, firstDestination, direction,
+            var pushPath = pathOverride ?? Enumerable.Repeat(direction, distance).ToList();
+            if (pushPath.Count < distance || pushPath[0] == Vector2I.Zero || !CanPayPushCost(gm)) return;
+            var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + pushPath[0]);
+            if (!TryResolveWeaponFootprintCollisions(target, firstDestination, pushPath[0],
                 gm, out bool firstDestroyed, 1))
             {
                 if (!firstDestroyed) return;
@@ -107,8 +109,9 @@ public partial class Infantry
             bool moved = firstDestroyed;
             for (int step = 0; step < distance && !firstDestroyed; step++)
             {
-                var next = gm.gridManager.GetGridAt(target.grid.GridIndex + direction);
-                if (!TryResolveWeaponFootprintCollisions(target, next, direction, gm,
+                Vector2I stepDirection = pushPath[step];
+                var next = gm.gridManager.GetGridAt(target.grid.GridIndex + stepDirection);
+                if (!TryResolveWeaponFootprintCollisions(target, next, stepDirection, gm,
                     out bool destroyed, 1))
                 {
                     if (destroyed) moved = true;
@@ -173,8 +176,9 @@ public partial class Infantry
         bool moved = firstDestroyed;
         for (int step = 0; step < distance && !firstDestroyed; step++)
         {
-            var next = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
-            if (!TryResolveStaticTargetCollision(next, direction, null, target, gm,
+            Vector2I stepDirection = pushPath[step];
+            var next = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + stepDirection);
+            if (!TryResolveStaticTargetCollision(next, stepDirection, null, target, gm,
                 out bool destroyed, 1))
             {
                 if (destroyed) moved = true;
@@ -1310,7 +1314,7 @@ public partial class Infantry
             if (!CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
             Vector2I staticDirection = GetPushDirection(targetGrid, selectedAngle);
             if (staticDirection == Vector2I.Zero) return;
-            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true, distanceOverride: distance, directionOverride: staticDirection);
+            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true, distanceOverride: distance, pathOverride: BuildPushPath(targetGrid, distance, selectedAngle));
             else TryPushFacilityOnAttack(facility, fromSeparateAction: true, distanceOverride: distance, directionOverride: staticDirection);
             gridManager.HideAttackRange();
             gridManager.ClearAllEmptyCallbacks();
