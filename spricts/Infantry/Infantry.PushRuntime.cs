@@ -1800,16 +1800,20 @@ public partial class Infantry
                         }
 
                         var collisionNext = gridManager.GetGridAt(destination.GridIndex + stepDirection);
+                        bool blockersLoseToStatic = false;
                         if (collisionNext == null || GetLivingStackSnapshot(collisionNext).Count > 0
                             || HasForeignMultiTileOccupant(collisionNext, blockers)
-                            || !TryDisplaceWeaponAndFacility(blockers, collisionNext, stepDirection, gridManager, i,
-                            deferMovingStackCollisionEffects: true))
+                            || !TryDisplaceWeaponAndFacility(blockers, collisionNext, stepDirection,
+                                gridManager, out blockersLoseToStatic, i,
+                                deferMovingStackCollisionEffects: true))
                         {
                             ApplyFragileCollisionEffects(stack, blockers);
                             ApplyFragileCollisionEffects(blockers, stack);
                             if (!stack.Any(IsLivingUnit)) pushResolved = true;
                             continue;
                         }
+                        if (blockersLoseToStatic)
+                            DestroyCollisionLoser(blockers);
 
                         foreach (var unit in blockers.ToList())
                         {
@@ -1830,8 +1834,15 @@ public partial class Infantry
                     continue;
                 }
                 if (HasForeignMultiTileOccupant(destination, stack)) continue;
-                if (!TryDisplaceWeaponAndFacility(stack, destination, stepDirection, gridManager, i,
-                    deferMovingStackCollisionEffects: true)) continue;
+                bool stackLosesToStatic = false;
+                if (!TryDisplaceWeaponAndFacility(stack, destination, stepDirection, gridManager,
+                    out stackLosesToStatic, i, deferMovingStackCollisionEffects: true)) continue;
+                if (stackLosesToStatic)
+                {
+                    DestroyCollisionLoser(stack);
+                    pushResolved = true;
+                    continue;
+                }
                 if (!stack.Any(IsLivingUnit))
                 {
                     pushResolved = true;
@@ -1877,9 +1888,12 @@ public partial class Infantry
             if (followStack.Count == 0) followStack.Add(this);
             bool hasBlocker = GetLivingStackSnapshot(followDestination).Count > 0
                 || HasForeignMultiTileOccupant(followDestination, followStack);
+            bool followStackLosesToStatic = false;
             if (!hasBlocker && TryDisplaceWeaponAndFacility(followStack, followDestination,
-                overallDirection, gridManager))
+                overallDirection, gridManager, out followStackLosesToStatic))
             {
+                if (followStackLosesToStatic)
+                    DestroyCollisionLoser(followStack);
                 foreach (var unit in followStack.ToList())
                 {
                     if (unit.GetMoveCostOnGrid(followDestination) >= 999
@@ -1935,16 +1949,24 @@ public partial class Infantry
             var blockers = GetLivingStack(destination).Where(u => !pusherStack.Contains(u)).ToList();
             if (blockers.Count > 0 || HasForeignMultiTileOccupant(destination, pusherStack))
                 break;
-            if (!TryDisplaceWeaponAndFacility(pusherStack, destination, retreatDirection, gridManager))
+            bool pusherLosesToStatic = false;
+            if (!TryDisplaceWeaponAndFacility(pusherStack, destination, retreatDirection,
+                gridManager, out pusherLosesToStatic))
                 break;
+            if (pusherLosesToStatic)
+            {
+                DestroyCollisionLoser(pusherStack);
+                break;
+            }
             MoveStackByPush(pusherStack, destination);
         }
     }
 
     private bool TryDisplaceWeaponAndFacility(List<Infantry> movingStack,
-        Grids destination, Vector2I direction, GridManager gridManager, int chainIndex = 0,
-        bool deferMovingStackCollisionEffects = false)
+        Grids destination, Vector2I direction, GridManager gridManager, out bool movingStackDestroyed,
+        int chainIndex = 0, bool deferMovingStackCollisionEffects = false)
     {
+        movingStackDestroyed = false;
         float movingWeight = GetStackWeight(movingStack);
         var nextGrid = gridManager.GetGridAt(destination.GridIndex + direction);
         var blockingWeapons = (destination.weapons?.AsEnumerable() ?? Enumerable.Empty<Weapon>())
@@ -1978,7 +2000,7 @@ public partial class Infantry
             if (pushUsesWeight && movingWeight < obstacleWeight
                 && !Mathf.IsEqualApprox(movingWeight, obstacleWeight))
             {
-                DestroyCollisionLoser(movingStack);
+                movingStackDestroyed = true;
                 return true;
             }
             if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
@@ -2031,7 +2053,7 @@ public partial class Infantry
             if (pushUsesWeight && movingWeight < obstacleWeight
                 && !Mathf.IsEqualApprox(movingWeight, obstacleWeight))
             {
-                DestroyCollisionLoser(movingStack);
+                movingStackDestroyed = true;
                 return true;
             }
             if (pushUsesWeight && Mathf.IsEqualApprox(movingWeight, obstacleWeight)
