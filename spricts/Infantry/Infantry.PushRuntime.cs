@@ -100,21 +100,24 @@ public partial class Infantry
             var pushPath = pathOverride ?? Enumerable.Repeat(direction, distance).ToList();
             if (pushPath.Count < distance || pushPath[0] == Vector2I.Zero || !CanPayPushCost(gm)) return;
             var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + pushPath[0]);
+            var firstWeaponMoves = new List<(Weapon weapon, Grids destination)>();
             if (!TryResolveWeaponFootprintCollisions(target, firstDestination, pushPath[0],
-                gm, out bool firstDestroyed, 1))
+                gm, out bool firstDestroyed, 1, plannedMoves: firstWeaponMoves))
             {
                 if (!firstDestroyed) return;
             }
-            if (!firstDestroyed && !CanMoveStaticTargetTo(firstDestination, target, null,
-                allowInfantryOverlap: !target.pushBlocksInfantryWhenOverlapped)) return;
+            if (!firstDestroyed && (!CanMoveStaticTargetTo(firstDestination, target, null,
+                allowInfantryOverlap: !target.pushBlocksInfantryWhenOverlapped)
+                || !CommitPlannedWeaponMoves(firstWeaponMoves, gm.weaponManager))) return;
 
             bool moved = firstDestroyed;
             for (int step = 0; step < distance && !firstDestroyed; step++)
             {
                 Vector2I stepDirection = pushPath[step];
                 var next = gm.gridManager.GetGridAt(target.grid.GridIndex + stepDirection);
+                var stepWeaponMoves = new List<(Weapon weapon, Grids destination)>();
                 if (!TryResolveWeaponFootprintCollisions(target, next, stepDirection, gm,
-                    out bool destroyed, 1))
+                    out bool destroyed, 1, plannedMoves: stepWeaponMoves))
                 {
                     if (destroyed) moved = true;
                     break;
@@ -126,6 +129,7 @@ public partial class Infantry
                 }
                 if (!CanMoveStaticTargetTo(next, target, null,
                     allowInfantryOverlap: !target.pushBlocksInfantryWhenOverlapped)
+                    || !CommitPlannedWeaponMoves(stepWeaponMoves, gm.weaponManager)
                     || !target.MoveByPhysicsPush(next, gm.weaponManager)) break;
                 moved = true;
             }
@@ -231,17 +235,20 @@ public partial class Infantry
     }
 
     private bool TryResolveWeaponFootprintCollisions(Weapon weapon, Grids nextAnchor,
-        Vector2I direction, GameManager gm, out bool movingWeaponDestroyed, int chainIndex = 0)
+        Vector2I direction, GameManager gm, out bool movingWeaponDestroyed, int chainIndex = 0,
+        HashSet<Weapon> visited = null, List<(Weapon weapon, Grids destination)> plannedMoves = null)
     {
         movingWeaponDestroyed = false;
         if (weapon == null || nextAnchor == null || gm?.gridManager == null)
             return false;
+        visited ??= new HashSet<Weapon>();
+        plannedMoves ??= new List<(Weapon weapon, Grids destination)>();
+        if (!visited.Add(weapon)) return true;
         if (!weapon.pushBlocksInfantryWhenOverlapped) return true;
 
         var oldFootprint = weapon.grid == null
             ? new HashSet<Vector2I>()
             : weapon.GetOccupiedIndices(weapon.grid.GridIndex).ToHashSet();
-        var processedWeapons = new HashSet<Weapon> { weapon };
         foreach (var index in weapon.GetOccupiedIndices(nextAnchor.GridIndex)
             .Where(index => !oldFootprint.Contains(index))
             .OrderByDescending(index => index.X * direction.X + index.Y * direction.Y))
@@ -249,28 +256,24 @@ public partial class Infantry
             var tile = gm.gridManager.GetGridAt(index);
             if (tile == null) return false;
 
-            // Every newly occupied cell participates in the same mixed chain.
-            // Resolve all weapons on that cell (not only Grids.weapon's primary
-            // reference), then resolve infantry/facilities through the shared
-            // static-collision path.
             foreach (var blocker in (tile.weapons ?? new List<Weapon>())
                 .Where(other => other != null && GodotObject.IsInstanceValid(other)
                     && other != weapon && !other.IsQueuedForDeletion())
                 .ToList())
             {
-                if (!processedWeapons.Add(blocker)) continue;
+                if (visited.Contains(blocker)) continue;
                 if (!blocker.pushableByPhysics || blocker.grid == null
                     || !CanPushTeamName(blocker.team, blocker, chainIndex))
                     return false;
                 var blockerNext = gm.gridManager.GetGridAt(blocker.grid.GridIndex + direction);
                 if (blockerNext == null) return false;
                 if (!TryResolveWeaponFootprintCollisions(blocker, blockerNext, direction,
-                    gm, out bool blockerDestroyed, chainIndex + 1, chainVisited))
+                    gm, out bool blockerDestroyed, chainIndex + 1, visited, plannedMoves))
                 {
                     if (!blockerDestroyed) return false;
                 }
-                if (!blockerDestroyed && !blocker.MoveByPhysicsPush(blockerNext, gm.weaponManager))
-                    return false;
+                if (!blockerDestroyed)
+                    plannedMoves.Add((blocker, blockerNext));
             }
 
             if (!TryResolveStaticTargetCollision(tile, direction, weapon, null, gm,
@@ -284,6 +287,19 @@ public partial class Infantry
                 movingWeaponDestroyed = true;
                 return false;
             }
+        }
+        return true;
+    }
+
+    private bool CommitPlannedWeaponMoves(List<(Weapon weapon, Grids destination)> plannedMoves,
+        WeaponManager manager)
+    {
+        foreach (var move in plannedMoves)
+        {
+            if (move.weapon == null || !GodotObject.IsInstanceValid(move.weapon)
+                || move.weapon.IsQueuedForDeletion()) continue;
+            if (!move.weapon.MoveByPhysicsPush(move.destination, manager))
+                return false;
         }
         return true;
     }
@@ -1731,6 +1747,8 @@ public partial class Infantry
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
 
         var movableWeapons = new List<Weapon>();
+        var plannedWeaponMoves = new List<(Weapon weapon, Grids destination)>();
+        var visitedFootprintWeapons = new HashSet<Weapon>();
         // Phase 1: validate every member of the co-located weapon group before
         // moving any of them. This prevents the first weapon from claiming the
         // destination and falsely blocking its siblings.
@@ -1750,7 +1768,8 @@ public partial class Infantry
                 && !CanResolveEqualWeight(movingStack, blockingWeapon.equalWeightPushMode))
                 return false;
             if (!TryResolveWeaponFootprintCollisions(blockingWeapon, nextGrid, direction,
-                gm, out bool weaponDestroyed, chainIndex + 1))
+                gm, out bool weaponDestroyed, chainIndex + 1,
+                visitedFootprintWeapons, plannedWeaponMoves))
             {
                 if (!weaponDestroyed) return false;
             }
@@ -1789,6 +1808,8 @@ public partial class Infantry
         // Phase 2: commit the preflighted group. WeaponManager now supports
         // multiple weapon references per tile, so siblings can share the same
         // destination without racing for Grids.weapon's legacy primary slot.
+        if (!CommitPlannedWeaponMoves(plannedWeaponMoves, gm?.weaponManager))
+            return false;
         foreach (var weapon in movableWeapons)
         {
             if (!weapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager))
