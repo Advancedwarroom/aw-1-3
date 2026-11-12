@@ -688,8 +688,14 @@ public partial class Infantry
             float nodeWeight = unitWeight + node.StaticWeight;
             if (pushUsesWeight && accumulated < nodeWeight && !Mathf.IsEqualApprox(accumulated, nodeWeight))
                 return;
-            // 原文：开=累计加重推下一环；关=始终用初始推力
-            accumulated = pushChainAccumulatesWeight ? accumulated + nodeWeight : initialForce;
+            // 原文：开=累计加重推下一环（封顶 pushChainAccumulatedWeightCap）；关=始终用初始推力
+            if (pushChainAccumulatesWeight)
+            {
+                accumulated += nodeWeight;
+                if (pushChainAccumulatedWeightCap > 0)
+                    accumulated = Mathf.Min(accumulated, pushChainAccumulatedWeightCap);
+            }
+            else accumulated = initialForce;
         }
         effects.Add(PushEffect.Cost(this, pushCostResource, PushCostAmountScaled(distance)));
 

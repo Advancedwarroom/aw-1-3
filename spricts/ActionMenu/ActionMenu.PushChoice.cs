@@ -29,7 +29,9 @@ public partial class ActionMenu
         if (pushChoiceButton == null || !IsInstanceValid(pushChoiceButton)) return;
         bool hasChoice = unit != null && unit.pushEnabled
             && ((unit.transferDirections != null && unit.transferDirections.Count > 1 && !unit.transferAutoDirection)
-                || (!unit.reboundAuto && unit.pushReboundEnabled && unit.reboundRangeMax > 0));
+                || (!unit.reboundAuto && unit.pushReboundEnabled && unit.reboundRangeMax > 0)
+                || (unit.pushMitigationEnabled && unit.pushMitigationCeremony
+                    && unit.mitigationSpreadDirections != null && unit.mitigationSpreadDirections.Count > 1 && !unit.mitigationAuto));
         pushChoiceButton.Visible = hasChoice;
         if (hasChoice)
             TranslateGroup.SetText(pushChoiceButton, isPushChoiceSelecting ? "取消选择" : "推动选择");
@@ -67,6 +69,31 @@ public partial class ActionMenu
                 var b = new Button();
                 TranslateGroup.SetText(b, $"反弹距离 {nn}");
                 b.Pressed += () => { unit.pushChosenReboundRange = nn; unit.pushChosenTransferDirection = null; ExitPushChoiceMode(); };
+                parent.AddChild(b);
+                parent.MoveChild(b, idx++);
+                pushChoiceOptionButtons.Add(b);
+            }
+        }
+        // 卸力均分方向 n 选 m：多选开关，绿色=选中
+        if (unit.pushMitigationEnabled && unit.pushMitigationCeremony && !unit.mitigationAuto
+            && unit.mitigationSpreadDirections != null && unit.mitigationSpreadDirections.Count > 1)
+        {
+            foreach (var d in unit.mitigationSpreadDirections)
+            {
+                if (d == Vector2I.Zero) continue;
+                var dir = d;
+                bool on = unit.pushChosenSpreadDirections.Contains(dir);
+                var b = new Button();
+                TranslateGroup.SetText(b, $"均分方向 {dir.X},{dir.Y}{(on ? " ✓" : "")}");
+                if (on) b.Modulate = new Color(0.6f, 1f, 0.6f);
+                b.Pressed += () =>
+                {
+                    if (unit.pushChosenSpreadDirections.Contains(dir))
+                        unit.pushChosenSpreadDirections.Remove(dir);
+                    else
+                        unit.pushChosenSpreadDirections.Add(dir);
+                    OnPushChoicePressed(); // 重绘选中态
+                };
                 parent.AddChild(b);
                 parent.MoveChild(b, idx++);
                 pushChoiceOptionButtons.Add(b);

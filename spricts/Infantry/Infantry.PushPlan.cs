@@ -342,10 +342,14 @@ public partial class Infantry
                 case PushEffectKind.DamageFacility:
                     if (fx.Facility != null)
                     {
-                        // 设施血量体系未确认：当前实现为直接移除并清理格子引用
-                        var parent = fx.Facility.ParentGrid;
-                        if (parent != null && parent.city == fx.Facility) parent.city = null;
-                        fx.Facility.QueueFree();
+                        // 设施有血量体系（health/maxHealth，见生产模块）：先扣血，归零才移除
+                        fx.Facility.health -= (int)fx.Amount;
+                        if (fx.Facility.health <= 0)
+                        {
+                            var parent = fx.Facility.ParentGrid;
+                            if (parent != null && parent.city == fx.Facility) parent.city = null;
+                            fx.Facility.QueueFree();
+                        }
                     }
                     break;
                 case PushEffectKind.AmmoKindCost:

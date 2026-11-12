@@ -241,13 +241,15 @@ public partial class Infantry
                 effects.Add(PushEffect.DamageUnit(attacker, side, true));
         }
 
-        // 原文：均分方向——差值均摊到指定方向格的占用者
-        if (mitigationSpreadDirections != null && mitigationSpreadDirections.Count > 0
+        // 原文：均分方向 n 选 m——菜单选定集优先，空=全触发
+        var spreadSource = pushChosenSpreadDirections != null && pushChosenSpreadDirections.Count > 0
+            ? pushChosenSpreadDirections : mitigationSpreadDirections;
+        if (spreadSource != null && spreadSource.Count > 0
             && board != null && originTile != null && cut != 0f)
         {
             // 均分实现：对每个方向格上的所有单位均摊差值
             int share = Mathf.Max(1, Mathf.RoundToInt(Mathf.Abs(cut) * mitigationSideEffectScale / 100f
-                / Mathf.Max(1, mitigationSpreadDirections.Count)));
+                / Mathf.Max(1, spreadSource.Count)));
             foreach (var d in mitigationSpreadDirections)
             {
                 if (d == Vector2I.Zero) continue;

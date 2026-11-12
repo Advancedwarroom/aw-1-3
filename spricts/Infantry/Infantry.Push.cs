@@ -235,6 +235,7 @@ public partial class Infantry
     // ===== 菜单预选择（推动前由 ActionMenu.PushChoice 写入，同步推演一次完成）=====
     public Vector2I? pushChosenTransferDirection = null;   // 转移 m 选 1 的选定方向（null=自动取首）
     public int? pushChosenReboundRange = null;             // 反弹选定距离（null=自动取最远）
+    public Godot.Collections.Array<Vector2I> pushChosenSpreadDirections = new(); // 卸力均分方向 n 选 m（空=全触发）
     public bool pushChoicePending = false;                 // 等待玩家选择，ResolvePushChain 入口检查
 
 
@@ -244,22 +245,10 @@ public partial class Infantry
 
     // ===== 链深度规则 + 联动 + 弹药（一致性补齐 2026-11-13）=====
     [Export] public bool pushChainAccumulatesWeight = true;    // 原文：开=每环加上目标重量推下一环；关=从始至终用初始推力
+    [Export] public float pushChainAccumulatedWeightCap = 0f;  // 原文"累计上限=多大数值"：累计重量封顶（0=不限，单位数上限用pushMaxChainStacks）
     [Export] public Godot.Collections.Array<PushTargetTeamMode> pushChainDepthTeamModes = new();   // 第n环势力规则（1-based，空=全局）
     [Export] public Godot.Collections.Array<PushTargetClass> pushChainDepthTargetClasses = new();  // 第n环可推种类
     [Export] public Godot.Collections.Array<string> pushChainDepthBlacklists = new();              // 第n环黑名单，逗号分隔UnitTypeId
     [Export] public bool pushAutoPickTargetAtMaxRange = false; // 原文：pushRange=1时自动沿指向取最远合规目标
     [Export] public bool pushTargetEffectsScaleWithDistance = false; // 目标增减度按被推格数放大
-    [ExportGroup("推送弹")]
-    [Export] public int currentPushAmmo = 0;
-    [Export] public int maxPushAmmo = 0;
-    [ExportGroup("反弹推进弹")]
-    [Export] public int currentReboundAmmo = 0;
-    [Export] public int maxReboundAmmo = 0;
-    [ExportGroup("卸力弹")]
-    [Export] public int currentMitigationAmmo = 0;
-    [Export] public int maxMitigationAmmo = 0;
-    [ExportGroup("反重力场弹")]
-    [Export] public int currentAntiGravityAmmo = 0;
-    [Export] public int maxAntiGravityAmmo = 0;
-
 }
