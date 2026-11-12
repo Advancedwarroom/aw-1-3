@@ -1348,6 +1348,13 @@ public partial class Infantry
         actionMenu?.Hide();
     }
 
+    private bool IsOutsideMap(GridManager gridManager, Vector2I index)
+    {
+        var map = gridManager?.map;
+        return map == null || index.X < 0 || index.Y < 0
+            || index.X >= map.GetLength(0) || index.Y >= map.GetLength(1);
+    }
+
     private Grids GetWrappedPushGrid(GridManager gridManager, Vector2I index)
     {
         var map = gridManager?.map;
@@ -1385,7 +1392,8 @@ public partial class Infantry
             if (nextLinkIndex < 0 || nextLinkIndex >= pushPath.Count) break;
             Vector2I nextIndex = cursor.GridIndex + pushPath[nextLinkIndex];
             var nextGrid = gridManager.GetGridAt(nextIndex);
-            if (nextGrid == null && stack.All(unit => unit.pushWrapAroundMap))
+            if (nextGrid == null && IsOutsideMap(gridManager, nextIndex)
+                && stack.All(unit => unit.pushWrapAroundMap))
                 nextGrid = GetWrappedPushGrid(gridManager, nextIndex);
             cursor = nextGrid;
         }
@@ -1448,7 +1456,7 @@ public partial class Infantry
                 if (currentGrid == null) continue;
                 Vector2I nextIndex = currentGrid.GridIndex + stepDirection;
                 var destination = gridManager.GetGridAt(nextIndex);
-                if (destination == null)
+                if (destination == null && IsOutsideMap(gridManager, nextIndex))
                 {
                     // Each pushed unit chooses independently: loopers wrap to the
                     // opposite edge; non-loopers are destroyed when pushed off-map.
@@ -1462,6 +1470,18 @@ public partial class Infantry
                     if (stack.Count == 0) break;
                     destination = GetWrappedPushGrid(gridManager, nextIndex);
                     if (destination == null) break;
+                }
+                else if (destination == null)
+                {
+                    // An in-bounds missing grid is not a map edge; retain the
+                    // existing invalid-intermediate-tile self-destruction rule.
+                    foreach (var unit in stack.ToList())
+                    {
+                        if (!unit.pushSelfDestructOnInvalidIntermediateTile) continue;
+                        DestroyPushedUnit(unit, gameManager);
+                        pushResolved = true;
+                    }
+                    break;
                 }
 
                 foreach (var unit in stack.ToList())
