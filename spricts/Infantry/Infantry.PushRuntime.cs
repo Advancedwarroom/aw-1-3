@@ -116,7 +116,7 @@ public partial class Infantry
             if (pushPath.Count < distance || pushPath[0] == Vector2I.Zero || !CanPayPushCost(gm)) return;
             var firstDestination = gm.gridManager.GetGridAt(target.grid.GridIndex + pushPath[0]);
             var firstWeaponMoves = new List<(Weapon weapon, Grids destination)>();
-            var firstInfantryCollisions = new List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex)>();
+            var firstInfantryCollisions = new List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex, PlannedStaticInfantryCollision plan)>();
             if (!TryResolveWeaponFootprintCollisions(target, firstDestination, pushPath[0],
                 gm, out bool firstDestroyed, 1, plannedMoves: firstWeaponMoves,
                 plannedInfantryCollisions: firstInfantryCollisions))
@@ -133,7 +133,7 @@ public partial class Infantry
                 Vector2I stepDirection = pushPath[step];
                 var next = gm.gridManager.GetGridAt(target.grid.GridIndex + stepDirection);
                 var stepWeaponMoves = new List<(Weapon weapon, Grids destination)>();
-                var stepInfantryCollisions = new List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex)>();
+                var stepInfantryCollisions = new List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex, PlannedStaticInfantryCollision plan)>();
                 if (!TryResolveWeaponFootprintCollisions(target, next, stepDirection, gm,
                     out bool destroyed, 1, plannedMoves: stepWeaponMoves,
                     plannedInfantryCollisions: stepInfantryCollisions))
@@ -257,14 +257,14 @@ public partial class Infantry
     private bool TryResolveWeaponFootprintCollisions(Weapon weapon, Grids nextAnchor,
         Vector2I direction, GameManager gm, out bool movingWeaponDestroyed, int chainIndex = 0,
         HashSet<Weapon> visited = null, List<(Weapon weapon, Grids destination)> plannedMoves = null,
-        List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex)> plannedInfantryCollisions = null)
+        List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex, PlannedStaticInfantryCollision plan)> plannedInfantryCollisions = null)
     {
         movingWeaponDestroyed = false;
         if (weapon == null || nextAnchor == null || gm?.gridManager == null)
             return false;
         visited ??= new HashSet<Weapon>();
         plannedMoves ??= new List<(Weapon weapon, Grids destination)>();
-        plannedInfantryCollisions ??= new List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex)>();
+        plannedInfantryCollisions ??= new List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex, PlannedStaticInfantryCollision plan)>();
         if (!visited.Add(weapon)) return true;
         var oldFootprint = weapon.grid == null
             ? new HashSet<Vector2I>()
@@ -301,14 +301,14 @@ public partial class Infantry
             // and all footprint checks have completed.
             if (weapon.pushBlocksInfantryWhenOverlapped && GetLivingStack(tile).Count > 0
                 && !plannedInfantryCollisions.Any(c => c.tile == tile && c.weapon == weapon))
-                plannedInfantryCollisions.Add((tile, direction, weapon, null, chainIndex));
+                plannedInfantryCollisions.Add((tile, direction, weapon, null, chainIndex, null));
         }
         return true;
     }
 
     private bool CommitPlannedWeaponMoves(List<(Weapon weapon, Grids destination)> plannedMoves,
         WeaponManager manager,
-        List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex)> plannedInfantryCollisions = null)
+        List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex, PlannedStaticInfantryCollision plan)> plannedInfantryCollisions = null)
     {
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         var collisionPlans = new List<PlannedStaticInfantryCollision>();
@@ -323,10 +323,17 @@ public partial class Infantry
                     || collision.weapon.IsQueuedForDeletion())) continue;
                 if (collision.facility != null && !GodotObject.IsInstanceValid(collision.facility)) continue;
                 if (collision.weapon == null && collision.facility == null) continue;
-                if (!TryPlanStaticInfantryCollision(collision.tile, collision.direction,
-                    collision.weapon, collision.facility, gm, collision.chainIndex,
-                    out var plan, out bool blocked))
-                    return false;
+                var plan = collision.plan;
+                bool blocked;
+                if (plan == null)
+                {
+                    if (!TryPlanStaticInfantryCollision(collision.tile, collision.direction,
+                        collision.weapon, collision.facility, gm, collision.chainIndex,
+                        out plan, out blocked))
+                        return false;
+                }
+                else
+                    blocked = plan.blocked;
                 if (plan == null) continue;
                 if (plan.infantryDestination != null
                     && !reservedInfantryDestinations.Add(plan.infantryDestination))
@@ -1920,7 +1927,7 @@ public partial class Infantry
 
         var movableWeapons = new List<Weapon>();
         var plannedWeaponMoves = new List<(Weapon weapon, Grids destination)>();
-        var plannedInfantryCollisions = new List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex)>();
+        var plannedInfantryCollisions = new List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex, PlannedStaticInfantryCollision plan)>();
         var visitedFootprintWeapons = new HashSet<Weapon>();
         // Phase 1: validate every member of the co-located weapon group before
         // moving any of them. This prevents the first weapon from claiming the
@@ -2002,7 +2009,8 @@ public partial class Infantry
             if (facilityCollisionPlan != null)
             {
                 facilityCollisionPlan.blocked = facilityCollisionBlocked;
-                plannedInfantryCollisions.Add((nextGrid, direction, null, blockingFacility, chainIndex + 1));
+                plannedInfantryCollisions.Add((nextGrid, direction, null, blockingFacility,
+                    chainIndex + 1, facilityCollisionPlan));
                 moveFacility = !facilityCollisionPlan.destroyMovingStatic;
             }
             else
