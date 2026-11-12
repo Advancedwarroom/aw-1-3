@@ -104,6 +104,13 @@ public override void _Ready()
         baseSprite = GetNodeOrNull<Sprite2D>("BaseSprite");
     if (normalSprite == null)
         normalSprite = GetNodeOrNull<Sprite2D>("NormalSprite");
+
+    // 修复：无 animSprite 的双图层单位可能被 FindChild("*") 误识别为旧版 sprite。
+    // 同时 idleSprite 的 BaseSprite 兜底也不能指向双图层底图，否则旧动画逻辑会隐藏/改写它。
+    if (baseSprite != null && sprite == baseSprite)
+        sprite = null;
+    if (baseSprite != null && idleSprite == baseSprite)
+        idleSprite = null;
     
     // ✅ 双图层组件自动获取（AnimatedSprite2D 版）
     if (baseAnimSprite == null)
