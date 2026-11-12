@@ -217,6 +217,13 @@ public partial class Infantry
             unit.Hide();
             unit.ProcessMode = ProcessModeEnum.Disabled;
             gm.unitManager.units.AddChild(unit);
+
+            // 内部生产的单位同样必须注册到全局单位表；回合重置、燃料和状态结算均遍历 AllUnits。
+            if (!gm.unitManager.AllUnits.Contains(unit))
+                gm.unitManager.AllUnits.Add(unit);
+            gm.RegisterUnit(unit, gm.InferCategory(unit));
+            unit.OnClickPiece = gm.OnSelectPiece;
+
             unit.Position = Vector2.Zero;
             productionPaidCost = 0;   // 交货成功：清已付记录
         }
