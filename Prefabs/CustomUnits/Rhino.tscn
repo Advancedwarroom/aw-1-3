@@ -41,23 +41,8 @@ pushTargetClass = 1
 pushCanTargetFriendlies = true
 equalWeightPushMode = 1
 pushSelfDestructOnInvalidIntermediateTile = true
-attackMatrix = {
-"Rhino_Infantry": 23, "Rhino_Mech": 23, "Rhino_Dog": 23,
-"Rhino_Recon": 12, "Rhino_Bike": 14, "Rhino_Rig": 14,
-"Rhino_LightTank": 8, "Rhino_MdTank": 8, "Rhino_WarTank": 8,
-"Rhino_Neotank": 8, "Rhino_Megatank": 4, "Rhino_APC": 8,
-"Rhino_AntiTank": 8, "Rhino_Flare": 9, "Rhino_Artillery": 9,
-"Rhino_Rocket": 11, "Rhino_AntiAir": 9, "Rhino_AntiAirMissile": 11,
-"Rhino_PipeRunner": 11, "Rhino_Oozium": 4
-}
-secondaryAttackMatrix = {
-"Rhino_BCopter": 7, "Rhino_TCopter": 10, "Rhino_Duster": 7,
-"Rhino_Fighter": 1, "Rhino_Bomber": 1, "Rhino_Stealth": 1,
-"Rhino_Seaplane": 5, "Rhino_FlyBomb": 1,
-"Rhino_Gunboat": 15, "Rhino_Lander": 15, "Rhino_ProducibleBoat": 15,
-"Rhino_RepairBoat": 15, "Rhino_KamikazeBoat": 15,
-"Rhino_Cruiser": 10, "Rhino_Battleship": 5, "Rhino_Submarine": 5, "Rhino_Carrier": 5
-}
+attackMatrix = {"Rhino_Infantry": 23, "Rhino_Mech": 23, "Rhino_Dog": 23, "Rhino_Recon": 12, "Rhino_Bike": 14, "Rhino_Rig": 14, "Rhino_LightTank": 8, "Rhino_MdTank": 8, "Rhino_WarTank": 8, "Rhino_Neotank": 8, "Rhino_Megatank": 4, "Rhino_APC": 8, "Rhino_AntiTank": 8, "Rhino_Flare": 9, "Rhino_Artillery": 9, "Rhino_Rocket": 11, "Rhino_AntiAir": 9, "Rhino_AntiAirMissile": 11, "Rhino_PipeRunner": 11, "Rhino_Oozium": 4}
+secondaryAttackMatrix = {"Rhino_BCopter": 7, "Rhino_TCopter": 10, "Rhino_Duster": 7, "Rhino_Fighter": 1, "Rhino_Bomber": 1, "Rhino_Stealth": 1, "Rhino_Seaplane": 5, "Rhino_FlyBomb": 1, "Rhino_Gunboat": 15, "Rhino_Lander": 15, "Rhino_ProducibleBoat": 15, "Rhino_RepairBoat": 15, "Rhino_KamikazeBoat": 15, "Rhino_Cruiser": 10, "Rhino_Battleship": 5, "Rhino_Submarine": 5, "Rhino_Carrier": 5}
 
 [sub_resource type="RectangleShape2D" id="RhinoCollision"]
 size = Vector2(32, 32)
