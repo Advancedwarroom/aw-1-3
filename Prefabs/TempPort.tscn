@@ -24,7 +24,7 @@ shape = SubResource("RectangleShape2D_port")
 position = Vector2(16, 16)
 scale = Vector2(1.3333334, 1.3333334)
 sprite_frames = ExtResource("4_over")
-animation = &"P0Port"
+animation = &"P0X"
 
 [node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
 position = Vector2(16, 16)
