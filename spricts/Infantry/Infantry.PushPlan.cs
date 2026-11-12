@@ -45,6 +45,8 @@ public partial class Infantry
         public string Team;
         public long Amount;
         public PushResourceType Resource;
+        public Weapon Weapon;
+        public Facility Facility;
         public AmmoKind AmmoKind;
         public bool CanDestroy;
         public bool CanOverMaxHealth;
