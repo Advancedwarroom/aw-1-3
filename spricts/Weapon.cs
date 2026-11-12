@@ -621,7 +621,13 @@ public partial class Weapon : Node2D
         {
             destroyedGrid.gridType = GridType.BROKENPIPE;
             if (destroyedGrid.city != null)
+            {
                 destroyedGrid.city.healAmount = 0;
+                destroyedGrid.city.flareAmmoSupply = 0;
+                destroyedGrid.city.explodeAmmoSupply = 0;
+                destroyedGrid.city.primaryAmmoSupply = 0;
+                destroyedGrid.city.fuelSupply = 0;
+            }
             var sprite = destroyedGrid.GetNodeOrNull<Sprite2D>("Sprite2D");
             if (sprite != null)
             {
