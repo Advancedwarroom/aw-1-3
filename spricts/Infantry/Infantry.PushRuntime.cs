@@ -339,7 +339,9 @@ public partial class Infantry
             if (!allowInfantryOverlap && !oldFootprint.Contains(index)
                 && GetLivingStack(tile).Count > 0)
                 return false;
-            if (!allowInfantryOverlap && !oldFootprint.Contains(index)
+            // Multi-tile infantry are not present in tile.infantries, so the
+            // normal overlap flag cannot safely treat them as an empty cell.
+            if (!oldFootprint.Contains(index)
                 && HasForeignMultiTileOccupant(tile, new List<Infantry>()))
                 return false;
         }
@@ -1800,6 +1802,26 @@ public partial class Infantry
                     return false;
                 movableWeapons.Add(blockingWeapon);
             }
+        }
+
+        // Validate every recursively discovered weapon destination against the
+        // complete set of weapons that this transaction will vacate. Checking only
+        // the first-level group can miss a blocker on a deeper footprint link.
+        var allPlannedWeapons = plannedWeaponMoves.Select(move => move.weapon)
+            .Concat(movableWeapons)
+            .Where(w => w != null && GodotObject.IsInstanceValid(w))
+            .ToHashSet();
+        foreach (var move in plannedWeaponMoves)
+        {
+            if (!CanMoveStaticTargetTo(move.destination, move.weapon,
+                allowInfantryOverlap: true, plannedToVacate: allPlannedWeapons))
+                return false;
+        }
+        foreach (var weapon in movableWeapons)
+        {
+            if (!CanMoveStaticTargetTo(nextGrid, weapon,
+                allowInfantryOverlap: true, plannedToVacate: allPlannedWeapons))
+                return false;
         }
 
         bool moveFacility = false;
