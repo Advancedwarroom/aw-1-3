@@ -1754,6 +1754,9 @@ public partial class Infantry
         // destination and falsely blocking its siblings.
         foreach (var blockingWeapon in blockingWeapons)
         {
+            // A sibling may already have been discovered recursively as part of
+            // another member's footprint. It is planned exactly once.
+            if (visitedFootprintWeapons.Contains(blockingWeapon)) continue;
             if (!CanPushTeamName(blockingWeapon.team, blockingWeapon, chainIndex)
                 || !blockingWeapon.pushableByPhysics)
                 return false;
