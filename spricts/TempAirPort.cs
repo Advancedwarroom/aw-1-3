@@ -8,4 +8,8 @@ public partial class TempAirPort : AirPort
     protected override float GetBaseArtHue() => 358.0f / 360.0f;
 
     protected override string[] DefaultProducibleUnits() => System.Array.Empty<string>();
+
+    // Temporary facility SpriteFrames use P0X/team1/team2, not the standard Airport names.
+    protected override (string neutral, string red, string blue)? GetTeamAnimNames()
+        => ("P0X", "team1", "team2");
 }
