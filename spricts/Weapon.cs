@@ -592,8 +592,12 @@ public partial class Weapon : Node2D
         if (gm?.weaponManager != null)
         {
             gm.weaponManager.UnbindWeaponFromGrid(this);
+            gm.weaponManager.AllWeapons.Remove(this);
         }
-        else
+        gm?.weapons.Remove(this);
+        if (gm?.selectedWeapon == this) gm.selectedWeapon = null;
+
+        if (gm?.weaponManager == null)
         {
             // Fallback when the manager is unavailable: remove every footprint
             // reference, not just the anchor tile.
