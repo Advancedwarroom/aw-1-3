@@ -251,8 +251,6 @@ public partial class Infantry
         plannedMoves ??= new List<(Weapon weapon, Grids destination)>();
         plannedInfantryCollisions ??= new List<(Grids tile, Vector2I direction, Weapon weapon, int chainIndex)>();
         if (!visited.Add(weapon)) return true;
-        if (!weapon.pushBlocksInfantryWhenOverlapped) return true;
-
         var oldFootprint = weapon.grid == null
             ? new HashSet<Vector2I>()
             : weapon.GetOccupiedIndices(weapon.grid.GridIndex).ToHashSet();
