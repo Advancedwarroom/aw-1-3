@@ -8,5 +8,9 @@ public partial class TempPort : Port
     // 色相旋转必须从它自己的源色相计算，否则 P-1 会被旋到黄绿色而不是紫色。
     protected override float GetBaseArtHue() => 226.0f / 360.0f;
 
+    // Temporary facility SpriteFrames use P0X/team1/team2, not the standard Port names.
+    protected override (string neutral, string red, string blue)? GetTeamAnimNames()
+        => ("P0X", "team1", "team2");
+
     protected override string[] DefaultProducibleUnits() => System.Array.Empty<string>();
 }
