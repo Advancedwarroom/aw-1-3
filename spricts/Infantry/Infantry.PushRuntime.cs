@@ -251,6 +251,7 @@ public partial class Infantry
             return false;
         return destination.weapons == null
             || destination.weapons.All(w => w == null || !GodotObject.IsInstanceValid(w)
+                || w.IsQueuedForDeletion() || w.isDestroyed
                 || w == movingWeapon || (plannedToVacate?.Contains(w) ?? false));
     }
 
@@ -278,7 +279,7 @@ public partial class Infantry
 
             foreach (var blocker in (tile.weapons ?? new List<Weapon>())
                 .Where(other => other != null && GodotObject.IsInstanceValid(other)
-                    && other != weapon && !other.IsQueuedForDeletion())
+                    && other != weapon && !other.IsQueuedForDeletion() && !other.isDestroyed)
                 .ToList())
             {
                 if (visited.Contains(blocker)) continue;
@@ -320,7 +321,7 @@ public partial class Infantry
             {
                 if (collision.tile == null) continue;
                 if (collision.weapon != null && (!GodotObject.IsInstanceValid(collision.weapon)
-                    || collision.weapon.IsQueuedForDeletion())) continue;
+                    || collision.weapon.IsQueuedForDeletion() || collision.weapon.isDestroyed)) continue;
                 if (collision.facility != null && !GodotObject.IsInstanceValid(collision.facility)) continue;
                 if (collision.weapon == null && collision.facility == null) continue;
                 var plan = collision.plan;
@@ -384,7 +385,7 @@ public partial class Infantry
         foreach (var move in plannedMoves)
         {
             if (move.weapon == null || !GodotObject.IsInstanceValid(move.weapon)
-                || move.weapon.IsQueuedForDeletion()) continue;
+                || move.weapon.IsQueuedForDeletion() || move.weapon.isDestroyed) continue;
             if (!move.weapon.MoveByPhysicsPush(move.destination, manager))
                 return false;
         }
@@ -461,7 +462,7 @@ public partial class Infantry
             || HasForeignMultiTileOccupant(next, stack)
             || (next.city != null && next.city.pushBlocksInfantryWhenOverlapped)
             || (next.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
-                && !w.IsQueuedForDeletion() && w.pushBlocksInfantryWhenOverlapped) ?? false))
+                && !w.IsQueuedForDeletion() && !w.isDestroyed && w.pushBlocksInfantryWhenOverlapped) ?? false))
         {
             plan.fragileUnits.AddRange(stack);
             blocked = true;
@@ -497,6 +498,7 @@ public partial class Infantry
             if (!oldFootprint.Contains(index)
                 && (tile.city != null
                     || (tile.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
+                        && !w.IsQueuedForDeletion() && !w.isDestroyed
                         && w != weapon && !(plannedToVacate?.Contains(w) ?? false)) ?? false)))
                 return false;
             if (!allowInfantryOverlap && !oldFootprint.Contains(index)
@@ -2024,11 +2026,11 @@ public partial class Infantry
             return false;
         if (plannedWeaponMoves.Any(move => move.weapon == null
             || !GodotObject.IsInstanceValid(move.weapon) || move.weapon.IsQueuedForDeletion()
-            || !move.weapon.pushableByPhysics || move.destination == null))
+            || move.weapon.isDestroyed || !move.weapon.pushableByPhysics || move.destination == null))
             return false;
         if (movableWeapons.Any(weapon => weapon == null
             || !GodotObject.IsInstanceValid(weapon) || weapon.IsQueuedForDeletion()
-            || !weapon.pushableByPhysics))
+            || weapon.isDestroyed || !weapon.pushableByPhysics))
             return false;
         if (moveFacility && !CanMoveStaticTargetTo(nextGrid, null, blockingFacility,
             allowInfantryOverlap: true, plannedToVacate: allPlannedWeapons))
