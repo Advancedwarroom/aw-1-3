@@ -185,6 +185,7 @@ public partial class Infantry
     [ExportSubgroup("推动者行为")]
     [Export] public bool pushPusherFollowsChain = false;
     [Export] public bool pushSelfDestructOnInvalidIntermediateTile = true;
+    [Export] public bool pushWrapAroundMap = false; // Wrap to the opposite map edge instead of leaving the map.
     [Export] public bool pushDestroyOnProperty = false; // Destroy displaced units on property tiles (Rhino-style).
 
     // Persisted turn limiter: ExtraSave serializes public Export fields, so a save/load
