@@ -320,9 +320,75 @@ public partial class Facility : Node2D
             normalAnimSprite.Reparent(baseAnimSprite, true);
         }
 
+        // Normalize the visible facility artwork to one 32 px tile width.
+        // Scaling the Base parent also scales its child overlay without changing alignment.
+        NormalizeFacilityVisualScale();
+
         UpdateCityVisual();
         UpdateHpLabel();
         CreateStatusBarUI();
+    }
+
+
+    private void NormalizeFacilityVisualScale()
+    {
+        const float targetWidth = 32f;
+
+        if (baseAnimSprite != null && IsInstanceValid(baseAnimSprite) && baseAnimSprite.SpriteFrames != null)
+        {
+            var frames = baseAnimSprite.SpriteFrames;
+            Texture2D texture = null;
+            if (!string.IsNullOrEmpty(baseAnimSprite.Animation) && frames.HasAnimation(baseAnimSprite.Animation)
+                && frames.GetFrameCount(baseAnimSprite.Animation) > 0)
+                texture = frames.GetFrameTexture(baseAnimSprite.Animation, 0);
+            if (texture == null)
+            {
+                foreach (string animationName in frames.GetAnimationNames())
+                {
+                    if (frames.GetFrameCount(animationName) <= 0) continue;
+                    texture = frames.GetFrameTexture(animationName, 0);
+                    if (texture != null) break;
+                }
+            }
+            if (texture != null && texture.GetWidth() > 0)
+            {
+                float scale = targetWidth / texture.GetWidth();
+                baseAnimSprite.Scale = new Vector2(scale, scale);
+            }
+            return;
+        }
+
+        if (baseSprite != null && IsInstanceValid(baseSprite) && baseSprite.Texture != null
+            && baseSprite.Texture.GetWidth() > 0)
+        {
+            float scale = targetWidth / baseSprite.Texture.GetWidth();
+            baseSprite.Scale = new Vector2(scale, scale);
+            return;
+        }
+
+        // Legacy single-layer facilities use their own texture as the scale reference.
+        if (animSprite != null && IsInstanceValid(animSprite) && animSprite.SpriteFrames != null)
+        {
+            var frames = animSprite.SpriteFrames;
+            Texture2D texture = null;
+            if (!string.IsNullOrEmpty(animSprite.Animation) && frames.HasAnimation(animSprite.Animation)
+                && frames.GetFrameCount(animSprite.Animation) > 0)
+                texture = frames.GetFrameTexture(animSprite.Animation, 0);
+            if (texture == null)
+            {
+                foreach (string animationName in frames.GetAnimationNames())
+                {
+                    if (frames.GetFrameCount(animationName) <= 0) continue;
+                    texture = frames.GetFrameTexture(animationName, 0);
+                    if (texture != null) break;
+                }
+            }
+            if (texture != null && texture.GetWidth() > 0)
+            {
+                float scale = targetWidth / texture.GetWidth();
+                animSprite.Scale = new Vector2(scale, scale);
+            }
+        }
     }
 
     // ========== 状态栏系统核心方法 ==========
