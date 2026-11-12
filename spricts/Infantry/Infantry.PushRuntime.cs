@@ -259,7 +259,7 @@ public partial class Infantry
     {
         if (movingWeapon != null && movingWeapon.isMultiTile)
             return CanMoveWeaponFootprintTo(movingWeapon, destination, allowInfantryOverlap, plannedToVacate);
-        if (destination == null || (!allowInfantryOverlap && GetLivingStack(destination).Count > 0)
+        if (destination == null || (!allowInfantryOverlap && GetLivingStackSnapshot(destination).Count > 0)
             || HasForeignMultiTileOccupant(destination, new List<Infantry>()))
             return false;
         if (destination.city != null && destination.city != movingFacility)
@@ -573,7 +573,7 @@ public partial class Infantry
                         && w != weapon && !(plannedToVacate?.Contains(w) ?? false)) ?? false)))
                 return false;
             if (!allowInfantryOverlap && !oldFootprint.Contains(index)
-                && GetLivingStack(tile).Count > 0)
+                && GetLivingStackSnapshot(tile).Count > 0)
                 return false;
             // Multi-tile infantry are not present in tile.infantries, so the
             // normal overlap flag cannot safely treat them as an empty cell.
