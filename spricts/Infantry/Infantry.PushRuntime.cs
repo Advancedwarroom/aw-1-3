@@ -1679,6 +1679,12 @@ public partial class Infantry
         var movedStacks = new HashSet<int>();
         bool pushResolved = false;
         var mitigatedDistances = chain.Select(stack => GetMitigatedPushDistance(stack, distance)).ToList();
+        // Resolve every potential equal-weight arbitration before the first grid,
+        // health, or entity mutation. The step/link slot is stable even when an
+        // earlier collision means a later slot is never consumed.
+        var equalWeightCollisionRolls = new bool[Math.Max(1, distance * chain.Count)];
+        for (int rollIndex = 0; rollIndex < equalWeightCollisionRolls.Length; rollIndex++)
+            equalWeightCollisionRolls[rollIndex] = GD.Randf() < 0.5f;
 
         for (int step = 0; step < distance; step++)
         {
@@ -1782,8 +1788,9 @@ public partial class Infantry
                         bool blockerAllows = StackAllowsSimultaneous(blockers);
                         bool movingStops = StackStopsOnEqual(stack);
                         bool blockerStops = StackStopsOnEqual(blockers);
+                        bool randomArbitrationAllowsMove = equalWeightCollisionRolls[step * chain.Count + i];
                         bool bothMove = movingAllows && blockerAllows
-                            || !(movingStops && blockerStops) && GD.Randf() < 0.5f;
+                            || !(movingStops && blockerStops) && randomArbitrationAllowsMove;
                         if (!bothMove)
                         {
                             ApplyFragileCollisionEffects(stack, blockers);
