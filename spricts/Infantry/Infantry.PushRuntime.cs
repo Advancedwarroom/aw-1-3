@@ -1758,26 +1758,6 @@ public partial class Infantry
         ApplyFragileCollisionEffects(movingStack);
         return true;
 
-        if (!CanMoveStaticTargetTo(nextGrid, blockingWeapon, blockingFacility)) return false;
-
-        // All weight and destination checks have passed. Move the weapon first because
-        // its manager validates the complete footprint; then move the facility slot.
-        if (blockingWeapon != null)
-        {
-            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-            if (!blockingWeapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager))
-                return false;
-        }
-        if (blockingFacility != null && !blockingFacility.MoveByPhysicsPush(nextGrid))
-        {
-            // Facility movement has no failure path after the preflight above; if a
-            // custom override rejects it, do not attempt to overwrite the old slot.
-            return false;
-        }
-
-        if (blockingWeapon != null || blockingFacility != null)
-            ApplyFragileCollisionEffects(movingStack);
-        return true;
     }
 
     private void DestroyCollisionLoser(List<Infantry> losingStack)
