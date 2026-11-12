@@ -279,6 +279,9 @@ private readonly List<UnitTemplate> facilityTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("🔌 中转口 Relay Junction"), ScenePath = "res://Prefabs/RelayJunction.tscn",
         Category = TranslateGroup.T("设施"), Team = "Player0", DisplayColor = new Color(0.55f, 0.5f, 0.6f),
         Description = TranslateGroup.T("Rig在管道废墟（原接缝位置）临格建造（2回合20进度，期间受攻击扣进度）；完成即绑定最近超级兵工厂→兵工厂归属改为建造方（触发缴获红利）；供能中继站") },
+    new UnitTemplate { DisplayName = TranslateGroup.T("🗼 瞭望塔 Watchtower"), ScenePath = "res://Prefabs/Watchtower.tscn",
+        Category = TranslateGroup.T("设施"), Team = "Player0", DisplayColor = new Color(0.65f, 0.7f, 0.45f),
+        Description = TranslateGroup.T("瞭望塔 Watchtower：可在地图编辑模式中放置") },
 };
 
 // UI 引用
