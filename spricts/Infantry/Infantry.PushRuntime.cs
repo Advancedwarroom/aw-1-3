@@ -59,14 +59,18 @@ public partial class Infantry
             || grid == null || target == null || !GodotObject.IsInstanceValid(target)
             || target.grid == null || !IsWithinPushTargetRange(target.grid)) return;
 
-        Vector2I direction = GetPushDirection(target.grid);
-
-        if (direction == Vector2I.Zero) return;
+        if (pushDirectionMode == PushDirectionMode.FreeAngle)
+        {
+            OpenAttackPushDirectionMenu(target, distance);
+            return;
+        }
+        var pushPath = BuildPushPath(target.grid, distance);
+        if (pushPath.Count < distance) return;
 
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager?.map == null) return;
         if (!CanPayPushCost(gm)) return;
-        if (!ResolvePushChain(target.grid, direction, distance, gm.gridManager, gm))
+        if (!ResolvePushChain(target.grid, pushPath, distance, gm.gridManager, gm))
             return;
         if (!TryMarkAttackPushUsed())
             return;
@@ -1206,6 +1210,32 @@ public partial class Infantry
         pushDistancePopup = null;
     }
 
+    private void OpenAttackPushDirectionMenu(Infantry target, int selectedDistance)
+    {
+        if (target?.grid == null || !CanUseAttackPush()) return;
+        if (pushDirectionPopup != null && GodotObject.IsInstanceValid(pushDirectionPopup))
+            pushDirectionPopup.QueueFree();
+        var popup = new PopupMenu();
+        pushDirectionPopup = popup;
+        GetTree().Root.AddChild(popup);
+        for (int angle = 0; angle <= 360; angle++)
+            popup.AddItem($"{angle}°", angle);
+        popup.IdPressed += id =>
+        {
+            float angle = id;
+            if (GodotObject.IsInstanceValid(popup)) popup.QueueFree();
+            if (pushDirectionPopup == popup) pushDirectionPopup = null;
+            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (gm?.gridManager == null || target?.grid == null || !CanPayPushCost(gm)) return;
+            var path = BuildPushPath(target.grid, selectedDistance, angle);
+            if (!ResolvePushChain(target.grid, path, selectedDistance, gm.gridManager, gm)) return;
+            if (!TryMarkAttackPushUsed()) return;
+            PayPushCost(gm);
+        };
+        var mousePosition = (Vector2I)GetViewport().GetMousePosition();
+        popup.Popup(new Rect2I(mousePosition, new Vector2I(1, 1)));
+    }
+
     private void OpenPushDirectionMenu(Grids targetGrid, int selectedDistance)
     {
         if (targetGrid == null || !CanUseSeparatePushAction()) return;
@@ -1367,6 +1397,7 @@ public partial class Infantry
         // Keep each stack's original tile so rebound is resolved once, after the
         // complete displacement. Target effects must also run once per push action,
         // not once for every tile traversed.
+        Vector2I overallDirection = pushPath[0];
         var originalTiles = chain.Select(stack => stack.FirstOrDefault(IsLivingUnit)?.grid).ToList();
         var movedStacks = new HashSet<int>();
         bool pushResolved = false;
@@ -1523,7 +1554,7 @@ public partial class Infantry
             var stack = chain[i].Where(IsLivingUnit).ToList();
             if (stack.Count == 0) continue;
             var origin = originalTiles[i];
-            bool resolvedByModule = TryResolveStackDisplacement(stack, origin, direction,
+            bool resolvedByModule = TryResolveStackDisplacement(stack, origin, overallDirection,
                 gridManager, gameManager);
             if (!resolvedByModule)
                 ApplyPushTargetEffects(stack, gameManager);
@@ -1533,7 +1564,7 @@ public partial class Infantry
 
         if (!fromMovement && pushDirectionMode == PushDirectionMode.OppositeSides && pushResolved)
         {
-            MovePusherOppositeDirection(direction, distance, gridManager, gameManager);
+            MovePusherOppositeDirection(overallDirection, distance, gridManager, gameManager);
         }
         else if (!fromMovement && pushResolved && (pushPusherFollowsChain || pusherMovesSimultaneously)
             && firstGrid != null && grid != null)
@@ -1544,7 +1575,7 @@ public partial class Infantry
             bool hasBlocker = GetLivingStack(followDestination).Count > 0
                 || HasForeignMultiTileOccupant(followDestination, followStack);
             if (!hasBlocker && TryDisplaceWeaponAndFacility(followStack, followDestination,
-                direction, gridManager))
+                overallDirection, gridManager))
             {
                 foreach (var unit in followStack.ToList())
                 {
