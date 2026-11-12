@@ -1,6 +1,6 @@
 # Physics Push System
 
-The push system is configured per entity through Godot Export properties. The current runtime supports infantry stacks and single-tile pushable weapons/facilities.
+The push system is configured per entity through Godot Export properties. The current runtime supports infantry stacks, single- and multi-tile pushable weapons, and single-tile facilities.
 
 ## Trigger modes
 
@@ -45,7 +45,7 @@ For a separate action:
 
 ## Current limitations
 
-- Directly pushed multi-tile weapons use full-footprint collision checks. Multi-tile weapons are not yet supported as intermediate obstacles in mixed infantry/static domino chains.
+- Directly pushed multi-tile weapons and multi-tile weapons encountered as intermediate obstacles in infantry/static push chains use full-footprint collision checks. Each movement step preflights recursive weapon and infantry collision outcomes before committing; weapon/facility bind failures roll back the weapon moves. Multi-step pushes remain stepwise, so an earlier successful step is not rolled back if a later step is blocked.
 - Facility/weapon chain stacks and mixed infantry/weapon/facility mass transmission are not yet unified into one chain solver.
 - Weapon and facility push targets support health damage, one-HP locking, healing, and maximum-health changes. Weapons also map the six compatible shared ammo kinds to their native ammo slots. Infantry additionally supports fuel and all shared ammo kinds.
 - When a pushed stack collides with another infantry stack, heavier mass wins and destroys the lighter stack; equal mass follows the two sides' simultaneous/stop rules. `pushChainEnabled=false` makes an occupied link stop both sides.
