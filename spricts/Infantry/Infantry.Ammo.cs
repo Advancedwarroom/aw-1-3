@@ -21,7 +21,11 @@ public partial class Infantry
         CamoBullet,     // 迷彩弹
         Production,     // 生产弹药（生产模块）
         Construction,   // 建造弹药（建造模块）
-        Special         // 特殊弹（第11资源，自费补给模块货币槽；useSpecialAmmo=false或上限0=无限）
+        Special,        // 特殊弹（第11资源，自费补给模块货币槽；useSpecialAmmo=false或上限0=无限）
+        Push,           // 推送弹
+        Rebound,        // 反弹推进弹
+        Mitigation,     // 卸力弹
+        AntiGravity     // 反重力场弹
     }
 
     public static readonly AmmoKind[] AllAmmoKinds =
@@ -40,6 +44,10 @@ public partial class Infantry
         AmmoKind.Production => currentProductionAmmo,
         AmmoKind.Construction => currentConstructionAmmo,
         AmmoKind.Special => currentSpecialAmmo,
+        AmmoKind.Push => currentPushAmmo,
+        AmmoKind.Rebound => currentReboundAmmo,
+        AmmoKind.Mitigation => currentMitigationAmmo,
+        AmmoKind.AntiGravity => currentAntiGravityAmmo,
         _ => 0
     };
 
@@ -54,6 +62,10 @@ public partial class Infantry
         AmmoKind.Production => maxProductionAmmo,
         AmmoKind.Construction => maxConstructionAmmo,
         AmmoKind.Special => maxSpecialAmmo,
+        AmmoKind.Push => maxPushAmmo,
+        AmmoKind.Rebound => maxReboundAmmo,
+        AmmoKind.Mitigation => maxMitigationAmmo,
+        AmmoKind.AntiGravity => maxAntiGravityAmmo,
         _ => 0
     };
 
@@ -104,6 +116,10 @@ public partial class Infantry
         AmmoKind.Production => maxProductionAmmo,
         AmmoKind.Construction => maxConstructionAmmo,
         AmmoKind.Special => maxSpecialAmmo,
+        AmmoKind.Push => maxPushAmmo,
+        AmmoKind.Rebound => maxReboundAmmo,
+        AmmoKind.Mitigation => maxMitigationAmmo,
+        AmmoKind.AntiGravity => maxAntiGravityAmmo,
         _ => 0,
     };
 
@@ -122,6 +138,10 @@ public partial class Infantry
             case AmmoKind.Production: maxProductionAmmo = value; break;
             case AmmoKind.Construction: maxConstructionAmmo = value; break;
             case AmmoKind.Special: maxSpecialAmmo = value; break;
+            case AmmoKind.Push: maxPushAmmo = value; break;
+            case AmmoKind.Rebound: maxReboundAmmo = value; break;
+            case AmmoKind.Mitigation: maxMitigationAmmo = value; break;
+            case AmmoKind.AntiGravity: maxAntiGravityAmmo = value; break;
         }
     }
 
@@ -138,6 +158,10 @@ public partial class Infantry
             case AmmoKind.Production: currentProductionAmmo = value; break;
             case AmmoKind.Construction: currentConstructionAmmo = value; break;
             case AmmoKind.Special: currentSpecialAmmo = value; break;
+            case AmmoKind.Push: currentPushAmmo = value; break;
+            case AmmoKind.Rebound: currentReboundAmmo = value; break;
+            case AmmoKind.Mitigation: currentMitigationAmmo = value; break;
+            case AmmoKind.AntiGravity: currentAntiGravityAmmo = value; break;
         }
     }
 }
