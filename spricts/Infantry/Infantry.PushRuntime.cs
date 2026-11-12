@@ -1348,6 +1348,18 @@ public partial class Infantry
         actionMenu?.Hide();
     }
 
+    private Grids GetWrappedPushGrid(GridManager gridManager, Vector2I index)
+    {
+        var map = gridManager?.map;
+        if (map == null) return null;
+        int width = map.GetLength(0);
+        int height = map.GetLength(1);
+        if (width <= 0 || height <= 0) return null;
+        int x = ((index.X % width) + width) % width;
+        int y = ((index.Y % height) + height) % height;
+        return gridManager.GetGridAt(new Vector2I(x, y));
+    }
+
     private bool ResolvePushChain(Grids firstGrid, IReadOnlyList<Vector2I> pushPath, int distance,
         GridManager gridManager, GameManager gameManager, bool fromMovement = false)
     {
@@ -1371,7 +1383,11 @@ public partial class Infantry
                 break;
             int nextLinkIndex = chain.Count - 1;
             if (nextLinkIndex < 0 || nextLinkIndex >= pushPath.Count) break;
-            cursor = gridManager.GetGridAt(cursor.GridIndex + pushPath[nextLinkIndex]);
+            Vector2I nextIndex = cursor.GridIndex + pushPath[nextLinkIndex];
+            var nextGrid = gridManager.GetGridAt(nextIndex);
+            if (nextGrid == null && stack.All(unit => unit.pushWrapAroundMap))
+                nextGrid = GetWrappedPushGrid(gridManager, nextIndex);
+            cursor = nextGrid;
         }
         if (chain.Count == 0) return false;
 
@@ -1430,19 +1446,22 @@ public partial class Infantry
                 bool finalStepForStack = step == stackDistance - 1;
                 var currentGrid = stack[0].grid;
                 if (currentGrid == null) continue;
-                var destination = gridManager.GetGridAt(currentGrid.GridIndex + stepDirection);
+                Vector2I nextIndex = currentGrid.GridIndex + stepDirection;
+                var destination = gridManager.GetGridAt(nextIndex);
                 if (destination == null)
                 {
-                    // The pusher decides whether reaching the map edge is lethal.
-                    // A non-destructive push stops at the boundary without moving
-                    // any stack through the missing tile.
+                    // Each pushed unit chooses independently: loopers wrap to the
+                    // opposite edge; non-loopers are destroyed when pushed off-map.
                     foreach (var unit in stack.ToList())
                     {
-                        if (!unit.pushSelfDestructOnInvalidIntermediateTile) continue;
+                        if (unit.pushWrapAroundMap) continue;
                         DestroyPushedUnit(unit, gameManager);
                         pushResolved = true;
                     }
-                    break;
+                    stack = stack.Where(IsLivingUnit).ToList();
+                    if (stack.Count == 0) break;
+                    destination = GetWrappedPushGrid(gridManager, nextIndex);
+                    if (destination == null) break;
                 }
 
                 foreach (var unit in stack.ToList())
