@@ -40,8 +40,10 @@ public partial class Infantry
         if (!CanPushTargetTeam(targetStack) || !CanPayPushCost(gm))
             return false;
 
-        var movementPath = Enumerable.Repeat(movementDirection,
-            GetRequestedPushDistance() + Mathf.Max(0, pushMaxChainStacks)).ToList();
+        var movementPath = BuildPushPath(targetGrid, GetRequestedPushDistance());
+        if (movementPath.Count < GetRequestedPushDistance()) return false;
+        for (int i = 0; i < movementPath.Count; i++)
+            movementPath[i] = movementDirection;
         if (!ResolvePushChain(targetGrid, movementPath, GetRequestedPushDistance(),
             gm.gridManager, gm, fromMovement: true))
             return false;
@@ -727,12 +729,17 @@ public partial class Infantry
     private List<Vector2I> BuildPushPath(Grids targetGrid, int distance, float? selectedAngle = null)
     {
         if (distance <= 0) return new List<Vector2I>();
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var map = gm?.gridManager?.map;
+        int mapReach = map == null ? 0 : Math.Max(map.GetLength(0), map.GetLength(1));
+        int chainReach = pushMaxChainStacks > 0 ? pushMaxChainStacks : mapReach;
+        if (pushMaxChainUnits > 0) chainReach = Math.Min(chainReach, pushMaxChainUnits);
+        int pathLength = distance + Math.Max(0, chainReach);
         if (pushDirectionMode == PushDirectionMode.FreeAngle)
-            return BuildAnglePushPath(selectedAngle ?? pushFreeAngleDegrees,
-                distance + Mathf.Max(0, pushMaxChainStacks));
+            return BuildAnglePushPath(selectedAngle ?? pushFreeAngleDegrees, pathLength);
         Vector2I direction = GetPushDirection(targetGrid, selectedAngle);
         return direction == Vector2I.Zero ? new List<Vector2I>()
-            : Enumerable.Repeat(direction, distance + Mathf.Max(0, pushMaxChainStacks)).ToList();
+            : Enumerable.Repeat(direction, pathLength).ToList();
     }
 
     private float GetPushForceMultiplier(int? requestedDistance = null) =>
