@@ -31,7 +31,8 @@ public partial class ActionMenu
             && ((unit.transferDirections != null && unit.transferDirections.Count > 1 && !unit.transferAutoDirection)
                 || (!unit.reboundAuto && unit.pushReboundEnabled && unit.reboundRangeMax > 0)
                 || (unit.pushMitigationEnabled && unit.pushMitigationCeremony
-                    && unit.mitigationSpreadDirections != null && unit.mitigationSpreadDirections.Count > 1 && !unit.mitigationAuto));
+                    && unit.mitigationSpreadDirections != null && unit.mitigationSpreadDirections.Count > 1 && !unit.mitigationAuto)
+                || (unit.pushDistanceSelectionMode == 1 && unit.pushDistance > 1));
         pushChoiceButton.Visible = hasChoice;
         if (hasChoice)
             TranslateGroup.SetText(pushChoiceButton, isPushChoiceSelecting ? "取消选择" : "推动选择");
@@ -74,6 +75,21 @@ public partial class ActionMenu
                 pushChoiceOptionButtons.Add(b);
             }
         }
+        // 推动距离手动选择（pushDistanceSelectionMode=1 时）：1~pushDistance 单选，选完即出
+        if (unit.pushDistanceSelectionMode == 1 && unit.pushDistance > 1)
+        {
+            for (int n = 1; n <= unit.pushDistance; n++)
+            {
+                int nn = n;
+                var b = new Button();
+                TranslateGroup.SetText(b, $"推动距离 {nn}");
+                b.Pressed += () => { unit.pushChosenDistance = nn; ExitPushChoiceMode(); };
+                parent.AddChild(b);
+                parent.MoveChild(b, idx++);
+                pushChoiceOptionButtons.Add(b);
+            }
+        }
+
         // 卸力均分方向 n 选 m：多选开关，绿色=选中
         if (unit.pushMitigationEnabled && unit.pushMitigationCeremony && !unit.mitigationAuto
             && unit.mitigationSpreadDirections != null && unit.mitigationSpreadDirections.Count > 1)
