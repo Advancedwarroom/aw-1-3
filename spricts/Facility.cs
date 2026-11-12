@@ -343,7 +343,7 @@ public partial class Facility : Node2D
                 texture = frames.GetFrameTexture(baseAnimSprite.Animation, 0);
             if (texture == null)
             {
-                foreach (string animationName in frames.GetAnimationNames())
+                foreach (var animationName in frames.GetAnimationNames())
                 {
                     if (frames.GetFrameCount(animationName) <= 0) continue;
                     texture = frames.GetFrameTexture(animationName, 0);
@@ -376,7 +376,7 @@ public partial class Facility : Node2D
                 texture = frames.GetFrameTexture(animSprite.Animation, 0);
             if (texture == null)
             {
-                foreach (string animationName in frames.GetAnimationNames())
+                foreach (var animationName in frames.GetAnimationNames())
                 {
                     if (frames.GetFrameCount(animationName) <= 0) continue;
                     texture = frames.GetFrameTexture(animationName, 0);
