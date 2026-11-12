@@ -51,6 +51,13 @@ public partial class Infantry
         Decrease
     }
 
+    public enum PushFragileDamageMode
+    {
+        Fixed,
+        AttackCalculation,
+        HealthAndFunds
+    }
+
     [ExportGroup("推动模块")]
     [Export] public bool pushEnabled = false;
     [Export] public PushTriggerMode pushTriggerMode = PushTriggerMode.Disabled;
