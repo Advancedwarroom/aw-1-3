@@ -17,6 +17,8 @@ public partial class Infantry
         public List<Infantry> moveUnits = new();
         public List<Infantry> fragileUnits = new();
         public Grids infantryDestination;
+        public Weapon movingWeapon;
+        public Facility movingFacility;
         public bool destroyMovingStatic;
     }
 
@@ -336,7 +338,7 @@ public partial class Infantry
         if (hasBlockingCollision)
         {
             foreach (var plan in collisionPlans.Where(p => p.destroyMovingStatic))
-                DestroyStaticPushTarget(null, null, gm);
+                DestroyStaticPushTarget(plan.movingWeapon, plan.movingFacility, gm);
             foreach (var plan in collisionPlans.Where(p => p.fragileUnits.Count > 0))
                 ApplyFragileCollisionEffects(plan.fragileUnits);
             return false;
@@ -378,7 +380,11 @@ public partial class Infantry
         var stack = (destination.infantries ?? new List<Infantry>())
             .Where(IsLivingUnit).Where(u => u.grid == destination).Distinct().ToList();
         if (stack.Count == 0) return true;
-        plan = new PlannedStaticInfantryCollision();
+        plan = new PlannedStaticInfantryCollision
+        {
+            movingWeapon = movingWeapon,
+            movingFacility = movingFacility
+        };
 
         if ((chainIndex > 0 && !pushChainEnabled)
             || (pushMaxChainStacks > 0 && chainIndex >= pushMaxChainStacks)
