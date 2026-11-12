@@ -22,7 +22,8 @@ public partial class Infantry
     {
         AwayFromPusher,
         Fixed,
-        OppositeSides
+        OppositeSides,
+        FreeAngle
     }
 
     public enum PushTargetTeamMode
@@ -91,6 +92,7 @@ public partial class Infantry
     [Export] public int pushRamDamage = 0;
     [Export] public PushDirectionMode pushDirectionMode = PushDirectionMode.AwayFromPusher;
     [Export] public Vector2I fixedPushDirection = Vector2I.Right;
+    [Export(PropertyHint.Range, "0,360,1")] public float pushFreeAngleDegrees = 0.0f;
     [Export] public bool pushCanTargetInfantry = true;
     [Export] public bool pushCanTargetWeapons = false;
     [Export] public bool pushCanTargetFacilities = false;
