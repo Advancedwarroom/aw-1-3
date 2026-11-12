@@ -123,12 +123,23 @@ public partial class Infantry
             {
                 if (!firstDestroyed) return;
             }
-            if (!firstDestroyed && (!CanMoveStaticTargetTo(firstDestination, target, null,
-                allowInfantryOverlap: !target.pushBlocksInfantryWhenOverlapped)
-                || !CommitPlannedWeaponMoves(firstWeaponMoves, gm.weaponManager, firstInfantryCollisions))) return;
-
             bool moved = firstDestroyed;
-            for (int step = 0; step < distance && !firstDestroyed; step++)
+            if (!firstDestroyed)
+            {
+                var firstPlannedToVacate = firstWeaponMoves.Select(move => move.weapon)
+                    .Append(target).ToHashSet();
+                if (!CanMoveStaticTargetTo(firstDestination, target, null,
+                    allowInfantryOverlap: true, plannedToVacate: firstPlannedToVacate))
+                    return;
+                // The pushed weapon itself belongs to the same transaction as its
+                // recursively displaced footprint blockers.
+                firstWeaponMoves.Add((target, firstDestination));
+                if (!CommitPlannedWeaponMoves(firstWeaponMoves, gm.weaponManager, firstInfantryCollisions))
+                    return;
+                moved = true;
+            }
+
+            for (int step = 1; step < distance && !firstDestroyed; step++)
             {
                 Vector2I stepDirection = pushPath[step];
                 var next = gm.gridManager.GetGridAt(target.grid.GridIndex + stepDirection);
@@ -146,10 +157,14 @@ public partial class Infantry
                     moved = true;
                     break;
                 }
+                var stepPlannedToVacate = stepWeaponMoves.Select(move => move.weapon)
+                    .Append(target).ToHashSet();
                 if (!CanMoveStaticTargetTo(next, target, null,
-                    allowInfantryOverlap: !target.pushBlocksInfantryWhenOverlapped)
-                    || !CommitPlannedWeaponMoves(stepWeaponMoves, gm.weaponManager, stepInfantryCollisions)
-                    || !target.MoveByPhysicsPush(next, gm.weaponManager)) break;
+                    allowInfantryOverlap: true, plannedToVacate: stepPlannedToVacate))
+                    break;
+                stepWeaponMoves.Add((target, next));
+                if (!CommitPlannedWeaponMoves(stepWeaponMoves, gm.weaponManager, stepInfantryCollisions))
+                    break;
                 moved = true;
             }
             if (!moved) return;
@@ -309,7 +324,8 @@ public partial class Infantry
 
     private bool CommitPlannedWeaponMoves(List<(Weapon weapon, Grids destination)> plannedMoves,
         WeaponManager manager,
-        List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex, PlannedStaticInfantryCollision plan)> plannedInfantryCollisions = null)
+        List<(Grids tile, Vector2I direction, Weapon weapon, Facility facility, int chainIndex, PlannedStaticInfantryCollision plan)> plannedInfantryCollisions = null,
+        Facility facilityToMove = null, Grids facilityDestination = null)
     {
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         var collisionPlans = new List<PlannedStaticInfantryCollision>();
@@ -389,6 +405,12 @@ public partial class Infantry
                 allowInfantryOverlap: true, plannedToVacate: plannedWeaponSet))
                 return false;
         }
+        if (facilityToMove != null
+            && (!GodotObject.IsInstanceValid(facilityToMove) || facilityToMove.IsQueuedForDeletion()
+                || !facilityToMove.pushableByPhysics || facilityToMove.ParentGrid == null
+                || facilityDestination == null || facilityDestination == facilityToMove.ParentGrid
+                || facilityDestination.city != null))
+            return false;
 
         // Move the static chain before applying infantry damage/destruction. This
         // keeps a failed BindWeaponToGrid from leaving collision effects behind.
@@ -412,8 +434,20 @@ public partial class Infantry
             }
             committedWeaponMoves.Add((move.weapon, origin));
         }
+        if (facilityToMove != null && !facilityToMove.MoveByPhysicsPush(facilityDestination))
+        {
+            for (int i = committedWeaponMoves.Count - 1; i >= 0; i--)
+            {
+                var committed = committedWeaponMoves[i];
+                if (GodotObject.IsInstanceValid(committed.weapon)
+                    && !committed.weapon.IsQueuedForDeletion()
+                    && committed.origin != null)
+                    committed.weapon.MoveByPhysicsPush(committed.origin, manager);
+            }
+            return false;
+        }
 
-        // All weapon bindings succeeded. The remaining staged consequences use
+        // All static bindings succeeded. The remaining staged consequences use
         // prevalidated infantry destinations and do not perform further weapon binds.
         foreach (var plan in collisionPlans)
         {
@@ -2073,17 +2107,14 @@ public partial class Infantry
             allowInfantryOverlap: true, plannedToVacate: allPlannedWeapons))
             return false;
 
-        // Phase 2: commit the preflighted group. WeaponManager now supports
-        // multiple weapon references per tile, so siblings can share the same
-        // destination without racing for Grids.weapon's legacy primary slot.
-        if (!CommitPlannedWeaponMoves(plannedWeaponMoves, gm?.weaponManager, plannedInfantryCollisions))
-            return false;
-        foreach (var weapon in movableWeapons)
-        {
-            if (!weapon.MoveByPhysicsPush(nextGrid, gm?.weaponManager))
-                return false;
-        }
-        if (moveFacility && !blockingFacility.MoveByPhysicsPush(nextGrid))
+        // Include the first-level blockers in the same rollback-capable commit
+        // as their recursively discovered footprint blockers.
+        plannedWeaponMoves.AddRange(movableWeapons.Select(weapon => (weapon, nextGrid)));
+
+        // Phase 2: commit the complete static chain and optional facility together.
+        if (!CommitPlannedWeaponMoves(plannedWeaponMoves, gm?.weaponManager,
+            plannedInfantryCollisions, moveFacility ? blockingFacility : null,
+            moveFacility ? nextGrid : null))
             return false;
 
         ApplyFragileCollisionEffects(movingStack);
