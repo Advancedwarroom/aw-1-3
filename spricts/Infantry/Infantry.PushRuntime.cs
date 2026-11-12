@@ -1152,7 +1152,7 @@ public partial class Infantry
         if (alliedTeam && !rebounder.pushReboundCanTargetAllies) return false;
         if (!sameTeam && !alliedTeam && !rebounder.pushReboundCanTargetEnemies) return false;
 
-        var initiatingStack = GetLivingStack(grid);
+        var initiatingStack = GetLivingStackSnapshot(grid);
         if (initiatingStack.Count == 0) initiatingStack.Add(this);
         if (pushUsesWeight)
         {
@@ -1199,7 +1199,7 @@ public partial class Infantry
             pusherStack = initiatingStack;
             pusherDestination = gm.gridManager.GetGridAt(pusherOrigin.GridIndex - direction);
             if (pusherDestination == null
-                || GetLivingStack(pusherDestination).Count > 0
+                || GetLivingStackSnapshot(pusherDestination).Count > 0
                 || HasForeignMultiTileOccupant(pusherDestination, pusherStack)
                 || (pusherDestination.city != null && pusherDestination.city.pushBlocksInfantryWhenOverlapped)
                 || (pusherDestination.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
@@ -1211,7 +1211,7 @@ public partial class Infantry
             reboundDestination = pusherOrigin;
         }
 
-        var destinationOccupants = GetLivingStack(reboundDestination);
+        var destinationOccupants = GetLivingStackSnapshot(reboundDestination);
         if (destinationOccupants.Any(unit => pusherStack == null || !pusherStack.Contains(unit))
             || (reboundDestination.city != null && reboundDestination.city.pushBlocksInfantryWhenOverlapped)
             || (reboundDestination.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
@@ -1302,7 +1302,7 @@ public partial class Infantry
         if (direction == Vector2I.Zero) return false;
         var origin = stack.FirstOrDefault(IsLivingUnit)?.grid;
         var destination = origin == null ? null : gridManager.GetGridAt(origin.GridIndex + direction);
-        if (destination == null || GetLivingStack(destination).Count > 0
+        if (destination == null || GetLivingStackSnapshot(destination).Count > 0
             || HasForeignMultiTileOccupant(destination, stack)
             || (destination.city != null && destination.city.pushBlocksInfantryWhenOverlapped)
             || (destination.weapons?.Any(w => w != null && GodotObject.IsInstanceValid(w)
@@ -1921,7 +1921,7 @@ public partial class Infantry
     private void MovePusherOppositeDirection(Vector2I pushDirection, int distance,
         GridManager gridManager, GameManager gameManager)
     {
-        var pusherStack = GetLivingStack(grid);
+        var pusherStack = GetLivingStackSnapshot(grid);
         if (pusherStack.Count == 0) pusherStack.Add(this);
 
         Vector2I retreatDirection = -pushDirection;
@@ -1952,7 +1952,7 @@ public partial class Infantry
             pusherStack = pusherStack.Where(IsLivingUnit).ToList();
             if (pusherStack.Count == 0) break;
 
-            var blockers = GetLivingStack(destination).Where(u => !pusherStack.Contains(u)).ToList();
+            var blockers = GetLivingStackSnapshot(destination).Where(u => !pusherStack.Contains(u)).ToList();
             if (blockers.Count > 0 || HasForeignMultiTileOccupant(destination, pusherStack))
                 break;
             bool pusherLosesToStatic = false;
