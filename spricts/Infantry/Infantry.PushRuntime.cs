@@ -265,7 +265,7 @@ public partial class Infantry
                 var blockerNext = gm.gridManager.GetGridAt(blocker.grid.GridIndex + direction);
                 if (blockerNext == null) return false;
                 if (!TryResolveWeaponFootprintCollisions(blocker, blockerNext, direction,
-                    gm, out bool blockerDestroyed, chainIndex + 1))
+                    gm, out bool blockerDestroyed, chainIndex + 1, chainVisited))
                 {
                     if (!blockerDestroyed) return false;
                 }
