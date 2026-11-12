@@ -400,6 +400,11 @@ private List<Grids> GetAdjacentGrids(Grids center)
     // 装载/卸载并入主菜单——此后一切新功能按钮对运输单位自动生效，永不再双链适配饿死。
     if (isTransportUnit)
     {
+        // ✅ 修复（2026-11-13）：只要本身是运输单位就保留自身引用。
+        // 否则仅载有乘员、周围无可装载单位时 currentTransport 保持 null，
+        // 卸载按钮点击后 OnUnloadSpecificUnit 空转——无任何卸载/舰载起飞范围。
+        currentTransport = unit;
+
         var mountableUnit = unit.grid?.infantries?.FirstOrDefault(u =>
             u != null && IsInstanceValid(u) && u != unit
             && unit.CanTransportUnit(u)
@@ -410,7 +415,6 @@ private List<Grids> GetAdjacentGrids(Grids center)
             && u.state != UnitState.Acted);
         if (mountableUnit != null)
         {
-            currentTransport = unit;
             currentUnit = mountableUnit;
             canMountAPC = true;   // 复用装载按钮（OnLoadPressed 消费 currentUser/currentTransport）
         }
