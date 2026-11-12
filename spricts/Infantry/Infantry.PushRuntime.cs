@@ -146,7 +146,8 @@ public partial class Infantry
     }
 
     public void TryPushFacilityOnAttack(Facility target, bool fromSeparateAction = false,
-        int? distanceOverride = null, bool fromMovement = false, Vector2I? directionOverride = null)
+        int? distanceOverride = null, bool fromMovement = false, Vector2I? directionOverride = null,
+        IReadOnlyList<Vector2I> pathOverride = null)
     {
         mitigationAmmoPaidThisAction.Clear();
         int distance = GetRequestedPushDistance(distanceOverride);
@@ -163,9 +164,10 @@ public partial class Infantry
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null) return;
         Vector2I direction = directionOverride ?? GetPushDirection(target.ParentGrid);
-        if (direction == Vector2I.Zero || !CanPayPushCost(gm)) return;
-        var firstDestination = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + direction);
-        if (!TryResolveStaticTargetCollision(firstDestination, direction, null, target,
+        var pushPath = pathOverride ?? Enumerable.Repeat(direction, distance).ToList();
+        if (pushPath.Count < distance || pushPath[0] == Vector2I.Zero || !CanPayPushCost(gm)) return;
+        var firstDestination = gm.gridManager.GetGridAt(target.ParentGrid.GridIndex + pushPath[0]);
+        if (!TryResolveStaticTargetCollision(firstDestination, pushPath[0], null, target,
             gm, out bool firstDestroyed, 1))
         {
             if (!firstDestroyed) return;
@@ -1314,8 +1316,10 @@ public partial class Infantry
             if (!CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
             Vector2I staticDirection = GetPushDirection(targetGrid, selectedAngle);
             if (staticDirection == Vector2I.Zero) return;
-            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true, distanceOverride: distance, pathOverride: BuildPushPath(targetGrid, distance, selectedAngle));
-            else TryPushFacilityOnAttack(facility, fromSeparateAction: true, distanceOverride: distance, directionOverride: staticDirection);
+            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true, distanceOverride: distance,
+                pathOverride: BuildPushPath(targetGrid, distance, selectedAngle));
+            else TryPushFacilityOnAttack(facility, fromSeparateAction: true, distanceOverride: distance,
+                pathOverride: BuildPushPath(targetGrid, distance, selectedAngle));
             gridManager.HideAttackRange();
             gridManager.ClearAllEmptyCallbacks();
             gm.isSelectingAttackTarget = false;
