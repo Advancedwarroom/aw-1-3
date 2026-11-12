@@ -7,6 +7,7 @@ using System.Linq;
 public partial class Infantry
 {
     private PopupMenu pushDistancePopup;
+    private PopupMenu pushDirectionPopup;
 
     public bool TryPushWeaponOnMovement(Weapon target, Vector2I movementDirection)
     {
@@ -517,7 +518,8 @@ public partial class Infantry
 
         // At exactly one-tile target range, a single eligible target is unambiguous
         // and can be pushed immediately without opening the target-selection overlay.
-        if (minRange == 1 && maxRange == 1 && eligibleTiles.Count == 1)
+        if (pushDirectionMode != PushDirectionMode.FreeAngle
+            && minRange == 1 && maxRange == 1 && eligibleTiles.Count == 1)
         {
             ExecuteSeparatePushOnGrid(eligibleTiles[0]);
             return;
@@ -546,6 +548,7 @@ public partial class Infantry
     private void CancelSeparatePushTargetSelection()
     {
         ClosePushDistanceMenu();
+        ClosePushDirectionMenu();
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         gm?.gridManager?.HideAttackRange();
         gm?.gridManager?.ClearAllEmptyCallbacks();
@@ -654,13 +657,22 @@ public partial class Infantry
         }
     }
 
-    private Vector2I GetPushDirection(Grids targetGrid)
+    private Vector2I GetPushDirection(Grids targetGrid, float? selectedAngle = null)
     {
         if (targetGrid == null || grid == null) return Vector2I.Zero;
         if (pushDirectionMode == PushDirectionMode.Fixed)
         {
             if (fixedPushDirection == Vector2I.Zero) return Vector2I.Zero;
             return new Vector2I(Math.Sign(fixedPushDirection.X), Math.Sign(fixedPushDirection.Y));
+        }
+        if (pushDirectionMode == PushDirectionMode.FreeAngle)
+        {
+            float degrees = Mathf.PosMod(selectedAngle ?? pushFreeAngleDegrees, 360.0f);
+            float radians = Mathf.DegToRad(degrees);
+            // The angle remains a 0-360 degree value. A square tile map advances
+            // through its nearest adjacent cell direction for each displacement step.
+            var vector = new Vector2(Mathf.Cos(radians), Mathf.Sin(radians));
+            return new Vector2I(Mathf.RoundToInt(vector.X), Mathf.RoundToInt(vector.Y));
         }
 
         Vector2I delta = targetGrid.GridIndex - grid.GridIndex;
@@ -1148,7 +1160,37 @@ public partial class Infantry
         pushDistancePopup = null;
     }
 
-    private void ExecuteSeparatePushOnGrid(Grids targetGrid, int? selectedDistance = null)
+    private void OpenPushDirectionMenu(Grids targetGrid, int selectedDistance)
+    {
+        if (targetGrid == null || !CanUseSeparatePushAction()) return;
+        if (pushDirectionPopup != null && GodotObject.IsInstanceValid(pushDirectionPopup))
+            pushDirectionPopup.QueueFree();
+
+        var popup = new PopupMenu();
+        pushDirectionPopup = popup;
+        GetTree().Root.AddChild(popup);
+        for (int angle = 0; angle <= 360; angle++)
+            popup.AddItem($"{angle}°", angle);
+
+        popup.IdPressed += id =>
+        {
+            float chosenAngle = id;
+            if (GodotObject.IsInstanceValid(popup)) popup.QueueFree();
+            if (pushDirectionPopup == popup) pushDirectionPopup = null;
+            ExecuteSeparatePushOnGrid(targetGrid, selectedDistance, chosenAngle);
+        };
+        var mousePosition = (Vector2I)GetViewport().GetMousePosition();
+        popup.Popup(new Rect2I(mousePosition, new Vector2I(1, 1)));
+    }
+
+    private void ClosePushDirectionMenu()
+    {
+        if (pushDirectionPopup != null && GodotObject.IsInstanceValid(pushDirectionPopup))
+            pushDirectionPopup.QueueFree();
+        pushDirectionPopup = null;
+    }
+
+    private void ExecuteSeparatePushOnGrid(Grids targetGrid, int? selectedDistance = null, float? selectedAngle = null)
     {
         mitigationAmmoPaidThisAction.Clear();
         if (!pushAutoDistance && selectedDistance == null && pushMinDistance < pushDistance)
@@ -1158,6 +1200,11 @@ public partial class Infantry
         }
         int distance = GetRequestedPushDistance(selectedDistance);
         if (distance <= 0) return;
+        if (pushDirectionMode == PushDirectionMode.FreeAngle && selectedAngle == null)
+        {
+            OpenPushDirectionMenu(targetGrid, distance);
+            return;
+        }
 
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         var gridManager = gm?.gridManager;
@@ -1185,8 +1232,10 @@ public partial class Infantry
             // The selected target is fully validated once by the corresponding
             // static-target resolver. Avoid a second equal-weight random arbitration.
             if (!CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
-            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true, distanceOverride: distance);
-            else TryPushFacilityOnAttack(facility, fromSeparateAction: true, distanceOverride: distance);
+            Vector2I staticDirection = GetPushDirection(targetGrid, selectedAngle);
+            if (staticDirection == Vector2I.Zero) return;
+            if (weapon != null) TryPushWeaponOnAttack(weapon, fromSeparateAction: true, distanceOverride: distance, directionOverride: staticDirection);
+            else TryPushFacilityOnAttack(facility, fromSeparateAction: true, distanceOverride: distance, directionOverride: staticDirection);
             gridManager.HideAttackRange();
             gridManager.ClearAllEmptyCallbacks();
             gm.isSelectingAttackTarget = false;
@@ -1194,7 +1243,7 @@ public partial class Infantry
             return;
         }
 
-        Vector2I direction = GetPushDirection(targetGrid);
+        Vector2I direction = GetPushDirection(targetGrid, selectedAngle);
         if (direction == Vector2I.Zero) return;
         if (!CanPayPushCost(gm) || !CanUseSeparatePushAction()) return;
         if (!ResolvePushChain(targetGrid, direction, distance, gridManager, gm))
