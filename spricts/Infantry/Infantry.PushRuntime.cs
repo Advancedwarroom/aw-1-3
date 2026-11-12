@@ -1813,7 +1813,10 @@ public partial class Infantry
                             continue;
                         }
                         if (blockersLoseToStatic)
+                        {
                             DestroyCollisionLoser(blockers);
+                            blockers = blockers.Where(IsLivingUnit).ToList();
+                        }
 
                         foreach (var unit in blockers.ToList())
                         {
@@ -1893,7 +1896,10 @@ public partial class Infantry
                 overallDirection, gridManager, out followStackLosesToStatic))
             {
                 if (followStackLosesToStatic)
+                {
                     DestroyCollisionLoser(followStack);
+                    followStack = followStack.Where(IsLivingUnit).ToList();
+                }
                 foreach (var unit in followStack.ToList())
                 {
                     if (unit.GetMoveCostOnGrid(followDestination) >= 999
