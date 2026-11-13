@@ -1,20 +1,16 @@
-[gd_resource type="SpriteFrames" load_steps=4 format=3]
+[gd_resource type="SpriteFrames" load_steps=2 format=3]
 
-[ext_resource type="Texture2D" path="res://docs/Lab.png" id="1"]
-
-[sub_resource type="AtlasTexture" id="RelayLit"]
-atlas = ExtResource("1")
-region = Rect2(104, 0, 23, 32)
-
-[sub_resource type="AtlasTexture" id="RelayDark"]
-atlas = ExtResource("1")
-region = Rect2(134, 0, 23, 32)
+[ext_resource type="Texture2D" path="res://art/cow_facilities/ComTower_body.png" id="1_dor"]
 
 [resource]
 animations = [{
-"frames": [{"duration": 1.0, "texture": SubResource("RelayDark")}, {"duration": 3.0, "texture": SubResource("RelayLit")}],
-"loop": true, "name": &"RelayJunction", "speed": 1.0
+"frames": [{"duration": 1.0, "texture": ExtResource("1_dor")}],
+"loop": true,
+"name": &"RelayJunction",
+"speed": 1.0
 }, {
-"frames": [{"duration": 1.0, "texture": SubResource("RelayDark")}],
-"loop": true, "name": &"RelayJunctionOff", "speed": 1.0
+"frames": [{"duration": 1.0, "texture": ExtResource("1_dor")}],
+"loop": true,
+"name": &"RelayJunctionOff",
+"speed": 1.0
 }]

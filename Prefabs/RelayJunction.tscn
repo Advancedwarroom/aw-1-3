@@ -27,8 +27,10 @@ sprite_frames = ExtResource("2_relay")
 animation = &"RelayJunction"
 
 [node name="BaseAnimSprite" type="AnimatedSprite2D" parent="."]
+visible = false
 position = Vector2(16, 16)
 sprite_frames = ExtResource("99_cbase")
 
 [node name="NormalAnimSprite" type="AnimatedSprite2D" parent="BaseAnimSprite"]
+visible = false
 sprite_frames = ExtResource("99_cover")
