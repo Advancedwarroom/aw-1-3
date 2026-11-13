@@ -186,9 +186,11 @@ public partial class Infantry
         foreach (var plan in movePlans)
         {
             if (plan.Kind == PushPlanKind.StackMove)
+            {   // ✅ 修复(审查P2-10):补大括号——原写法else if绑定到内层if,兵器/设施位移起点记录被跳过
                 foreach (var u in plan.Stack)
                     if (u != null && GodotObject.IsInstanceValid(u) && !slideFrom.ContainsKey(u))
                         slideFrom[u] = u.Position;
+            }
             else if (plan.Kind == PushPlanKind.WeaponMove && plan.Weapon is Node2D wn && !slideFromStatic.ContainsKey(plan.Weapon))
                 slideFromStatic[plan.Weapon] = wn.Position;
             else if (plan.Kind == PushPlanKind.FacilityMove && plan.Facility is Node2D fn && !slideFromStatic.ContainsKey(plan.Facility))
