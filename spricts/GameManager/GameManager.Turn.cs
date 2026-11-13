@@ -142,6 +142,7 @@ public partial class GameManager
             if (IsInstanceValid(weapon)) weapon.ProcessShelterServices();
 
         ProcessSurvivalCountdowns();
+            SurvivalSession.Instance?.TickRound();   // ✅ 开创人2026-11-14 生存模式：大回合预算扣减
             ApplyIllegalTerrainAutoCheckToAllUnits();   // ✅ 开创人2026-11-11：模式0(Warside)单位脚下非法地形→标准死亡管线自毁              // ✅ 开创人2026-11-10：单位/兵器/设施 存活胜负倒计时（默认关闭，0=不计）
         }
         selectedInfantry = null;
