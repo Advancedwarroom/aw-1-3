@@ -205,16 +205,69 @@ public partial class TalentRuntime : Node
         foreach (var u in units)
         {
             if (u == null || !GodotObject.IsInstanceValid(u) || u.team != team) continue;
-            foreach (var kv in Owned)
-            {
-                var def = FindDef(kv.Key); if (def == null) continue;
-                int lv = kv.Value;
-                foreach (var d in def.exportDeltas) SetFieldDelta(u, d.Key, d.Value * lv);
-                foreach (var o in def.exportOverrides) SetFieldOverride(u, o.Key, o.Value);
-            }
+            ApplyToUnitInternal(u);
             applied++;
         }
         if (applied > 0) GD.Print($"[Talent] 效果已注入 {applied} 个己方单位");
+    }
+
+    // ✅ 修复(审查P1-2): 原始值快照——重复注入按快照重算,不叠加;换图新单位自然新快照
+    private static readonly System.Collections.Generic.Dictionary<ulong, System.Collections.Generic.Dictionary<string, object>> _originalSnapshots = new();
+
+    private static System.Collections.Generic.Dictionary<string, object> GetSnapshot(Infantry u)
+    {
+        ulong id = u.GetInstanceId();
+        if (_originalSnapshots.TryGetValue(id, out var hit)) return hit;
+        var snap = new System.Collections.Generic.Dictionary<string, object>();
+        foreach (var kv in Owned)
+        {
+            var def = FindDef(kv.Key); if (def == null) continue;
+            foreach (var d in def.exportDeltas)
+            {
+                var f = u.GetType().GetField(d.Key);
+                if (f != null && !snap.ContainsKey(d.Key)) snap[d.Key] = f.GetValue(u);
+            }
+        }
+        // 死引用清理
+        var dead = new System.Collections.Generic.List<ulong>();
+        foreach (var k in _originalSnapshots.Keys) if (GodotObject.InstanceFromId(k) == null) dead.Add(k);
+        foreach (var k in dead) _originalSnapshots.Remove(k);
+        _originalSnapshots[id] = snap;
+        return snap;
+    }
+
+    private void ApplyToUnitInternal(Infantry u)
+    {
+        var snap = GetSnapshot(u);
+        foreach (var kv in Owned)
+        {
+            var def = FindDef(kv.Key); if (def == null) continue;
+            int lv = kv.Value;
+            foreach (var d in def.exportDeltas) SetFieldFromSnapshot(u, snap, d.Key, d.Value * lv);
+            foreach (var o in def.exportOverrides) SetFieldOverride(u, o.Key, o.Value);
+        }
+    }
+
+    // ✅ 修复(审查P2-8): 新产单位接入天赋(UI/AI生产线调用)
+    public void ApplyToUnit(Infantry u)
+    {
+        if (u == null || !GodotObject.IsInstanceValid(u)) return;
+        ApplyToUnitInternal(u);
+    }
+
+    private static void SetFieldFromSnapshot(Infantry u, System.Collections.Generic.Dictionary<string, object> snap, string name, double delta)
+    {
+        var f = u.GetType().GetField(name);
+        if (f == null) { WarnMissing(u, name); return; }
+        if (!snap.TryGetValue(name, out var orig)) { SetFieldDelta(u, name, delta); return; }
+        object nv = orig switch
+        {
+            int i => (object)(int)Math.Round(i + delta),
+            float fl => (float)(fl + delta),
+            double db => db + delta,
+            _ => orig
+        };
+        f.SetValue(u, nv);
     }
 
     private static readonly System.Collections.Generic.HashSet<string> _warned = new();
