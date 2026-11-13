@@ -24,6 +24,8 @@ public partial class HQ : Facility
         if (loseOnTeamChange && !string.IsNullOrEmpty(oldTeam) && oldTeam != facilityTeam)
         {
             var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            factionChangeCount++;   // ✅ 开创人2026-11-14 战役法统:换主计数
+        if (factionChangeCount <= 1 || defeatOnLoseAfterTakeover)   // 二易其主豁免:接管后再失守不判负(Export裁决)
             gm?.TriggerTeamLose(oldTeam, $"HQ被占领（{unit?.team}）");
         }
     }
