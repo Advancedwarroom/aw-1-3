@@ -46,12 +46,12 @@ public partial class SurvivalSession : Node
         Campaign = campaign;
         StageIndex = 0;
         RemainingBudget = campaign?.budget ?? 0;
-        Active = campaign != null && campaign.stageMapPaths.Length > 0;
+        Active = campaign != null && (campaign.stageSlots.Length > 0 || (campaign.endlessMode && campaign.endlessPoolSlots.Length > 0));
         _timeAccum = 0;
         EnsureHud();
-        EmitSignal(SignalName.StageChanged, StageIndex, Campaign?.stageMapPaths.Length ?? 0);
+        EmitSignal(SignalName.StageChanged, StageIndex, Campaign?.stageSlots.Length ?? 0);
         UpdateHud();
-        if (Active) GD.Print($"[Survival] 开局:{campaign.campaignName} 关卡×{campaign.stageMapPaths.Length} 预算[{campaign.limitType}]={campaign.budget}");
+        if (Active) GD.Print($"[Survival] 开局:{campaign.campaignName} 主线{campaign.stageSlots.Length}关" + (campaign.endlessMode ? $"+无尽池{campaign.endlessPoolSlots.Length}" : "") + $" 预算[{campaign.limitType}]={campaign.budget}");
     }
 
     // ✅ 钩子①：GameManager.Turn.cs isNewTurn 每大回合调用（回合限制）
