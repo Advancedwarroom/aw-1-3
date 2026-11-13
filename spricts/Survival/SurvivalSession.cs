@@ -391,6 +391,15 @@ public partial class SurvivalSession : Node
         ShowEndPanel(victory, StagesCleared, RemainingBudget, reason);
     }
 
+    // ✅ 修复(审查P1-6): 生产失败退生存预算
+    public void RefundProduction(int cost)
+    {
+        if (!Active || Campaign == null || Campaign.limitType != 0 || cost <= 0) return;
+        RemainingBudget += cost;
+        EmitSignal(SignalName.BudgetChanged, RemainingBudget, 0);
+        UpdateHud();
+    }
+
     // ✅ 接缝④(开创人2026-11-14): 菜单"直接开局"——双槽演示战役,无需手配
     public void BeginQuickDemo()
     {
