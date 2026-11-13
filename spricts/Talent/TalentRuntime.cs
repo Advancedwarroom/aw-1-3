@@ -115,6 +115,18 @@ public partial class TalentRuntime : Node
         EmitSignal(SignalName.TalentChanged);
     }
 
+    // ✅ 单体应用:中途生产的单位当场吃build(开创人2026-11-14)
+    public void ApplyEffectsToUnit(Infantry u)
+    {
+        if (u == null || !GodotObject.IsInstanceValid(u) || Pool == null || Owned.Count == 0) return;
+        foreach (var kv in Owned)
+        {
+            var def = FindDef(kv.Key); if (def == null) continue;
+            foreach (var d in def.exportDeltas) SetFieldDelta(u, d.Key, d.Value * kv.Value);
+            foreach (var o in def.exportOverrides) SetFieldOverride(u, o.Key, o.Value);
+        }
+    }
+
     // ===== 三选一面板 + 效果应用 (开创人2026-11-14) =====
     private Control _draftRoot;
     private RichTextLabel _draftTitle;
@@ -199,10 +211,19 @@ public partial class TalentRuntime : Node
         if (applied > 0) GD.Print($"[Talent] 效果已注入 {applied} 个己方单位");
     }
 
+    private static readonly System.Collections.Generic.HashSet<string> _warned = new();
+
+    private static void WarnMissing(object target, string name)
+    {
+        if (_warned.Contains(name)) return;
+        _warned.Add(name);
+        GD.PushWarning($"[Talent] 效果字段 '{name}' 在 {target.GetType().Name} 上不存在——检查TalentDef拼写");
+    }
+
     private static void SetFieldDelta(object target, string name, double delta)
     {
         var f = target.GetType().GetField(name);
-        if (f == null) return;
+        if (f == null) { WarnMissing(target, name); return; }
         object cur = f.GetValue(target);
         object nv = cur switch
         {
@@ -217,7 +238,7 @@ public partial class TalentRuntime : Node
     private static void SetFieldOverride(object target, string name, string val)
     {
         var f = target.GetType().GetField(name);
-        if (f == null) return;
+        if (f == null) { WarnMissing(target, name); return; }
         object cur = f.GetValue(target);
         object nv = cur switch
         {
