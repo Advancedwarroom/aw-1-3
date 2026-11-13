@@ -1,0 +1,57 @@
+extends CanvasLayer
+# MenuShell.gd - 主菜单十二项接信号+选中高亮+详情面板 (开创人2026-11-14)
+var _buttons: Array[Button] = []
+var _panel: PanelContainer
+var _info: RichTextLabel
+var _selected: Button = null
+
+func _ready() -> void:
+    for child in $MenuList.get_children():
+        if child is Button:
+            _buttons.append(child)
+            child.pressed.connect(_on_pressed.bind(child))
+            child.focus_mode = Control.FOCUS_NONE
+    _build_panel()
+
+func _build_panel() -> void:
+    _panel = PanelContainer.new()
+    _panel.position = Vector2(400, 60)
+    _panel.size = Vector2(520, 560)
+    _panel.visible = false
+    add_child(_panel)
+    _info = RichTextLabel.new()
+    _info.bbcode_enabled = true
+    _info.fit_content = true
+    _panel.add_child(_info)
+
+func _on_pressed(btn: Button) -> void:
+    if _selected and is_instance_valid(_selected): _selected.modulate = Color.WHITE
+    _selected = btn
+    btn.modulate = Color(1.0, 0.82, 0.25)   # ✅ 选中高亮
+    match btn.text:
+        "纪念馆": _show_memorial()
+        "正规战役", "自定义战役":
+            get_tree().change_scene_to_file("res://scene/campaign_menu.tscn")
+        "肉鸽模式": _show_survival()
+        _:
+            _show_placeholder(btn.text)
+
+func _show_memorial() -> void:
+    var p = Engine.get_singleton("CampaignProfile")
+    var node = get_tree().root.find_child("CampaignProfile", true, false)
+    var body := "[b]纪念馆 · 战绩总账[/b]\n\n"
+    if node:
+        body += "总  分：%s\n宝  钞：%s\n战役进度：%s\n已通关卡：%s\n\n[i]商店与成就兑换处建设中——账先记着,店马上开。[/i]" % [
+            node.TotalScore, node.TotalBlackCrystals, node.CurrentProgress, node.ClearedSlots.size()]
+    else:
+        body += "[i]CampaignProfile 未注册自动加载——\n项目设置→自动加载→添加 CampaignProfile + CampaignSettlement + SurvivalSession[/i]"
+    _info.text = body
+    _panel.visible = true
+
+func _show_survival() -> void:
+    _info.text = "[b]肉鸽模式 · 生存战役[/b]\n\n规则：一串关卡一条命,三选一全局预算（资金/回合/时间）,打完主线进无尽池,预算逐层缩减,战败即结算层数。\n\n[i]开局前在自动加载注册 SurvivalSession,\n并用控制台配置战役（stageSlots 指存档槽）。\n示例:\nSurvivalSession.Instance.BeginCampaign(c)[/i]"
+    _panel.visible = true
+
+func _show_placeholder(title: String) -> void:
+    _info.text = "[b]%s[/b]\n\n[i]建设中。骨架已立,魂在排队。[/i]" % title
+    _panel.visible = true
