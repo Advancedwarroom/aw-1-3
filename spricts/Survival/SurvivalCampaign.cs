@@ -20,6 +20,7 @@ public partial class SurvivalCampaign : Resource
     [Export] public bool fundsCarry = true;
     [Export] public bool coEnergyResetPerStage = true;        // 待接：每关CO能量重置
     [Export] public string playerTeam = "Player1";
+    [Export] public string saveFileName = "survival_save.json";   // ✅ 多战役分文件存档
 
     [ExportGroup("军心(命数制)")]
     [Export] public bool moraleEnabled = false;            // ✅ 军心系:败一关扣1点命,归零终局(与预算制并存)
