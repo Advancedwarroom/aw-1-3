@@ -2845,3 +2845,50 @@ script = ExtResource("98_wmgr")
 [editable path="UnitManager/Units/Recon"]
 [editable path="WeaponManager/Weapons/BlackCannon1"]
 [editable path="WeaponManager/Weapons/BlackCannon2"]
+
+
+[node name="MenuShell" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="MenuList" type="VBoxContainer" parent="MenuShell"]
+offset_left = 60.0
+offset_top = 60.0
+offset_right = 360.0
+offset_bottom = 700.0
+theme_override_constants/separation = 6
+
+[node name="Btn_教程关卡" type="Button" parent="MenuShell/MenuList"]
+text = "教程关卡"
+
+[node name="Btn_正规战役" type="Button" parent="MenuShell/MenuList"]
+text = "正规战役"
+
+[node name="Btn_自定义战役" type="Button" parent="MenuShell/MenuList"]
+text = "自定义战役"
+
+[node name="Btn_推演室" type="Button" parent="MenuShell/MenuList"]
+text = "推演室"
+
+[node name="Btn_每日拓展挑战" type="Button" parent="MenuShell/MenuList"]
+text = "每日拓展挑战"
+
+[node name="Btn_编辑器" type="Button" parent="MenuShell/MenuList"]
+text = "编辑器"
+
+[node name="Btn_肉鸽模式" type="Button" parent="MenuShell/MenuList"]
+text = "肉鸽模式"
+
+[node name="Btn_图鉴" type="Button" parent="MenuShell/MenuList"]
+text = "图鉴"
+
+[node name="Btn_纪念馆" type="Button" parent="MenuShell/MenuList"]
+text = "纪念馆"
+
+[node name="Btn_光荣来时路" type="Button" parent="MenuShell/MenuList"]
+text = "光荣来时路"
+
+[node name="Btn_商店" type="Button" parent="MenuShell/MenuList"]
+text = "商店"
+
+[node name="Btn_设置" type="Button" parent="MenuShell/MenuList"]
+text = "设置"
