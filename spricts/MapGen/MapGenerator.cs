@@ -132,7 +132,10 @@ public static class MapGenerator
                     int nxt = cur + d;
                     if (nxt < 0 || nxt >= n || reach[nxt]) continue;
                     if ((d == 1 && nxt % w == 0) || (d == -1 && cur % w == 0)) continue; // 换行墙
-                    if (terrain[nxt] == gSea || terrain[nxt] == gMountain) continue;
+                    bool pass = false;
+                    foreach (var tn in p.passableTerrainNames)
+                        if (Enum.TryParse<GridType>(tn, out var gt2) && (int)gt2 == terrain[nxt]) { pass = true; break; }
+                    if (!pass) continue;
                     reach[nxt] = true; q.Enqueue(nxt);
                 }
             }
@@ -161,7 +164,8 @@ public static class MapGenerator
             { data.screenWidths.Add(s == data.screenCount - 1 ? w - per * (data.screenCount - 1) : per); data.screenHeights.Add(h); data.screenYOffsets.Add(0); }
         data.terrainIds = new List<int>(terrain);
         data.facilities = facilities;
-        data.teamFunds["Player1"] = 1000; data.teamFunds["Player2"] = 1000;
+        for (int f = 0; f < hqPos.Count; f++)
+            data.teamFunds[$"Player{f + 1}"] = p.startFundsPerFaction;
         GD.Print($"[MapGen] 生成完成 {w}x{h} 势力{factions} 设施{facilities.Count} seed={seed}");
         return data;
     }
