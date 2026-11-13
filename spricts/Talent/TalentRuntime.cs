@@ -115,5 +115,121 @@ public partial class TalentRuntime : Node
         EmitSignal(SignalName.TalentChanged);
     }
 
+    // ===== 三选一面板 + 效果应用 (开创人2026-11-14) =====
+    private Control _draftRoot;
+    private RichTextLabel _draftTitle;
+    private Button _refreshBtn;
+    private readonly System.Collections.Generic.List<Button> _draftBtns = new();
+
+    // ✅ 三选一选秀面板:三张卡(稀有度配色/已拥等级/叠级预览)+刷新钮,选中回调onComplete
+    public void ShowDraft(System.Action onComplete)
+    {
+        var three = DraftThree();
+        if (three.Count == 0) { onComplete?.Invoke(); return; }
+        EnsureDraftUI();
+        foreach (var b in _draftBtns) b.QueueFree();
+        _draftBtns.Clear();
+        var vp = GetViewport(); if (vp == null) { onComplete?.Invoke(); return; }
+        var size = vp.GetVisibleRect().Size;
+        _draftTitle.Text = "[center][font_size=40]每赢一关 · 三选一拿天赋[/font_size][/center]";
+        string[] colors = { "#DDDDDD", "#6FB7FF", "#FFD24A" };
+        string[] rname = { "普通", "稀有", "金色" };
+        int i = 0;
+        foreach (var def in three)
+        {
+            int lv = GetLevel(def.talentId);
+            string col = colors[Mathf.Clamp(def.rarity, 0, 2)];
+            var btn = new Button
+            {
+                Text = $"[{rname[Mathf.Clamp(def.rarity, 0, 2)]}]{def.displayName}" + (lv > 0 ? $"  Lv{lv}→{lv + 1}" : "  NEW") + "\n{def.description}",
+                Position = new Vector2(size.X / 2 - 240 + i * 250, size.Y * 0.4f),
+                Size = new Vector2(230, 150),
+                Modulate = new Color(col)
+            };
+            var captured = def;
+            btn.Pressed += () =>
+            {
+                CommitPick(captured);
+                _draftRoot.Visible = false;
+                onComplete?.Invoke();
+            };
+            _draftRoot.AddChild(btn);
+            _draftBtns.Add(btn);
+            i++;
+        }
+        _refreshBtn.Visible = RefreshLeft > 0;
+        _refreshBtn.Text = $"刷新 · 剩{RefreshLeft}";
+        _refreshBtn.Pressed += () => { ConsumeRefresh(); ShowDraft(onComplete); };   // 重抽
+        _draftRoot.Visible = true;
+        _draftRoot.Modulate = new Color(1, 1, 1, 1);
+    }
+
+    private void EnsureDraftUI()
+    {
+        if (_draftRoot != null && IsInstanceValid(_draftRoot)) return;
+        var vp = GetViewport(); if (vp == null) return;
+        var size = vp.GetVisibleRect().Size;
+        _draftRoot = new Control { Position = Vector2.Zero, Size = size, Visible = false, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _draftRoot.AddChild(new ColorRect { Color = new Color(0.03f, 0.05f, 0.1f, 0.95f), Size = size, MouseFilter = Control.MouseFilterEnum.Ignore });
+        _draftTitle = new RichTextLabel { Position = new Vector2(0, size.Y * 0.24f), Size = new Vector2(size.X, 70), BbcodeEnabled = true, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _refreshBtn = new Button { Position = new Vector2(size.X - 170, 24), Size = new Vector2(150, 36) };
+        _draftRoot.AddChild(_draftTitle); _draftRoot.AddChild(_refreshBtn);
+        vp.AddChild(_draftRoot);
+    }
+
+    // ✅ 效果应用:拥有栈×等级 → 反射注入玩家全军Export字段。换图后由SurvivalSession调本方法重挂。
+    public void ApplyEffectsToUnits(string team)
+    {
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var units = gm?.unitManager?.AllUnits;
+        if (units == null || Pool == null || Owned.Count == 0) return;
+        int applied = 0;
+        foreach (var u in units)
+        {
+            if (u == null || !GodotObject.IsInstanceValid(u) || u.team != team) continue;
+            foreach (var kv in Owned)
+            {
+                var def = FindDef(kv.Key); if (def == null) continue;
+                int lv = kv.Value;
+                foreach (var d in def.exportDeltas) SetFieldDelta(u, d.Key, d.Value * lv);
+                foreach (var o in def.exportOverrides) SetFieldOverride(u, o.Key, o.Value);
+            }
+            applied++;
+        }
+        if (applied > 0) GD.Print($"[Talent] 效果已注入 {applied} 个己方单位");
+    }
+
+    private static void SetFieldDelta(object target, string name, double delta)
+    {
+        var f = target.GetType().GetField(name);
+        if (f == null) return;
+        object cur = f.GetValue(target);
+        object nv = cur switch
+        {
+            int i => (object)(i + (int)delta),
+            float fl => fl + (float)delta,
+            double db => db + delta,
+            _ => null
+        };
+        if (nv != null) f.SetValue(target, nv);
+    }
+
+    private static void SetFieldOverride(object target, string name, string val)
+    {
+        var f = target.GetType().GetField(name);
+        if (f == null) return;
+        object cur = f.GetValue(target);
+        object nv = cur switch
+        {
+            bool => val == "true" || val == "1",
+            int => int.TryParse(val, out var iv) ? iv : null,
+            float => float.TryParse(val, out var fv) ? fv : null,
+            double => double.TryParse(val, out var dv) ? dv : null,
+            string => val,
+            _ => null
+        };
+        if (nv != null) f.SetValue(target, nv);
+    }
+
     public void ResetRun() { Owned.Clear(); if (FileAccess.FileExists(SavePath)) DirAccess.RemoveAbsolute(SavePath); }
 }
