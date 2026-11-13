@@ -66,18 +66,16 @@ public partial class ActionMenu
             _ => TowerDirection.Up
         };
 
-        var arrow = grid.GetNodeOrNull<Sprite2D>("TowerDirectionArrow");
-        if (arrow != null)
+        var arrow = grid.TowerArrow;
+        arrow.Visible = true;
+        arrow.RotationDegrees = grid.towerDirection switch
         {
-            arrow.RotationDegrees = grid.towerDirection switch
-            {
-                TowerDirection.Up => 0,
-                TowerDirection.Right => 90,
-                TowerDirection.Down => 180,
-                TowerDirection.Left => 270,
-                _ => 0
-            };
-        }
+            TowerDirection.Up => 0,
+            TowerDirection.Right => 90,
+            TowerDirection.Down => 180,
+            TowerDirection.Left => 270,
+            _ => 0
+        };
 
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         gm?.fogOfWarManager?.RefreshFog();
