@@ -110,6 +110,7 @@ public partial class SurvivalSession : Node
         if (!Active || Campaign == null) return;
         if (winningTeam != Campaign.playerTeam) { EndRun(false, "战役失利"); return; }
         int clearedSlot, _cp; string _pp; ResolveCurrentStage(out clearedSlot, out _pp);   // ✅ 接缝:刚通关槽位(推进前捕获)
+        SnapshotCarry();   // ✅ 真生存:推进前抓取我军残部+资金
         StageIndex++;
         int mainCount = Mathf.Max(Campaign.stageSlots.Length, Campaign.stageMapPaths.Length);
         int total = Campaign.endlessMode
@@ -158,6 +159,7 @@ public partial class SurvivalSession : Node
         }
         gm.gameEnded = false;   // ✅ 结算后复位，新关开局
         gm.turnPhase = 1;
+        if (slot >= 0) ApplyCarryToSlot(extraSave, slot);   // ✅ 真生存:数据空间整军过继(槽位轨)
         bool ok;
         if (slot >= 0)
         {
@@ -169,6 +171,7 @@ public partial class SurvivalSession : Node
             int gi = mapPath.Substring(7).ToInt();
             var profile = Campaign.endlessGenPool[gi];
             var genData = MapGenerator.Generate(profile, $"survival_gen_{StageIndex}");
+            ApplyCarryToData(genData);   // ✅ 真生存:生成图同样过继
             int genSlot = extraSave.InjectGeneratedMap(genData);
             ok = extraSave.LoadMapToGame(genSlot, gm, gridMgr, terrainEditor);
         }
@@ -238,6 +241,105 @@ public partial class SurvivalSession : Node
         });
     }
 
+    // ===== 真生存·整军过继 (开创人2026-11-14) =====
+    private static object RefGet(object o, string name)
+        => o?.GetType().GetField(name)?.GetValue(o) ?? o?.GetType().GetProperty(name)?.GetValue(o);
+    private static void RefSet(object o, string name, object v)
+    {
+        var f = o?.GetType().GetField(name); if (f != null) { f.SetValue(o, v); return; }
+        o?.GetType().GetProperty(name)?.SetValue(o, v);
+    }
+
+    // 推进前:抓我军幸存单位(残血/油)与资金
+    private void SnapshotCarry()
+    {
+        _carriedUnits.Clear(); _carriedFunds = 0; _hasCarry = false;
+        if (Campaign == null || (!Campaign.carryUnitsBetweenStages && !Campaign.carryFundsBetweenStages)) return;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm == null) return;
+        if (Campaign.carryFundsBetweenStages)
+        {
+            var fundsMap = RefGet(gm, "teamFunds") as System.Collections.IDictionary;
+            if (fundsMap != null && fundsMap.Contains(Campaign.playerTeam))
+                _carriedFunds = System.Convert.ToDouble(fundsMap[Campaign.playerTeam]);
+        }
+        if (Campaign.carryUnitsBetweenStages)
+        {
+            foreach (var u in gm.unitManager?.AllUnits ?? new System.Collections.Generic.List<Infantry>())
+            {
+                if (u == null || !GodotObject.IsInstanceValid(u) || u.team != Campaign.playerTeam) continue;
+                var su = new SavedUnitData { typeName = u.UnitTypeId, team = Campaign.playerTeam };
+                if (su.fieldValues != null)
+                {
+                    su.fieldValues["health"] = System.Convert.ToString(RefGet(u, "health") ?? "10");
+                    su.fieldValues["fuel"] = System.Convert.ToString(RefGet(u, "fuel") ?? "99");
+                }
+                SetCarryPos(u, su);
+                _carriedUnits.Add(su);
+            }
+        }
+        _hasCarry = _carriedUnits.Count > 0 || _carriedFunds > 0;
+        if (_hasCarry) GD.Print($"[Survival] 整军过继:携带{_carriedUnits.Count}单位+{_carriedFunds}G");
+    }
+
+    // 记录携带单位相对HQ的位置(下一关按新HQ复现相对阵型)
+    private void SetCarryPos(Infantry u, SavedUnitData su)
+    {
+        var g = u.grid; if (g == null) return;
+        RefSet(su, "srcX", g.posX); RefSet(su, "srcY", g.posY);
+    }
+
+    // 应用到数据对象(装载前):设施中立化/预制清除/携带注入/资金结转
+    private void ApplyCarryToData(SavedMapData d)
+    {
+        if (!_hasCarry || d == null) return;
+        if (d.facilities != null && Campaign.neutralizePresetFacilities)
+            foreach (var f in d.facilities)
+                if (f.team == Campaign.playerTeam) f.team = "Player0";
+        if (d.units != null && Campaign.removePresetUnits)
+            d.units.RemoveAll(u => u.team == Campaign.playerTeam);
+        if (d.units != null && _carriedUnits.Count > 0)
+        {
+            int hqX = -1, hqY = -1, w = d.width;
+            if (d.facilities != null)
+                foreach (var f in d.facilities)
+                    if (f.typeName == "HQ" && f.team == Campaign.playerTeam)
+                    {
+                        hqX = System.Convert.ToInt32(RefGet(f, "gridX") ?? RefGet(f, "posX") ?? -1);
+                        hqY = System.Convert.ToInt32(RefGet(f, "gridY") ?? RefGet(f, "posY") ?? -1);
+                    }
+            foreach (var su in _carriedUnits)
+            {
+                int sx = System.Convert.ToInt32(RefGet(su, "srcX") ?? 0);
+                int sy = System.Convert.ToInt32(RefGet(su, "srcY") ?? 0);
+                int dx = sx - _hqSrcX, dy = sy - _hqSrcY;
+                int tx = hqX + Mathf.Clamp(dx, -Campaign.carryDeployRadius, Campaign.carryDeployRadius);
+                int ty = hqY + Mathf.Clamp(dy, -Campaign.carryDeployRadius, Campaign.carryDeployRadius);
+                if (hqX < 0) { tx = sx % w; ty = sy % (d.height > 0 ? d.height : 1); }
+                MapGenerator.SetPos(su, tx, ty, w);
+                d.units.Add(su);
+            }
+        }
+        if (Campaign.carryFundsBetweenStages && _carriedFunds > 0 && d.teamFunds != null)
+            d.teamFunds.GetType().GetMethod("set_Item")?.Invoke(d.teamFunds,
+                new object[] { Campaign.playerTeam, System.Convert.ChangeType(_carriedFunds, d.teamFunds.GetType().GetGenericArguments()[1]) });
+    }
+
+    private int _hqSrcX, _hqSrcY;
+    private void ApplyCarryToSlot(ExtraSave extraSave, int slot)
+    {
+        var data = RefGet(extraSave, "Data");
+        var maps = RefGet(data, "savedMaps") as System.Collections.Generic.IList<SavedMapData>;
+        if (maps == null || slot < 0 || slot >= maps.Count) return;
+        // 捕获旧HQ(相对阵型基准)
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm?.gridManager?.grids != null)
+            foreach (var g in gm.gridManager.grids)
+                if (g?.city != null && g.city.facilityTeam == Campaign.playerTeam && g.city is HQ)
+                { _hqSrcX = g.posX; _hqSrcY = g.posY; break; }
+        ApplyCarryToData(maps[slot]);
+    }
+
     // ===== 过场仪式感 (开创人2026-11-14) =====
     private void EnsureSplash()
     {
@@ -280,6 +382,11 @@ public partial class SurvivalSession : Node
     // ===== 局中存档 (开创人2026-11-14) =====
     private const string SavePath = "user://survival_save.json";
     private Button _saveBtn, _continueBtn;
+    // ✅ 开创人2026-11-14 真生存:整军过继快照
+    private System.Collections.Generic.List<SavedUnitData> _carriedUnits = new();
+    private double _carriedFunds;
+    private bool _hasCarry;
+
     private Control _splashRoot;
     private RichTextLabel _splashLabel;
     private Button _closeEndBtn;
