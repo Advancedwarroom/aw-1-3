@@ -51,10 +51,10 @@ public partial class SurvivalSession : Node
         MoraleRemaining = campaign?.moraleEnabled == true ? campaign.moraleMax : 0;
         var __tr3 = GetTree()?.Root?.FindChild("TalentRuntime", true, false) as TalentRuntime;
         if (campaign?.talentDraftEnabled == true && campaign.talentPool != null) __tr3?.BeginRun(campaign.talentPool);
-        Active = campaign != null && (campaign.stageSlots.Length > 0 || campaign.stageMapPaths.Length > 0 || (campaign.endlessMode && (campaign.endlessPoolSlots.Length > 0 || campaign.endlessPoolPaths.Length > 0)));
+        Active = campaign != null && (campaign.stageSlots.Length > 0 || campaign.stageMapPaths.Length > 0 || (campaign.endlessGenPool.Length > 0 || campaign.endlessMode && (campaign.endlessGenPool.Length > 0 || campaign.endlessPoolSlots.Length > 0 || campaign.endlessPoolPaths.Length > 0)));
         _timeAccum = 0;
         EnsureHud();
-        EmitSignal(SignalName.StageChanged, StageIndex, Campaign?.stageSlots.Length ?? 0);
+        EmitSignal(SignalName.StageChanged, StageIndex, Mathf.Max(Campaign?.stageSlots.Length ?? 0, Campaign?.stageMapPaths.Length ?? 0));
         UpdateHud();
         if (Active)
         {
@@ -140,7 +140,7 @@ public partial class SurvivalSession : Node
         int total = Campaign.endlessMode
             ? (Campaign.randomDraw ? -1 : mainCount + Mathf.Max(Campaign.endlessPoolSlots.Length, Campaign.endlessPoolPaths.Length))
             : mainCount;
-        if (!Campaign.endlessMode && StageIndex >= Campaign.stageSlots.Length) { EndRun(true, "全部关卡通过"); return; }
+        if (!Campaign.endlessMode && StageIndex >= mainCount) { EndRun(true, "全部关卡通过"); return; }   // ✅ 修复(审查P1-3):结束判断用实际主线长度(双轨)
         if (Campaign.endlessMode && Campaign.endlessPoolSlots.Length == 0 && Campaign.endlessPoolPaths.Length == 0 && Campaign.endlessGenPool.Length == 0) { EndRun(true, TranslateGroup.T("无尽池为空,战役完结")); return; }
         // 无尽模式：深入一层，预算缩减
         if (Campaign.endlessMode && StageIndex >= Campaign.stageSlots.Length && Campaign.budgetShrinkPercentPerStage > 0)
