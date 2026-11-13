@@ -109,7 +109,7 @@ public partial class SurvivalSession : Node
     {
         if (!Active || Campaign == null) return;
         if (winningTeam != Campaign.playerTeam) { EndRun(false, "战役失利"); return; }
-        int clearedSlot, _cp; string _pp; ResolveCurrentStage(out clearedSlot, out _pp);   // ✅ 接缝:刚通关槽位(推进前捕获)
+        int clearedSlot; string _pp; ResolveCurrentStage(out clearedSlot, out _pp);   // ✅ 接缝:刚通关槽位(推进前捕获)
         SnapshotCarry();   // ✅ 真生存:推进前抓取我军残部+资金
         StageIndex++;
         int mainCount = Mathf.Max(Campaign.stageSlots.Length, Campaign.stageMapPaths.Length);
@@ -251,6 +251,14 @@ public partial class SurvivalSession : Node
         o?.GetType().GetProperty(name)?.SetValue(o, v);
     }
 
+    // ✅ 开创人2026-11-14:坐标/宽度多名称反射——字段名版本差异全兼容,猜名雷区拆除
+    private static int GridCoord(object g, params string[] names)
+    {
+        foreach (var n in names) { var v = RefGet(g, n); if (v != null) return System.Convert.ToInt32(v); }
+        return -1;
+    }
+    private static int MapWidth(GridManager gm) => GridCoord(gm, "width", "mapWidth", "gridWidth", "mapW");
+
     // 推进前:抓我军幸存单位(残血/油)与资金
     private void SnapshotCarry()
     {
@@ -294,7 +302,7 @@ public partial class SurvivalSession : Node
     private void SetCarryPos(Infantry u, SavedUnitData su)
     {
         var g = u.grid; if (g == null) return;
-        RefSet(su, "srcX", g.posX); RefSet(su, "srcY", g.posY);
+        RefSet(su, "srcX", GridCoord(g, "posX", "x", "gridX")); RefSet(su, "srcY", GridCoord(g, "posY", "y", "gridY"));
     }
 
     // 应用到数据对象(装载前):设施中立化/预制清除/携带注入/资金结转
@@ -341,8 +349,9 @@ public partial class SurvivalSession : Node
         {
             int x = System.Convert.ToInt32(RefGet(su, "gridX") ?? RefGet(su, "posX") ?? -1);
             int y = System.Convert.ToInt32(RefGet(su, "gridY") ?? RefGet(su, "posY") ?? -1);
-            if (x < 0 || y < 0 || y * gridMgr.width + x >= gridMgr.grids.Count) continue;
-            var cell = gridMgr.grids[y * gridMgr.width + x];
+            int mw = MapWidth(gridMgr); if (mw <= 0) mw = 1;
+            if (x < 0 || y < 0 || y * mw + x >= gridMgr.grids.Count) continue;
+            var cell = gridMgr.grids[y * mw + x];
             Infantry target = null;
             if (cell?.infantries != null)
                 foreach (var c in cell.infantries)
@@ -371,7 +380,7 @@ public partial class SurvivalSession : Node
         if (gm?.gridManager?.grids != null)
             foreach (var g in gm.gridManager.grids)
                 if (g?.city != null && g.city.facilityTeam == Campaign.playerTeam && g.city is HQ)
-                { _hqSrcX = g.posX; _hqSrcY = g.posY; break; }
+                { _hqSrcX = GridCoord(g, "posX", "x", "gridX"); _hqSrcY = GridCoord(g, "posY", "y", "gridY"); break; }
         ApplyCarryToData(maps[slot]);
     }
 
