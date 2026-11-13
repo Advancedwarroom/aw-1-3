@@ -235,6 +235,7 @@ public partial class GameManager
 private void ShowVictory(string winner, string loser)
 {
     gameEnded = true;
+    SurvivalSession.Instance?.OnMapVictorious(winner);   // ✅ 开创人2026-11-14 生存模式：玩家胜→推进下一关/全通关结算
 
     if (victoryPanel == null) return;
 
