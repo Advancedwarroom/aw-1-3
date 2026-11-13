@@ -152,13 +152,7 @@ public partial class Laser
         var facility = g?.city;
         if (facility == null || !IsInstanceValid(facility) || !facility.CanBeAttackedFrom(grid)) return false;
         if (team == TeamHelper.Player0) return true;
-        return targetSelectionMode switch
-        {
-            LaserTargetMode.AllSelect => true,
-            LaserTargetMode.OnlyEnemyUnits => TeamHelper.IsEnemyTeam(team, facility.facilityTeam),
-            LaserTargetMode.OnlyUserUnits => TeamHelper.IsFriendlyTeam(team, facility.facilityTeam),
-            _ => false
-        };
+        return PassesLaserTeamFilter(facility.facilityTeam);
     }
 
     private List<Node2D> GetValidTargetsInGrid(Grids g)
@@ -193,6 +187,9 @@ public partial class Laser
                     targets.Add(g.weapon);
                 break;
         }
+        // ✅ 开创人2026-11-14 三军勾选叠加层（勾选了才生效）
+        if (laserCanTargetEnemies || laserCanTargetFriendlies || laserCanTargetAllies)
+            targets = targets.Where(t => { var tt = TeamOfNode(t); return tt == null || PassesLaserTeamFilter(tt); }).ToList();
         return targets;
     }
 
@@ -213,4 +210,28 @@ public partial class Laser
         }
         return allGrids;
     }
+
+    // ✅ 开创人2026-11-14 三军勾选：任一勾选生效按敌/友/盟过滤（设施/单位/兵器共用），全false回退targetSelectionMode旧枚举
+    private bool PassesLaserTeamFilter(string targetTeam)
+    {
+        if (laserCanTargetEnemies || laserCanTargetFriendlies || laserCanTargetAllies)
+        {
+            var rel = TeamHelper.GetTeamRelation(team, targetTeam);
+            return rel switch
+            {
+                TeamHelper.TeamRelation.Enemy => laserCanTargetEnemies,
+                TeamHelper.TeamRelation.Friendly => laserCanTargetFriendlies,
+                _ => laserCanTargetAllies,
+            };
+        }
+        return targetSelectionMode switch
+        {
+            LaserTargetMode.OnlyEnemyUnits => TeamHelper.IsEnemyTeam(team, targetTeam),
+            LaserTargetMode.OnlyUserUnits => TeamHelper.IsFriendlyTeam(team, targetTeam),
+            _ => true,
+        };
+    }
+
+    private static string TeamOfNode(Node2D n) => n is Infantry ii ? ii.team : (n as Weapon)?.team;
+
 }
