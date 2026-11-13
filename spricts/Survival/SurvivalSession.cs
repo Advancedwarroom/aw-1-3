@@ -120,9 +120,19 @@ public partial class SurvivalSession : Node
             GD.PushWarning($"[Survival] 装载失败:依赖缺失 gm={gm != null} grid={gridMgr != null} editor={terrainEditor != null} save={extraSave != null}");
             return;
         }
+        // ✅ 开创人2026-11-14 资金模式资金结余跨关结转（换图前捕获，换图后注入）
+        int carriedFunds = (Campaign.limitType == 0 && Campaign.fundsCarry) ? gm.GetTeamFunds(Campaign.playerTeam) : 0;
         gm.gameEnded = false;   // ✅ 结算后复位，新关开局
         gm.turnPhase = 1;
         bool ok = extraSave.LoadMapToGame(slot, gm, gridMgr, terrainEditor);
+        if (ok && carriedFunds > 0) gm.SetTeamFunds(Campaign.playerTeam, carriedFunds);
+        // ✅ 开创人2026-11-14 战役CO锁定：coIds[0]=主CO,其余=搭档
+        if (ok && Campaign.coIds.Length > 0)
+        {
+            string[] partners = Campaign.coIds.Length > 1 ? new string[Campaign.coIds.Length - 1] : null;
+            if (partners != null) for (int pi = 1; pi < Campaign.coIds.Length; pi++) partners[pi - 1] = Campaign.coIds[pi];
+            CoModuleSystem.ForceTeamCos(Campaign.playerTeam, Campaign.coIds[0], partners);
+        }
         GD.Print($"[Survival] 第{StageIndex + 1}关装载 slot={slot} → {(ok ? "成功" : "失败")}");
         if (ok && Campaign.coEnergyResetPerStage) CoModuleSystem.ResetAllCharges();   // ✅ 开创人2026-11-14 CO能量跨关重置
         if (ok)
@@ -213,6 +223,7 @@ public partial class SurvivalSession : Node
             ["fundsCarry"] = Campaign.fundsCarry,
             ["coEnergyResetPerStage"] = Campaign.coEnergyResetPerStage,
             ["playerTeam"] = Campaign.playerTeam,
+            ["coIds"] = new Godot.Collections.Array<string>(Campaign.coIds),
             ["endlessMode"] = Campaign.endlessMode,
             ["endlessPoolSlots"] = new Godot.Collections.Array<int>(Campaign.endlessPoolSlots),
             ["randomDraw"] = Campaign.randomDraw,
@@ -241,6 +252,7 @@ public partial class SurvivalSession : Node
             fundsCarry = parsed["fundsCarry"].AsBool(),
             coEnergyResetPerStage = parsed["coEnergyResetPerStage"].AsBool(),
             playerTeam = parsed["playerTeam"].AsString(),
+            coIds = parsed.ContainsKey("coIds") ? parsed["coIds"].AsStringArray() : new string[0],
             endlessMode = parsed["endlessPoolSlots"].AsInt32Array().Length > 0 && parsed["endlessMode"].AsBool(),
             endlessPoolSlots = parsed["endlessPoolSlots"].AsInt32Array(),
             randomDraw = parsed["randomDraw"].AsBool(),
