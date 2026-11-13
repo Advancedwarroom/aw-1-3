@@ -154,6 +154,13 @@ public partial class ExtraSave : Node
     /// <summary>
     /// 从保存的地图数据加载到游戏中（ TerrainEditor 调用）
     /// </summary>
+    // ✅ 开创人2026-11-14 缺口B:注入程序生成图→返回槽位号→走LoadMapToGame现成管线
+    public int InjectGeneratedMap(SavedMapData mapData)
+    {
+        Data.savedMaps.Add(mapData);
+        return Data.savedMaps.Count - 1;
+    }
+
     public bool LoadMapToGame(int slotIndex, GameManager gm, GridManager gridMgr, TerrainEditor terrainEditor)
     {
         if (slotIndex < 0 || slotIndex >= Data.savedMaps.Count) return false;
