@@ -93,7 +93,7 @@ public partial class SurvivalSession : Node
             ? (Campaign.randomDraw ? -1 : mainCount + Mathf.Max(Campaign.endlessPoolSlots.Length, Campaign.endlessPoolPaths.Length))
             : mainCount;
         if (!Campaign.endlessMode && StageIndex >= Campaign.stageSlots.Length) { EndRun(true, "全部关卡通过"); return; }
-        if (Campaign.endlessMode && Campaign.endlessPoolSlots.Length == 0) { EndRun(true, "无尽池为空,战役完结"); return; }
+        if (Campaign.endlessMode && Campaign.endlessPoolSlots.Length == 0 && Campaign.endlessPoolPaths.Length == 0 && Campaign.endlessGenPool.Length == 0) { EndRun(true, "无尽池为空,战役完结"); return; }
         // 无尽模式：深入一层，预算缩减
         if (Campaign.endlessMode && StageIndex >= Campaign.stageSlots.Length && Campaign.budgetShrinkPercentPerStage > 0)
         {
@@ -135,6 +135,15 @@ public partial class SurvivalSession : Node
         {
             ok = extraSave.LoadMapToGame(slot, gm, gridMgr, terrainEditor);
         }
+        else if (mapPath != null && mapPath.StartsWith("__GEN__"))
+        {
+            // ✅ 缺口B:现场生成——MapGenProfile → SavedMapData → 注入槽位 → 现成管线
+            int gi = mapPath.Substring(7).ToInt();
+            var profile = Campaign.endlessGenPool[gi];
+            var genData = MapGenerator.Generate(profile, $"survival_gen_{StageIndex}");
+            int genSlot = extraSave.InjectGeneratedMap(genData);
+            ok = extraSave.LoadMapToGame(genSlot, gm, gridMgr, terrainEditor);
+        }
         else if (!string.IsNullOrEmpty(mapPath))
         {
             // ✅ 缺口A路径轨:仓库地图文件 → campaign_pending.map → 战役导入管线
@@ -170,10 +179,12 @@ public partial class SurvivalSession : Node
             return;
         }
         int depth = StageIndex - mainCount;
-        int poolCount = Mathf.Max(Campaign.endlessPoolSlots.Length, Campaign.endlessPoolPaths.Length);
+        int poolCount = Mathf.Max(Mathf.Max(Campaign.endlessPoolSlots.Length, Campaign.endlessPoolPaths.Length), Campaign.endlessGenPool.Length);
+        if (poolCount == 0) { slot = -2; return; }   // -2=池空
         int draw = Campaign.randomDraw ? GD.RandRange(0, poolCount - 1) : depth % poolCount;
         if (draw < Campaign.endlessPoolSlots.Length) slot = Campaign.endlessPoolSlots[draw];
         if (slot < 0 && draw < Campaign.endlessPoolPaths.Length) path = Campaign.endlessPoolPaths[draw];
+        if (slot < 0 && string.IsNullOrEmpty(path) && draw < Campaign.endlessGenPool.Length) { path = "__GEN__" + draw; }
     }
 
     private void EndRun(bool victory, string reason)
