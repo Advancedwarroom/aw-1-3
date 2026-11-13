@@ -57,7 +57,7 @@ public partial class TalentRuntime : Node
                 for (int i = 0; i < w; i++) bag.Add(d);   // 权重=重复占位
             }
         }
-        AddPool(Pool.commonPool, 100);
+        AddPool(Pool.commonPool, Pool.commonWeight);
         AddPool(Pool.rarePool, Pool.rareWeight);
         AddPool(Pool.goldenPool, Pool.goldenWeight);
         AddPool(Pool.uraniumPool, Pool.uraniumWeight);
@@ -144,9 +144,10 @@ public partial class TalentRuntime : Node
         _draftBtns.Clear();
         var vp = GetViewport(); if (vp == null) { onComplete?.Invoke(); return; }
         var size = vp.GetVisibleRect().Size;
-        _draftTitle.Text = "[center][font_size=40]每赢一关 · 三选一拿天赋[/font_size][/center]";
-        string[] colors = { "#C8D2DC", "#6FB7FF", "#FFD24A", "#C678FF" };   // 钢铁灰/宝石蓝/反物质金/铀核紫
-        string[] rname = { "钢铁", "宝石", "反物质", "铀核" };
+        _draftTitle.Text = $"[center][font_size=40]{TranslateGroup.T("每赢一关 · 三选一拿天赋")}[/font_size][/center]";
+        var D = GetTree()?.Root?.FindChild("SurvivalSession", true, false)?.Get("uiDesign") as SurvivalUIDesign ?? new SurvivalUIDesign();
+        string[] colors = System.Array.ConvertAll(D.tierColors, c => c.ToHtml());
+        string[] rname = D.tierNames;
         int i = 0;
         foreach (var def in three)
         {
@@ -171,7 +172,7 @@ public partial class TalentRuntime : Node
             i++;
         }
         _refreshBtn.Visible = RefreshLeft > 0;
-        _refreshBtn.Text = $"刷新 · 剩{RefreshLeft}";
+        _refreshBtn.Text = $"{TranslateGroup.T("刷新")} · {TranslateGroup.T("剩")}{RefreshLeft}";
         _refreshBtn.Pressed += () => { ConsumeRefresh(); ShowDraft(onComplete); };   // 重抽
         _draftRoot.Visible = true;
         _draftRoot.Modulate = new Color(1, 1, 1, 1);
