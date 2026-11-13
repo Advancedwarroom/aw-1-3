@@ -199,6 +199,26 @@ public static class CoModuleSystem
         : Teams.TryGetValue(team, out var s) ? (s.isDead ? null : s) : null;   // ✅ 死亡CO对全系统隐身
     public static CoProfile GetProfile(string team) => GetState(team)?.profile;
 
+    // ✅ 开创人2026-11-14 生存模式：战役锁定CO——按档案ID强换队伍编制（coIds[0]=主CO,其余=搭档）
+    public static bool ForceTeamCos(string teamId, string mainCoId, string[] partnerIds = null)
+    {
+        if (!Teams.TryGetValue(teamId, out var st)) return false;
+        if (!string.IsNullOrEmpty(mainCoId))
+        {
+            if (!Profiles.TryGetValue(mainCoId, out var main)) return false;
+            st.profile = main;
+            st.isDead = false;
+        }
+        if (partnerIds != null)
+        {
+            st.partners.Clear();
+            foreach (var pid in partnerIds)
+                if (!string.IsNullOrEmpty(pid) && Profiles.TryGetValue(pid, out var pp))
+                    st.partners.Add(pp);
+        }
+        return true;
+    }
+
     // ---------- 模块取值核心 ----------
     /// <summary>取该势力当前 PowerMode 下某模块的全部数值（含 Zone 判定与 Tag 多 CO 合并）</summary>
     static IEnumerable<CoModuleEntry> ActiveModules(string team, int moduleId, Infantry unit = null, Grids terrainGrid = null)
