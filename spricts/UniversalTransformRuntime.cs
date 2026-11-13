@@ -1,6 +1,7 @@
 // UniversalTransformRuntime.cs - 单位/兵器/设施通用原地变形。
 // 先解除旧对象占位，生成失败完整恢复；只有成功后才销毁旧对象并映射新实例 Export。
 using Godot;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -19,7 +20,7 @@ public static class UniversalTransformRuntime
     public static Node Replace(Node source, int targetType, string unitName, string scenePath, string newTeam,
         Godot.Collections.Dictionary<string, string> overrides,
         Godot.Collections.Dictionary<string, float> deltas,
-        bool triggeredByDeath)
+        bool triggeredByDeath, Func<Node, bool> extraLegality = null)   // ✅ 开创人2026-11-14 跳伞逃生式合法性回调
     {
         if (source == null || !GodotObject.IsInstanceValid(source)) return null;
         var gm = source.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
@@ -42,6 +43,15 @@ public static class UniversalTransformRuntime
 
         ExportFieldMapper.ApplyOverrides(replacement, overrides);
         ExportFieldMapper.ApplyNumericDeltas(replacement, deltas);
+        // ✅ 开创人2026-11-14 合法性检查:回调拒绝→视为生成失败,完整恢复旧单位
+        if (extraLegality != null && replacement != null && !extraLegality(replacement))
+        {
+            GD.Print("[Transform] 合法性检查拒绝生成,恢复旧单位");
+            if (GodotObject.IsInstanceValid(replacement)) replacement.QueueFree();
+            Restore(detached);
+            RefreshAfterChange(gm);
+            return null;
+        }
         FinalizeOldSource(detached, triggeredByDeath);
 
         if (replacement is Infantry unit)
