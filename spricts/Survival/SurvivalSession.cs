@@ -49,6 +49,8 @@ public partial class SurvivalSession : Node
         StageIndex = 0;
         RemainingBudget = campaign?.budget ?? 0;
         MoraleRemaining = campaign?.moraleEnabled == true ? campaign.moraleMax : 0;
+        var __tr3 = GetTree()?.Root?.FindChild("TalentRuntime", true, false) as TalentRuntime;
+        if (campaign?.talentDraftEnabled == true && campaign.talentPool != null) __tr3?.BeginRun(campaign.talentPool);
         Active = campaign != null && (campaign.stageSlots.Length > 0 || campaign.stageMapPaths.Length > 0 || (campaign.endlessMode && (campaign.endlessPoolSlots.Length > 0 || campaign.endlessPoolPaths.Length > 0)));
         _timeAccum = 0;
         EnsureHud();
@@ -161,7 +163,14 @@ public partial class SurvivalSession : Node
         settle?.OnVictoryDeclared(Campaign.playerTeam);
         var prof = GetTree()?.Root?.FindChild("CampaignProfile", true, false) as CampaignProfile;
         prof?.RecordStageClear(clearedSlot, StageIndex, false, 0, 0);
-        CallDeferred(nameof(ShowIntelPanel));   // ✅ 出战情报:确认后再装载
+        // ✅ 天赋选秀挂钩(开创人2026-11-14):胜利后先抽天赋,再选关/出战
+        var __tr = GetTree()?.Root?.FindChild("TalentRuntime", true, false) as TalentRuntime;
+        if (Campaign.talentDraftEnabled && Campaign.talentPool != null && __tr != null)
+        {
+            __tr.OnStageVictory();
+            __tr.ShowDraft(() => { SaveRun(); CallDeferred(nameof(ShowIntelPanel)); });
+        }
+        else CallDeferred(nameof(ShowIntelPanel));   // ✅ 出战情报:确认后再装载
     }
 
     // ✅ 装载下一关：走 ExtraSave.LoadMapToGame 全量换图（清理实体→重建网格→地形单位CO全落位）
@@ -334,6 +343,9 @@ public partial class SurvivalSession : Node
         }
         EmitSignal(SignalName.BudgetChanged, RemainingBudget, Campaign.limitType);
         UpdateHud();
+        // ✅ 天赋效果重挂:换图后新单位需重新注入
+        var __tr2 = GetTree()?.Root?.FindChild("TalentRuntime", true, false) as TalentRuntime;
+        if (Campaign.talentDraftEnabled) __tr2?.ApplyEffectsToUnits(Campaign.playerTeam);
     }
 
     // ✅ 缺口A(开创人2026-11-14):双轨解析——槽位优先,路径兜底;主序列与无尽池统一
@@ -623,6 +635,8 @@ public partial class SurvivalSession : Node
         BeginCampaign(c);
         StageIndex = parsed["stageIndex"].AsInt32();
         RemainingBudget = parsed["remainingBudget"].AsDouble();\n        MoraleRemaining = parsed.ContainsKey("morale") ? parsed["morale"].AsInt32() : (Campaign.moraleEnabled ? Campaign.moraleMax : 0);
+        var __tr4 = GetTree()?.Root?.FindChild("TalentRuntime", true, false) as TalentRuntime;
+        if (Campaign.talentDraftEnabled) __tr4?.LoadRun();
         GD.Print($"[Survival] 读档恢复 第{StageIndex + 1}关 余量{RemainingBudget}");
         UpdateHud();
         CallDeferred(nameof(DeferredStageLoad));
