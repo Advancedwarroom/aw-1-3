@@ -648,7 +648,9 @@ public partial class SurvivalSession : Node
         };
         BeginCampaign(c);
         StageIndex = parsed["stageIndex"].AsInt32();
-        RemainingBudget = parsed["remainingBudget"].AsDouble();\n        MoraleRemaining = parsed.ContainsKey("morale") ? parsed["morale"].AsInt32() : (Campaign.moraleEnabled ? Campaign.moraleMax : 0);
+        RemainingBudget = parsed["remainingBudget"].AsDouble();
+        MoraleRemaining = parsed.ContainsKey("morale") ? parsed["morale"].AsInt32() : (Campaign.moraleEnabled ? Campaign.moraleMax : 0);
+        Depth = parsed.ContainsKey("depth") ? parsed["depth"].AsInt32() : 0;
         var __tr4 = GetTree()?.Root?.FindChild("TalentRuntime", true, false) as TalentRuntime;
         if (Campaign.talentDraftEnabled) __tr4?.LoadRun();
         GD.Print($"[Survival] 读档恢复 第{StageIndex + 1}关 余量{RemainingBudget}");
@@ -681,6 +683,5 @@ public partial class SurvivalSession : Node
         string unit = Campaign.limitType == 0 ? "G" : Campaign.limitType == 1 ? "回合" : Campaign.limitType == 3 ? "名额" : "秒";
         int total = Campaign.endlessMode ? -1 : Campaign.stageSlots.Length;
         string prog = total > 0 ? $"{StageIndex + 1}/{total}" : $"第{StageIndex + 1}层";
-        _hud.Text = $"[Survival] {Campaign.campaignName} {prog}  预算:{RemainingBudget}{unit}";
+        _hud.Text = $"[Survival] {Campaign.campaignName} {prog}  预算:{RemainingBudget}{unit}" + $"  第{Depth + 1}层" + (Campaign.moraleEnabled ? $"  军心:{MoraleRemaining}" : "");
     }
-} + $"  第{Depth + 1}层" + (Campaign.moraleEnabled ? $"  军心:{MoraleRemaining}" : "")\n        Depth = parsed.ContainsKey("depth") ? parsed["depth"].AsInt32() : 0;;
