@@ -117,6 +117,7 @@ public partial class SurvivalSession : Node
         gm.turnPhase = 1;
         bool ok = extraSave.LoadMapToGame(slot, gm, gridMgr, terrainEditor);
         GD.Print($"[Survival] 第{StageIndex + 1}关装载 slot={slot} → {(ok ? "成功" : "失败")}");
+        if (ok && Campaign.coEnergyResetPerStage) CoModuleSystem.ResetAllCharges();   // ✅ 开创人2026-11-14 CO能量跨关重置
         EmitSignal(SignalName.BudgetChanged, RemainingBudget, Campaign.limitType);
         UpdateHud();
     }
