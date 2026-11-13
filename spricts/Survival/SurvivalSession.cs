@@ -13,6 +13,7 @@ public partial class SurvivalSession : Node
     public SurvivalCampaign Campaign { get; private set; }
     public int StageIndex { get; private set; }
     public int MoraleRemaining { get; private set; }
+    public int Depth { get; private set; }   // ✅ 树状选关:已通关层数(节点号=StageIndex,进度=Depth)
     public double RemainingBudget { get; private set; }
     public bool Active { get; private set; }
     public int StagesCleared => StageIndex;
@@ -126,8 +127,13 @@ public partial class SurvivalSession : Node
             return;
         }
         int clearedSlot; string _pp; ResolveCurrentStage(out clearedSlot, out _pp);   // ✅ 接缝:刚通关槽位(推进前捕获)
+        // ✅ 树状选关(开创人2026-11-14):解析分支DSL,多路弹出选关面板
+        var nextNodes = ParseStageTree(Campaign.stageTree, StageIndex);
+        if (nextNodes.Count > 1) { ShowBranchPanel(nextNodes); return; }
+        int autoNext = nextNodes.Count == 1 ? nextNodes[0] : StageIndex + 1;
         SnapshotCarry();   // ✅ 真生存:推进前抓取我军残部+资金
-        StageIndex++;
+        StageIndex = autoNext >= 0 ? autoNext : StageIndex + 1;
+        Depth++;
         int mainCount = Mathf.Max(Campaign.stageSlots.Length, Campaign.stageMapPaths.Length);
         int total = Campaign.endlessMode
             ? (Campaign.randomDraw ? -1 : mainCount + Mathf.Max(Campaign.endlessPoolSlots.Length, Campaign.endlessPoolPaths.Length))
@@ -159,6 +165,76 @@ public partial class SurvivalSession : Node
     }
 
     // ✅ 装载下一关：走 ExtraSave.LoadMapToGame 全量换图（清理实体→重建网格→地形单位CO全落位）
+    // ✅ 树状选关面板(开创人2026-11-14):分支节点卡片,点选后进入情报页
+    private Control _branchRoot;
+    private RichTextLabel _branchTitle;
+    private Godot.Collections.Array<Button> _branchBtns = new();
+
+    private void ShowBranchPanel(System.Collections.Generic.List<int> nodes)
+    {
+        EnsureBranch();
+        _branchTitle.Text = $"[center][font_size=40]第 {Depth + 1} 层 · 选择下一关[/font_size][/center]";
+        foreach (var b in _branchBtns) b.QueueFree();
+        _branchBtns.Clear();
+        var size = GetViewport().GetVisibleRect().Size;
+        int i = 0;
+        foreach (var n in nodes)
+        {
+            int slot; string path; string nm = $"第{n + 1}关", sz = "?";
+            int saveNode = StageIndex; StageIndex = n;
+            ResolveCurrentStage(out slot, out path);
+            StageIndex = saveNode;
+            if (slot >= 0)
+            {
+                var es = GetTree()?.Root?.GetNodeOrNull("ExtraSave") as ExtraSave;
+                var d = es?.Data?.savedMaps != null && slot < es.Data.savedMaps.Count ? es.Data.savedMaps[slot] : null;
+                if (d != null) { nm = d.displayName; sz = $"{d.width}×{d.height}"; }
+            }
+            else if (path != null && path.StartsWith("__GEN__")) { nm = "随机生成图"; }
+            else if (!string.IsNullOrEmpty(path)) nm = path.GetFile().GetBaseName();
+            var btn = new Button { Text = $"▶ {nm}  {sz}", Position = new Vector2(size.X / 2 - 160, size.Y * 0.4f + i * 56), Size = new Vector2(320, 46) };
+            int captured = n;
+            btn.Pressed += () => { _branchRoot.Visible = false; StageIndex = captured; Depth++; SaveRun(); CallDeferred(nameof(ShowIntelPanel)); };
+            _branchRoot.AddChild(btn);
+            _branchBtns.Add(btn);
+            i++;
+        }
+        _branchRoot.Visible = true;
+        _branchRoot.Modulate = new Color(1, 1, 1, 1);
+    }
+
+    private void EnsureBranch()
+    {
+        if (_branchRoot != null && IsInstanceValid(_branchRoot)) return;
+        var vp = GetViewport(); if (vp == null) return;
+        var size = vp.GetVisibleRect().Size;
+        _branchRoot = new Control { Position = Vector2.Zero, Size = size, Visible = false, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _branchRoot.AddChild(new ColorRect { Color = new Color(0.04f, 0.06f, 0.12f, 0.94f), Size = size, MouseFilter = Control.MouseFilterEnum.Ignore });
+        _branchTitle = new RichTextLabel { Position = new Vector2(0, size.Y * 0.26f), Size = new Vector2(size.X, 80), BbcodeEnabled = true, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _branchRoot.AddChild(_branchTitle);
+        vp.AddChild(_branchRoot);
+    }
+
+    private static System.Collections.Generic.List<int> ParseStageTree(string dsl, int node)
+    {
+        var result = new System.Collections.Generic.List<int>();
+        if (string.IsNullOrEmpty(dsl)) { result.Add(node + 1); return result; }
+        foreach (var raw in dsl.Split("\n"))
+        {
+            var line = raw.Trim();
+            if (line.Length == 0 || !line.Contains(">")) continue;
+            var parts = line.Split(">");
+            if (parts.Length < 2 || parts[0].Trim().ToInt() != node) continue;
+            foreach (var t in parts[1].Split(","))
+            {
+                var v = t.Trim();
+                if (v.Length > 0) result.Add(v.ToInt());
+            }
+        }
+        if (result.Count == 0) result.Add(node + 1);   // 无定义=线性
+        return result;
+    }
+
     // ✅ 出战情报(开创人2026-11-14):出征确认页
     private void ShowIntelPanel()
     {
@@ -516,7 +592,7 @@ public partial class SurvivalSession : Node
             ["randomDraw"] = Campaign.randomDraw,
             ["budgetShrinkPercentPerStage"] = Campaign.budgetShrinkPercentPerStage,
             ["stageIndex"] = StageIndex,
-            ["remainingBudget"] = RemainingBudget,\n            ["morale"] = MoraleRemaining,
+            ["remainingBudget"] = RemainingBudget,\n            ["morale"] = MoraleRemaining,\n            ["depth"] = Depth,
         };
         using var f = FileAccess.Open(SavePath, FileAccess.ModeFlags.Write);
         if (f != null) { f.StoreString(Json.Stringify(dict)); GD.Print($"[Survival] 已存档 第{StageIndex + 1}关 余量{RemainingBudget}"); }
@@ -579,4 +655,4 @@ public partial class SurvivalSession : Node
         string prog = total > 0 ? $"{StageIndex + 1}/{total}" : $"第{StageIndex + 1}层";
         _hud.Text = $"[Survival] {Campaign.campaignName} {prog}  预算:{RemainingBudget}{unit}";
     }
-} + (Campaign.moraleEnabled ? $"  军心:{MoraleRemaining}" : "");
+} + $"  第{Depth + 1}层" + (Campaign.moraleEnabled ? $"  军心:{MoraleRemaining}" : "")\n        Depth = parsed.ContainsKey("depth") ? parsed["depth"].AsInt32() : 0;;
