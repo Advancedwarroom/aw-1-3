@@ -32,10 +32,37 @@ public enum TowerDirection { Up, Right, Down, Left }
 
 public partial class Grids : Node2D
 {
-    public Sprite2D attackRangeIcon;
+    // ✅ 格子瘦身（2026-11-14）：三个高亮图标不再预置在 grid.tscn 里，
+    // 首次访问时懒创建。开局每格少 3 个 Sprite2D 节点（全图约 2160 个）。
+    private static Texture2D _texMoveHighlight;
+    private static Texture2D TexMoveHighlight => _texMoveHighlight ??= GD.Load<Texture2D>("res://art/移动范围高亮显示.png");
+    private static Texture2D _texAttackRange;
+    private static Texture2D TexAttackRange => _texAttackRange ??= GD.Load<Texture2D>("res://art/AttackRange.png");
+    private static Texture2D _texTowerArrow;
+    private static Texture2D TexTowerArrow => _texTowerArrow ??= GD.Load<Texture2D>("res://art/Grids/GridsArrow.png");
+
+    private Sprite2D CreateGridIcon(string iconName, int z, Texture2D tex)
+    {
+        var s = new Sprite2D
+        {
+            Name = iconName,
+            ZIndex = z,
+            Position = new Vector2(16, 16),
+            Texture = tex,
+            Visible = false
+        };
+        AddChild(s);
+        return s;
+    }
+
+    private Sprite2D _attackRangeIcon;
+    public Sprite2D attackRangeIcon => _attackRangeIcon ??= CreateGridIcon("AttackRange", 2, TexAttackRange);
     public Vector2I GridIndex;
     public int screenId = 0; // ✅ N屏归属屏号（0起）
-    public Sprite2D pathIcon;
+    private Sprite2D _pathIcon;
+    public Sprite2D pathIcon => _pathIcon ??= CreateGridIcon("mrhl", 2, TexMoveHighlight);
+    private Sprite2D _towerArrow;
+    public Sprite2D TowerArrow => _towerArrow ??= CreateGridIcon("TowerDirectionArrow", 10, TexTowerArrow);
     [Export] public GridType gridType;
     public List<Infantry> infantries = new();
     public Infantry infantry;
@@ -134,10 +161,7 @@ public partial class Grids : Node2D
 
     public override void _Ready()
     {
-        pathIcon = GetNode<Sprite2D>("mrhl");
-        attackRangeIcon = GetNode<Sprite2D>("AttackRange");
-        pathIcon?.Hide();
-        attackRangeIcon?.Hide();
+        // ✅ 懒创建后无需在 _Ready 抓取/隐藏：图标默认不可见，首次使用时自动创建
 
         city = GetNodeOrNull<Facility>("City");
         if (city == null)
@@ -161,11 +185,11 @@ public partial class Grids : Node2D
             area2D.InputPickable = true;
         }
 
-        // ✅ 初始化瞭望塔箭头朝向
-        var arrow = GetNodeOrNull<Sprite2D>("TowerDirectionArrow");
-        if (arrow != null)
+        // ✅ 初始化瞭望塔箭头朝向（懒创建：只有可旋转瞭望塔才生成箭头节点）
+        if (gridVisionMode != GridVisionMode.None && towerCanRotate)
         {
-            arrow.Visible = gridVisionMode != GridVisionMode.None && towerCanRotate;
+            var arrow = TowerArrow;
+            arrow.Visible = true;
             arrow.RotationDegrees = towerDirection switch
             {
                 TowerDirection.Up => 0,
