@@ -10,6 +10,10 @@ public partial class Infantry : Node2D
     [Export] public bool cannotCounterWhenAttacked = false; // 攻击时不被反击（如Artillery/Rocket/AntiTank等间接攻击单位）
     [Export] public bool canCounterWhenDefending = true;   // 被攻击时能否反击（Artillery/Rocket=false，默认true）
     [Export] public bool canCounterAtRange = false;        // 能否远程反击（false=仅近战距离1可反击，true=在攻击范围内可反击）
+    // ✅ 开创人2026-11-14 对类别乘区(王牌空战式)
+    [Export] public bool attackVsCategoryEnabled = false;
+    [Export] public UnitCategory attackVsCategory = default;
+    [Export] public float attackVsCategoryMultiplier = 1.0f;
     [Export] public bool canMerge = true;
 
     [ExportGroup("战役记账")]
