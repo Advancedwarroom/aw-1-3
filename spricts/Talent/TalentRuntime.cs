@@ -60,6 +60,7 @@ public partial class TalentRuntime : Node
         AddPool(Pool.commonPool, 100);
         AddPool(Pool.rarePool, Pool.rareWeight);
         AddPool(Pool.goldenPool, Pool.goldenWeight);
+        AddPool(Pool.uraniumPool, Pool.uraniumWeight);
         return bag;
     }
 
@@ -144,16 +145,16 @@ public partial class TalentRuntime : Node
         var vp = GetViewport(); if (vp == null) { onComplete?.Invoke(); return; }
         var size = vp.GetVisibleRect().Size;
         _draftTitle.Text = "[center][font_size=40]每赢一关 · 三选一拿天赋[/font_size][/center]";
-        string[] colors = { "#DDDDDD", "#6FB7FF", "#FFD24A" };
-        string[] rname = { "普通", "稀有", "金色" };
+        string[] colors = { "#C8D2DC", "#6FB7FF", "#FFD24A", "#C678FF" };   // 钢铁灰/宝石蓝/反物质金/铀核紫
+        string[] rname = { "钢铁", "宝石", "反物质", "铀核" };
         int i = 0;
         foreach (var def in three)
         {
             int lv = GetLevel(def.talentId);
-            string col = colors[Mathf.Clamp(def.rarity, 0, 2)];
+            string col = colors[Mathf.Clamp(def.rarity, 0, 3)];
             var btn = new Button
             {
-                Text = $"[{rname[Mathf.Clamp(def.rarity, 0, 2)]}]{def.displayName}" + (lv > 0 ? $"  Lv{lv}→{lv + 1}" : "  NEW") + "\n{def.description}",
+                Text = $"[{rname[Mathf.Clamp(def.rarity, 0, 3)]}]{def.displayName}" + (lv > 0 ? $"  Lv{lv}→{lv + 1}" : "  NEW") + "\n{def.description}",
                 Position = new Vector2(size.X / 2 - 240 + i * 250, size.Y * 0.4f),
                 Size = new Vector2(230, 150),
                 Modulate = new Color(col)
