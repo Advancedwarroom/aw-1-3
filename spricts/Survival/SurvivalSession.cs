@@ -685,3 +685,4 @@ public partial class SurvivalSession : Node
         string prog = total > 0 ? $"{StageIndex + 1}/{total}" : $"第{StageIndex + 1}层";
         _hud.Text = $"[Survival] {Campaign.campaignName} {prog}  预算:{RemainingBudget}{unit}" + $"  第{Depth + 1}层" + (Campaign.moraleEnabled ? $"  军心:{MoraleRemaining}" : "");
     }
+}
