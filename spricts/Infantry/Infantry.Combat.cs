@@ -75,6 +75,9 @@ public virtual int CalculateFinalDamage(Infantry target, WeaponType weaponType, 
     // 防御阈值
     int effectiveDefense = target.GetEffectiveDefense(target.grid);
     float rawDamage = afterTerrain - effectiveDefense;
+    // ✅ 开创人2026-11-14 对类别乘区(王牌空战式):减防后独立乘算
+    if (attackVsCategoryEnabled && target.unitCategory == attackVsCategory)
+        rawDamage *= attackVsCategoryMultiplier;
 
     if (rawDamage <= 0)
     {
