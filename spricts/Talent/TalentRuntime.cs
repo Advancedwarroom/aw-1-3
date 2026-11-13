@@ -53,7 +53,7 @@ public partial class TalentRuntime : Node
                 if (d == null || string.IsNullOrEmpty(d.talentId)) continue;
                 if (GetLevel(d.talentId) >= d.maxStacks) continue;                       // 已满级
                 if (d.rarity >= 2 && (GoldenSlotOpen <= CountGoldenOwned())) continue;     // 金槽满不入金
-                int w = Mathf.Max(1, (int)weight);
+                int w = Mathf.Max(0, (int)weight);   // ✅ 修复(审查P2-7):0权重=禁用该稀有度池,负数视为0
                 for (int i = 0; i < w; i++) bag.Add(d);   // 权重=重复占位
             }
         }
@@ -74,7 +74,7 @@ public partial class TalentRuntime : Node
     public TalentDef FindDef(string id)
     {
         if (Pool == null) return null;
-        foreach (var arr in new[] { Pool.commonPool, Pool.rarePool, Pool.goldenPool })
+        foreach (var arr in new[] { Pool.commonPool, Pool.rarePool, Pool.goldenPool, Pool.uraniumPool })
             foreach (var d in arr) if (d != null && d.talentId == id) return d;
         return null;
     }
@@ -130,6 +130,7 @@ public partial class TalentRuntime : Node
 
     // ===== 三选一面板 + 效果应用 (开创人2026-11-14) =====
     private Control _draftRoot;
+    private System.Action _pendingOnComplete;
     private RichTextLabel _draftTitle;
     private Button _refreshBtn;
     private readonly System.Collections.Generic.List<Button> _draftBtns = new();
@@ -175,7 +176,7 @@ public partial class TalentRuntime : Node
         }
         _refreshBtn.Visible = RefreshLeft > 0;
         _refreshBtn.Text = $"{TranslateGroup.T("刷新")} · {TranslateGroup.T("剩")}{RefreshLeft}";
-        _refreshBtn.Pressed += () => { ConsumeRefresh(); ShowDraft(onComplete); };   // 重抽
+        _pendingOnComplete = onComplete;   // ✅ 修复(审查P2-9):刷新回调只在EnsureDraftUI绑一次,此处仅更新上下文
         _draftRoot.Visible = true;
         _draftRoot.Modulate = new Color(1, 1, 1, 1);
     }
@@ -189,6 +190,7 @@ public partial class TalentRuntime : Node
         _draftRoot.AddChild(new ColorRect { Color = new Color(0.03f, 0.05f, 0.1f, 0.95f), Size = size, MouseFilter = Control.MouseFilterEnum.Ignore });
         _draftTitle = new RichTextLabel { Position = new Vector2(0, size.Y * 0.24f), Size = new Vector2(size.X, 70), BbcodeEnabled = true, MouseFilter = Control.MouseFilterEnum.Ignore };
         _refreshBtn = new Button { Position = new Vector2(size.X - 170, 24), Size = new Vector2(150, 36) };
+        _refreshBtn.Pressed += () => { ConsumeRefresh(); if (_pendingOnComplete != null) ShowDraft(_pendingOnComplete); };   // ✅ 修复(审查P2-9):一次性绑定,重抽不再叠回调
         _draftRoot.AddChild(_draftTitle); _draftRoot.AddChild(_refreshBtn);
         vp.AddChild(_draftRoot);
     }
