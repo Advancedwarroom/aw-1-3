@@ -28,6 +28,9 @@ public partial class SurvivalCampaign : Resource
 
     [ExportGroup("树状选关")]
     [Export] public string stageTree = "";
+    [ExportGroup("AI强度")]
+    [Export] public double aiFundsMultiplier = 1.0;              // ✅ AI资金倍率(1.7=AI收入170%)
+    [Export] public double aiFundsMultiplierPerStage = 0.0;    // 每深入一层追加倍率(压迫递增)
     [Export] public bool talentDraftEnabled = false;   // ✅ 天赋选秀:每关胜利后三选一(需UI接DraftRequested信号)
     [Export] public TalentPool talentPool;   // ✅ 分支图DSL(开创人2026-11-14):"0>1,2\n1>2\n2>"=0胜后可选1/2,2终点;留空=线性序列
     [Export] public string[] coIds = new string[0];           // 战役锁定CO：coIds[0]=主CO，其余=搭档（空=沿用各关地图默认）
