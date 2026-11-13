@@ -96,6 +96,7 @@ public partial class SurvivalSession : Node
         }
         EmitSignal(SignalName.StageChanged, StageIndex, total);
         UpdateHud();
+        SaveRun();   // ✅ 每关自动存档=肉鸽检查点
         CallDeferred(nameof(DeferredStageLoad));
     }
 
@@ -134,10 +135,72 @@ public partial class SurvivalSession : Node
     private void EndRun(bool victory, string reason)
     {
         Active = false;
+        if (victory) DeleteSave();   // ✅ 通关清档；战败保留最后检查点
         GD.Print($"[Survival] 战役结束 胜利={victory} 通过={StagesCleared}关 余量={RemainingBudget} ({reason})");
         EmitSignal(SignalName.SurvivalOver, victory, StagesCleared, RemainingBudget);
         UpdateHud();
     }
+
+    // ===== 局中存档 (开创人2026-11-14) =====
+    private const string SavePath = "user://survival_save.json";
+    private Button _saveBtn, _continueBtn;
+
+    public static bool HasSavedRun() => FileAccess.FileExists(SavePath);
+
+    public void SaveRun()
+    {
+        if (!Active || Campaign == null) return;
+        var dict = new Godot.Collections.Dictionary
+        {
+            ["campaignName"] = Campaign.campaignName,
+            ["stageSlots"] = new Godot.Collections.Array<int>(Campaign.stageSlots),
+            ["limitType"] = Campaign.limitType,
+            ["budget"] = Campaign.budget,
+            ["fundsCarry"] = Campaign.fundsCarry,
+            ["coEnergyResetPerStage"] = Campaign.coEnergyResetPerStage,
+            ["playerTeam"] = Campaign.playerTeam,
+            ["endlessMode"] = Campaign.endlessMode,
+            ["endlessPoolSlots"] = new Godot.Collections.Array<int>(Campaign.endlessPoolSlots),
+            ["randomDraw"] = Campaign.randomDraw,
+            ["budgetShrinkPercentPerStage"] = Campaign.budgetShrinkPercentPerStage,
+            ["stageIndex"] = StageIndex,
+            ["remainingBudget"] = RemainingBudget,
+        };
+        using var f = FileAccess.Open(SavePath, FileAccess.ModeFlags.Write);
+        if (f != null) { f.StoreString(Json.Stringify(dict)); GD.Print($"[Survival] 已存档 第{StageIndex + 1}关 余量{RemainingBudget}"); }
+    }
+
+    // ✅ 继续按钮/外部调用：读档→恢复会话→装载该关地图
+    public void LoadRun()
+    {
+        if (!FileAccess.FileExists(SavePath)) return;
+        using var f = FileAccess.Open(SavePath, FileAccess.ModeFlags.Read);
+        if (f == null) return;
+        var parsed = Json.ParseString(f.GetAsText()).AsGodotDictionary();
+        if (parsed.Count == 0) return;
+        var c = new SurvivalCampaign
+        {
+            campaignName = parsed["campaignName"].AsString(),
+            stageSlots = parsed["stageSlots"].AsInt32Array(),
+            limitType = parsed["limitType"].AsInt32(),
+            budget = parsed["budget"].AsDouble(),
+            fundsCarry = parsed["fundsCarry"].AsBool(),
+            coEnergyResetPerStage = parsed["coEnergyResetPerStage"].AsBool(),
+            playerTeam = parsed["playerTeam"].AsString(),
+            endlessMode = parsed["endlessPoolSlots"].AsInt32Array().Length > 0 && parsed["endlessMode"].AsBool(),
+            endlessPoolSlots = parsed["endlessPoolSlots"].AsInt32Array(),
+            randomDraw = parsed["randomDraw"].AsBool(),
+            budgetShrinkPercentPerStage = parsed["budgetShrinkPercentPerStage"].AsDouble(),
+        };
+        BeginCampaign(c);
+        StageIndex = parsed["stageIndex"].AsInt32();
+        RemainingBudget = parsed["remainingBudget"].AsDouble();
+        GD.Print($"[Survival] 读档恢复 第{StageIndex + 1}关 余量{RemainingBudget}");
+        UpdateHud();
+        CallDeferred(nameof(DeferredStageLoad));
+    }
+
+    private static void DeleteSave() { if (FileAccess.FileExists(SavePath)) DirAccess.RemoveAbsolute(SavePath); }
 
     private void EnsureHud()
     {
@@ -145,11 +208,19 @@ public partial class SurvivalSession : Node
         var vp = GetViewport(); if (vp == null) return;
         _hud = new RichTextLabel { Position = new Vector2(8, 8), Size = new Vector2(360, 46), BbcodeEnabled = true };
         vp.AddChild(_hud);
+        _saveBtn = new Button { Text = "生存·存档", Position = new Vector2(8, 58), Size = new Vector2(100, 30) };
+        _saveBtn.Pressed += SaveRun;
+        vp.AddChild(_saveBtn);
+        _continueBtn = new Button { Text = "生存·继续", Position = new Vector2(114, 58), Size = new Vector2(100, 30) };
+        _continueBtn.Pressed += LoadRun;
+        vp.AddChild(_continueBtn);
     }
 
     private void UpdateHud()
     {
         if (_hud == null || !IsInstanceValid(_hud)) return;
+        if (_saveBtn != null && IsInstanceValid(_saveBtn)) _saveBtn.Visible = Active;
+        if (_continueBtn != null && IsInstanceValid(_continueBtn)) _continueBtn.Visible = !Active && HasSavedRun();
         if (!Active) { if (Campaign != null) _hud.Text = $"[Survival] 结束：通过{StagesCleared}关 余量{RemainingBudget}"; return; }
         string unit = Campaign.limitType == 0 ? "G" : Campaign.limitType == 1 ? "回合" : "秒";
         int total = Campaign.endlessMode ? -1 : Campaign.stageSlots.Length;
