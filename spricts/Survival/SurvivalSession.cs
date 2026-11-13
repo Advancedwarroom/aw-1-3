@@ -346,6 +346,18 @@ public partial class SurvivalSession : Node
         // ✅ 天赋效果重挂:换图后新单位需重新注入
         var __tr2 = GetTree()?.Root?.FindChild("TalentRuntime", true, false) as TalentRuntime;
         if (Campaign.talentDraftEnabled) __tr2?.ApplyEffectsToUnits(Campaign.playerTeam);
+        // ✅ AI强度v1(开创人2026-11-14):敌方资金=基础×倍率(随层数递增)
+        double aiMult = Campaign.aiFundsMultiplier + Campaign.aiFundsMultiplierPerStage * Depth;
+        if (aiMult > 1.0)
+        {
+            foreach (var t in TeamHelper.ActiveTeams)
+            {
+                if (t == Campaign.playerTeam || t == TeamHelper.Player0) continue;
+                int f0 = gm.GetTeamFunds(t);
+                gm.SetTeamFunds(t, (int)(f0 * aiMult));
+            }
+            GD.Print($"[Survival] AI资金×{aiMult:F2} 已应用");
+        }
     }
 
     // ✅ 缺口A(开创人2026-11-14):双轨解析——槽位优先,路径兜底;主序列与无尽池统一
