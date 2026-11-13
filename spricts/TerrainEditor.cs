@@ -158,6 +158,9 @@ public override void _Ready()
             }
         }
     }
+
+    // ✅ 开创人2026-11-14：战役入口——战役菜单若留下待导入地图，首帧后导入并直接开战
+    CallDeferred(nameof(TryImportPendingCampaign));
 }
 
 // ========== 修改 _Input 添加 ESC 关闭生成菜单 ==========
