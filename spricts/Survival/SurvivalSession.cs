@@ -12,6 +12,7 @@ public partial class SurvivalSession : Node
 
     public SurvivalCampaign Campaign { get; private set; }
     public int StageIndex { get; private set; }
+    public int MoraleRemaining { get; private set; }
     public double RemainingBudget { get; private set; }
     public bool Active { get; private set; }
     public int StagesCleared => StageIndex;
@@ -46,6 +47,7 @@ public partial class SurvivalSession : Node
         Campaign = campaign;
         StageIndex = 0;
         RemainingBudget = campaign?.budget ?? 0;
+        MoraleRemaining = campaign?.moraleEnabled == true ? campaign.moraleMax : 0;
         Active = campaign != null && (campaign.stageSlots.Length > 0 || campaign.stageMapPaths.Length > 0 || (campaign.endlessMode && (campaign.endlessPoolSlots.Length > 0 || campaign.endlessPoolPaths.Length > 0)));
         _timeAccum = 0;
         EnsureHud();
@@ -108,7 +110,21 @@ public partial class SurvivalSession : Node
     public void OnMapVictorious(string winningTeam)
     {
         if (!Active || Campaign == null) return;
-        if (winningTeam != Campaign.playerTeam) { EndRun(false, "战役失利"); return; }
+        if (winningTeam != Campaign.playerTeam)
+        {
+            bool elite = Campaign.eliteStageIndices != null && System.Array.IndexOf(Campaign.eliteStageIndices, StageIndex) >= 0;
+            if (Campaign.moraleEnabled && MoraleRemaining > 0 && !elite)
+            {
+                MoraleRemaining--;
+                GD.Print($"[Survival] 军心-1,剩余{MoraleRemaining},重整旗鼓重打本关");
+                UpdateHud(); SaveRun();
+                ShowStageSplash("军心 -1 ！", $"剩余军心 {MoraleRemaining} · 再闯本关", 2.0);
+                CallDeferred(nameof(DeferredStageLoad));
+                return;
+            }
+            EndRun(false, elite && Campaign.moraleEnabled ? "精英关失守,战役终结" : (Campaign.moraleEnabled ? "军心耗尽" : "战役失利"));
+            return;
+        }
         int clearedSlot; string _pp; ResolveCurrentStage(out clearedSlot, out _pp);   // ✅ 接缝:刚通关槽位(推进前捕获)
         SnapshotCarry();   // ✅ 真生存:推进前抓取我军残部+资金
         StageIndex++;
@@ -139,10 +155,56 @@ public partial class SurvivalSession : Node
         settle?.OnVictoryDeclared(Campaign.playerTeam);
         var prof = GetTree()?.Root?.FindChild("CampaignProfile", true, false) as CampaignProfile;
         prof?.RecordStageClear(clearedSlot, StageIndex, false, 0, 0);
-        CallDeferred(nameof(DeferredStageLoad));
+        CallDeferred(nameof(ShowIntelPanel));   // ✅ 出战情报:确认后再装载
     }
 
     // ✅ 装载下一关：走 ExtraSave.LoadMapToGame 全量换图（清理实体→重建网格→地形单位CO全落位）
+    // ✅ 出战情报(开创人2026-11-14):出征确认页
+    private void ShowIntelPanel()
+    {
+        int slot; string mapPath;
+        ResolveCurrentStage(out slot, out mapPath);
+        string title = "第 " + (StageIndex + 1) + " 关";
+        string mapName = "?", size = "?", extra = "";
+        var root = GetTree()?.Root;
+        if (slot >= 0)
+        {
+            var extraSave = root?.GetNodeOrNull("ExtraSave") as ExtraSave;
+            var d = extraSave?.Data?.savedMaps != null && slot < extraSave.Data.savedMaps.Count ? extraSave.Data.savedMaps[slot] : null;
+            if (d != null) { mapName = d.displayName; size = $"{d.width}×{d.height}"; }
+        }
+        else if (mapPath != null && mapPath.StartsWith("__GEN__"))
+        {
+            var g = Campaign.endlessGenPool[mapPath.Substring(7).ToInt()];
+            mapName = "随机生成图"; size = $"{g.width}×{g.height}";
+            extra = $"势力{g.factionCount} 对称{g.symmetryMode} 咽喉{(int)(g.chokeDensity * 100)}% 种子{(g.seed == 0 ? "随机" : g.seed.ToString())}";
+        }
+        else if (!string.IsNullOrEmpty(mapPath)) { mapName = mapPath.GetFile().GetBaseName(); }
+        EnsureIntel();
+        _intelLabel.Text = $"[center][font_size=44]{title}[/font_size]\n[font_size=26]地图:{mapName}   {size}\n{extra}\n敌方:AI默认编制(技能词条建设中)\n预算余量:{RemainingBudget}{(Campaign.moraleEnabled ? $"   军心:{MoraleRemaining}" : "")}[/font_size][/center]";
+        _intelRoot.Visible = true;
+        _intelRoot.Modulate = new Color(1, 1, 1, 1);
+    }
+
+    private Control _intelRoot;
+    private RichTextLabel _intelLabel;
+    private Button _intelGo;
+
+    private void EnsureIntel()
+    {
+        if (_intelRoot != null && IsInstanceValid(_intelRoot)) return;
+        var vp = GetViewport(); if (vp == null) return;
+        var size = vp.GetVisibleRect().Size;
+        _intelRoot = new Control { Position = Vector2.Zero, Size = size, Visible = false, MouseFilter = Control.MouseFilterEnum.Ignore };
+        var bg = new ColorRect { Color = new Color(0.05f, 0.08f, 0.15f, 0.92f), Size = size, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _intelLabel = new RichTextLabel { Position = new Vector2(0, size.Y * 0.22f), Size = new Vector2(size.X, 320), BbcodeEnabled = true, ScrollActive = false, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _intelLabel.AddThemeFontSizeOverride("normal_font_size", 26);
+        _intelGo = new Button { Text = "⚔ 开战", Position = new Vector2(size.X / 2 - 70, size.Y * 0.66f), Size = new Vector2(140, 46) };
+        _intelGo.Pressed += () => { _intelRoot.Visible = false; CallDeferred(nameof(DeferredStageLoad)); };
+        _intelRoot.AddChild(bg); _intelRoot.AddChild(_intelLabel); _intelRoot.AddChild(_intelGo);
+        vp.AddChild(_intelRoot);
+    }
+
     private void DeferredStageLoad()
     {
         int slot; string mapPath;
@@ -454,7 +516,7 @@ public partial class SurvivalSession : Node
             ["randomDraw"] = Campaign.randomDraw,
             ["budgetShrinkPercentPerStage"] = Campaign.budgetShrinkPercentPerStage,
             ["stageIndex"] = StageIndex,
-            ["remainingBudget"] = RemainingBudget,
+            ["remainingBudget"] = RemainingBudget,\n            ["morale"] = MoraleRemaining,
         };
         using var f = FileAccess.Open(SavePath, FileAccess.ModeFlags.Write);
         if (f != null) { f.StoreString(Json.Stringify(dict)); GD.Print($"[Survival] 已存档 第{StageIndex + 1}关 余量{RemainingBudget}"); }
@@ -484,7 +546,7 @@ public partial class SurvivalSession : Node
         };
         BeginCampaign(c);
         StageIndex = parsed["stageIndex"].AsInt32();
-        RemainingBudget = parsed["remainingBudget"].AsDouble();
+        RemainingBudget = parsed["remainingBudget"].AsDouble();\n        MoraleRemaining = parsed.ContainsKey("morale") ? parsed["morale"].AsInt32() : (Campaign.moraleEnabled ? Campaign.moraleMax : 0);
         GD.Print($"[Survival] 读档恢复 第{StageIndex + 1}关 余量{RemainingBudget}");
         UpdateHud();
         CallDeferred(nameof(DeferredStageLoad));
@@ -517,4 +579,4 @@ public partial class SurvivalSession : Node
         string prog = total > 0 ? $"{StageIndex + 1}/{total}" : $"第{StageIndex + 1}层";
         _hud.Text = $"[Survival] {Campaign.campaignName} {prog}  预算:{RemainingBudget}{unit}";
     }
-}
+} + (Campaign.moraleEnabled ? $"  军心:{MoraleRemaining}" : "");
