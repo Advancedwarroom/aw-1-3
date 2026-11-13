@@ -345,7 +345,7 @@ public partial class SurvivalSession : Node
             var cell = gridMgr.grids[y * gridMgr.width + x];
             Infantry target = null;
             if (cell?.infantries != null)
-                foreach (var c in cell.infantryListSnapshot())
+                foreach (var c in cell.infantries)
                     if (c != null && GodotObject.IsInstanceValid(c) && c.UnitTypeId == su.typeName && c.team == Campaign.playerTeam) { target = c; break; }
             if (target == null) continue;
             if (su.fieldValues == null) continue;
