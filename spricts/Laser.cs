@@ -41,6 +41,9 @@ public partial class Laser : Weapon
 
     [ExportGroup("目标选择模式")]
     [Export] public LaserTargetMode targetSelectionMode = LaserTargetMode.OnlyEnemyUnits;
+    [Export] public bool laserCanTargetEnemies = false;                // ✅ 开创人2026-11-14 三军勾选（敌/友/盟独立勾选），全false回退旧枚举，存量行为零变化
+    [Export] public bool laserCanTargetFriendlies = false;             // 友军=同势力
+    [Export] public bool laserCanTargetAllies = false;                 // 盟军=盟约势力
     [Export] public bool canAttackWeapons = false;
 
     // ========== ✅ 弹药系统已在 Weapon 基类中定义（useAmmoSystem, currentAmmo, maxAmmo）
