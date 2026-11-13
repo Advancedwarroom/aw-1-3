@@ -405,8 +405,14 @@ public override void _Process(double delta)
             noAmmoIcon.Visible = false;
     }
 }
+    [Export] public double campaignKillScoreValue = 0;      // ✅ 开创人2026-11-14 接缝③:击杀积分价值(0=不记账)
+    [Export] public double campaignKillCrystalValue = 0;    // ✅ 宝钞价值
     public virtual void OnDestroyed()
     {
+        {   // ✅ 开创人2026-11-14 接缝③:死亡入口→战役结算台账
+            var __st = GetTree()?.Root?.FindChild("CampaignSettlement", true, false) as CampaignSettlement;
+            __st?.RecordKill(campaignKillScoreValue, campaignKillCrystalValue, lastAttackerTeam);
+        }
         // ✅ CO 模块28（多屏 CO 死亡）：CO 单位阵亡——全图（含多屏）无残存 isCoUnit 则 CO 死亡
         if (isCoUnit)
             CoModuleSystem.OnCoUnitDestroyed(this);
