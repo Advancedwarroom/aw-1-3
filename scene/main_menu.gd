@@ -3,7 +3,7 @@ extends Control
 # 主菜单路由表：各模式当前全部先进入主场景 main.tscn（占位）。
 # 模式专属场景就绪后只改这张表，按钮逻辑不用动。
 const ROUTES := {
-	"campaign": "res://scene/main.tscn",   # 战役
+	"campaign": "res://scene/campaign_menu.tscn",   # 战役（选关页）
 	"skirmish": "res://scene/main.tscn",   # 遭遇战（自由对战）
 	"warroom": "res://scene/main.tscn",    # 作战室（挑战残局）
 	"daily": "res://scene/main.tscn",      # 每日挑战
