@@ -43,14 +43,14 @@ public static class MapGenerator
         // 咽喉线:随机折线山脉/海峡
         for (int c = 0; c < p.chokeLineCount; c++)
         {
-            int x = rng.RandRange(1, w - 2), y = rng.RandRange(1, h - 2);
-            int dx = rng.RandRange(0, 1) == 0 ? 1 : 0, dy = 1 - dx;
+            int x = rng.RandiRange(1, w - 2), y = rng.RandiRange(1, h - 2);
+            int dx = rng.RandiRange(0, 1) == 0 ? 1 : 0, dy = 1 - dx;
             int len = (int)(Mathf.Min(w, h) * (0.4 + 0.6 * p.chokeDensity));
-            bool seaLine = rng.RandRange(0, 1) == 0;
+            bool seaLine = rng.RandiRange(0, 1) == 0;
             for (int s = 0; s < len && x >= 0 && y >= 0 && x < w && y < h; s++)
             {
                 terrain[y * w + x] = seaLine ? gSea : gMountain;
-                if (rng.RandRange(0, 2) == 0) { int t2 = dx; dx = dy; dy = t2; } // 随机拐弯
+                if (rng.RandiRange(0, 2) == 0) { int t2 = dx; dx = dy; dy = t2; } // 随机拐弯
                 x += dx; y += dy;
             }
         }
@@ -71,13 +71,13 @@ public static class MapGenerator
             Vector2I best = new Vector2I(-1, -1);
             for (int att = 0; att < 200; att++)
             {
-                int x = rng.RandRange(1, w - 2), y = rng.RandRange(1, h - 2);
+                int x = rng.RandiRange(1, w - 2), y = rng.RandiRange(1, h - 2);
                 if (terrain[y * w + x] != gGround) continue;
                 bool ok = true;
                 foreach (var q in hqPos) if (Mathf.Abs(q.X - x) + Mathf.Abs(q.Y - y) < p.minStartDistance) { ok = false; break; }
                 if (ok) { best = new Vector2I(x, y); break; }
             }
-            if (best.X < 0) best = new Vector2I(rng.RandRange(0, w - 1), rng.RandRange(0, h - 1)); // 拒采到头,硬放并清场
+            if (best.X < 0) best = new Vector2I(rng.RandiRange(0, w - 1), rng.RandiRange(0, h - 1)); // 拒采到头,硬放并清场
             terrain[best.Y * w + best.X] = gGround;
             hqPos.Add(best);
         }
