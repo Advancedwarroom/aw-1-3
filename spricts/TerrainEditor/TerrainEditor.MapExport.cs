@@ -60,6 +60,9 @@ public partial class TerrainEditor
         sb.AppendLine($"RandomLinkSeed: {gridManager.randomLinkSeed}");
         sb.AppendLine($"RandomLinksPerPair: {gridManager.randomLinksPerPair}");
         sb.AppendLine($"RandomLinkInnerOnly: {(gridManager.randomLinkInnerOnly ? "On" : "Off")}");
+        // ✅ 开创人2026-11-14：屏间隔 + 截停地形清单随行（此前不导，恒默认值；哪天开放编辑即成雷，先写死）
+        sb.AppendLine($"ScreenGap: {gridManager?.screenGap ?? 3}");
+        sb.AppendLine($"CannotStop: {(gridManager != null && gridManager.cannotStopTerrainTypes != null ? string.Join(",", gridManager.cannotStopTerrainTypes.Select(t => t.ToString())) : "")}");
         // ✅ 自定义移动/地形类型注册表随图导出（开创人2026-11-08：剪贴板分享的图跨设备可玩）
         var esExport = (Engine.GetMainLoop() as SceneTree)?.GetFirstNodeInGroup("extra_save") as ExtraSave;
         if (esExport != null)
@@ -106,7 +109,21 @@ public partial class TerrainEditor
                     string typeName = unit.GetType().Name;
                     int hp = Mathf.CeilToInt(unit.health / 10f);
                     string diff = GetUnitDiffString(unit);
-                    sb.AppendLine($"[{hx},{hy}] {typeName} {unit.team} HP{hp}{diff}");
+                    // ✅ 开创人2026-11-14：HP 非整十时追加 RAW 精确血量（Ceil 向上取整会吞 0.1 粒度）
+                    string rawTag = (unit.health % 10 != 0) ? $" RAW{unit.health}" : "";
+                    sb.AppendLine($"[{hx},{hy}] {typeName} {unit.team} HP{hp}{rawTag}{diff}");
+                    // ✅ 开创人2026-11-14：载员随行（此前 transportedUnits 里的兵 grid=null 且不在 AllUnits，导出即蒸发）
+                    if (unit.transportedUnits != null && unit.transportedUnits.Count > 0)
+                    {
+                        foreach (var cargo in unit.transportedUnits)
+                        {
+                            if (cargo == null || !IsInstanceValid(cargo)) continue;
+                            string cDiff = GetUnitDiffString(cargo);
+                            int chp = Mathf.CeilToInt(cargo.health / 10f);
+                            string cRaw = (cargo.health % 10 != 0) ? $" RAW{cargo.health}" : "";
+                            sb.AppendLine($"> [{hx},{hy}] {cargo.GetType().Name} {cargo.team} HP{chp}{cRaw}{cDiff}");
+                        }
+                    }
                 }
             }
         }
@@ -146,6 +163,21 @@ public partial class TerrainEditor
                 }
             }
         }
+        sb.AppendLine();
+
+        // ✅ 开创人2026-11-14：传送链路随完整格式导出（此前只有极简格式有 TP 段，完整导出丢链）
+        sb.AppendLine("=== Teleport Links ===");
+        if (gridManager?.teleportLinks != null)
+        {
+            foreach (var l in gridManager.teleportLinks)
+                sb.AppendLine($"[{l.from.X},{l.from.Y}] > [{l.to.X},{l.to.Y}] {(l.oneWay ? "W" : "B")}");
+        }
+        sb.AppendLine();
+
+        // ✅ 开创人2026-11-14：同盟对随完整格式导出（此前只有极简格式有 AL 段）
+        sb.AppendLine("=== Alliances ===");
+        foreach (var (a, b) in TeamHelper.GetAlliancePairs())
+            sb.AppendLine($"{a}:{b}");
         sb.AppendLine();
 
         // ✅ 开创人2026-11-08：格子自定义段（伤害/弹药/燃料/迷雾规则/视野塔/方向烘焙全套 [Export] 字段，
