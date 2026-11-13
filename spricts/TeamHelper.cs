@@ -196,7 +196,8 @@ public static class FactionPaletteManager
         factionId = TeamHelper.CanonicalId(factionId);
         if (faction == null) return false;
         if (factionId == TeamHelper.Player1) return ColorClose(faction.PrimaryColor, NativeRedArtColor);
-        if (factionId == TeamHelper.Player2) return ColorClose(faction.PrimaryColor, NativeBlueArtColor);
+        // ✅ 2026-11-14：美术统一为红色模板后，P2"原生蓝可直出"的前提（显示蓝模板图）已不存在——
+        //    直出只能得到红色模板原图。P2 必须走染色。
         return false;
     }
 
@@ -219,7 +220,9 @@ public static class FactionPaletteManager
         mat = new ShaderMaterial();
         mat.Shader = PaletteShader;
         
-        bool blue = UsesBlueTemplate(factionId);
+        // ✅ 2026-11-14 单红模板修复：UpdateActiveSprite 不再按势力切 spriteBlue（全单位统一显示
+        //    红色模板），P2 的蓝色相检测在红色美术上零命中 → 全体显示 P1 红。恒用红模板检测。
+        bool blue = false;
         mat.SetShaderParameter("mode", 2);
         mat.SetShaderParameter("enabled", !IsNativeArt(factionId, faction));
         mat.SetShaderParameter("tone", new Color(1, 1, 1, 1));

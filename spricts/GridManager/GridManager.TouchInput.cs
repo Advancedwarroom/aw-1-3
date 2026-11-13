@@ -31,6 +31,10 @@ public partial class GridManager
             if (touch.Pressed)
             {
                 activeTouchCount++;
+                // ✅ 2026-11-14 丢释放自愈：安卓系统手势/切后台/弹窗抢焦点会吞掉 Released 事件，
+                //    计数器一旦卡住 ≥1，此后每根手指都被判成"第二根"（双指缩放分支），
+                //    单指画轨迹全局报废。按下时与系统真实触点数强制对齐，任何卡死下一按即解。
+                activeTouchCount = Mathf.Min(activeTouchCount, Mathf.Max(1, Input.GetOpenTouchCount()));
                 if (!moveRangeActive) { touchPathActive = false; return; }
                 if (activeTouchCount >= 2)
                 {
@@ -117,12 +121,27 @@ public partial class GridManager
         {
             // 先递归子控件（更具体的优先）
             if (FindUIAtPoint(child, screenPos)) return true;
+            // ✅ 2026-11-14 收紧：只拦"会真正吃掉点击"的交互控件。原版任何可见 Control（纯布局
+            //    容器/标签/透明装饰底衬，Godot 默认鼠标过滤=STOP）都算挡路，画轨迹被大面积误杀。
             if (child is Control c && c.IsVisibleInTree()
-                && c.MouseFilter != Control.MouseFilterEnum.Ignore
-                && c.GetGlobalRect().HasPoint(screenPos))
+                && c.GetGlobalRect().HasPoint(screenPos)
+                && IsInteractiveBlockingUI(c))
                 return true;
         }
         return false;
+    }
+
+    // 真正会消费触摸的控件才算阻挡：按钮/面板/弹窗/输入框/列表/滑条等。
+    // 纯布局容器、Label、透明装饰 ColorRect 不拦——它们的 STOP 只是 Godot 默认值，不是真要交互。
+    private static bool IsInteractiveBlockingUI(Control c)
+    {
+        if (c.MouseFilter != Control.MouseFilterEnum.Stop) return false;
+        return c is BaseButton || c is Panel || c is Popup || c is PopupPanel || c is PopupMenu
+            || c is AcceptDialog || c is ConfirmationDialog
+            || c is LineEdit || c is TextEdit || c is CodeEdit
+            || c is ItemList || c is Tree || c is TabContainer
+            || c is ScrollContainer || c is SplitContainer
+            || c is Slider || c is SpinBox || c is ColorPicker;
     }
 
     // ✅ 手画轨迹预览：沿手指路线画线，第一个可见阻挡格红标截断
