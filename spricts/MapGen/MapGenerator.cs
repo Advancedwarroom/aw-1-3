@@ -22,6 +22,7 @@ public static class MapGenerator
 
     public static SavedMapData Generate(MapGenProfile p, string slotName)
     {
+        // ✅ 兑现配置(审查第二节):maxRegenAttempts——校验失败整图重生,耗尽后兜底原开路逻辑
         int seed = p.seed == 0 ? (int)(Time.GetTicksUsec() % int.MaxValue) : p.seed;
         var rng = new RandomNumberGenerator { Seed = (ulong)seed };
         int w = Mathf.Max(6, p.width), h = Mathf.Max(6, p.height);
@@ -38,6 +39,22 @@ public static class MapGenerator
                        : r < p.plainWeight + p.forestWeight ? gForest
                        : r < p.plainWeight + p.forestWeight + p.mountainWeight ? gMountain
                        : gSea;
+        }
+
+        // ✅ 兑现配置(审查第二节):riverWeight——折线河流,只切陆地
+        int riverLines = (int)Math.Round(p.riverWeight / 10.0);
+        for (int r = 0; r < riverLines; r++)
+        {
+            int x = rng.RandiRange(1, w - 2), y = rng.RandiRange(1, h - 2);
+            int dx = rng.RandiRange(0, 1) == 0 ? 1 : 0, dy = 1 - dx;
+            int len = rng.RandiRange(Mathf.Min(w, h) / 3, Mathf.Min(w, h));
+            for (int s = 0; s < len && x >= 0 && y >= 0 && x < w && y < h; s++)
+            {
+                int idx = y * w + x;
+                if (terrain[idx] == gGround || terrain[idx] == gForest) terrain[idx] = gRiver;
+                if (rng.RandiRange(0, 2) == 0) { int t2 = dx; dx = dy; dy = t2; }
+                x += dx; y += dy;
+            }
         }
 
         // 咽喉线:随机折线山脉/海峡
@@ -104,6 +121,7 @@ public static class MapGenerator
             var hq = new SavedFacilityData { typeName = "HQ", team = f == 0 ? "Player1" : $"Player{f + 1}", displayName = $"HQ{f + 1}" };
             SetPos(hq, hqPos[f].X, hqPos[f].Y, w);
             facilities.Add(hq);
+            if (!p.balanceResources) continue;   // ✅ 兑现配置(审查第二节):关闭镜像→下方统一全图随机撒
             for (int k = 0; k < facTypes.Length; k++)
             {
                 int placed = 0, ring = 1;
@@ -125,6 +143,36 @@ public static class MapGenerator
                             placed++;
                         }
                     ring++;
+                }
+            }
+        }
+
+        // ✅ 兑现配置(审查第二节):roadWeight——HQ→HQ0的L型路网,每格按roadWeight/50概率铺装
+        double roadProb = Mathf.Clamp(p.roadWeight / 50.0, 0.0, 1.0);
+        for (int f = 1; f < hqPos.Count; f++)
+        {
+            int x = hqPos[f].X, y = hqPos[f].Y;
+            while (x != hqPos[0].X) { if (rng.Randf() < roadProb && terrain[y * w + x] != gSea) terrain[y * w + x] = gRoad; x += Math.Sign(hqPos[0].X - x); }
+            while (y != hqPos[0].Y) { if (rng.Randf() < roadProb && terrain[y * w + x] != gSea) terrain[y * w + x] = gRoad; y += Math.Sign(hqPos[0].Y - y); }
+        }
+
+        // ✅ 兑现配置(审查第二节):balanceResources=false——全图随机撒总量资源
+        if (!p.balanceResources)
+        {
+            for (int k = 0; k < facTypes.Length; k++)
+            {
+                int total2 = facCounts[k] * hqPos.Count, placed2 = 0, guard = 0;
+                while (placed2 < total2 && guard++ < 500)
+                {
+                    int x = rng.RandiRange(0, w - 1), y = rng.RandiRange(0, h - 1);
+                    if (terrain[y * w + x] != gGround) continue;
+                    bool clash2 = false;
+                    foreach (var fd in facilities) { var xf = fd.GetType().GetField("gridX"); var yf = fd.GetType().GetField("gridY"); if (xf != null && yf != null && (int)xf.GetValue(fd) == x && (int)yf.GetValue(fd) == y) { clash2 = true; break; } }
+                    if (clash2) continue;
+                    var fd3 = new SavedFacilityData { typeName = facTypes[k], team = "Player0", displayName = facTypes[k] };
+                    SetPos(fd3, x, y, w);
+                    facilities.Add(fd3);
+                    placed2++;
                 }
             }
         }
@@ -160,6 +208,13 @@ public static class MapGenerator
                 while (x != hqPos[f].X) { terrain[y * w + x] = gRoad; x += Math.Sign(hqPos[f].X - x); }
                 while (y != hqPos[f].Y) { terrain[y * w + x] = gRoad; y += Math.Sign(hqPos[f].Y - y); }
                 GD.Print($"[MapGen] HQ{f + 1}孤岛→已强制开路");
+            // ✅ 兑现配置:重生——整图重roll(注意递归深度由maxRegenAttempts钳制)
+            if (p.validateReachability && p.maxRegenAttempts > 0)
+            {
+                var regenProfile = p; regenProfile.maxRegenAttempts = p.maxRegenAttempts - 1;
+                GD.Print($"[MapGen] 校验失败,重生成(余{regenProfile.maxRegenAttempts}次)");
+                return Generate(regenProfile, slotName);
+            }
             }
         }
 
