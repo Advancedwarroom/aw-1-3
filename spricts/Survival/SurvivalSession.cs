@@ -611,26 +611,43 @@ public partial class SurvivalSession : Node
     public void SaveRun()
     {
         if (!Active || Campaign == null) return;
+        var c = Campaign;
         var dict = new Godot.Collections.Dictionary
         {
-            ["campaignName"] = Campaign.campaignName,
-            ["stageSlots"] = new Godot.Collections.Array<int>(Campaign.stageSlots),
-            ["limitType"] = Campaign.limitType,
-            ["budget"] = Campaign.budget,
-            ["fundsCarry"] = Campaign.fundsCarry,
-            ["coEnergyResetPerStage"] = Campaign.coEnergyResetPerStage,
-            ["playerTeam"] = Campaign.playerTeam,
-            ["endlessMode"] = Campaign.endlessMode,
-            ["endlessPoolSlots"] = new Godot.Collections.Array<int>(Campaign.endlessPoolSlots),
-            ["randomDraw"] = Campaign.randomDraw,
-            ["budgetShrinkPercentPerStage"] = Campaign.budgetShrinkPercentPerStage,
+            ["campaignName"] = c.campaignName,
+            ["stageSlots"] = new Godot.Collections.Array<int>(c.stageSlots),
+            ["stageMapPaths"] = new Godot.Collections.Array<string>(c.stageMapPaths),
+            ["limitType"] = c.limitType,
+            ["unitCapRefillPerStage"] = c.unitCapRefillPerStage,
+            ["carryUnitsBetweenStages"] = c.carryUnitsBetweenStages,
+            ["carryFundsBetweenStages"] = c.carryFundsBetweenStages,
+            ["neutralizePresetFacilities"] = c.neutralizePresetFacilities,
+            ["removePresetUnits"] = c.removePresetUnits,
+            ["carryDeployRadius"] = c.carryDeployRadius,
+            ["budget"] = c.budget,
+            ["fundsCarry"] = c.fundsCarry,
+            ["coEnergyResetPerStage"] = c.coEnergyResetPerStage,
+            ["playerTeam"] = c.playerTeam,
+            ["saveFileName"] = c.saveFileName,
+            ["moraleEnabled"] = c.moraleEnabled,
+            ["moraleMax"] = c.moraleMax,
+            ["eliteStageIndices"] = new Godot.Collections.Array<int>(c.eliteStageIndices),
+            ["stageTree"] = c.stageTree ?? "",
+            ["aiFundsMultiplier"] = c.aiFundsMultiplier,
+            ["aiFundsMultiplierPerStage"] = c.aiFundsMultiplierPerStage,
+            ["talentDraftEnabled"] = c.talentDraftEnabled,
+            ["coIds"] = new Godot.Collections.Array<string>(c.coIds),
+            ["endlessMode"] = c.endlessMode,
+            ["endlessPoolSlots"] = new Godot.Collections.Array<int>(c.endlessPoolSlots),
+            ["endlessPoolPaths"] = new Godot.Collections.Array<string>(c.endlessPoolPaths),
+            ["randomDraw"] = c.randomDraw,
+            ["budgetShrinkPercentPerStage"] = c.budgetShrinkPercentPerStage,
             ["stageIndex"] = StageIndex,
             ["remainingBudget"] = RemainingBudget,
-            ["morale"] = MoraleRemaining,
-            ["depth"] = Depth,
         };
         using var f = FileAccess.Open(SavePath, FileAccess.ModeFlags.Write);
-        if (f != null) { f.StoreString(Json.Stringify(dict)); GD.Print($"[Survival] 已存档 第{StageIndex + 1}关 余量{RemainingBudget}"); }
+        if (f != null) { f.StoreString(Json.Stringify(dict)); GD.Print($"[Survival] 已存档(全量29字段) 第{StageIndex + 1}关 余量{RemainingBudget}"); }
+        if (c.endlessGenPool.Length > 0) GD.PushWarning("[Survival] 存档提示:endlessGenPool(生成池)为Resource引用,未序列化——读档后生成池将清空");
     }
 
     // ✅ 继续按钮/外部调用：读档→恢复会话→装载该关地图
@@ -645,53 +662,39 @@ public partial class SurvivalSession : Node
         {
             campaignName = parsed["campaignName"].AsString(),
             stageSlots = parsed["stageSlots"].AsInt32Array(),
+            stageMapPaths = parsed.ContainsKey("stageMapPaths") ? parsed["stageMapPaths"].AsStringArray() : new string[0],
             limitType = parsed["limitType"].AsInt32(),
+            unitCapRefillPerStage = parsed.ContainsKey("unitCapRefillPerStage") ? parsed["unitCapRefillPerStage"].AsInt32() : 0,
+            carryUnitsBetweenStages = parsed.ContainsKey("carryUnitsBetweenStages") && parsed["carryUnitsBetweenStages"].AsBool(),
+            carryFundsBetweenStages = parsed.ContainsKey("carryFundsBetweenStages") && parsed["carryFundsBetweenStages"].AsBool(),
+            neutralizePresetFacilities = parsed.ContainsKey("neutralizePresetFacilities") && parsed["neutralizePresetFacilities"].AsBool(),
+            removePresetUnits = parsed.ContainsKey("removePresetUnits") && parsed["removePresetUnits"].AsBool(),
+            carryDeployRadius = parsed.ContainsKey("carryDeployRadius") ? parsed["carryDeployRadius"].AsInt32() : 0,
             budget = parsed["budget"].AsDouble(),
             fundsCarry = parsed["fundsCarry"].AsBool(),
             coEnergyResetPerStage = parsed["coEnergyResetPerStage"].AsBool(),
             playerTeam = parsed["playerTeam"].AsString(),
-            endlessMode = parsed["endlessPoolSlots"].AsInt32Array().Length > 0 && parsed["endlessMode"].AsBool(),
-            endlessPoolSlots = parsed["endlessPoolSlots"].AsInt32Array(),
-            randomDraw = parsed["randomDraw"].AsBool(),
-            budgetShrinkPercentPerStage = parsed["budgetShrinkPercentPerStage"].AsDouble(),
+            saveFileName = parsed.ContainsKey("saveFileName") ? parsed["saveFileName"].AsString() : "survival_save",
+            moraleEnabled = parsed.ContainsKey("moraleEnabled") && parsed["moraleEnabled"].AsBool(),
+            moraleMax = parsed.ContainsKey("moraleMax") ? parsed["moraleMax"].AsInt32() : 3,
+            eliteStageIndices = parsed.ContainsKey("eliteStageIndices") ? parsed["eliteStageIndices"].AsInt32Array() : new int[0],
+            stageTree = parsed.ContainsKey("stageTree") ? parsed["stageTree"].AsString() : "",
+            aiFundsMultiplier = parsed.ContainsKey("aiFundsMultiplier") ? parsed["aiFundsMultiplier"].AsDouble() : 1.0,
+            aiFundsMultiplierPerStage = parsed.ContainsKey("aiFundsMultiplierPerStage") ? parsed["aiFundsMultiplierPerStage"].AsDouble() : 0.0,
+            talentDraftEnabled = parsed.ContainsKey("talentDraftEnabled") && parsed["talentDraftEnabled"].AsBool(),
+            coIds = parsed.ContainsKey("coIds") ? parsed["coIds"].AsStringArray() : new string[0],
+            endlessMode = parsed.ContainsKey("endlessMode") && parsed["endlessMode"].AsBool(),
+            endlessPoolSlots = parsed.ContainsKey("endlessPoolSlots") ? parsed["endlessPoolSlots"].AsInt32Array() : new int[0],
+            endlessPoolPaths = parsed.ContainsKey("endlessPoolPaths") ? parsed["endlessPoolPaths"].AsStringArray() : new string[0],
+            randomDraw = parsed.ContainsKey("randomDraw") && parsed["randomDraw"].AsBool(),
+            budgetShrinkPercentPerStage = parsed.ContainsKey("budgetShrinkPercentPerStage") ? parsed["budgetShrinkPercentPerStage"].AsDouble() : 0.0,
         };
         BeginCampaign(c);
         StageIndex = parsed["stageIndex"].AsInt32();
         RemainingBudget = parsed["remainingBudget"].AsDouble();
-        MoraleRemaining = parsed.ContainsKey("morale") ? parsed["morale"].AsInt32() : (Campaign.moraleEnabled ? Campaign.moraleMax : 0);
-        Depth = parsed.ContainsKey("depth") ? parsed["depth"].AsInt32() : 0;
-        var __tr4 = GetTree()?.Root?.FindChild("TalentRuntime", true, false) as TalentRuntime;
-        if (Campaign.talentDraftEnabled) __tr4?.LoadRun();
-        GD.Print($"[Survival] 读档恢复 第{StageIndex + 1}关 余量{RemainingBudget}");
+        GD.Print($"[Survival] 读档恢复(全量) 第{StageIndex + 1}关 余量{RemainingBudget}");
         UpdateHud();
         CallDeferred(nameof(DeferredStageLoad));
     }
 
-    private void DeleteSave() { if (FileAccess.FileExists(SavePath)) DirAccess.RemoveAbsolute(SavePath); }
-
-    private void EnsureHud()
-    {
-        if (_hud != null && IsInstanceValid(_hud)) return;
-        var vp = GetViewport(); if (vp == null) return;
-        _hud = new RichTextLabel { Position = new Vector2(8, 8), Size = new Vector2(360, 46), BbcodeEnabled = true };
-        vp.AddChild(_hud);
-        _saveBtn = new Button { Text = TranslateGroup.T("生存·存档"), Position = new Vector2(8, 58), Size = new Vector2(100, 30) };
-        _saveBtn.Pressed += SaveRun;
-        vp.AddChild(_saveBtn);
-        _continueBtn = new Button { Text = TranslateGroup.T("生存·继续"), Position = new Vector2(114, 58), Size = new Vector2(100, 30) };
-        _continueBtn.Pressed += LoadRun;
-        vp.AddChild(_continueBtn);
-    }
-
-    private void UpdateHud()
-    {
-        if (_hud == null || !IsInstanceValid(_hud)) return;
-        if (_saveBtn != null && IsInstanceValid(_saveBtn)) _saveBtn.Visible = Active;
-        if (_continueBtn != null && IsInstanceValid(_continueBtn)) _continueBtn.Visible = !Active && HasSavedRun();
-        if (!Active) { if (Campaign != null) _hud.Text = $"[Survival] 结束：通过{StagesCleared}关 余量{RemainingBudget}"; return; }
-        string unit = Campaign.limitType == 0 ? "G" : Campaign.limitType == 1 ? "回合" : Campaign.limitType == 3 ? "名额" : "秒";
-        int total = Campaign.endlessMode ? -1 : Campaign.stageSlots.Length;
-        string prog = total > 0 ? $"{StageIndex + 1}/{total}" : $"第{StageIndex + 1}层";
-        _hud.Text = $"[Survival] {Campaign.campaignName} {prog}  预算:{RemainingBudget}{unit}" + $"  第{Depth + 1}层" + (Campaign.moraleEnabled ? $"  军心:{MoraleRemaining}" : "");
-    }
-}
+    
