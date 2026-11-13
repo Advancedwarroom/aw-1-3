@@ -25,6 +25,9 @@ public partial class SurvivalCampaign : Resource
     [Export] public bool moraleEnabled = false;            // ✅ 军心系:败一关扣1点命,归零终局(与预算制并存)
     [Export] public int moraleMax = 3;
     [Export] public int[] eliteStageIndices = new int[0];    // 精英关(主线索引):输掉无视军心直接终局
+
+    [ExportGroup("树状选关")]
+    [Export] public string stageTree = "";   // ✅ 分支图DSL(开创人2026-11-14):"0>1,2\n1>2\n2>"=0胜后可选1/2,2终点;留空=线性序列
     [Export] public string[] coIds = new string[0];           // 战役锁定CO：coIds[0]=主CO，其余=搭档（空=沿用各关地图默认）
 
     [ExportGroup("无尽/肉鸽")]
