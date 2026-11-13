@@ -19,6 +19,7 @@ public partial class SurvivalCampaign : Resource
     [Export] public bool endlessMode = false;                 // 主序列打完后从池中无限抽关
     [Export] public int[] endlessPoolSlots = new int[0];      // 无尽池：存档槽索引
     [Export] public string[] endlessPoolPaths = new string[0]; // ✅ 无尽池路径轨
+    [Export] public MapGenProfile[] endlessGenPool = new MapGenProfile[0]; // ✅ 缺口B:无尽生成池——抽中即现场生成一张新图(真无限)
     [Export] public bool randomDraw = true;                   // true=随机抽；false=顺序循环
     [Export] public double budgetShrinkPercentPerStage = 0;   // 每深入一层预算缩减%(0-100)，压迫感来源
 }
