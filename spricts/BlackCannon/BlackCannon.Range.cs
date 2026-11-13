@@ -194,13 +194,7 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
         var facility = targetGrid?.city;
         if (facility == null || !IsInstanceValid(facility) || !facility.CanBeAttackedFrom(grid)) return false;
         if (team == TeamHelper.Player0) return true;
-        return targetSelectionMode switch
-        {
-            TargetSelectionMode.AllSelect => true,
-            TargetSelectionMode.OnlyEnemyUnits => facility.facilityTeam != team,
-            TargetSelectionMode.OnlyUserUnits => facility.facilityTeam == team,
-            _ => false
-        };
+        return PassesCannonTeamFilter(facility.facilityTeam);
     }
 
     public bool HasValidTargetInGrid(Grids targetGrid)
@@ -327,6 +321,9 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
                 break;
         }
 
+        // ✅ 开创人2026-11-14 三军勾选叠加层（勾选了才生效）
+        if (cannonCanTargetEnemies || cannonCanTargetFriendlies || cannonCanTargetAllies)
+            targets = targets.Where(t => { var tt = TeamOfNode(t); return tt == null || PassesCannonTeamFilter(tt); }).ToList();
         return targets;
     }
 
@@ -341,4 +338,28 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
         int ty = (int)((targetPos.Y - gm.gridManager.startPos.Y) / gm.gridManager.gridSize.Y);
         return Mathf.Abs(grid.GridIndex.X - tx) + Mathf.Abs(grid.GridIndex.Y - ty);
     }
+
+    // ✅ 开创人2026-11-14 三军勾选：任一勾选生效按敌/友/盟过滤（设施/单位/兵器共用），全false回退targetSelectionMode旧枚举
+    private bool PassesCannonTeamFilter(string targetTeam)
+    {
+        if (cannonCanTargetEnemies || cannonCanTargetFriendlies || cannonCanTargetAllies)
+        {
+            var rel = TeamHelper.GetTeamRelation(team, targetTeam);
+            return rel switch
+            {
+                TeamHelper.TeamRelation.Enemy => cannonCanTargetEnemies,
+                TeamHelper.TeamRelation.Friendly => cannonCanTargetFriendlies,
+                _ => cannonCanTargetAllies,
+            };
+        }
+        return targetSelectionMode switch
+        {
+            TargetSelectionMode.OnlyEnemyUnits => targetTeam != team,
+            TargetSelectionMode.OnlyUserUnits => targetTeam == team,
+            _ => true,
+        };
+    }
+
+    private static string TeamOfNode(Node2D n) => n is Infantry ii ? ii.team : (n as Weapon)?.team;
+
 }
