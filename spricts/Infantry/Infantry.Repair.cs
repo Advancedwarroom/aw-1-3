@@ -22,6 +22,9 @@ public partial class Infantry
     [Export] public int repairAmountPerAction = 1;                   // 每次修复多少血量（可为负=扣血，可为0）
     [Export] public bool isAreaRepair = false;                       // 能否群体修复
     [Export] public int repairTargetMode = 1;                        // 0=所有 1=仅友方 2=仅敌方
+    [Export] public bool repairCanTargetEnemies = false;               // ✅ 开创人2026-11-14 三军勾选（敌/友/盟独立勾选），全false回退旧枚举，存量行为零变化
+    [Export] public bool repairCanTargetFriendlies = false;            // 友军=同势力
+    [Export] public bool repairCanTargetAllies = false;                // 盟军=盟约势力
     [Export] public bool autoRepairOnTurnStart = false;              // 每回合自动修复（不占用操作）
     [Export] public bool autoRepairAfterMove = false;                // 移动后自动修复（不占用操作）
     [Export] public bool autoSupplyOnTurnStart = false;              // 每回合自动补给（不占用操作）
@@ -50,13 +53,27 @@ public partial class Infantry
     public bool IsRepairTargetAllowed(Infantry unit)
     {
         if (unit == null || !IsInstanceValid(unit) || unit.isTransported) return false;
-        bool isAlly = unit.team == team;
-        switch (repairTargetMode)
+        // ✅ 开创人2026-11-14 三军勾选优先，全false回退旧枚举
+        if (repairCanTargetEnemies || repairCanTargetFriendlies || repairCanTargetAllies)
         {
-            case 1: if (!isAlly || unit == this) return false; break;
-            case 2: if (isAlly) return false; break;
-            case 3: if (unit != this) return false; break;
-            default: if (unit == this) return false; break;
+            var rel = TeamHelper.GetTeamRelation(team, unit.team);
+            bool ok = rel switch
+            {
+                TeamHelper.TeamRelation.Enemy => repairCanTargetEnemies,
+                TeamHelper.TeamRelation.Friendly => repairCanTargetFriendlies,
+                _ => repairCanTargetAllies,
+            };
+            if (!ok) return false;
+        }
+        else
+        {
+            bool isAlly = unit.team == team;
+            switch (repairTargetMode)
+            {
+                case 1: if (!isAlly) return false; break;
+                case 2: if (isAlly) return false; break;
+                case 3: if (unit != this) return false; break;
+            }
         }
         // 加血模式：满血（且不能超上限）无意义
         if (repairAmountPerAction > 0 && !canExceedMaxHealth && unit.health >= unit.maxHealth) return false;
