@@ -187,6 +187,7 @@ public partial class SurvivalSession : Node
         }
         else { GD.PushWarning("[Survival] 该关既无槽位也无路径"); return; }
         GD.Print($"[Survival] 第{StageIndex + 1}关装载 slot={slot} → {(ok ? "成功" : "失败")}");
+        if (ok) RestoreCarriedStates(gm, gridMgr);
         if (ok && Campaign.coEnergyResetPerStage) CoModuleSystem.ResetAllCharges();   // ✅ 开创人2026-11-14 CO能量跨关重置
         if (ok)
         {
@@ -271,8 +272,15 @@ public partial class SurvivalSession : Node
                 var su = new SavedUnitData { typeName = u.UnitTypeId, team = Campaign.playerTeam };
                 if (su.fieldValues != null)
                 {
-                    su.fieldValues["health"] = System.Convert.ToString(RefGet(u, "health") ?? "10");
-                    su.fieldValues["fuel"] = System.Convert.ToString(RefGet(u, "fuel") ?? "99");
+                    // ✅ 开创人2026-11-14 满状态过继:全部原生Export字段打包(血量/燃料/全弹药/字段型多回合效果)
+                    foreach (var f in u.GetType().GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+                    {
+                        var ft = f.FieldType;
+                        bool prim = ft.IsPrimitive || ft == typeof(string);
+                        if (!prim) continue;                       // Node/资源引用不可序列化,跳过
+                        if (f.Name == "team" || f.Name == "UnitTypeId") continue;   // 结构性字段已有
+                        try { su.fieldValues["__carry_" + f.Name] = System.Convert.ToString(f.GetValue(u), System.Globalization.CultureInfo.InvariantCulture); } catch { }
+                    }
                 }
                 SetCarryPos(u, su);
                 _carriedUnits.Add(su);
@@ -323,6 +331,33 @@ public partial class SurvivalSession : Node
         if (Campaign.carryFundsBetweenStages && _carriedFunds > 0 && d.teamFunds != null)
             d.teamFunds.GetType().GetMethod("set_Item")?.Invoke(d.teamFunds,
                 new object[] { Campaign.playerTeam, System.Convert.ChangeType(_carriedFunds, d.teamFunds.GetType().GetGenericArguments()[1]) });
+    }
+
+    // ✅ 开创人2026-11-14 满状态过继:装载后按(类型+队伍+坐标)找回携带单位,反射回灌全部__carry_字段
+    private void RestoreCarriedStates(GameManager gm, GridManager gridMgr)
+    {
+        if (!_hasCarry || _carriedUnits.Count == 0 || gridMgr?.grids == null) return;
+        foreach (var su in _carriedUnits)
+        {
+            int x = System.Convert.ToInt32(RefGet(su, "gridX") ?? RefGet(su, "posX") ?? -1);
+            int y = System.Convert.ToInt32(RefGet(su, "gridY") ?? RefGet(su, "posY") ?? -1);
+            if (x < 0 || y < 0 || y * gridMgr.width + x >= gridMgr.grids.Count) continue;
+            var cell = gridMgr.grids[y * gridMgr.width + x];
+            Infantry target = null;
+            if (cell?.infantries != null)
+                foreach (var c in cell.infantryListSnapshot())
+                    if (c != null && GodotObject.IsInstanceValid(c) && c.UnitTypeId == su.typeName && c.team == Campaign.playerTeam) { target = c; break; }
+            if (target == null) continue;
+            if (su.fieldValues == null) continue;
+            foreach (var kv in su.fieldValues)
+            {
+                if (!kv.Key.StartsWith("__carry_")) continue;
+                var f = target.GetType().GetField(kv.Key.Substring(8));
+                if (f == null) continue;
+                try { f.SetValue(target, System.Convert.ChangeType(kv.Value, f.FieldType, System.Globalization.CultureInfo.InvariantCulture)); } catch { }
+            }
+        }
+        GD.Print($"[Survival] 满状态过继恢复:{_carriedUnits.Count}单位字段回灌完成");
     }
 
     private int _hqSrcX, _hqSrcY;
