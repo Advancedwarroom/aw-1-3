@@ -12,6 +12,7 @@ public partial class SurvivalCampaign : Resource
     [Export] public bool fundsCarry = true;
     [Export] public bool coEnergyResetPerStage = true;        // 待接：每关CO能量重置
     [Export] public string playerTeam = "Player1";
+    [Export] public string[] coIds = new string[0];           // 战役锁定CO：coIds[0]=主CO，其余=搭档（空=沿用各关地图默认）
 
     [ExportGroup("无尽/肉鸽")]
     [Export] public bool endlessMode = false;                 // 主序列打完后从池中无限抽关
