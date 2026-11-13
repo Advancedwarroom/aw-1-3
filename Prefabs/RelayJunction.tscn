@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://spricts/RelayJunction.cs" id="1_relay"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/RelayJunction.tres" id="2_relay"]
+
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/RelayJunction_base.tres" id="99_cbase"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/RelayJunction_overlay.tres" id="99_cover"]
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_relay"]
@@ -20,7 +21,6 @@ position = Vector2(16.5, 16.5)
 shape = SubResource("RectangleShape2D_relay")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=151300501]
-visible = false
 position = Vector2(16, 16)
 texture_filter = 1
 sprite_frames = ExtResource("2_relay")
