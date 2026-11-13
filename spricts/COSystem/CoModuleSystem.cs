@@ -779,13 +779,14 @@ public static class CoModuleSystem
     public static void SetAlliance(string a, string b, bool allied) => TeamHelper.SetAlliance(a, b, allied);
 
     /// <summary>模块6（多次移动加成）：单位+兵器+设施+地形四层操作刷新（Tag Power / 切换CO用）</summary>
-    public static void GrantTeamExtraTurn(string team)
+    public static void GrantTeamExtraTurn(string team, Godot.Collections.Array<string> unitWhitelist = null)   // ✅ 开创人2026-11-14 闪电再临式白名单(UnitTypeId,空/空表=全军不变)
     {
         var tree = (Engine.GetMainLoop() as SceneTree);
         if (tree == null) return;
         foreach (var n in tree.GetNodesInGroup("infantry"))
         {
             if (n is not Infantry i || i.team != team) continue;
+            if (unitWhitelist != null && unitWhitelist.Count > 0 && !unitWhitelist.Contains(i.UnitTypeId)) continue;
             i.hasActed = false;
             i.isMoved = false;
             i.isAttacked = false;
