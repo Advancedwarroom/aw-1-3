@@ -20,6 +20,11 @@ public partial class SurvivalCampaign : Resource
     [Export] public bool fundsCarry = true;
     [Export] public bool coEnergyResetPerStage = true;        // 待接：每关CO能量重置
     [Export] public string playerTeam = "Player1";
+
+    [ExportGroup("军心(命数制)")]
+    [Export] public bool moraleEnabled = false;            // ✅ 军心系:败一关扣1点命,归零终局(与预算制并存)
+    [Export] public int moraleMax = 3;
+    [Export] public int[] eliteStageIndices = new int[0];    // 精英关(主线索引):输掉无视军心直接终局
     [Export] public string[] coIds = new string[0];           // 战役锁定CO：coIds[0]=主CO，其余=搭档（空=沿用各关地图默认）
 
     [ExportGroup("无尽/肉鸽")]
