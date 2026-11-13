@@ -17,6 +17,9 @@ public partial class Infantry
     [Export] public int explosionFixedValue = 5;                 // 固定伤害值（可为负=加血）
     [Export] public float explosionPercentValue = 0.5f;          // 百分比伤害（0.5=50%）
     [Export] public int explosionTargetMode = 0;                  // 0=所有 1=仅敌方 2=仅友方
+    [Export] public bool explosionCanTargetEnemies = false;            // ✅ 开创人2026-11-14 三军勾选（敌/友/盟独立勾选），全false回退旧枚举，存量行为零变化
+    [Export] public bool explosionCanTargetFriendlies = false;         // 友军=同势力
+    [Export] public bool explosionCanTargetAllies = false;             // 盟军=盟约势力
     [Export] public bool explosionDestroysSelf = true;           // 自爆是否摧毁自身
     [Export] public bool explosionSelfDamageEnabled = true;      // 自爆是否对自身造成伤害（内伤开关）
     [Export] public bool explosionCanKill = false;               // 是否能击杀其他单位（否则最低留1HP）
