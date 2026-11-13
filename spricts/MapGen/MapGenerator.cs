@@ -77,7 +77,20 @@ public static class MapGenerator
                 foreach (var q in hqPos) if (Mathf.Abs(q.X - x) + Mathf.Abs(q.Y - y) < p.minStartDistance) { ok = false; break; }
                 if (ok) { best = new Vector2I(x, y); break; }
             }
-            if (best.X < 0) best = new Vector2I(rng.RandiRange(0, w - 1), rng.RandiRange(0, h - 1)); // 拒采到头,硬放并清场
+            if (best.X < 0)
+            {
+                // ✅ 修复(审查MapGen):拒采到头改取"最远距离点"而非纯随机——极端配置防HQ重叠
+                int bx = 0, by = 0, bd = -1;
+                for (int t = 0; t < 60; t++)
+                {
+                    int x = rng.RandiRange(0, w - 1), y = rng.RandiRange(0, h - 1);
+                    int dmin = 9999;
+                    foreach (var q in hqPos) dmin = Mathf.Min(dmin, Mathf.Abs(q.X - x) + Mathf.Abs(q.Y - y));
+                    if (dmin > bd) { bd = dmin; bx = x; by = y; }
+                }
+                best = new Vector2I(bx, by);
+                GD.PushWarning($"[MapGen] HQ{f}拒采耗尽,取全场最远距离位(间距{bd})");
+            }
             terrain[best.Y * w + best.X] = gGround;
             hqPos.Add(best);
         }
@@ -156,7 +169,7 @@ public static class MapGenerator
             slotName = slotName,
             displayName = $"生成图 seed={seed}",
             width = w, height = h,
-            screenCount = Mathf.Max(1, p.screenCount),
+            screenCount = Mathf.Clamp(p.screenCount, 1, w),   // ✅ 修复(审查MapGen):分屏数不超过图宽,防0宽分屏
             screenWidths = new List<int>(), screenHeights = new List<int>(), screenYOffsets = new List<int>(),
         };
         int per = w / data.screenCount;
