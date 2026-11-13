@@ -7,6 +7,7 @@ public partial class SurvivalCampaign : Resource
     [ExportGroup("生存战役")]
     [Export] public string campaignName = "生存战役";
     [Export] public int[] stageSlots = new int[0];            // 关卡序列：存档槽索引（ExtraSave槽）
+    [Export] public string[] stageMapPaths = new string[0]; // ✅ 缺口A(开创人2026-11-14):路径轨——res://Maps/xx.txt,槽位越界时兜底,战役可分发
     [Export] public int limitType = 0;                        // 0=总资金 1=总回合数 2=总时间(秒)
     [Export] public double budget = 0;                        // 总预算：资金(G)/大回合数/秒数；0=不限
     [Export] public bool fundsCarry = true;
@@ -17,6 +18,7 @@ public partial class SurvivalCampaign : Resource
     [ExportGroup("无尽/肉鸽")]
     [Export] public bool endlessMode = false;                 // 主序列打完后从池中无限抽关
     [Export] public int[] endlessPoolSlots = new int[0];      // 无尽池：存档槽索引
+    [Export] public string[] endlessPoolPaths = new string[0]; // ✅ 无尽池路径轨
     [Export] public bool randomDraw = true;                   // true=随机抽；false=顺序循环
     [Export] public double budgetShrinkPercentPerStage = 0;   // 每深入一层预算缩减%(0-100)，压迫感来源
 }
