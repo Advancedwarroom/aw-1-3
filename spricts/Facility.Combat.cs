@@ -63,6 +63,7 @@ public partial class Facility
   if (health<=0)
   {
    isDestroyed=true;
+            CampaignSettlement.Instance?.RecordKill(campaignScoreValue, campaignCrystalValue, lastAttackerTeam);   // ✅ 开创人2026-11-14 战役摧毁账
    if (changeTerrainToRuinsOnDestroyed && ParentGrid!=null && IsInstanceValid(ParentGrid))
    {
     ParentGrid.gridType=GridType.RUINS;
