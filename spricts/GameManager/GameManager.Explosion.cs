@@ -37,14 +37,8 @@ public partial class GameManager
             int dist = Mathf.Abs(uGridPos.X - gridPos.X) + Mathf.Abs(uGridPos.Y - gridPos.Y);
             if (dist >= minR && dist <= maxR && gridManager.IsRangeAllowed(sourceGrid, u.grid ?? gridManager.GetGridAt(uGridPos), unit.explosionCanCrossScreens))
             {
-                // 目标筛选
-                bool isEnemy = u.team != unit.team;
-                bool include = unit.explosionTargetMode switch
-                {
-                    1 => isEnemy,   // 仅敌
-                    2 => !isEnemy,  // 仅友
-                    _ => true        // 所有
-                };
+                // 目标筛选（✅开创人2026-11-14 三军勾选裁决器）
+                bool include = PassesExplosionTeamFilter(unit, u.team);
                 if (include) affected.Add(u);
             }
         }
@@ -67,14 +61,8 @@ public partial class GameManager
                 if (dist < minR || dist > maxR) continue;
                 if (!gridManager.IsRangeAllowed(sourceGrid, w.grid, unit.explosionCanCrossScreens)) continue;
 
-                // 目标筛选（兵器也有 team）
-                bool isEnemy = w.team != unit.team;
-                bool include = unit.explosionTargetMode switch
-                {
-                    1 => isEnemy,   // 仅敌
-                    2 => !isEnemy,  // 仅友
-                    _ => true        // 所有
-                };
+                // 目标筛选（兵器也有 team；✅开创人2026-11-14 三军勾选裁决器）
+                bool include = PassesExplosionTeamFilter(unit, w.team);
                 if (!include) continue;
 
                 int damage = CalculateExplosionDamage(unit, w);
@@ -246,4 +234,27 @@ public partial class GameManager
             }
         }
     }
+
+    // ✅ 开创人2026-11-14 三军勾选统一裁决器：任一勾选生效按敌/友/盟过滤，全false回退explosionTargetMode旧枚举
+    private static bool PassesExplosionTeamFilter(Infantry source, string targetTeam)
+    {
+        if (source.explosionCanTargetEnemies || source.explosionCanTargetFriendlies || source.explosionCanTargetAllies)
+        {
+            var rel = TeamHelper.GetTeamRelation(source.team, targetTeam);
+            return rel switch
+            {
+                TeamHelper.TeamRelation.Enemy => source.explosionCanTargetEnemies,
+                TeamHelper.TeamRelation.Friendly => source.explosionCanTargetFriendlies,
+                _ => source.explosionCanTargetAllies,
+            };
+        }
+        bool isEnemy = targetTeam != source.team;
+        return source.explosionTargetMode switch
+        {
+            1 => isEnemy,
+            2 => !isEnemy,
+            _ => true,
+        };
+    }
+
 }
