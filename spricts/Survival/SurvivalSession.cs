@@ -658,7 +658,7 @@ public partial class SurvivalSession : Node
         CallDeferred(nameof(DeferredStageLoad));
     }
 
-    private static void DeleteSave() { if (FileAccess.FileExists(SavePath)) DirAccess.RemoveAbsolute(SavePath); }
+    private void DeleteSave() { if (FileAccess.FileExists(SavePath)) DirAccess.RemoveAbsolute(SavePath); }
 
     private void EnsureHud()
     {
