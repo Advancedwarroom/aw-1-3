@@ -49,9 +49,27 @@ func _show_memorial() -> void:
     _panel.visible = true
 
 func _show_survival() -> void:
+    _ensure_survival_start_btn()
     _info.text = "[b]肉鸽模式 · 生存战役[/b]\n\n规则：一串关卡一条命,三选一全局预算（资金/回合/时间）,打完主线进无尽池,预算逐层缩减,战败即结算层数。\n\n[i]开局前在自动加载注册 SurvivalSession,\n并用控制台配置战役（stageSlots 指存档槽）。\n示例:\nSurvivalSession.Instance.BeginCampaign(c)[/i]"
     _panel.visible = true
 
 func _show_placeholder(title: String) -> void:
     _info.text = "[b]%s[/b]\n\n[i]建设中。骨架已立,魂在排队。[/i]" % title
     _panel.visible = true
+
+# ✅ 开创人2026-11-14 接缝④: 肉鸽模式"直接开局"按钮(双槽演示战役)
+func _ensure_survival_start_btn() -> void:
+    var old = _panel.find_child("SurvivalQuickStart", true, false)
+    if old: old.queue_free()
+    var s = get_tree().root.find_child("SurvivalSession", true, false)
+    if s == null or not s.has_method("BeginQuickDemo"):
+        return
+    var b := Button.new()
+    b.name = "SurvivalQuickStart"
+    b.text = "⚔ 直接开局（双槽演示 · 30回合命）"
+    b.position = Vector2(20, 216)
+    b.size = Vector2(280, 36)
+    b.pressed.connect(func():
+        s.BeginQuickDemo()
+        _panel.visible = false)
+    _panel.add_child(b)
