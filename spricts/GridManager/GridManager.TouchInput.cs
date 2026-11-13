@@ -16,7 +16,6 @@ public partial class GridManager
 
     // ✅ 单位交互激活态：移动范围显示/画轨迹期间，相机须让位
     public bool IsMoveRangeActive => moveRange != null && moveRange.Count > 0 && selectedUnit != null;
-    private int activeTouchCount = 0;
     private Grids touchHoverGrid = null;
 
     // ========== ✅ 移动端：手指划过显示移动轨迹（移动范围激活时接管触摸输入） ==========
@@ -30,13 +29,11 @@ public partial class GridManager
         {
             if (touch.Pressed)
             {
-                activeTouchCount++;
-                // ✅ 2026-11-14 丢释放自愈：安卓系统手势/切后台/弹窗抢焦点会吞掉 Released 事件，
-                //    计数器一旦卡住 ≥1，此后每根手指都被判成"第二根"（双指缩放分支），
-                //    单指画轨迹全局报废。按下时与系统真实触点数强制对齐，任何卡死下一按即解。
-                activeTouchCount = Mathf.Min(activeTouchCount, Mathf.Max(1, Input.GetOpenTouchCount()));
+                // ✅ 2026-11-14 多指判定改用系统 touch.Index（第一指恒为 0，系统回收复用）——
+                //    旧的 activeTouchCount 加减法会因安卓吞掉 Released 事件而卡死 ≥1，
+                //    此后每根手指都被误判"第二根"（双指缩放分支），单指画轨迹全局报废。Index 法无状态无卡死。
                 if (!moveRangeActive) { touchPathActive = false; return; }
-                if (activeTouchCount >= 2)
+                if (touch.Index > 0)
                 {
                     // 双指操作（缩放相机）：退出轨迹模式，交给相机控制器
                     touchPathActive = false;
@@ -52,7 +49,6 @@ public partial class GridManager
             }
             else
             {
-                activeTouchCount = Mathf.Max(0, activeTouchCount - 1);
                 if (!touchPathActive) return;
                 touchPathActive = false;
                 var target = touchHoverGrid;
@@ -136,9 +132,10 @@ public partial class GridManager
     private static bool IsInteractiveBlockingUI(Control c)
     {
         if (c.MouseFilter != Control.MouseFilterEnum.Stop) return false;
-        return c is BaseButton || c is Panel || c is Popup || c is PopupPanel || c is PopupMenu
-            || c is AcceptDialog || c is ConfirmationDialog
-            || c is LineEdit || c is TextEdit || c is CodeEdit
+        // 注意：PopupPanel/PopupMenu 均派生自 Popup；CodeEdit 派生自 TextEdit——只写基类避免警告。
+        // AcceptDialog/ConfirmationDialog 是独立 Window（不挂场景树），天然不在拾取范围。
+        return c is BaseButton || c is Panel || c is PanelContainer || c is Popup
+            || c is LineEdit || c is TextEdit
             || c is ItemList || c is Tree || c is TabContainer
             || c is ScrollContainer || c is SplitContainer
             || c is Slider || c is SpinBox || c is ColorPicker;
