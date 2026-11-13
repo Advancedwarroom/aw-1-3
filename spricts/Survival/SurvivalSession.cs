@@ -53,7 +53,7 @@ public partial class SurvivalSession : Node
         UpdateHud();
         if (Active)
         {
-            string unit0 = campaign.limitType == 0 ? "G" : campaign.limitType == 1 ? "回合" : "秒";
+            string unit0 = campaign.limitType == 0 ? "G" : campaign.limitType == 1 ? "回合" : campaign.limitType == 3 ? "名额" : "秒";
             ShowStageSplash($"「{campaign.campaignName}」", $"第1关 · 预算 {RemainingBudget}{unit0}", 2.6);
         }
         if (Active) GD.Print($"[Survival] 开局:{campaign.campaignName} 主线{campaign.stageSlots.Length}关" + (campaign.endlessMode ? $"+无尽池{campaign.endlessPoolSlots.Length}" : "") + $" 预算[{campaign.limitType}]={campaign.budget}");
@@ -67,12 +67,35 @@ public partial class SurvivalSession : Node
         EmitSignal(SignalName.BudgetChanged, RemainingBudget, 1);
         UpdateHud();
         if (RemainingBudget <= 0) EndRun(false, "回合耗尽");
+        CheckAttritionDefeat();
+    }
+
+    // ✅ 开创人2026-11-14 兵力枯竭判负:上限模式名额耗尽且场上无兵→战役终结
+    private void CheckAttritionDefeat()
+    {
+        if (!Active || Campaign == null || Campaign.limitType != 3 || RemainingBudget > 0) return;
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var units = gm?.unitManager?.AllUnits;
+        if (units == null) return;
+        int alive = 0;
+        foreach (var u in units)
+            if (u != null && GodotObject.IsInstanceValid(u) && u.team == Campaign.playerTeam) alive++;
+        if (alive == 0) EndRun(false, "兵力枯竭——名额耗尽,部队全灭");
     }
 
     // ✅ 钩子②：生产扣费闸门（资金限制）。返回false=拒绝生产。调用点待接生产线。
     public bool TrySpendProduction(int cost)
     {
-        if (!Active || Campaign == null || Campaign.limitType != 0) return true;
+        if (!Active || Campaign == null) return true;
+        if (Campaign.limitType == 3)   // ✅ 开创人2026-11-14 单位上限:一名额=一兵,死不起的紧箍咒
+        {
+            if (RemainingBudget < 1) { GD.Print("[Survival] 名额耗尽:兵力上限模式不可再生产"); return false; }
+            RemainingBudget -= 1;
+            EmitSignal(SignalName.BudgetChanged, RemainingBudget, 3);
+            UpdateHud();
+            return true;
+        }
+        if (Campaign.limitType != 0) return true;
         if (cost > RemainingBudget) { GD.Print($"[Survival] 生产被拒:{cost}G > 余量{RemainingBudget}G"); return false; }
         RemainingBudget -= cost;
         EmitSignal(SignalName.BudgetChanged, RemainingBudget, 0);
@@ -103,6 +126,11 @@ public partial class SurvivalSession : Node
         }
         EmitSignal(SignalName.StageChanged, StageIndex, total);
         UpdateHud();
+        if (Campaign.limitType == 3 && Campaign.unitCapRefillPerStage > 0)   // ✅ 软帽:每关回充名额
+        {
+            RemainingBudget = System.Math.Min(Campaign.budget, RemainingBudget + Campaign.unitCapRefillPerStage);
+            GD.Print($"[Survival] 名额回充+{Campaign.unitCapRefillPerStage} → {RemainingBudget}");
+        }
         ShowStageSplash($"第 {StageIndex} 关 · 通过！", $"即将进入 第 {StageIndex + 1} 关", 1.4);
         SaveRun();   // ✅ 每关自动存档=肉鸽检查点
         // ✅ 接缝①②焊合(开创人2026-11-14): 战役结算层入账 + 关卡解锁进度登记
@@ -159,7 +187,7 @@ public partial class SurvivalSession : Node
         if (ok && Campaign.coEnergyResetPerStage) CoModuleSystem.ResetAllCharges();   // ✅ 开创人2026-11-14 CO能量跨关重置
         if (ok)
         {
-            string unit = Campaign.limitType == 0 ? "G" : Campaign.limitType == 1 ? "回合" : "秒";
+            string unit = Campaign.limitType == 0 ? "G" : Campaign.limitType == 1 ? "回合" : Campaign.limitType == 3 ? "名额" : "秒";
             ShowStageSplash($"第 {StageIndex + 1} 关", $"剩余预算：{RemainingBudget}{unit}", 2.2);
         }
         EmitSignal(SignalName.BudgetChanged, RemainingBudget, Campaign.limitType);
@@ -333,7 +361,7 @@ public partial class SurvivalSession : Node
         if (_saveBtn != null && IsInstanceValid(_saveBtn)) _saveBtn.Visible = Active;
         if (_continueBtn != null && IsInstanceValid(_continueBtn)) _continueBtn.Visible = !Active && HasSavedRun();
         if (!Active) { if (Campaign != null) _hud.Text = $"[Survival] 结束：通过{StagesCleared}关 余量{RemainingBudget}"; return; }
-        string unit = Campaign.limitType == 0 ? "G" : Campaign.limitType == 1 ? "回合" : "秒";
+        string unit = Campaign.limitType == 0 ? "G" : Campaign.limitType == 1 ? "回合" : Campaign.limitType == 3 ? "名额" : "秒";
         int total = Campaign.endlessMode ? -1 : Campaign.stageSlots.Length;
         string prog = total > 0 ? $"{StageIndex + 1}/{total}" : $"第{StageIndex + 1}层";
         _hud.Text = $"[Survival] {Campaign.campaignName} {prog}  预算:{RemainingBudget}{unit}";
