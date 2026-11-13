@@ -51,6 +51,11 @@ public partial class SurvivalSession : Node
         EnsureHud();
         EmitSignal(SignalName.StageChanged, StageIndex, Campaign?.stageSlots.Length ?? 0);
         UpdateHud();
+        if (Active)
+        {
+            string unit0 = campaign.limitType == 0 ? "G" : campaign.limitType == 1 ? "回合" : "秒";
+            ShowStageSplash($"「{campaign.campaignName}」", $"第1关 · 预算 {RemainingBudget}{unit0}", 2.6);
+        }
         if (Active) GD.Print($"[Survival] 开局:{campaign.campaignName} 主线{campaign.stageSlots.Length}关" + (campaign.endlessMode ? $"+无尽池{campaign.endlessPoolSlots.Length}" : "") + $" 预算[{campaign.limitType}]={campaign.budget}");
     }
 
@@ -96,6 +101,7 @@ public partial class SurvivalSession : Node
         }
         EmitSignal(SignalName.StageChanged, StageIndex, total);
         UpdateHud();
+        ShowStageSplash($"第 {StageIndex} 关 · 通过！", $"即将进入 第 {StageIndex + 1} 关", 1.4);
         SaveRun();   // ✅ 每关自动存档=肉鸽检查点
         CallDeferred(nameof(DeferredStageLoad));
     }
@@ -119,6 +125,11 @@ public partial class SurvivalSession : Node
         bool ok = extraSave.LoadMapToGame(slot, gm, gridMgr, terrainEditor);
         GD.Print($"[Survival] 第{StageIndex + 1}关装载 slot={slot} → {(ok ? "成功" : "失败")}");
         if (ok && Campaign.coEnergyResetPerStage) CoModuleSystem.ResetAllCharges();   // ✅ 开创人2026-11-14 CO能量跨关重置
+        if (ok)
+        {
+            string unit = Campaign.limitType == 0 ? "G" : Campaign.limitType == 1 ? "回合" : "秒";
+            ShowStageSplash($"第 {StageIndex + 1} 关", $"剩余预算：{RemainingBudget}{unit}", 2.2);
+        }
         EmitSignal(SignalName.BudgetChanged, RemainingBudget, Campaign.limitType);
         UpdateHud();
     }
@@ -139,11 +150,54 @@ public partial class SurvivalSession : Node
         GD.Print($"[Survival] 战役结束 胜利={victory} 通过={StagesCleared}关 余量={RemainingBudget} ({reason})");
         EmitSignal(SignalName.SurvivalOver, victory, StagesCleared, RemainingBudget);
         UpdateHud();
+        ShowEndPanel(victory, StagesCleared, RemainingBudget, reason);
+    }
+
+    // ===== 过场仪式感 (开创人2026-11-14) =====
+    private void EnsureSplash()
+    {
+        if (_splashRoot != null && IsInstanceValid(_splashRoot)) return;
+        var vp = GetViewport(); if (vp == null) return;
+        var size = vp.GetVisibleRect().Size;
+        _splashRoot = new Control { Position = Vector2.Zero, Size = size, MouseFilter = Control.MouseFilterEnum.Ignore, Modulate = new Color(1, 1, 1, 0) };
+        var bg = new ColorRect { Color = new Color(0, 0, 0, 0.6f), Size = size, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _splashLabel = new RichTextLabel { Position = new Vector2(0, size.Y * 0.32f), Size = new Vector2(size.X, 260), BbcodeEnabled = true, ScrollActive = false, FitContent = false, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _splashLabel.AddThemeFontSizeOverride("normal_font_size", 72);
+        _closeEndBtn = new Button { Text = "收下结局", Position = new Vector2(size.X / 2 - 60, size.Y * 0.72f), Size = new Vector2(120, 40), Visible = false };
+        _closeEndBtn.Pressed += () => { if (_splashRoot != null) _splashRoot.Visible = false; };
+        _splashRoot.AddChild(bg); _splashRoot.AddChild(_splashLabel); _splashRoot.AddChild(_closeEndBtn);
+        vp.AddChild(_splashRoot);
+    }
+
+    private void ShowStageSplash(string title, string subtitle, double holdSec)
+    {
+        EnsureSplash();
+        _splashRoot.Visible = true;
+        _closeEndBtn.Visible = false;
+        _splashLabel.Text = $"[center]{title}\n[font_size=30]{subtitle}[/font_size][/center]";
+        _splashRoot.Modulate = new Color(1, 1, 1, 0);
+        var tw = CreateTween();
+        tw.TweenProperty(_splashRoot, "modulate", new Color(1, 1, 1, 1), 0.35);
+        tw.TweenInterval(holdSec);
+        tw.TweenProperty(_splashRoot, "modulate", new Color(1, 1, 1, 0), 0.5);
+    }
+
+    private void ShowEndPanel(bool victory, int stages, double remaining, string reason)
+    {
+        EnsureSplash();
+        _splashRoot.Visible = true;
+        _splashRoot.Modulate = new Color(1, 1, 1, 1);
+        _closeEndBtn.Visible = true;
+        _splashLabel.Text = $"[center]{'\u005f'}[/center]"; // 占位防旧内容
+        _splashLabel.Text = $"[center][color={(victory ? "#7CFC98" : "#FF6B6B")}]{(victory ? "战 役 通 关" : "战 役 终 结")}[/color]\n[font_size=34]通过 {stages} 关 · 剩余预算 {remaining}\n{reason}[/font_size][/center]";
     }
 
     // ===== 局中存档 (开创人2026-11-14) =====
     private const string SavePath = "user://survival_save.json";
     private Button _saveBtn, _continueBtn;
+    private Control _splashRoot;
+    private RichTextLabel _splashLabel;
+    private Button _closeEndBtn;
 
     public static bool HasSavedRun() => FileAccess.FileExists(SavePath);
 
