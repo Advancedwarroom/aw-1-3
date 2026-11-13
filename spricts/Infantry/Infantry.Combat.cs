@@ -481,6 +481,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
             CoModuleSystem.OnUnitLost(team);
             // ✅ 模块16：先制反击击杀也得 XP
             target.GainXp(CoModuleSystem.GetKillXp(target));
+            CampaignSettlement.Instance?.RecordKill(campaignScoreValue, campaignCrystalValue, lastAttackerTeam);   // ✅ 开创人2026-11-14 战役摧毁账
             this.OnDestroyed();
             if (this.grid != null)
             {
@@ -571,7 +572,8 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
         CoModuleSystem.OnUnitLost(team);   // ✅ 模块27：损失单位打点
         // ✅ 模块16（升级）：反击击杀也得 XP
         target.GainXp(CoModuleSystem.GetKillXp(target));
-        this.OnDestroyed();
+        CampaignSettlement.Instance?.RecordKill(campaignScoreValue, campaignCrystalValue, lastAttackerTeam);   // ✅ 开创人2026-11-14 战役摧毁账
+            this.OnDestroyed();
         if (this.grid != null)
         {
             this.grid.infantries.Remove(this);
