@@ -616,7 +616,9 @@ public partial class SurvivalSession : Node
             ["randomDraw"] = Campaign.randomDraw,
             ["budgetShrinkPercentPerStage"] = Campaign.budgetShrinkPercentPerStage,
             ["stageIndex"] = StageIndex,
-            ["remainingBudget"] = RemainingBudget,\n            ["morale"] = MoraleRemaining,\n            ["depth"] = Depth,
+            ["remainingBudget"] = RemainingBudget,
+            ["morale"] = MoraleRemaining,
+            ["depth"] = Depth,
         };
         using var f = FileAccess.Open(SavePath, FileAccess.ModeFlags.Write);
         if (f != null) { f.StoreString(Json.Stringify(dict)); GD.Print($"[Survival] 已存档 第{StageIndex + 1}关 余量{RemainingBudget}"); }
