@@ -29,9 +29,15 @@ public partial class Facility
         return true;
     }
 
+    [Export] public double campaignKillScoreValue = 0;      // ✅ 开创人2026-11-14 接缝③:击杀积分价值(0=不记账)
+    [Export] public double campaignKillCrystalValue = 0;    // ✅ 宝钞价值
     public virtual void OnDestroyed()
     {
         if (TryDeathTransform()) return;
+        {   // ✅ 开创人2026-11-14 接缝③:死亡入口→战役结算台账
+            var __st = GetTree()?.Root?.FindChild("CampaignSettlement", true, false) as CampaignSettlement;
+            __st?.RecordKill(campaignKillScoreValue, campaignKillCrystalValue, lastAttackerTeam);
+        }
         if (ParentGrid != null && ParentGrid.city == this) ParentGrid.city = null;
         QueueFree();
     }
