@@ -415,6 +415,7 @@ public virtual (int damage, string info) CalculateCounterPreview(Infantry attack
 
 public virtual void Attack(Infantry target, bool allowCounter = true)
 {
+        if (target != null) target.lastAttackerTeam = team;   // ✅ 开创人2026-11-14 战役记账：步兵凶手追踪
         // ✅ 隐身攻击门：白名单外的单位打不了隐身目标（所有攻击路径的唯一闸门）
         if (!CanTargetStealth(this, target)) return;
         if (isStealthed && !canAttackWhileStealthed) return;   // ✅ 隐身行为锁：攻击
