@@ -47,7 +47,7 @@ public partial class Grids : Node2D
         {
             Name = iconName,
             ZIndex = z,
-            Position = new Vector2(16, 16),
+            Position = new Godot.Vector2(16, 16),
             Texture = tex,
             Visible = false
         };
