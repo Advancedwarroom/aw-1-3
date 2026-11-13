@@ -25,6 +25,19 @@ public static class CoModuleSystem
 {
     // 势力 → CO 状态（未注册的势力 = 无 CO，查询全部返回 0）
     static readonly Dictionary<string, CoTeamState> Teams = new();
+
+    // ✅ 开创人2026-11-14 生存模式：每关开始时重置全部队伍CO能量与大招状态（SurvivalSession.DeferredStageLoad 调用）
+    public static void ResetAllCharges()
+    {
+        foreach (var st in Teams.Values)
+        {
+            st.charge = 0f;
+            st.powerUsedThisTurn = false;
+            st.tagExtraTurnUsed = false;
+            st.powerTurnsLeft = 0;
+            st.powerMode = CoPowerMode.Off;
+        }
+    }
     // 档案缓存（id → profile），供选 CO 界面/注册用
     static readonly Dictionary<string, CoProfile> Profiles = new();
     // ✅ Tag 搭配加成表（CoW Tagpower.js 搬运：co/tag_synergy.json，180 组）
