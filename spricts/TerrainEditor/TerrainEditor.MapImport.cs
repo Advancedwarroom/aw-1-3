@@ -316,6 +316,19 @@ public partial class TerrainEditor
                 { if (gridManager != null && int.TryParse(wl.Substring("RandomLinksPerPair: ".Length).Trim(), out int rp)) gridManager.randomLinksPerPair = rp; }
                 else if (wl.StartsWith("RandomLinkInnerOnly: "))
                 { if (gridManager != null) gridManager.randomLinkInnerOnly = wl.EndsWith("On"); }
+                else if (wl.StartsWith("ScreenGap: "))
+                { if (gridManager != null && int.TryParse(wl.Substring("ScreenGap: ".Length).Trim(), out int sgv)) gridManager.screenGap = Mathf.Max(0, sgv); }
+                else if (wl.StartsWith("CannotStop: "))
+                {
+                    if (gridManager != null)
+                    {
+                        gridManager.cannotStopTerrainTypes = new Godot.Collections.Array<GridType>();
+                        var csPayload = wl.Substring("CannotStop: ".Length).Trim();
+                        if (!string.IsNullOrEmpty(csPayload))
+                            foreach (var csp in csPayload.Split(','))
+                                if (Enum.TryParse<GridType>(csp.Trim(), out var cst)) gridManager.cannotStopTerrainTypes.Add(cst);
+                    }
+                }
                 else if (wl.StartsWith("FogOfWar: "))
                 { if (gameManager?.fogOfWarManager != null) gameManager.fogOfWarManager.isFogOfWarEnabled = wl.Contains("Enabled"); }
                 else if (wl.StartsWith("CustomMoveType: "))
@@ -351,7 +364,7 @@ public partial class TerrainEditor
                     var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (var part in parts)
                     {
-                        var m = System.Text.RegularExpressions.Regex.Match(part, @"\[(\d+),(\d+)\]=(.+?)");
+                        var m = System.Text.RegularExpressions.Regex.Match(part, @"\[(\d+),(\d+)\]=(\w+)\s*$");
                         if (m.Success)
                         {
                             int tx = int.Parse(m.Groups[1].Value);
@@ -409,7 +422,7 @@ public partial class TerrainEditor
                     var parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (var part in parts)
                     {
-                        var m = System.Text.RegularExpressions.Regex.Match(part, @"\[(\d+),(\d+)\]=(.+?)");
+                        var m = System.Text.RegularExpressions.Regex.Match(part, @"\[(\d+),(\d+)\]=(\w+)\s*$");
                         if (m.Success)
                         {
                             int tx = int.Parse(m.Groups[1].Value);
@@ -436,7 +449,38 @@ public partial class TerrainEditor
                 }
                 else if (section == "Units [x,y] Type Team HP")
                 {
-                    var m = System.Text.RegularExpressions.Regex.Match(line, @"\[(\d+),(\d+)\]\s+(\w+)\s+(\w+)\s+HP(\d+)(.*)");
+                    // ✅ 开创人2026-11-14：载员子行（> 开头，坐标自含，紧随其运输车行）
+                    if (line.StartsWith("> "))
+                    {
+                        var cm = System.Text.RegularExpressions.Regex.Match(line, @"^>\s+\[(\d+),(\d+)\]\s+(\w+)\s+(\w+)\s+HP(\d+)(?:\s+RAW(\d+))?(.*)");
+                        if (cm.Success && gridManager != null)
+                        {
+                            int cx = int.Parse(cm.Groups[1].Value);
+                            int cy = int.Parse(cm.Groups[2].Value);
+                            string cScene = GetScenePathForUnitType(cm.Groups[3].Value);
+                            string cTeam = cm.Groups[4].Value;
+                            if (!string.IsNullOrEmpty(cScene) && cx >= 0 && cx < gridManager.map.GetLength(0) && cy >= 0 && cy < gridManager.map.GetLength(1))
+                            {
+                                var cgrid = gridManager.map[cx, cy];
+                                var transport = cgrid?.infantries?.FirstOrDefault(u => u != null && IsInstanceValid(u) && u.transportedUnits != null);
+                                if (cgrid != null && transport != null)
+                                {
+                                    SpawnUnitAtGrid(cgrid, cScene, cTeam);
+                                    var spawned = cgrid.infantries.LastOrDefault();
+                                    if (spawned != null)
+                                    {
+                                        spawned.health = cm.Groups[6].Success ? int.Parse(cm.Groups[6].Value) : int.Parse(cm.Groups[5].Value) * 10;
+                                        spawned.UpdateHpLabel();
+                                        ApplyDiffString(spawned, cm.Groups[7].Value);
+                                        transport.LoadUnit(spawned);   // ✅ 复用正统战备流程：断格/隐藏/图标/迷雾全包；失败则留在格上兜底
+                                    }
+                                }
+                            }
+                        }
+                        continue;
+                    }
+                    // ✅ RAW(\d+) 精确血量（2026-11-14 新行；老文件无 RAW 照旧 ×10）
+                    var m = System.Text.RegularExpressions.Regex.Match(line, @"\[(\d+),(\d+)\]\s+(\w+)\s+(\w+)\s+HP(\d+)(?:\s+RAW(\d+))?(.*)");
                     if (m.Success)
                     {
                         int ux = int.Parse(m.Groups[1].Value);
@@ -444,7 +488,8 @@ public partial class TerrainEditor
                         string uType = m.Groups[3].Value;
                         string uTeam = m.Groups[4].Value;
                         int uHp = int.Parse(m.Groups[5].Value);
-                        string diffPart = m.Groups[6].Value;
+                        int uRawHp = m.Groups[6].Success ? int.Parse(m.Groups[6].Value) : -1;
+                        string diffPart = m.Groups[7].Value;
 
                         string scenePath = GetScenePathForUnitType(uType);
                         if (!string.IsNullOrEmpty(scenePath) && ux >= 0 && ux < gridManager.map.GetLength(0) && uy >= 0 && uy < gridManager.map.GetLength(1))
@@ -456,7 +501,7 @@ public partial class TerrainEditor
                                 var spawned = grid.infantries.LastOrDefault();
                                 if (spawned != null)
                                 {
-                                    spawned.health = uHp * 10;
+                                    spawned.health = uRawHp >= 0 ? uRawHp : uHp * 10;
                                     spawned.UpdateHpLabel();
                                     ApplyDiffString(spawned, diffPart);
                                 }
@@ -518,6 +563,25 @@ public partial class TerrainEditor
                             }
                         }
                     }
+                }
+                else if (section == "Teleport Links")
+                {
+                    // ✅ 开创人2026-11-14：传送链路导入（ResizeMap 已清空旧链，此处重建）
+                    var m = System.Text.RegularExpressions.Regex.Match(line, @"\[(\d+),(\d+)\]\s*>\s*\[(\d+),(\d+)\]\s*(\w+)");
+                    if (m.Success && gridManager != null)
+                    {
+                        var f = new Vector2I(int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value));
+                        var t = new Vector2I(int.Parse(m.Groups[3].Value), int.Parse(m.Groups[4].Value));
+                        bool oneWay = m.Groups[5].Value != "B";
+                        gridManager.AddTeleportLink(f, t, oneWay);
+                    }
+                }
+                else if (section == "Alliances")
+                {
+                    // ✅ 开创人2026-11-14：同盟对导入（无 AL 段的旧文件=沿用当前同盟，不擅动）
+                    var m = System.Text.RegularExpressions.Regex.Match(line, @"^(\w+):(\w+)$");
+                    if (m.Success)
+                        TeamHelper.SetAlliance(m.Groups[1].Value, m.Groups[2].Value, true);
                 }
                 else if (section == "Grid Customs")
                 {
