@@ -46,7 +46,7 @@ public partial class SurvivalSession : Node
         Campaign = campaign;
         StageIndex = 0;
         RemainingBudget = campaign?.budget ?? 0;
-        Active = campaign != null && (campaign.stageSlots.Length > 0 || (campaign.endlessMode && campaign.endlessPoolSlots.Length > 0));
+        Active = campaign != null && (campaign.stageSlots.Length > 0 || campaign.stageMapPaths.Length > 0 || (campaign.endlessMode && (campaign.endlessPoolSlots.Length > 0 || campaign.endlessPoolPaths.Length > 0)));
         _timeAccum = 0;
         EnsureHud();
         EmitSignal(SignalName.StageChanged, StageIndex, Campaign?.stageSlots.Length ?? 0);
@@ -86,11 +86,12 @@ public partial class SurvivalSession : Node
     {
         if (!Active || Campaign == null) return;
         if (winningTeam != Campaign.playerTeam) { EndRun(false, "战役失利"); return; }
-        int clearedSlot = ResolveCurrentSlot();   // ✅ 接缝:刚通关槽位(推进前捕获,无尽随机关也可用)
+        int clearedSlot, _cp; string _pp; ResolveCurrentStage(out clearedSlot, out _pp);   // ✅ 接缝:刚通关槽位(推进前捕获)
         StageIndex++;
+        int mainCount = Mathf.Max(Campaign.stageSlots.Length, Campaign.stageMapPaths.Length);
         int total = Campaign.endlessMode
-            ? (Campaign.randomDraw ? -1 : Campaign.stageSlots.Length + Campaign.endlessPoolSlots.Length)
-            : Campaign.stageSlots.Length;
+            ? (Campaign.randomDraw ? -1 : mainCount + Mathf.Max(Campaign.endlessPoolSlots.Length, Campaign.endlessPoolPaths.Length))
+            : mainCount;
         if (!Campaign.endlessMode && StageIndex >= Campaign.stageSlots.Length) { EndRun(true, "全部关卡通过"); return; }
         if (Campaign.endlessMode && Campaign.endlessPoolSlots.Length == 0) { EndRun(true, "无尽池为空,战役完结"); return; }
         // 无尽模式：深入一层，预算缩减
@@ -115,7 +116,8 @@ public partial class SurvivalSession : Node
     // ✅ 装载下一关：走 ExtraSave.LoadMapToGame 全量换图（清理实体→重建网格→地形单位CO全落位）
     private void DeferredStageLoad()
     {
-        int slot = ResolveCurrentSlot();
+        int slot; string mapPath;
+        ResolveCurrentStage(out slot, out mapPath);
         var root = GetTree()?.Root;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         var gridMgr = root?.FindChild("GridManager", recursive: true, owned: false) as GridManager;
@@ -128,7 +130,22 @@ public partial class SurvivalSession : Node
         }
         gm.gameEnded = false;   // ✅ 结算后复位，新关开局
         gm.turnPhase = 1;
-        bool ok = extraSave.LoadMapToGame(slot, gm, gridMgr, terrainEditor);
+        bool ok;
+        if (slot >= 0)
+        {
+            ok = extraSave.LoadMapToGame(slot, gm, gridMgr, terrainEditor);
+        }
+        else if (!string.IsNullOrEmpty(mapPath))
+        {
+            // ✅ 缺口A路径轨:仓库地图文件 → campaign_pending.map → 战役导入管线
+            using var rf = FileAccess.Open(mapPath, FileAccess.ModeFlags.Read);
+            if (rf == null) { GD.PushWarning($"[Survival] 地图文件不存在:{mapPath}"); return; }
+            using var wf = FileAccess.Open("user://campaign_pending.map", FileAccess.ModeFlags.Write);
+            wf?.StoreString(rf.GetAsText());
+            wf?.Close();
+            ok = terrainEditor.TryImportPendingCampaign();
+        }
+        else { GD.PushWarning("[Survival] 该关既无槽位也无路径"); return; }
         GD.Print($"[Survival] 第{StageIndex + 1}关装载 slot={slot} → {(ok ? "成功" : "失败")}");
         if (ok && Campaign.coEnergyResetPerStage) CoModuleSystem.ResetAllCharges();   // ✅ 开创人2026-11-14 CO能量跨关重置
         if (ok)
@@ -140,13 +157,23 @@ public partial class SurvivalSession : Node
         UpdateHud();
     }
 
-    private int ResolveCurrentSlot()
+    // ✅ 缺口A(开创人2026-11-14):双轨解析——槽位优先,路径兜底;主序列与无尽池统一
+    private void ResolveCurrentStage(out int slot, out string path)
     {
-        if (!Campaign.endlessMode || StageIndex < Campaign.stageSlots.Length)
-            return Campaign.stageSlots[Mathf.Min(StageIndex, Campaign.stageSlots.Length - 1)];
-        int depth = StageIndex - Campaign.stageSlots.Length;
-        if (!Campaign.randomDraw) return Campaign.endlessPoolSlots[depth % Campaign.endlessPoolSlots.Length];
-        return Campaign.endlessPoolSlots[GD.RandRange(0, Campaign.endlessPoolSlots.Length - 1)];
+        slot = -1; path = "";
+        int mainCount = Mathf.Max(Campaign.stageSlots.Length, Campaign.stageMapPaths.Length);
+        if (!Campaign.endlessMode || StageIndex < mainCount)
+        {
+            int i = Mathf.Min(StageIndex, mainCount - 1);
+            if (i < Campaign.stageSlots.Length) slot = Campaign.stageSlots[i];
+            if (slot < 0 && i < Campaign.stageMapPaths.Length) path = Campaign.stageMapPaths[i];
+            return;
+        }
+        int depth = StageIndex - mainCount;
+        int poolCount = Mathf.Max(Campaign.endlessPoolSlots.Length, Campaign.endlessPoolPaths.Length);
+        int draw = Campaign.randomDraw ? GD.RandRange(0, poolCount - 1) : depth % poolCount;
+        if (draw < Campaign.endlessPoolSlots.Length) slot = Campaign.endlessPoolSlots[draw];
+        if (slot < 0 && draw < Campaign.endlessPoolPaths.Length) path = Campaign.endlessPoolPaths[draw];
     }
 
     private void EndRun(bool victory, string reason)
