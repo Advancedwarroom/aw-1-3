@@ -46,6 +46,7 @@
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_smf0o"]
 bg_color = Color(0.7545575, 0.4679699, 0.05228907, 1)
 
+[ext_resource type="Script" path="res://scene/MenuShell.gd" id="99_shell"]
 [node name="Main" type="Node2D" unique_id=913760407]
 script = ExtResource("1_itxqv")
 metadata/_edit_horizontal_guides_ = [280.0]
@@ -2849,46 +2850,67 @@ script = ExtResource("98_wmgr")
 
 [node name="MenuShell" type="CanvasLayer" parent="."]
 layer = 10
+script = ExtResource("99_shell")
+
+[node name="Title" type="Label" parent="MenuShell"]
+offset_left = 60.0
+offset_top = 18.0
+offset_right = 460.0
+offset_bottom = 52.0
+theme_override_font_sizes/font_size = 28
+text = "格 战"
 
 [node name="MenuList" type="VBoxContainer" parent="MenuShell"]
 offset_left = 60.0
 offset_top = 60.0
-offset_right = 360.0
-offset_bottom = 700.0
-theme_override_constants/separation = 6
+offset_right = 400.0
+offset_bottom = 760.0
+theme_override_constants/separation = 10
 
 [node name="Btn_教程关卡" type="Button" parent="MenuShell/MenuList"]
 text = "教程关卡"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_正规战役" type="Button" parent="MenuShell/MenuList"]
 text = "正规战役"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_自定义战役" type="Button" parent="MenuShell/MenuList"]
 text = "自定义战役"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_推演室" type="Button" parent="MenuShell/MenuList"]
 text = "推演室"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_每日拓展挑战" type="Button" parent="MenuShell/MenuList"]
 text = "每日拓展挑战"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_编辑器" type="Button" parent="MenuShell/MenuList"]
 text = "编辑器"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_肉鸽模式" type="Button" parent="MenuShell/MenuList"]
 text = "肉鸽模式"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_图鉴" type="Button" parent="MenuShell/MenuList"]
 text = "图鉴"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_纪念馆" type="Button" parent="MenuShell/MenuList"]
 text = "纪念馆"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_光荣来时路" type="Button" parent="MenuShell/MenuList"]
 text = "光荣来时路"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_商店" type="Button" parent="MenuShell/MenuList"]
 text = "商店"
+custom_minimum_size = Vector2(0, 44)
 
 [node name="Btn_设置" type="Button" parent="MenuShell/MenuList"]
 text = "设置"
+custom_minimum_size = Vector2(0, 44)
