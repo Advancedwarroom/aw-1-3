@@ -23,6 +23,9 @@ public partial class BlackCannon : Weapon
         OnlyUserUnits   // 只能选择己方单位
     }
     [Export] public TargetSelectionMode targetSelectionMode = TargetSelectionMode.OnlyEnemyUnits;
+    [Export] public bool cannonCanTargetEnemies = false;               // ✅ 开创人2026-11-14 三军勾选（敌/友/盟独立勾选），全false回退旧枚举，存量行为零变化
+    [Export] public bool cannonCanTargetFriendlies = false;            // 友军=同势力
+    [Export] public bool cannonCanTargetAllies = false;                // 盟军=盟约势力
 
     // ✅ 新增：改良伤害模式（支持回血）
     [ExportGroup("改良伤害模式（覆盖传统扣血）")]
