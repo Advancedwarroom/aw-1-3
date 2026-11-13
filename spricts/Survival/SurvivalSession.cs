@@ -59,7 +59,7 @@ public partial class SurvivalSession : Node
         if (Active)
         {
             string unit0 = campaign.limitType == 0 ? "G" : campaign.limitType == 1 ? "回合" : campaign.limitType == 3 ? "名额" : "秒";
-            ShowStageSplash($"「{campaign.campaignName}」", $"第1关 · 预算 {RemainingBudget}{unit0}", 2.6);
+            ShowStageSplash(string.Format(TranslateGroup.T("「{0}」"), campaign.campaignName), $"{TranslateGroup.T("第1关")} · {TranslateGroup.T("预算")} {RemainingBudget}{unit0}", 2.6);
         }
         if (Active) GD.Print($"[Survival] 开局:{campaign.campaignName} 主线{campaign.stageSlots.Length}关" + (campaign.endlessMode ? $"+无尽池{campaign.endlessPoolSlots.Length}" : "") + $" 预算[{campaign.limitType}]={campaign.budget}");
     }
@@ -121,11 +121,11 @@ public partial class SurvivalSession : Node
                 MoraleRemaining--;
                 GD.Print($"[Survival] 军心-1,剩余{MoraleRemaining},重整旗鼓重打本关");
                 UpdateHud(); SaveRun();
-                ShowStageSplash("军心 -1 ！", $"剩余军心 {MoraleRemaining} · 再闯本关", 2.0);
+                ShowStageSplash(TranslateGroup.T("军心 -1 ！"), $"{TranslateGroup.T("剩余军心")} {MoraleRemaining} · {TranslateGroup.T("再闯本关")}", 2.0);
                 CallDeferred(nameof(DeferredStageLoad));
                 return;
             }
-            EndRun(false, elite && Campaign.moraleEnabled ? "精英关失守,战役终结" : (Campaign.moraleEnabled ? "军心耗尽" : "战役失利"));
+            EndRun(false, elite && Campaign.moraleEnabled ? TranslateGroup.T("精英关失守,战役终结") : (Campaign.moraleEnabled ? TranslateGroup.T("军心耗尽") : TranslateGroup.T("战役失利")));
             return;
         }
         int clearedSlot; string _pp; ResolveCurrentStage(out clearedSlot, out _pp);   // ✅ 接缝:刚通关槽位(推进前捕获)
@@ -141,7 +141,7 @@ public partial class SurvivalSession : Node
             ? (Campaign.randomDraw ? -1 : mainCount + Mathf.Max(Campaign.endlessPoolSlots.Length, Campaign.endlessPoolPaths.Length))
             : mainCount;
         if (!Campaign.endlessMode && StageIndex >= Campaign.stageSlots.Length) { EndRun(true, "全部关卡通过"); return; }
-        if (Campaign.endlessMode && Campaign.endlessPoolSlots.Length == 0 && Campaign.endlessPoolPaths.Length == 0 && Campaign.endlessGenPool.Length == 0) { EndRun(true, "无尽池为空,战役完结"); return; }
+        if (Campaign.endlessMode && Campaign.endlessPoolSlots.Length == 0 && Campaign.endlessPoolPaths.Length == 0 && Campaign.endlessGenPool.Length == 0) { EndRun(true, TranslateGroup.T("无尽池为空,战役完结")); return; }
         // 无尽模式：深入一层，预算缩减
         if (Campaign.endlessMode && StageIndex >= Campaign.stageSlots.Length && Campaign.budgetShrinkPercentPerStage > 0)
         {
@@ -156,7 +156,7 @@ public partial class SurvivalSession : Node
             RemainingBudget = System.Math.Min(Campaign.budget, RemainingBudget + Campaign.unitCapRefillPerStage);
             GD.Print($"[Survival] 名额回充+{Campaign.unitCapRefillPerStage} → {RemainingBudget}");
         }
-        ShowStageSplash($"第 {StageIndex} 关 · 通过！", $"即将进入 第 {StageIndex + 1} 关", 1.4);
+        ShowStageSplash($"{TranslateGroup.T("第")} {StageIndex} {TranslateGroup.T("关")} · {TranslateGroup.T("通过")}！", $"{TranslateGroup.T("即将进入")} {TranslateGroup.T("第")} {StageIndex + 1} {TranslateGroup.T("关")}", 1.4);
         SaveRun();   // ✅ 每关自动存档=肉鸽检查点
         // ✅ 接缝①②焊合(开创人2026-11-14): 战役结算层入账 + 关卡解锁进度登记
         var settle = GetTree()?.Root?.FindChild("CampaignSettlement", true, false) as CampaignSettlement;
@@ -182,7 +182,7 @@ public partial class SurvivalSession : Node
     private void ShowBranchPanel(System.Collections.Generic.List<int> nodes)
     {
         EnsureBranch();
-        _branchTitle.Text = $"[center][font_size=40]第 {Depth + 1} 层 · 选择下一关[/font_size][/center]";
+        _branchTitle.Text = $"[center][font_size=40]{TranslateGroup.T("第")} {Depth + 1} {TranslateGroup.T("层 · 选择下一关")}[/font_size][/center]";
         foreach (var b in _branchBtns) b.QueueFree();
         _branchBtns.Clear();
         var size = GetViewport().GetVisibleRect().Size;
@@ -249,7 +249,7 @@ public partial class SurvivalSession : Node
     {
         int slot; string mapPath;
         ResolveCurrentStage(out slot, out mapPath);
-        string title = "第 " + (StageIndex + 1) + " 关";
+        string title = $"{TranslateGroup.T("第")} {StageIndex + 1} {TranslateGroup.T("关")}";
         string mapName = "?", size = "?", extra = "";
         var root = GetTree()?.Root;
         if (slot >= 0)
@@ -261,12 +261,12 @@ public partial class SurvivalSession : Node
         else if (mapPath != null && mapPath.StartsWith("__GEN__"))
         {
             var g = Campaign.endlessGenPool[mapPath.Substring(7).ToInt()];
-            mapName = "随机生成图"; size = $"{g.width}×{g.height}";
-            extra = $"势力{g.factionCount} 对称{g.symmetryMode} 咽喉{(int)(g.chokeDensity * 100)}% 种子{(g.seed == 0 ? "随机" : g.seed.ToString())}";
+            mapName = TranslateGroup.T("随机生成图"); size = $"{g.width}×{g.height}";
+            extra = $"{TranslateGroup.T("势力")}{g.factionCount} {TranslateGroup.T("对称")}{g.symmetryMode} {TranslateGroup.T("咽喉")}{(int)(g.chokeDensity * 100)}% {TranslateGroup.T("种子")}{(g.seed == 0 ? TranslateGroup.T("随机") : g.seed.ToString())}";
         }
         else if (!string.IsNullOrEmpty(mapPath)) { mapName = mapPath.GetFile().GetBaseName(); }
         EnsureIntel();
-        _intelLabel.Text = $"[center][font_size=44]{title}[/font_size]\n[font_size=26]地图:{mapName}   {size}\n{extra}\n敌方:AI默认编制(技能词条建设中)\n预算余量:{RemainingBudget}{(Campaign.moraleEnabled ? $"   军心:{MoraleRemaining}" : "")}[/font_size][/center]";
+        _intelLabel.Text = $"[center][font_size=44]{title}[/font_size]\n[font_size=26]地图:{mapName}   {size}\n{extra}\n敌方:AI默认编制(技能词条建设中)\n预算余量:{RemainingBudget}{(Campaign.moraleEnabled ? $"   {TranslateGroup.T("军心")}:{MoraleRemaining}" : "")}[/font_size][/center]";
         _intelRoot.Visible = true;
         _intelRoot.Modulate = new Color(1, 1, 1, 1);
     }
@@ -284,7 +284,7 @@ public partial class SurvivalSession : Node
         var bg = new ColorRect { Color = new Color(0.05f, 0.08f, 0.15f, 0.92f), Size = size, MouseFilter = Control.MouseFilterEnum.Ignore };
         _intelLabel = new RichTextLabel { Position = new Vector2(0, size.Y * 0.22f), Size = new Vector2(size.X, 320), BbcodeEnabled = true, ScrollActive = false, MouseFilter = Control.MouseFilterEnum.Ignore };
         _intelLabel.AddThemeFontSizeOverride("normal_font_size", 26);
-        _intelGo = new Button { Text = "⚔ 开战", Position = new Vector2(size.X / 2 - 70, size.Y * 0.66f), Size = new Vector2(140, 46) };
+        _intelGo = new Button { Text = TranslateGroup.T("⚔ 开战"), Position = new Vector2(size.X / 2 - 70, size.Y * 0.66f), Size = new Vector2(140, 46) };
         _intelGo.Pressed += () => { _intelRoot.Visible = false; CallDeferred(nameof(DeferredStageLoad)); };
         _intelRoot.AddChild(bg); _intelRoot.AddChild(_intelLabel); _intelRoot.AddChild(_intelGo);
         vp.AddChild(_intelRoot);
@@ -339,7 +339,7 @@ public partial class SurvivalSession : Node
         if (ok)
         {
             string unit = Campaign.limitType == 0 ? "G" : Campaign.limitType == 1 ? "回合" : Campaign.limitType == 3 ? "名额" : "秒";
-            ShowStageSplash($"第 {StageIndex + 1} 关", $"剩余预算：{RemainingBudget}{unit}", 2.2);
+            ShowStageSplash($"{TranslateGroup.T("第")} {StageIndex + 1} {TranslateGroup.T("关")}", $"{TranslateGroup.T("剩余预算")}：{RemainingBudget}{unit}", 2.2);
         }
         EmitSignal(SignalName.BudgetChanged, RemainingBudget, Campaign.limitType);
         UpdateHud();
@@ -396,7 +396,7 @@ public partial class SurvivalSession : Node
     {
         BeginCampaign(new SurvivalCampaign
         {
-            campaignName = "肉鸽试炼",
+            campaignName = TranslateGroup.T("肉鸽试炼"),
             stageSlots = new int[] { 0, 1 },
             limitType = 1,
             budget = 30,
@@ -556,7 +556,7 @@ public partial class SurvivalSession : Node
         var bg = new ColorRect { Color = new Color(0, 0, 0, 0.6f), Size = size, MouseFilter = Control.MouseFilterEnum.Ignore };
         _splashLabel = new RichTextLabel { Position = new Vector2(0, size.Y * 0.32f), Size = new Vector2(size.X, 260), BbcodeEnabled = true, ScrollActive = false, FitContent = false, MouseFilter = Control.MouseFilterEnum.Ignore };
         _splashLabel.AddThemeFontSizeOverride("normal_font_size", 72);
-        _closeEndBtn = new Button { Text = "收下结局", Position = new Vector2(size.X / 2 - 60, size.Y * 0.72f), Size = new Vector2(120, 40), Visible = false };
+        _closeEndBtn = new Button { Text = TranslateGroup.T("收下结局"), Position = new Vector2(size.X / 2 - 60, size.Y * 0.72f), Size = new Vector2(120, 40), Visible = false };
         _closeEndBtn.Pressed += () => { if (_splashRoot != null) _splashRoot.Visible = false; };
         _splashRoot.AddChild(bg); _splashRoot.AddChild(_splashLabel); _splashRoot.AddChild(_closeEndBtn);
         vp.AddChild(_splashRoot);
@@ -582,7 +582,7 @@ public partial class SurvivalSession : Node
         _splashRoot.Modulate = new Color(1, 1, 1, 1);
         _closeEndBtn.Visible = true;
         _splashLabel.Text = $"[center]{'\u005f'}[/center]"; // 占位防旧内容
-        _splashLabel.Text = $"[center][color={(victory ? "#7CFC98" : "#FF6B6B")}]{(victory ? "战 役 通 关" : "战 役 终 结")}[/color]\n[font_size=34]通过 {stages} 关 · 剩余预算 {remaining}\n{reason}[/font_size][/center]";
+        _splashLabel.Text = $"[center][color={(victory ? "#7CFC98" : "#FF6B6B")}]{(victory ? TranslateGroup.T("战 役 通 关") : TranslateGroup.T("战 役 终 结"))}[/color]\n[font_size=34]通过 {stages} 关 · 剩余预算 {remaining}\n{reason}[/font_size][/center]";
     }
 
     // ===== 局中存档 (开创人2026-11-14) =====
@@ -666,10 +666,10 @@ public partial class SurvivalSession : Node
         var vp = GetViewport(); if (vp == null) return;
         _hud = new RichTextLabel { Position = new Vector2(8, 8), Size = new Vector2(360, 46), BbcodeEnabled = true };
         vp.AddChild(_hud);
-        _saveBtn = new Button { Text = "生存·存档", Position = new Vector2(8, 58), Size = new Vector2(100, 30) };
+        _saveBtn = new Button { Text = TranslateGroup.T("生存·存档"), Position = new Vector2(8, 58), Size = new Vector2(100, 30) };
         _saveBtn.Pressed += SaveRun;
         vp.AddChild(_saveBtn);
-        _continueBtn = new Button { Text = "生存·继续", Position = new Vector2(114, 58), Size = new Vector2(100, 30) };
+        _continueBtn = new Button { Text = TranslateGroup.T("生存·继续"), Position = new Vector2(114, 58), Size = new Vector2(100, 30) };
         _continueBtn.Pressed += LoadRun;
         vp.AddChild(_continueBtn);
     }
