@@ -8,7 +8,7 @@ public partial class TalentDef : Resource
     [Export] public string talentId = "";                        // 唯一ID
     [Export] public string displayName = "新天赋";
     [Export] public string description = "";
-    [Export] public int rarity = 0;                              // 0=普通 1=稀有 2=金色
+    [Export] public int rarity = 0;                              // 0=钢铁 1=宝石/钻石 2=反物质 3=铀核(紫·精英阶)
     [Export] public int maxStacks = 5;                           // 叠级上限(金色通常1)
     [Export] public string[] tags = new string[0];               // 空军/陆军/经济/CO/海军...
     [Export] public string coExclusiveId = "";                   // 专属CO档案ID(空=通用)
