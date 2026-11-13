@@ -870,8 +870,6 @@ public partial class TerrainEditor
         }
         return costs;
     }
-}
-
 // ========== 战役入口（开创人2026-11-14）：菜单场景留文件，战场启动时接管 ==========
 /// <summary>
 /// 战役入口：若存在 user://campaign_pending.map（战役菜单写入的地图导出文件），
