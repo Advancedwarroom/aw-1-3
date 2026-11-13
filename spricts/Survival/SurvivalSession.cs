@@ -697,4 +697,33 @@ public partial class SurvivalSession : Node
         CallDeferred(nameof(DeferredStageLoad));
     }
 
-    
+    private void EnsureHud()
+    {
+        if (_hud != null && IsInstanceValid(_hud)) return;
+        var vp = GetViewport(); if (vp == null) return;
+        _hud = new RichTextLabel { Position = new Vector2(8, 8), Size = new Vector2(360, 46), BbcodeEnabled = true };
+        vp.AddChild(_hud);
+        _saveBtn = new Button { Text = "生存·存档", Position = new Vector2(8, 58), Size = new Vector2(100, 30) };
+        _saveBtn.Pressed += SaveRun;
+        vp.AddChild(_saveBtn);
+        _continueBtn = new Button { Text = "生存·继续", Position = new Vector2(114, 58), Size = new Vector2(100, 30) };
+        _continueBtn.Pressed += LoadRun;
+        vp.AddChild(_continueBtn);
+    }
+
+    private void UpdateHud()
+    {
+        if (_hud == null || !IsInstanceValid(_hud)) return;
+        if (_saveBtn != null && IsInstanceValid(_saveBtn)) _saveBtn.Visible = Active;
+        if (_continueBtn != null && IsInstanceValid(_continueBtn)) _continueBtn.Visible = !Active && HasSavedRun();
+        if (!Active) { if (Campaign != null) _hud.Text = $"[Survival] 结束：通过{StagesCleared}关 余量{RemainingBudget}"; return; }
+        string unit = Campaign.limitType == 0 ? "G" : Campaign.limitType == 1 ? "回合" : "秒";
+        int mainCount = Mathf.Max(Campaign.stageSlots.Length, Campaign.stageMapPaths.Length);
+        int total = Campaign.endlessMode ? -1 : mainCount;
+        string prog = total > 0 ? $"{StageIndex + 1}/{total}" : $"第{StageIndex + 1}层";
+        _hud.Text = $"[Survival] {Campaign.campaignName} {prog}  预算:{RemainingBudget}{unit}";
+    }
+
+    // ✅ 非static:SavePath 现为实例字段（并发演进）
+    private void DeleteSave() { if (FileAccess.FileExists(SavePath)) DirAccess.RemoveAbsolute(SavePath); }
+}
