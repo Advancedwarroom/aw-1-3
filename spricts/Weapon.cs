@@ -57,6 +57,12 @@ public partial class Weapon : Node2D
 
     [ExportGroup("基础属性")]
     [Export] public string team = "Player1";
+
+    [ExportGroup("战役记账")]
+    [Export] public double campaignScoreValue = 0;      // 摧毁得分
+    [Export] public double campaignCrystalValue = 0;    // 摧毁宝钞
+    [Export] public bool takeoverEnabled = false;       // 败后残余允许接管
+    public string lastAttackerTeam = "";                // 凶手追踪(运行时)
     [Export] public int maxHealth = 999;
     [Export] public int health = 999;
     [Export] public bool canRotate = true;
@@ -494,6 +500,7 @@ public partial class Weapon : Node2D
 
     public virtual void TakeDamage(int damage, Infantry attacker = null)
     {
+        if (attacker != null && damage > 0) lastAttackerTeam = attacker.team;   // ✅ 开创人2026-11-14 战役记账：凶手追踪
         if (healthLocked) return; // 力场锁血
         // ✅ 力场保护：被存活黑弧力场保护的地图目标物，攻击全部无效（坠落流程带bypass）
         if (!ignoreForceField && BlackArc.IsGridForceFieldProtected(grid)) return;
