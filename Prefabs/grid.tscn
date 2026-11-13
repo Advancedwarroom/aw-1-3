@@ -1,11 +1,8 @@
 [gd_scene format=3 uid="uid://dpabwwj6tnqnu"]
 
 [ext_resource type="Script" uid="uid://qyr058ogen35" path="res://spricts/Grids.cs" id="1_1d0qn"]
-[ext_resource type="Texture2D" uid="uid://us0drs83bg8h" path="res://art/移动范围高亮显示.png" id="1_386kj"]
 [ext_resource type="Texture2D" uid="uid://bcplyapab6lin" path="res://art/grass.png" id="2_t285k"]
-[ext_resource type="Texture2D" uid="uid://chyt357y7sn0g" path="res://art/AttackRange.png" id="3_hp5g7"]
 [ext_resource type="Texture2D" uid="uid://dmn6tp5cfwerh" path="res://art/hills.png" id="4_1ln5d"]
-[ext_resource type="Texture2D" uid="uid://dsx0a2smfdurg" path="res://art/Grids/GridsArrow.png" id="4_vm3qa"]
 [ext_resource type="Texture2D" uid="uid://ct6cdb8js74to" path="res://art/Grids/地形/Forest.png" id="5_nquop"]
 [ext_resource type="Texture2D" uid="uid://c50a21st8jrlp" path="res://art/Grids/地形/River.png" id="6_ax3ny"]
 [ext_resource type="Texture2D" uid="uid://bt73e28peqs0o" path="res://art/Grids/地形/Sea.png" id="7_xkamf"]
@@ -123,24 +120,6 @@ terrainIconTextures = Dictionary[int, Texture2D]({
 [node name="GridShape2D" type="CollisionShape2D" parent="GridArea" unique_id=380432133]
 position = Vector2(16, 16)
 shape = SubResource("RectangleShape2D_0ha60")
-
-[node name="mrhl" type="Sprite2D" parent="." unique_id=1579113294]
-visible = false
-z_index = 2
-position = Vector2(16, 16)
-texture = ExtResource("1_386kj")
-
-[node name="AttackRange" type="Sprite2D" parent="." unique_id=2003338164]
-visible = false
-z_index = 2
-position = Vector2(16, 16)
-texture = ExtResource("3_hp5g7")
-
-[node name="TowerDirectionArrow" type="Sprite2D" parent="." unique_id=288865701]
-visible = false
-z_index = 10
-position = Vector2(16, 16)
-texture = ExtResource("4_vm3qa")
 
 [connection signal="input_event" from="GridArea" to="." method="ClickGrid"]
 [connection signal="mouse_entered" from="GridArea" to="." method="OnArea2DMouseEntered"]
