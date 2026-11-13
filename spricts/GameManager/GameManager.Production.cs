@@ -316,7 +316,7 @@ public partial class GameManager
             var dropCells = GetRemoteDropCells(productionTargetFacility);
             if (dropCells.Count == 0)
             {
-                if (!isEditMode && prodCostUI > 0) SetTeamFunds(currentTeam, GetTeamFunds(currentTeam) + prodCostUI);   // 无合法落点：退款
+                if (!isEditMode && prodCostUI > 0) RefundProd(currentTeam, prodCostUI);   // ✅ P1-6 无合法落点：资金+生存预算双退
                 GD.PushWarning("[生产] 远程落点 n-m 环带内无合法格，资金已返还");
                 return;
             }
@@ -324,22 +324,31 @@ public partial class GameManager
             return;   // 落点确认后由 ConfirmRemoteDrop 继续生成
         }
 
-        SpawnProducedUnit(unitName, productionTargetFacility, productionTargetGrid, currentTeam, dualInstant, dualStandby);
+        SpawnProducedUnit(unitName, productionTargetFacility, productionTargetGrid, currentTeam, dualInstant, dualStandby, prodCostUI);
+    }
+
+    // ✅ 修复(审查P1-6): 生产失败全额退款(资金+生存预算双退)
+    private void RefundProd(string team, int cost)
+    {
+        if (cost <= 0) return;
+        SetTeamFunds(team, GetTeamFunds(team) + cost);
+        SurvivalSession.Instance?.RefundProduction(cost);
     }
 
     /// 生成生产单位（现状直落与远程落点共用；落点非法绑定失败返回 false 由调用方退款）
-    private bool SpawnProducedUnit(string unitName, Facility facility, Grids dropGrid, string currentTeam, bool dualInstant, bool dualStandby)
+    private bool SpawnProducedUnit(string unitName, Facility facility, Grids dropGrid, string currentTeam, bool dualInstant, bool dualStandby, int prodCostRefund = 0)
     {
         var info = UnitProductionDatabase.GetInfo(unitName);   // 原方法头部已抽取，此处自取
         // 生成单位
         var scene = GD.Load<PackedScene>(info.ScenePath);
         if (scene == null)
         {
+            RefundProd(currentTeam, prodCostRefund);   // ✅ P1-6
             return false;
         }
 
         var unit = scene.Instantiate<Infantry>();
-        if (unit == null) return false;
+        if (unit == null) { RefundProd(currentTeam, prodCostRefund); return false; }   // ✅ P1-6
 
         unit.Position = dropGrid.Position;
         unit.team = currentTeam;
@@ -354,10 +363,14 @@ public partial class GameManager
         if (!bound)
         {
             unit.QueueFree();
+            RefundProd(currentTeam, prodCostRefund);   // ✅ P1-6
             return false;
         }
 
         unitManager.AllUnits.Add(unit);
+        // ✅ 修复(审查P2-8): 新产单位立即接入已获天赋
+        var __tr = GetTree()?.Root?.FindChild("TalentRuntime", true, false) as TalentRuntime;
+        __tr?.ApplyToUnit(unit);
 
         RegisterUnit(unit, InferCategory(unit));
         unit.OnClickPiece = OnSelectPiece;
@@ -474,11 +487,12 @@ public partial class GameManager
         var scene = GD.Load<PackedScene>(info.ScenePath);
         if (scene == null)
         {
+            RefundProd(team, prodCostAI);   // ✅ P1-6(AI线)
             return false;
         }
 
         var unit = scene.Instantiate<Infantry>();
-        if (unit == null) return false;
+        if (unit == null) { RefundProd(team, prodCostAI); return false; }   // ✅ P1-6(AI线)
 
         unit.Position = grid.Position;
         unit.team = team;
@@ -495,6 +509,9 @@ public partial class GameManager
         }
 
         unitManager.AllUnits.Add(unit);
+            // ✅ 修复(审查P2-8): AI新产单位同样接入天赋
+            var __trAi = GetTree()?.Root?.FindChild("TalentRuntime", true, false) as TalentRuntime;
+            __trAi?.ApplyToUnit(unit);
 
         RegisterUnit(unit, InferCategory(unit));
         unit.OnClickPiece = OnSelectPiece;
