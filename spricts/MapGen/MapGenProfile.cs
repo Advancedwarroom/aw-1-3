@@ -37,7 +37,10 @@ public partial class MapGenProfile : Resource
     [Export] public int maxRegenAttempts = 10;         // 校验失败重生成上限
 
     [ExportGroup("随机")]
-    [Export] public int seed = 0;                      // 0=每局真随机;其它=固定种子(每日挑战/复现)
+    [Export] public int seed = 0;
+    [ExportGroup("通行与资金")]
+    [Export] public string[] passableTerrainNames = { "GROUND", "FOREST", "ROAD" };   // ✅ BFS可通过地形(名字,枚举查表)
+    [Export] public int startFundsPerFaction = 1000;                      // 0=每局真随机;其它=固定种子(每日挑战/复现)
 
     // 派生:归一化权重表
     public double TotalWeight => plainWeight + forestWeight + mountainWeight + seaWeight;
