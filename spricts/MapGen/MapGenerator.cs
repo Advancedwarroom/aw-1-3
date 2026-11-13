@@ -10,7 +10,7 @@ public static class MapGenerator
         => Enum.TryParse<GridType>(name, out var g) ? (int)g : fallback;
 
     // 运行时反射定位(字段名各版本可能不同,能设哪个设哪个,全没有就跳过)
-    private static void SetPos(object data, int x, int y, int w)
+    public static void SetPos(object data, int x, int y, int w)
     {
         var t = data.GetType();
         t.GetField("gridX")?.SetValue(data, x);
