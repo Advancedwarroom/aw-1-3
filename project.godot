@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="AW1-3"
-run/main_scene="uid://mv87fmevdg5m"
+run/main_scene="res://scene/loading_screen.tscn"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -64,3 +64,8 @@ textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
+
+[boot_splash]
+
+bg_color=Color(0, 0, 0, 1)
+fullsize=false
