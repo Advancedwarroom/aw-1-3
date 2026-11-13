@@ -236,6 +236,7 @@ private void ShowVictory(string winner, string loser)
 {
     gameEnded = true;
     SurvivalSession.Instance?.OnMapVictorious(winner);   // ✅ 开创人2026-11-14 生存模式：玩家胜→推进下一关/全通关结算
+    CampaignSettlement.Instance?.OnVictoryDeclared(winner);   // ✅ 开创人2026-11-14 战役结算：胜利时刻统一记账
 
     if (victoryPanel == null) return;
 
