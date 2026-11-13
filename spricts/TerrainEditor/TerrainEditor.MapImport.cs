@@ -878,14 +878,15 @@ public partial class TerrainEditor
 public bool TryImportPendingCampaign()
 {
     const string pendingPath = "user://campaign_pending.map";
-    if (!FileAccess.FileExists(pendingPath)) return false;
-    using var f = FileAccess.Open(pendingPath, FileAccess.ModeFlags.Read);
+    if (!Godot.FileAccess.FileExists(pendingPath)) return false;
+    using var f = Godot.FileAccess.Open(pendingPath, Godot.FileAccess.ModeFlags.Read);
     if (f == null) return false;
     string content = f.GetAsText();
-    DirAccess.RemoveAbsolute(pendingPath);
+    Godot.DirAccess.RemoveAbsolute(pendingPath);
     if (string.IsNullOrWhiteSpace(content)) return false;
     ParseAndImportMap(content);
     // ParseAndImportMap 会强制进入编辑模式，战役要直接开打
     if (IsEditMode) SetEditMode(false);
     return true;
+}
 }
