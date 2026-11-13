@@ -14,7 +14,8 @@ public partial class TalentPool : Resource
     [Export] public int refreshPerDraft = 1;      // 每关刷新次数
     [Export] public int normalSlots = 4;            // 普通槽
     [Export] public int goldenSlots = 1;            // 金色槽
-    [Export] public double commonWeight = 100;      // 普通池权重(原先硬编码100)\n    [Export] public double rareWeight = 40;         // 稀有权重(普通=100基准)
+    [Export] public double commonWeight = 100;      // 普通池权重(原先硬编码100)
+    [Export] public double rareWeight = 40;         // 稀有权重(普通=100基准)
     [Export] public double goldenWeight = 8;        // 金色权重
     [Export] public double uraniumWeight = 3;      // ✅ 铀核权重(比反物质更稀罕)
 }
