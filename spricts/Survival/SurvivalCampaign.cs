@@ -27,7 +27,9 @@ public partial class SurvivalCampaign : Resource
     [Export] public int[] eliteStageIndices = new int[0];    // 精英关(主线索引):输掉无视军心直接终局
 
     [ExportGroup("树状选关")]
-    [Export] public string stageTree = "";   // ✅ 分支图DSL(开创人2026-11-14):"0>1,2\n1>2\n2>"=0胜后可选1/2,2终点;留空=线性序列
+    [Export] public string stageTree = "";
+    [Export] public bool talentDraftEnabled = false;   // ✅ 天赋选秀:每关胜利后三选一(需UI接DraftRequested信号)
+    [Export] public TalentPool talentPool;   // ✅ 分支图DSL(开创人2026-11-14):"0>1,2\n1>2\n2>"=0胜后可选1/2,2终点;留空=线性序列
     [Export] public string[] coIds = new string[0];           // 战役锁定CO：coIds[0]=主CO，其余=搭档（空=沿用各关地图默认）
 
     [ExportGroup("无尽/肉鸽")]
