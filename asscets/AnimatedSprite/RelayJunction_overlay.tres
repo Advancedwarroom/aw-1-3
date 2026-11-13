@@ -1,19 +1,18 @@
-[gd_resource type="SpriteFrames" load_steps=3 format=3]
+[gd_resource type="SpriteFrames" load_steps=2 format=3]
 
-[ext_resource type="Texture2D" path="res://art/official/RelayJunction_dark_overlay.png" id="1_lamp"]
-[ext_resource type="Texture2D" path="res://art/official/overlay_blank.png" id="2_blank"]
+[ext_resource type="Texture2D" path="res://art/official/overlay_blank.png" id="1_blank"]
 
 [resource]
 animations = [{
-"frames": [{"duration": 1.0, "texture": ExtResource("1_lamp")}, {"duration": 3.0, "texture": ExtResource("2_blank")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1_blank")}],
 "loop": true,
 "name": &"P0X",
 "speed": 5.0}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("1_lamp")}, {"duration": 3.0, "texture": ExtResource("2_blank")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1_blank")}],
 "loop": true,
 "name": &"team1",
 "speed": 5.0}, {
-"frames": [{"duration": 1.0, "texture": ExtResource("1_lamp")}, {"duration": 3.0, "texture": ExtResource("2_blank")}],
+"frames": [{"duration": 1.0, "texture": ExtResource("1_blank")}],
 "loop": true,
 "name": &"team2",
 "speed": 5.0}
