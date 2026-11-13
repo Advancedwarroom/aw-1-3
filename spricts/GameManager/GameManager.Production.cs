@@ -303,6 +303,7 @@ public partial class GameManager
             {
                 return;
             }
+            if (!SurvivalSession.Instance?.TrySpendProduction(productionTargetFacility.productionFree ? 0 : prodCostUI) ?? true) return;   // ✅ 开创人2026-11-14 生存模式：资金预算闸门（UI线）
             if (!productionTargetFacility.productionFree) SetTeamFunds(currentTeam, currentFunds - prodCostUI);
             // ✅ 模块27（能量条）：消耗资金打点
             CoModuleSystem.OnFundsSpent(currentTeam, prodCostUI);
@@ -463,6 +464,7 @@ public partial class GameManager
             * (100f + CoModuleSystem.GetCostModifierPercent(team)) / 100f));
         if (facility.productionFree) prodCostAI = 0;
         if (!facility.productionFree && currentFunds < prodCostAI) return false;
+        if (!SurvivalSession.Instance?.TrySpendProduction(facility.productionFree ? 0 : prodCostAI) ?? true) return false;   // ✅ 开创人2026-11-14 生存模式：资金预算闸门（AI线）
 
         // 扣除资金
         if (!facility.productionFree) SetTeamFunds(team, currentFunds - prodCostAI);
