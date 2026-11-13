@@ -214,7 +214,7 @@ public partial class TalentRuntime : Node
     // ✅ 修复(审查P1-2): 原始值快照——重复注入按快照重算,不叠加;换图新单位自然新快照
     private static readonly System.Collections.Generic.Dictionary<ulong, System.Collections.Generic.Dictionary<string, object>> _originalSnapshots = new();
 
-    private static System.Collections.Generic.Dictionary<string, object> GetSnapshot(Infantry u)
+    private System.Collections.Generic.Dictionary<string, object> GetSnapshot(Infantry u)
     {
         ulong id = u.GetInstanceId();
         if (_originalSnapshots.TryGetValue(id, out var hit)) return hit;
@@ -262,7 +262,7 @@ public partial class TalentRuntime : Node
         if (!snap.TryGetValue(name, out var orig)) { SetFieldDelta(u, name, delta); return; }
         object nv = orig switch
         {
-            int i => (object)(int)Math.Round(i + delta),
+            int i => (object)(int)System.Math.Round(i + delta),
             float fl => (float)(fl + delta),
             double db => db + delta,
             _ => orig
