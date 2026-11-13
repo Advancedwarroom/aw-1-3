@@ -19,9 +19,8 @@ public partial class RelayJunction : Facility
         CallDeferred(nameof(TakeOverBoundFactories));
     }
 
-    // Match RelayJunction_base.tres and RelayJunction_overlay.tres animation names.
     protected override (string neutral, string red, string blue)? GetTeamAnimNames()
-        => ("P0X", "team1", "team2");
+        => ("RelayJunction", "RelayJunction", "RelayJunction");
 
     /// <summary>建造完成落地：接管绑定的超级兵工厂</summary>
     public void TakeOverBoundFactories()
@@ -41,6 +40,8 @@ public partial class RelayJunction : Facility
 
         if (boundFactoryOffsets.Count > 0)
         {
+            // 按相对坐标绑定
+            var map = gm.gridManager?.map;
             var myIdx = ParentGrid?.GridIndex ?? new Vector2I(-9999, -9999);
             foreach (var f in factories)
             {
@@ -57,6 +58,7 @@ public partial class RelayJunction : Facility
         }
         else
         {
+            // 自动绑定最近的超级兵工厂
             var mine = ParentGrid;
             if (mine == null) return;
             SuperFactory nearest = null;
