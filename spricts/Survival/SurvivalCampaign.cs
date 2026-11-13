@@ -8,7 +8,8 @@ public partial class SurvivalCampaign : Resource
     [Export] public string campaignName = "生存战役";
     [Export] public int[] stageSlots = new int[0];            // 关卡序列：存档槽索引（ExtraSave槽）
     [Export] public string[] stageMapPaths = new string[0]; // ✅ 缺口A(开创人2026-11-14):路径轨——res://Maps/xx.txt,槽位越界时兜底,战役可分发
-    [Export] public int limitType = 0;                        // 0=总资金 1=总回合数 2=总时间(秒)
+    [Export] public int limitType = 0;                        // 0=总资金 1=总回合数 2=总时间(秒) 3=单位上限(总名额,最狠的紧箍咒)
+    [Export] public int unitCapRefillPerStage = 0;           // 单位上限模式:每关回充名额(0=纯消耗硬核,死一个少一个)
     [Export] public double budget = 0;                        // 总预算：资金(G)/大回合数/秒数；0=不限
     [Export] public bool fundsCarry = true;
     [Export] public bool coEnergyResetPerStage = true;        // 待接：每关CO能量重置
