@@ -40,13 +40,13 @@
 [ext_resource type="Script" uid="uid://cppncwnmgkx0v" path="res://spricts/ExtraSave.cs" id="31_216wm"]
 [ext_resource type="PackedScene" uid="uid://kbpull7ec1pg" path="res://Prefabs/large_cannon.tscn" id="34_7xrs8"]
 [ext_resource type="Script" path="res://spricts/WeatherManager.cs" id="98_wmgr"]
+[ext_resource type="Script" path="res://scene/MenuShell.gd" id="99_shell"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mswub"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_smf0o"]
 bg_color = Color(0.7545575, 0.4679699, 0.05228907, 1)
 
-[ext_resource type="Script" path="res://scene/MenuShell.gd" id="99_shell"]
 [node name="Main" type="Node2D" unique_id=913760407]
 script = ExtResource("1_itxqv")
 metadata/_edit_horizontal_guides_ = [280.0]
