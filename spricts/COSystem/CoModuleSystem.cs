@@ -779,7 +779,11 @@ public static class CoModuleSystem
     public static void SetAlliance(string a, string b, bool allied) => TeamHelper.SetAlliance(a, b, allied);
 
     /// <summary>模块6（多次移动加成）：单位+兵器+设施+地形四层操作刷新（Tag Power / 切换CO用）</summary>
-    public static void GrantTeamExtraTurn(string team, Godot.Collections.Array<string> unitWhitelist = null)   // ✅ 开创人2026-11-14 闪电再临式白名单(UnitTypeId,空/空表=全军不变)
+    // ✅ 开创人2026-11-14 三层白名单:单位(UnitTypeId)/兵器(类名或节点名)/设施(类名或节点名) 各自勾选;全空=全军再动(旧行为)
+    public static void GrantTeamExtraTurn(string team,
+        Godot.Collections.Array<string> unitWhitelist = null,
+        Godot.Collections.Array<string> weaponWhitelist = null,
+        Godot.Collections.Array<string> facilityWhitelist = null)
     {
         var tree = (Engine.GetMainLoop() as SceneTree);
         if (tree == null) return;
@@ -800,19 +804,25 @@ public static class CoModuleSystem
             if (node is not Grids g) continue;
 
             // ✅ 兵器层操作刷新（开创人2026-11-07）：与 WeaponManager.OnPhaseStart() 同款字段，只刷本队
-            if (g.weapon != null && GodotObject.IsInstanceValid(g.weapon) && g.weapon.team == team)
+            // ✅ 兵器层白名单:类名或节点名勾选,空表=全部
+            bool weaponOk = weaponWhitelist == null || weaponWhitelist.Count == 0
+                || (g.weapon != null && (weaponWhitelist.Contains(g.weapon.GetType().Name) || weaponWhitelist.Contains(g.weapon.Name)));
+            if (g.weapon != null && GodotObject.IsInstanceValid(g.weapon) && g.weapon.team == team && weaponOk)
             {
                 g.weapon.hasActed = false;
                 g.weapon.remainingAttacks = g.weapon.maxAttacksPerTurn;
             }
 
             // 超级兵工厂属于 Weapon，必须在 Facility 的 continue 之前独立刷新生产口。
-            if (g.weapon is SuperFactory sf && sf.team == team)
+            if (g.weapon is SuperFactory sf && sf.team == team && weaponOk)
                 sf.portUsedThisTurn = new bool[8];
 
-            // ✅ 设施行动状态：生产计数重置；中转口建造进度不动（防刷）
+            // ✅ 设施行动状态：生产计数重置；中转口建造进度不动（防刷）；设施层白名单:类名或节点名勾选
             if (g.city == null || g.city.facilityTeam != team) continue;
-            g.city.productionsThisTurn = 0;
+            bool facilityOk = facilityWhitelist == null || facilityWhitelist.Count == 0
+                || facilityWhitelist.Contains(g.city.GetType().Name) || facilityWhitelist.Contains(g.city.Name);
+            if (facilityOk)
+                g.city.productionsThisTurn = 0;
         }
 
     }
