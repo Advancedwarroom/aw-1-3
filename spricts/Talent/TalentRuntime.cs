@@ -145,7 +145,9 @@ public partial class TalentRuntime : Node
         var vp = GetViewport(); if (vp == null) { onComplete?.Invoke(); return; }
         var size = vp.GetVisibleRect().Size;
         _draftTitle.Text = $"[center][font_size=40]{TranslateGroup.T("每赢一关 · 三选一拿天赋")}[/font_size][/center]";
-        var D = GetTree()?.Root?.FindChild("SurvivalSession", true, false)?.Get("uiDesign") as SurvivalUIDesign ?? new SurvivalUIDesign();
+        SurvivalUIDesign D = new SurvivalUIDesign();
+        var ssNode = GetTree()?.Root?.FindChild("SurvivalSession", true, false);
+        if (ssNode != null) D = ssNode.Get("uiDesign").AsGodotObject() as SurvivalUIDesign ?? D;
         string[] colors = System.Array.ConvertAll(D.tierColors, c => c.ToHtml());
         string[] rname = D.tierNames;
         int i = 0;
