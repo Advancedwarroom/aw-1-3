@@ -266,7 +266,7 @@ public partial class SurvivalSession : Node
         }
         else if (!string.IsNullOrEmpty(mapPath)) { mapName = mapPath.GetFile().GetBaseName(); }
         EnsureIntel();
-        _intelLabel.Text = $"[center][font_size=44]{title}[/font_size]\n[font_size=26]地图:{mapName}   {size}\n{extra}\n敌方:AI默认编制(技能词条建设中)\n预算余量:{RemainingBudget}{(Campaign.moraleEnabled ? $"   {TranslateGroup.T("军心")}:{MoraleRemaining}" : "")}[/font_size][/center]";
+        _intelLabel.Text = $"[center][font_size=44]{title}[/font_size]\n[font_size=26]地图:{mapName}   {size}\n{extra}\n{TranslateGroup.T("敌方:AI默认编制(技能词条建设中)")}\n{TranslateGroup.T("预算余量")}:{RemainingBudget}{(Campaign.moraleEnabled ? $"   {TranslateGroup.T("军心")}:{MoraleRemaining}" : "")}[/font_size][/center]";
         _intelRoot.Visible = true;
         _intelRoot.Modulate = new Color(1, 1, 1, 1);
     }
@@ -586,7 +586,7 @@ public partial class SurvivalSession : Node
     }
 
     // ===== 局中存档 (开创人2026-11-14) =====
-    private const string SavePath = "user://survival_save.json";
+    private string SavePath => "user://" + (string.IsNullOrEmpty(Campaign?.saveFileName) ? "survival_save.json" : Campaign.saveFileName);   // ✅ 万物可控:存档名走战役导出
     private Button _saveBtn, _continueBtn;
     // ✅ 开创人2026-11-14 真生存:整军过继快照
     private System.Collections.Generic.List<SavedUnitData> _carriedUnits = new();
@@ -597,7 +597,7 @@ public partial class SurvivalSession : Node
     private RichTextLabel _splashLabel;
     private Button _closeEndBtn;
 
-    public static bool HasSavedRun() => FileAccess.FileExists(SavePath);
+    public bool HasSavedRun() => FileAccess.FileExists(SavePath);
 
     public void SaveRun()
     {
