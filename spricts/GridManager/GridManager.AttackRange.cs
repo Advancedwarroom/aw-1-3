@@ -77,7 +77,10 @@ public partial class GridManager
         attackRange.Clear();
         
         // ✅ CO 模块系统·模块3（攻击范围加成）+ 天气系统·模块15（沙暴-1）：同步到范围显示
-        int minRange = Mathf.Max(1, unit.minAttackRange + CoModuleSystem.GetMinFireRangeBonus(unit));
+        // ✅ 开创人2026-11-15 区域天气:最小射程增减(flat delta,保1)
+        var __wmR = GetTree()?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+        int __minDelta = (__wmR != null && unit?.grid != null) ? __wmR.GetMinFireRangeDelta(unit.grid.GridIndex) : 0;
+        int minRange = Mathf.Max(1, unit.minAttackRange + CoModuleSystem.GetMinFireRangeBonus(unit) + __minDelta);
         int maxRange = unit.maxAttackRange + CoModuleSystem.GetFireRangeBonus(unit) + WeatherSystem.GetFireRangeModifier(unit);
         
         var allRangeGrids = grids.Where(g => g != null && g != unit.grid
