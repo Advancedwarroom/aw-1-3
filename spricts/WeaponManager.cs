@@ -77,6 +77,14 @@ public partial class WeaponManager : Node
             return false;
         }
 
+        // ✅ 修复2026-11-15：_Ready 时机 map 尚未生成时直接返回，禁止 NRE——
+        //    NRE 会中断 RefreshWeaponList 整个循环，排在后面的兵器（如单独摆放的GrandBolt核心/弱点）
+        //    全部漏注册（AllWeapons/OnClickWeapon 双缺），点击毫无反应。DeferredInit 会二次刷新补注册。
+        if (gridManager?.map == null)
+        {
+            return false;
+        }
+
         var targetGrid = gridManager.map[gridPos.X, gridPos.Y];
         if (targetGrid == null)
         {

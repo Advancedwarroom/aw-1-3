@@ -758,11 +758,13 @@ public partial class Grids : Node2D
                     var w = weapons.FirstOrDefault(x => x != null && IsInstanceValid(x) && !x.IsQueuedForDeletion());
                     if (w != null && gm != null && gm.IsTurnPhaseValid(w.team) && !w.hasActed)
                     {
+                        // ✅ 兜底：OnClickWeapon 未绑（漏注册兵器，如注册循环曾被异常中断）时直连 GameManager，
+                        //    保证任何在格子上的兵器都可点击弹菜单，不再静默吞点击。
                         if (w.OnClickWeapon != null)
-                        {
                             w.OnClickWeapon.Invoke(w);
-                            GetViewport().SetInputAsHandled();
-                        }
+                        else
+                            gm.OnSelectWeapon(w);
+                        GetViewport().SetInputAsHandled();
                         return;   // 兵器格点击被消费，不再落到 OnClickEmpty（防空回调把已开的菜单秒关）
                     }
                 }

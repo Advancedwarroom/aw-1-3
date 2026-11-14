@@ -72,6 +72,12 @@ public bool BindUnitToGrid(Infantry unit, bool forceRebind = false)
         return false;
     }
 
+    // ✅ 修复2026-11-15：同 WeaponManager——_Ready 时机 map 未生成时禁止 NRE 中断 RefreshUnitList 循环
+    if (gridManager?.map == null)
+    {
+        return false;
+    }
+
     var targetGrid = gridManager.map[gridPos.X, gridPos.Y];
     if (targetGrid == null)
     {
