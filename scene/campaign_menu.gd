@@ -39,4 +39,4 @@ func _on_pick(file_name: String) -> void:
 	get_tree().change_scene_to_file("res://scene/main.tscn")
 
 func _on_back() -> void:
-	get_tree().change_scene_to_file("res://scene/main_menu.tscn")
+	get_tree().change_scene_to_file("res://scene/main.tscn")   # ✅ 开创人2026-11-14: 僵尸标题页已火化,返回直落main
