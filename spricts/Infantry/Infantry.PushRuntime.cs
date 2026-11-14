@@ -1012,8 +1012,13 @@ public partial class Infantry
     {
         var moving = stack.Where(IsLivingUnit).ToList();
         if (moving.Count == 0 || destination == null) return;
+        // ✅ issue#1 二期：逐单位迁移（多格单位整足印落得下才动，足印随迁）
         foreach (var unit in moving)
         {
+            var gmPush = unit.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (unit.isMultiTileUnit && !unit.CheckFootprintFit(destination.GridIndex, gmPush, unit.unitFacing))
+                continue;   // 整足印落不下：该单位本次不被推动（留在原点）
+
             var origin = unit.grid;
             if (origin != null)
             {
@@ -1021,9 +1026,7 @@ public partial class Infantry
                 if (origin.infantry == unit)
                     origin.infantry = origin.infantries.FirstOrDefault(IsLivingUnit);
             }
-        }
-        foreach (var unit in moving)
-        {
+
             unit.grid = destination;
             if (!destination.infantries.Contains(unit)) destination.infantries.Add(unit);
             if (destination.infantry == null || !GodotObject.IsInstanceValid(destination.infantry)
@@ -1031,6 +1034,9 @@ public partial class Infantry
                 || destination.infantry.grid != destination)
                 destination.infantry = unit;
             unit.Position = destination.Position;
+
+            if (unit.isMultiTileUnit)
+                unit.OccupyFootprint(gmPush, unit.unitFacing);
         }
     }
 

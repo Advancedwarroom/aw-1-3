@@ -325,6 +325,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
         UpdateEmpowermentButton(unit);
         UpdateShelterButtons(null);
         UpdateWriggleButton();   // ✅ 统一蠕动更新器（原双生UpdateGrandBoltWriggleButtons已废弃）   // ✅ GrandBolt 手动蠕动（范围预览+曼哈顿步数）
+            UpdateMultiTileRotateButton(unit);
 
         // ✅ N屏地图：传送按钮（站在有出链的格子上时显示）
         UpdateTeleportButtonVisibility(unit);

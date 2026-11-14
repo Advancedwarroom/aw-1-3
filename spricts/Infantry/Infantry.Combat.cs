@@ -641,18 +641,29 @@ public virtual bool IsTargetInCounterRange(Infantry attacker)
     public virtual bool IsGridInAttackRange(Grids targetGrid)
     {
         if (targetGrid == null || grid == null) return false;
+
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm?.gridManager == null || !gm.gridManager.IsRangeAllowed(grid, targetGrid, attackCanCrossScreens)) return false;
+        if (gm?.gridManager == null) return false;
 
-        int distance = Mathf.Abs(targetGrid.GridIndex.X - grid.GridIndex.X)
-                     + Mathf.Abs(targetGrid.GridIndex.Y - grid.GridIndex.Y);
+        // ✅ issue#1 二期：射程锚点格合集逐格判定（单格单位=自身格，零变化）
+        foreach (var anchor in GetAnchorCells())
+        {
+            if (anchor == null) continue;
+            if (!gm.gridManager.IsRangeAllowed(anchor, targetGrid, attackCanCrossScreens)) continue;
 
-        // CO/天气射程加成仍按原管线计算；跨屏许可独立由本单位 Export 控制。
-        int coRangeBonus = CoModuleSystem.GetFireRangeBonus(this) + WeatherSystem.GetFireRangeModifier(this);
-        int coMinBonus = CoModuleSystem.GetMinFireRangeBonus(this);
-        if (useMinMaxAttackRange)
-            return distance >= Mathf.Max(1, minAttackRange + coMinBonus) && distance <= maxAttackRange + coRangeBonus;
-        return distance <= attackRange + coRangeBonus;
+            int distance = Mathf.Abs(targetGrid.GridIndex.X - anchor.GridIndex.X)
+                         + Mathf.Abs(targetGrid.GridIndex.Y - anchor.GridIndex.Y);
+
+            // CO/天气射程加成仍按原管线计算；跨屏许可独立由本单位 Export 控制。
+            int coRangeBonus = CoModuleSystem.GetFireRangeBonus(this) + WeatherSystem.GetFireRangeModifier(this);
+            int coMinBonus = CoModuleSystem.GetMinFireRangeBonus(this);
+            if (useMinMaxAttackRange)
+            {
+                if (distance >= Mathf.Max(1, minAttackRange + coMinBonus) && distance <= maxAttackRange + coRangeBonus) return true;
+            }
+            else if (distance <= attackRange + coRangeBonus) return true;
+        }
+        return false;
     }
     
 

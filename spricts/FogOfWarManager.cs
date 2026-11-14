@@ -230,6 +230,18 @@ public partial class FogOfWarManager : Node
         {
             if (provider?.Grid == null) continue;
             var providerVision = CalculateProviderVision(provider);
+                // ✅ issue#1 二期：多格单位视野=射程锚点格各自计算取并集（与射程同 Export）
+                if (provider is UnitVisionProvider uvp && uvp.Unit != null && uvp.Unit.isMultiTileUnit)
+                {
+                    foreach (var ac in uvp.Unit.GetAnchorCells())
+                    {
+                        if (ac == null || ac == provider.Grid) continue;
+                        var prevOverride = uvp.OverrideGrid;
+                        uvp.OverrideGrid = ac;
+                        providerVision.UnionWith(CalculateProviderVision(provider));
+                        uvp.OverrideGrid = prevOverride;
+                    }
+                }
             visible.UnionWith(providerVision);
         }
 
@@ -728,7 +740,9 @@ public interface IVisionProvider
 public class UnitVisionProvider : IVisionProvider
 {
     private Infantry unit;
-    public Grids Grid => unit?.grid;
+    /// <summary>issue#1 二期：视野锚点格覆写（null=单位锚点格；多格单位逐锚点计算时临时设置）</summary>
+    public Grids OverrideGrid;
+    public Grids Grid => OverrideGrid ?? unit?.grid;
     public VisionMode VisionMode => VisionMode.Normal;
 
     public UnitVisionProvider(Infantry unit) { this.unit = unit; }

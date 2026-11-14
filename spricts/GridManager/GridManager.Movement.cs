@@ -346,6 +346,19 @@ public partial class GridManager
             to.infantry = null;
         }
 
+            // ✅ issue#1 二期：多格单位——目的地整足印预检 + 侧格占用裁定（碾碎/拒绝）
+            var gmFoot = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            if (infantry.isMultiTileUnit)
+            {
+                if (!infantry.CheckFootprintFit(to.GridIndex, gmFoot, infantry.unitFacing)) return;
+                foreach (var sideIdx in infantry.GetFootprintIndices(to.GridIndex, infantry.unitFacing))
+                {
+                    if (sideIdx == to.GridIndex) continue;
+                    var sideGrid = map[sideIdx.X, sideIdx.Y];
+                    if (sideGrid == null || !infantry.ResolveFootprintSideCell(sideGrid, gmFoot)) return;
+                }
+            }
+
         var path = forcedPath ?? BuildPath(infantry.grid, to, infantry);
         if (path == null || path.Count == 0) return;
         if (forcedPath != null && path[path.Count - 1] != to) return;   // 手画路径必须终于目标格
@@ -388,6 +401,10 @@ public partial class GridManager
             to.infantries.Add(infantry);
         if (to.infantry == null || infantry.overlapType != UnitOverlapType.Overlapping)
             to.infantry = infantry;
+
+            // ✅ issue#1 二期：多格单位足印随迁（清旧占新）
+            if (infantry.isMultiTileUnit)
+                infantry.OccupyFootprint(gmFoot, infantry.unitFacing);
 
         infantry.state = UnitState.Moved;
         infantry.isMoved = true;

@@ -106,6 +106,10 @@ public partial class AI_Manager
     {
         partner = null;
         if (g == u.grid) return EndKind.Free;
+        // ✅ issue#1 二期：他方多格足印占据=不可停留
+        if (g.multiTileOccupant != null && g.multiTileOccupant != u
+            && IsInstanceValid(g.multiTileOccupant) && !g.multiTileOccupant.IsQueuedForDeletion())
+            return EndKind.None;
         if (g.weapon != null && IsInstanceValid(g.weapon) && u.overlapType != UnitOverlapType.Oozium && !g.weapon.AllowsPassage(u)) return EndKind.None; // ✦适配：白名单放行可停留
         var others = g.infantries.Where(o => o != null && o != u && IsInstanceValid(o) && !o.isTransported).ToList();
         // AI 不知道雾中/隐身敌军：当作空格（真实移动时会被截断）
@@ -129,6 +133,9 @@ public partial class AI_Manager
     private bool RealStayable(Infantry u, Grids g)
     {
         if (g == u.grid) return true;
+        if (g.multiTileOccupant != null && g.multiTileOccupant != u
+            && IsInstanceValid(g.multiTileOccupant) && !g.multiTileOccupant.IsQueuedForDeletion())
+            return false;
         var others = g.infantries.Where(o => o != null && o != u && IsInstanceValid(o) && !o.isTransported).ToList();
         if (others.Count == 0) return g.weapon == null || !IsInstanceValid(g.weapon) || u.overlapType == UnitOverlapType.Oozium || g.weapon.AllowsPassage(u); // ✦适配
         if (others.Any(o => TeamHelper.IsEnemyTeam(u.team, o.team))) return false;
@@ -156,6 +163,8 @@ public partial class AI_Manager
             {
                 var n = At(cur.GridIndex.X + d.X, cur.GridIndex.Y + d.Y);
                 if (n == null || n.screenId != cur.screenId || StepCost(u, n) < 0) continue;
+                // ✅ issue#1 二期：多格单位AI寻路同玩家侧整足印校验
+                if (u.isMultiTileUnit && !u.CheckFootprintPassable(n.GridIndex, gameManager, u.unitFacing)) continue;
                 int nc = cc + Math.Max(1, enter < 0 ? 1 : enter);
                 if (f.TryGetValue(n, out int old) && old <= nc) continue;
                 f[n] = nc; open.Enqueue(n, nc);

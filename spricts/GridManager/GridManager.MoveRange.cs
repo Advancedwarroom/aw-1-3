@@ -72,6 +72,10 @@ public partial class GridManager
                         && IsInstanceValid(neighbor.multiTileOccupant) && !neighbor.multiTileOccupant.IsQueuedForDeletion())
                         continue;
 
+                    // ✅ issue#1 二期：多格单位以候选格为锚的整足印通行校验
+                    if (infantry.isMultiTileUnit
+                        && !infantry.CheckFootprintPassable(neighbor.GridIndex, GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager, infantry.unitFacing))
+                        continue;
                     int newCost = accCost + moveCost;
                     if (best.TryGetValue(neighbor, out int old) && newCost >= old) continue;
                     if (!ignoreMovePoints && newCost > infantry.movePoints) continue;
@@ -426,6 +430,10 @@ public partial class GridManager
                 // ✅ issue#1：他方多格机动单位足印阻挡（Oozium 豁免）
                 if (neighbor.multiTileOccupant != null && neighbor.multiTileOccupant != infantry
                     && IsInstanceValid(neighbor.multiTileOccupant) && !neighbor.multiTileOccupant.IsQueuedForDeletion())
+                    continue;
+
+                // ✅ issue#1 二期：多格单位整足印通行校验（移动范围高亮=实际可落点）
+                if (infantry.isMultiTileUnit && !infantry.CheckFootprintPassable(neighbor.GridIndex, gm, infantry.unitFacing))
                     continue;
 
                 // ✅ 可见格子或迷雾关闭时：敌方单位所在格子不加入移动范围（仅NonOverlapping；可穿过敌方单位则敌格入范围但不可停留）

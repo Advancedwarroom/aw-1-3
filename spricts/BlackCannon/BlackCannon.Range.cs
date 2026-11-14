@@ -285,6 +285,7 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
         if (team == TeamHelper.Player0)
         {
             targets.AddRange(targetGrid.infantries.Where(i => IsInstanceValid(i)).Cast<Node2D>());
+            if (targetGrid.multiTileOccupant != null && IsInstanceValid(targetGrid.multiTileOccupant)) targets.Add(targetGrid.multiTileOccupant);
             if (CanAttackWeapon && targetGrid.weapon != null && IsInstanceValid(targetGrid.weapon) && targetGrid.weapon != this)
                 targets.Add(targetGrid.weapon);
             return targets;
@@ -295,6 +296,7 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
             case TargetSelectionMode.AllSelect:
                 // ✅ 添加所有单位
                 targets.AddRange(targetGrid.infantries.Where(i => IsInstanceValid(i)).Cast<Node2D>());
+            if (targetGrid.multiTileOccupant != null && IsInstanceValid(targetGrid.multiTileOccupant)) targets.Add(targetGrid.multiTileOccupant);
                 // ✅ 添加兵器（根据CanAttackWeapon设置）
                 if (CanAttackWeapon && targetGrid.weapon != null && IsInstanceValid(targetGrid.weapon) && targetGrid.weapon != this)
                     targets.Add(targetGrid.weapon);
@@ -305,6 +307,7 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
                 targets.AddRange(targetGrid.infantries
                     .Where(i => IsInstanceValid(i) && i.team != team)
                     .Cast<Node2D>());
+            if (targetGrid.multiTileOccupant != null && IsInstanceValid(targetGrid.multiTileOccupant) && targetGrid.multiTileOccupant.team != team) targets.Add(targetGrid.multiTileOccupant);
                 // ✅ 添加敌方兵器（根据CanAttackWeapon设置）
                 if (CanAttackWeapon && targetGrid.weapon != null && IsInstanceValid(targetGrid.weapon) && targetGrid.weapon.team != team && targetGrid.weapon != this)
                     targets.Add(targetGrid.weapon);
@@ -315,6 +318,7 @@ protected void ShowAttackRangeAsDisabled(GameManager gm)
                 targets.AddRange(targetGrid.infantries
                     .Where(i => IsInstanceValid(i) && i.team == team)
                     .Cast<Node2D>());
+            if (targetGrid.multiTileOccupant != null && IsInstanceValid(targetGrid.multiTileOccupant) && targetGrid.multiTileOccupant.team == team) targets.Add(targetGrid.multiTileOccupant);
                 // ✅ 添加己方兵器（根据CanAttackWeapon设置）
                 if (CanAttackWeapon && targetGrid.weapon != null && IsInstanceValid(targetGrid.weapon) && targetGrid.weapon.team == team && targetGrid.weapon != this)
                     targets.Add(targetGrid.weapon);

@@ -20,6 +20,21 @@ public partial class Infantry
     public bool IsOnIllegalTerrain()
     {
         if (grid == null) return false;
+        // ✅ issue#1 二期：多格单位严格非法地形检查 + 剩余n格安全阈值
+        if (isMultiTileUnit && illegalTerrainStrictMultiCell && footprintGrids != null && footprintGrids.Count > 0)
+        {
+            int legal = 0;
+            foreach (var g in footprintGrids)
+            {
+                if (g == null) continue;
+                if (GetMoveCostOnGrid(g) >= 999)
+                {
+                    if (illegalTerrainMinSafeCells <= 0) return true;   // 阈值关闭=任一非法即非法
+                }
+                else legal++;
+            }
+            return illegalTerrainMinSafeCells > 0 && legal < illegalTerrainMinSafeCells;
+        }
         return GetMoveCostOnGrid(grid) >= 999;
     }
 

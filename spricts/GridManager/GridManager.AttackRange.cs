@@ -83,16 +83,25 @@ public partial class GridManager
         int minRange = Mathf.Max(1, unit.minAttackRange + CoModuleSystem.GetMinFireRangeBonus(unit) + __minDelta);
         int maxRange = unit.maxAttackRange + CoModuleSystem.GetFireRangeBonus(unit) + WeatherSystem.GetFireRangeModifier(unit);
         
-        var allRangeGrids = grids.Where(g => g != null && g != unit.grid
-            && Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) <= maxRange
-            && IsRangeAllowed(unit.grid, g, unit.attackCanCrossScreens)).ToList();
-        var blindZoneGrids = new HashSet<Grids> { unit.grid };
+        // ✅ issue#1 二期：射程锚点格合集（单格单位=自身格，零变化）
+        var anchorCells = unit.GetAnchorCells();
+        if (anchorCells == null || anchorCells.Count == 0) anchorCells = new List<Grids> { unit.grid };
+
+        // 收集所有在最大射程内的格子（各锚点取并集）
+        var allRangeGrids = anchorCells.SelectMany(a => grids.Where(g => g != null && g != a
+            && Mathf.Abs(g.GridIndex.X - a.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - a.GridIndex.Y) <= maxRange
+            && IsRangeAllowed(a, g, unit.attackCanCrossScreens))).Distinct().ToList();
+        // 找到盲区格子（在任一锚点最小射程内）
+        var blindZoneGrids = new HashSet<Grids>(anchorCells);
         if (minRange > 1)
         {
             foreach (var g in allRangeGrids)
             {
-                int distance = Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y);
-                if (distance < minRange) blindZoneGrids.Add(g);
+                foreach (var a in anchorCells)
+                {
+                    int distance = Mathf.Abs(g.GridIndex.X - a.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - a.GridIndex.Y);
+                    if (distance < minRange) { blindZoneGrids.Add(g); break; }
+                }
             }
         }
         
@@ -216,11 +225,15 @@ public partial class GridManager
         }
         
         if (unit.attackType == AttackType.NoAttack) return;
+        // ✅ issue#1 二期：射程锚点格合集（单格单位=自身格，零变化）
+        var anchorCells = unit.GetAnchorCells();
+        if (anchorCells == null || anchorCells.Count == 0) anchorCells = new List<Grids> { unit.grid };
+
         var neighbors = unit.attackRange <= 1
-            ? GetAttackNeighbours(unit.grid, unit.attackCanCrossScreens)
-            : grids.Where(g => g != null && g != unit.grid
-                && Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) <= unit.attackRange
-                && IsRangeAllowed(unit.grid, g, unit.attackCanCrossScreens)).ToList();
+            ? anchorCells.SelectMany(a => GetAttackNeighbours(a, unit.attackCanCrossScreens)).Distinct().ToList()
+            : anchorCells.SelectMany(a => grids.Where(g => g != null && g != a
+                && Mathf.Abs(g.GridIndex.X - a.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - a.GridIndex.Y) <= unit.attackRange
+                && IsRangeAllowed(a, g, unit.attackCanCrossScreens))).Distinct().ToList();
         
         // ✅ 禁用所有单位选择，防止误选己方未行动单位
         foreach (var grid in grids)

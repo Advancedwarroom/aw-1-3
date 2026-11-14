@@ -120,8 +120,7 @@ public List<Infantry> transportedUnits = new List<Infantry>();
         // 载着人的运输单位不能再被装（套娃会丢失内部单位）
         if (unit.canTransportUnits && unit.transportedUnits.Count > 0) return false;
 
-        // ✅ issue#1 多格机动单位：双向禁运（多格不可被装载；多格载具不可装载他人）——置于白名单之前，不可绕过
-        if (unit.isMultiTileUnit || this.isMultiTileUnit) return false;
+        // ✅ issue#1 二期（开创人2026-11-15 拍板）：废除多格双向禁运——多格可运可载，装卸时足印随迁；容量按单位数计（多格=1席）
 
         // 1. 显式白名单（兵种ID 或 参照兵种ID 命中均可）——白名单是权威：命中即放行，不再被属性过滤误伤
         //    （此前航母白名单全是空军却勾了“排除空军”，导致什么都装不了）
@@ -217,7 +216,7 @@ public virtual bool LoadUnit(Infantry unit)
         unit.grid = null; // ✅ 彻底断开与格子的关联
     }
     
-    unit.ClearFootprint();   // ✅ issue#1：防多格足印残留（CanTransportUnit 已禁运，此处兜底）
+    unit.ClearFootprint();   // ✅ issue#1 二期：多格乘员装载时清足印（禁运已废除，侧格释放）
     
     UpdateLoadedIcon();
     
@@ -297,11 +296,23 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
     // ✅ 开创人2026-11-11 拍板：废除 P-1 公共运输卸载限制——共用运输可装即可卸，无势力门禁
 
     
-    var blockingUnit = targetGrid.infantries.FirstOrDefault(u => 
-        u != null && IsInstanceValid(u) && 
+    var blockingUnit = targetGrid.infantries.FirstOrDefault(u =>
+        u != null && IsInstanceValid(u) &&
         u.overlapType == UnitOverlapType.NonOverlapping);
     if (blockingUnit != null)
     { ScreenErrorLogger.Diag($"[卸载] 拒绝：目标格被非重叠单位 {blockingUnit.Name}({blockingUnit.team}) 阻挡"); return false; }
+
+    // ✅ issue#1 二期（开创人2026-11-15 拍板）：多格乘员可卸载——候选锚点整足印预检 + 侧格占用裁定
+    if (unit.isMultiTileUnit)
+    {
+        if (!unit.CheckFootprintFit(targetGrid.GridIndex, gm, unit.unitFacing)) return false;
+        foreach (var sideIdx in unit.GetFootprintIndices(targetGrid.GridIndex, unit.unitFacing))
+        {
+            if (sideIdx == targetGrid.GridIndex) continue;
+            var sideGrid = gm.gridManager.map[sideIdx.X, sideIdx.Y];
+            if (sideGrid == null || !unit.ResolveFootprintSideCell(sideGrid, gm)) return false;
+        }
+    }
 
     RemoveInternalExportService(unit);
     transportedUnits.Remove(unit);
@@ -382,7 +393,21 @@ public virtual bool CanUnloadUnitToGrid(Infantry unit, Grids targetGrid)
     if (!CanUnloadToGrid(targetGrid)) return false;
     if (unit == null) return true;
     int cost = unit.GetMoveCostOnGrid(targetGrid);
-    return cost < 999 && cost != int.MaxValue;
+    if (cost >= 999 || cost == int.MaxValue) return false;
+    // ✅ issue#1 二期：多格乘员候选锚点整足印校验（卸载高亮同步生效）
+    if (unit.isMultiTileUnit)
+    {
+        var gmU = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (!unit.CheckFootprintFit(targetGrid.GridIndex, gmU, unit.unitFacing)) return false;
+        foreach (var sideIdx in unit.GetFootprintIndices(targetGrid.GridIndex, unit.unitFacing))
+        {
+            if (sideIdx == targetGrid.GridIndex) continue;
+            var sideGrid = gmU?.gridManager?.map?[sideIdx.X, sideIdx.Y];
+            if (sideGrid == null) return false;
+            if (sideGrid.infantries.Any(x => x != null && IsInstanceValid(x) && x.overlapType == UnitOverlapType.NonOverlapping)) return false;
+        }
+    }
+    return true;
 }
 
 // ========== ✅ 究极自由：获取第一个已装载单位（从 APC 迁移） ==========

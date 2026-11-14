@@ -164,6 +164,7 @@ public partial class Laser
         if (team == TeamHelper.Player0)
         {
             targets.AddRange(g.infantries.Where(i => IsInstanceValid(i)).Cast<Node2D>());
+            if (g.multiTileOccupant != null && IsInstanceValid(g.multiTileOccupant)) targets.Add(g.multiTileOccupant);
             if (canAttackWeapons && g.weapon != null && IsInstanceValid(g.weapon) && g.weapon != this)
                 targets.Add(g.weapon);
             return targets;
@@ -173,16 +174,19 @@ public partial class Laser
         {
             case LaserTargetMode.AllSelect:
                 targets.AddRange(g.infantries.Where(i => IsInstanceValid(i)).Cast<Node2D>());
+            if (g.multiTileOccupant != null && IsInstanceValid(g.multiTileOccupant)) targets.Add(g.multiTileOccupant);
                 if (canAttackWeapons && g.weapon != null && IsInstanceValid(g.weapon) && g.weapon != this)
                     targets.Add(g.weapon);
                 break;
             case LaserTargetMode.OnlyEnemyUnits:
                 targets.AddRange(g.infantries.Where(i => IsInstanceValid(i) && TeamHelper.IsEnemyTeam(team, i.team)).Cast<Node2D>());
+                if (g.multiTileOccupant != null && IsInstanceValid(g.multiTileOccupant) && TeamHelper.IsEnemyTeam(team, g.multiTileOccupant.team)) targets.Add(g.multiTileOccupant);
                 if (canAttackWeapons && g.weapon != null && IsInstanceValid(g.weapon) && TeamHelper.IsEnemyTeam(team, g.weapon.team) && g.weapon != this)
                     targets.Add(g.weapon);
                 break;
             case LaserTargetMode.OnlyUserUnits:
                 targets.AddRange(g.infantries.Where(i => IsInstanceValid(i) && i.team == team).Cast<Node2D>());
+                if (g.multiTileOccupant != null && IsInstanceValid(g.multiTileOccupant) && g.multiTileOccupant.team == team) targets.Add(g.multiTileOccupant);
                 if (canAttackWeapons && g.weapon != null && IsInstanceValid(g.weapon) && g.weapon.team == team && g.weapon != this)
                     targets.Add(g.weapon);
                 break;

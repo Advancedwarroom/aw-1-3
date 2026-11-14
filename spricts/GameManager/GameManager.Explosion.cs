@@ -25,6 +25,9 @@ public partial class GameManager
         var gridPos = unit.grid?.GridIndex ?? unitManager.WorldToGrid(unit.Position);
         var sourceGrid = unit.grid ?? gridManager.GetGridAt(gridPos);
         if (sourceGrid == null) return;
+        // ✅ issue#1 二期：自爆以射程锚点格合集为源（与射程/视野同 Export）
+        var explosionAnchors = unit.GetAnchorCells();
+        if (explosionAnchors == null || explosionAnchors.Count == 0) explosionAnchors = new List<Grids> { sourceGrid };
         int minR = unit.explosionMinRange;
         int maxR = unit.explosionMaxRange;
 
@@ -34,8 +37,8 @@ public partial class GameManager
         {
             if (u == null || !IsInstanceValid(u) || u == unit) continue; // 自身伤害只由 explosionSelfDamageEnabled 专门控制
             var uGridPos = u.grid?.GridIndex ?? unitManager.WorldToGrid(u.Position);
-            int dist = Mathf.Abs(uGridPos.X - gridPos.X) + Mathf.Abs(uGridPos.Y - gridPos.Y);
-            if (dist >= minR && dist <= maxR && gridManager.IsRangeAllowed(sourceGrid, u.grid ?? gridManager.GetGridAt(uGridPos), unit.explosionCanCrossScreens))
+            int dist = explosionAnchors.Min(a => Mathf.Abs(uGridPos.X - a.GridIndex.X) + Mathf.Abs(uGridPos.Y - a.GridIndex.Y));
+            if (dist >= minR && dist <= maxR && explosionAnchors.Any(a => gridManager.IsRangeAllowed(a, u.grid ?? gridManager.GetGridAt(uGridPos), unit.explosionCanCrossScreens)))
             {
                 // 目标筛选（✅开创人2026-11-14 三军勾选裁决器）
                 bool include = PassesExplosionTeamFilter(unit, u.team);
@@ -57,9 +60,9 @@ public partial class GameManager
             {
                 if (w == null || !IsInstanceValid(w)) continue;
                 if (w.grid == null) continue;
-                int dist = Mathf.Abs(w.grid.GridIndex.X - gridPos.X) + Mathf.Abs(w.grid.GridIndex.Y - gridPos.Y);
+                int dist = explosionAnchors.Min(a => Mathf.Abs(w.grid.GridIndex.X - a.GridIndex.X) + Mathf.Abs(w.grid.GridIndex.Y - a.GridIndex.Y));
                 if (dist < minR || dist > maxR) continue;
-                if (!gridManager.IsRangeAllowed(sourceGrid, w.grid, unit.explosionCanCrossScreens)) continue;
+                if (!explosionAnchors.Any(a => gridManager.IsRangeAllowed(a, w.grid, unit.explosionCanCrossScreens))) continue;
 
                 // 目标筛选（兵器也有 team；✅开创人2026-11-14 三军勾选裁决器）
                 bool include = PassesExplosionTeamFilter(unit, w.team);
