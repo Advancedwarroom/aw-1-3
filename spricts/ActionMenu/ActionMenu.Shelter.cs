@@ -14,6 +14,7 @@ public partial class ActionMenu
         if (shelterUnloadContainer == null)
         {
             shelterUnloadContainer = new VBoxContainer();
+            AttachDrag(shelterUnloadContainer);
             shelterUnloadContainer.Name = "ShelterUnloadButtons";
             AddChild(shelterUnloadContainer);
         }
