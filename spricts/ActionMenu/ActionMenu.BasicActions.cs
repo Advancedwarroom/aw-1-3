@@ -266,8 +266,7 @@ public void ShowMoveChoiceDialog(Infantry movingUnit, Infantry targetUnit, Grids
     private void ShowRemoteCaptureTargetMenu(List<Facility> targets)
     {
         if (remoteCapturePopup != null && IsInstanceValid(remoteCapturePopup)) remoteCapturePopup.QueueFree();
-        remoteCapturePopup = new PopupPanel();
-        AttachDrag(remoteCapturePopup);
+        remoteCapturePopup = new PopupPanel();   // ✅ 开创人: PopupPanel属Window家族非Control,拖动需另案(暂不支持),先保编译
         var vbox = new VBoxContainer();
         remoteCapturePopup.AddChild(vbox);
         vbox.AddChild(new Label { Text = "选择远程占领目标" });
