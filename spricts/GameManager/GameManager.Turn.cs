@@ -105,6 +105,7 @@ public partial class GameManager
             if (wp == null || !IsInstanceValid(wp)) continue;
             if (wp.team != currentTeam) continue;
             wp.OnTurnStart(this);   // ✅ B组通用化：回合开始回调（GrandBolt=蠕动/生产/电磁爆，BlackArc=冷却/护卫联动）
+            wp.OnTurnStartWeaponRadar();   // ✅ 兵器雷达模块：每回合开始重置/激活（自动模式），与设施版 OnTurnStartRadar 同位
         }
 
         // ✅ 资金系统：每回合开始时给当前phase的势力增加资金

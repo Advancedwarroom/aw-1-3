@@ -237,6 +237,16 @@ public partial class FogOfWarManager : Node
         var gridVision = CalculateAllGridVision(team);
         visible.UnionWith(gridVision);
 
+        // 2.5 ✅ 兵器雷达模块：己方兵器（或 P-1 公开兵器）的雷达 x-y 范围去雾（开创人令 2026-11-15）
+        if (weaponManager?.AllWeapons != null)
+            foreach (var w in weaponManager.AllWeapons)
+            {
+                if (w == null || !IsInstanceValid(w) || w.health <= 0) continue;
+                if (w.team != team && !(w.team == TeamHelper.Player && w.isPublicVisionWeapon)) continue;
+                if (!w.IsWeaponRadarActive()) continue;
+                visible.UnionWith(w.GetWeaponRadarRangeGrids());
+            }
+
         // 3. 应用特殊格子规则（如需要紧邻视野）
         ApplySpecialGridRulesToSet(visible, visionProviders);
 
