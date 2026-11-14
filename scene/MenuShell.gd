@@ -73,3 +73,11 @@ func _ensure_survival_start_btn() -> void:
         s.BeginQuickDemo()
         _panel.visible = false)
     _panel.add_child(b)
+    # 面板一藏就焚尸——按钮不许跨面板赖着
+    if not _panel.visibility_changed.is_connected(_cleanup_survival_start_btn):
+        _panel.visibility_changed.connect(_cleanup_survival_start_btn)
+
+func _cleanup_survival_start_btn() -> void:
+    if _panel.visible: return
+    var old = _panel.find_child("SurvivalQuickStart", true, false)
+    if old: old.queue_free()
