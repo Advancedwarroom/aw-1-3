@@ -267,6 +267,7 @@ public void ShowMoveChoiceDialog(Infantry movingUnit, Infantry targetUnit, Grids
     {
         if (remoteCapturePopup != null && IsInstanceValid(remoteCapturePopup)) remoteCapturePopup.QueueFree();
         remoteCapturePopup = new PopupPanel();
+        AttachDrag(remoteCapturePopup);
         var vbox = new VBoxContainer();
         remoteCapturePopup.AddChild(vbox);
         vbox.AddChild(new Label { Text = "选择远程占领目标" });
