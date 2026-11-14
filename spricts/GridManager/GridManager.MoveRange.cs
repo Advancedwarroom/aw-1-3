@@ -362,6 +362,10 @@ public partial class GridManager
     // ✅ 公共方法：纯计算移动范围（不修改UI，供玩家和AI统一使用）
     public List<Grids> GetMoveRange(Infantry infantry, int maxMove)
     {
+        // ✅ 开创人2026-11-15 区域天气:移动力增减(flat delta,保底0)——寻路深度上限
+        var __wmM = GetTree()?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+        if (__wmM != null && infantry?.grid != null)
+            maxMove = Mathf.Max(0, maxMove + __wmM.GetMovePointsDelta(infantry.grid.GridIndex));
         var result = new List<Grids>();
         if (infantry == null || infantry.grid == null || map == null) return result;
 
