@@ -95,6 +95,7 @@ public partial class ActionMenu
         var old = gm.GetNodeOrNull("CoSwitchPopup");
         if (old != null) { old.QueueFree(); return; }   // 再点=关闭
         var popup = new VBoxContainer { Name = "CoSwitchPopup" };
+        AttachDrag(popup);
         popup.Position = new Vector2(60, 200);
         gm.AddChild(popup);
         var partners = CoModuleSystem.GetState(team)?.partners;
