@@ -199,20 +199,6 @@ public partial class Infantry
 
     /// <summary>占据足印：清旧占新（锚点=unit.grid）。返回 false=冲突（调用方应拒绝本次绑定）。</summary>
     public bool OccupyFootprint(GameManager gm) => OccupyFootprint(gm, unitFacing);
-    {
-        ClearFootprint();
-        if (!isMultiTileUnit || grid == null) return true;
-        if (gm?.gridManager?.map == null) return false;
-        var anchor = grid.GridIndex;
-        if (!CheckFootprintFit(anchor, gm)) return false;
-        foreach (var idx in GetFootprintIndices(anchor))
-        {
-            var g = gm.gridManager.map[idx.X, idx.Y];
-            if (!footprintGrids.Contains(g)) footprintGrids.Add(g);
-            g.multiTileOccupant = this;
-        }
-        return true;
-    }
 
     /// <summary>占据足印（指定朝向 facing；清旧占新，返回是否成功）</summary>
     public bool OccupyFootprint(GameManager gm, int facing)
