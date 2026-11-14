@@ -6,6 +6,10 @@ using System.Linq;
 
 public partial class GameManager : Node
 {
+    // ✅ 开创人2026-11-14 启动进度遮罩(跨方法: _Ready建, DeferredInit等喂进度)
+    private RichTextLabel _boot;
+    private System.Action<string> _step;
+
     [ExportGroup("")]
     [Export] public GridManager gridManager;
     [Export] public UnitManager unitManager;
@@ -82,23 +86,42 @@ public partial class GameManager : Node
     // ✅ 导入地图时屏蔽胜利检查
     public bool blockVictoryCheck = false;
 
-    public override void _Ready()
+    public override async void _Ready()   // ✅ 开创人2026-11-14: async分步让帧,加载进度肉眼可见
     {   
 
         AddToGroup("game_manager");
+        // ===== 启动进度遮罩(最先建,最先显示) =====
+        var __cs = GetTree()?.CurrentScene;
+        var __vp = GetViewport().GetVisibleRect().Size;
+        if (__cs != null)
+        {
+            _boot = new RichTextLabel { Position = new Vector2(0, __vp.Y * 0.35f), Size = new Vector2(__vp.X, 260), BbcodeEnabled = true, ScrollActive = false, ZIndex = 900, MouseFilter = Control.MouseFilterEnum.Ignore };
+            _boot.AddThemeFontSizeOverride("normal_font_size", 46);
+            __cs.AddChild(_boot);
+        }
+        _step = (s) =>
+        {
+            if (_boot != null) _boot.Text = $"[center]⚙ 初始化战场…[/center]\n[center][font_size=30]{s}[/font_size][/center]";
+        };
+        _step("势力调色板");
         ScreenErrorLogger.EnsureInstalled(this);   // 开创人2026-11-11：全引擎报错上屏（手机看不了控制台）
         
         // ✅ 初始化势力系统（动态调色板 + 多势力支持）
         TeamHelper.InitializeDefaults();
-        TeamHelper.LoadFactionsFromExtraSave();
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        _step("CO 档案(76+180)");
 
         // ✅ CO 三十模块体系：加载 co/*.json 档案 + bindings.json 势力绑定
-        CoModuleSystem.EnsureLoaded();
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        _step("CO 三十模块体系");
 
         // ✅ 天气系统（模块15）：创建天气指示 UI
-        InitWeatherUI();
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        _step("天气系统");
         
         RequestStoragePermissionsIfNeeded();
+        await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        _step("地图装载…");
         CallDeferred(nameof(DeferredInit));
         turnEndLabel = GetTree().CurrentScene.GetNodeOrNull<Label>("TurnEndLabel");
         TurnLabel = GetTree().CurrentScene.GetNodeOrNull<Label>("TurnLabel");
@@ -117,6 +140,13 @@ public partial class GameManager : Node
         CreateStatsToggleButtons();
         CreateTerrainStyleUI();   // ✅ 游戏内"全图换风格"按钮/面板
         SetProcessInput(true);
+        if (_boot != null)
+        {
+            var __tw = CreateTween();
+            __tw.TweenInterval(0.6);
+            __tw.TweenProperty(_boot, "modulate", new Color(1, 1, 1, 0), 0.5);
+            __tw.TweenCallback(Callable.From(() => { if (GodotObject.IsInstanceValid(_boot)) _boot.QueueFree(); }));
+        }
             if (restartButton != null)
     {
         restartButton.Pressed += OnRestartPressed;
