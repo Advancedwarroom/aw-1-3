@@ -60,7 +60,12 @@ public static Dictionary<Infantry, int> unitsCannotMove = new Dictionary<Infantr
         if (targetGrid != null && targetGrid.city is Port
             && (moveType == MoveType.Naval || moveType == MoveType.Hover))
             return 1;
-        return GetMoveCost(targetGrid != null ? targetGrid.gridType : GridType.GROUND);
+        int __cost = GetMoveCost(targetGrid != null ? targetGrid.gridType : GridType.GROUND);
+        // ✅ 开创人2026-11-14 区域天气接入(审查三节):移耗增减(delta,保底1)
+        var __wm2 = GetTree()?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+        if (__wm2 != null && targetGrid != null)
+            __cost = Mathf.Max(1, __cost + __wm2.GetMoveCostDelta(targetGrid.GridIndex));
+        return __cost;
     }
 
     /// <summary>✅ 解析检查器里的 terrainMoveCostOverrides（"BRIDGE=1"）</summary>
