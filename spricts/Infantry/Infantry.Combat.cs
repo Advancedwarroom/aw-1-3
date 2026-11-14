@@ -75,6 +75,15 @@ public virtual int CalculateFinalDamage(Infantry target, WeaponType weaponType, 
     // 防御阈值
     int effectiveDefense = target.GetEffectiveDefense(target.grid);
     float rawDamage = afterTerrain - effectiveDefense;
+    // ✅ 开创人2026-11-14 区域天气接入(审查三节):攻击方格子加攻/目标格减伤(千分比,无天气=1000)
+    var __wm = GetTree()?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+    if (__wm != null)
+    {
+        var __ac = grid != null ? grid.GridIndex : new Vector2I(-1, -1);
+        var __dc = (target != null && target.grid != null) ? target.grid.GridIndex : new Vector2I(-1, -1);
+        rawDamage = rawDamage * __wm.GetAttackPercent(__ac) / 1000f;
+        rawDamage = rawDamage * __wm.GetDefensePercent(__dc) / 1000f;
+    }
     // ✅ 开创人2026-11-14 对类别乘区(王牌空战式):减防后独立乘算
     if (attackVsCategoryEnabled && target.unitCategory == attackVsCategory)
         rawDamage *= attackVsCategoryMultiplier;
