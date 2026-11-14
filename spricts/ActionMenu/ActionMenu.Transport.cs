@@ -169,6 +169,7 @@ private void ShowTransportSelectionMenu(List<Infantry> transports)
 {
     // 清空卸载容器（借用这个容器显示APC选择）
     var container = GetNodeOrNull<VBoxContainer>("unloadContainer");
+    AttachDrag(container);
     if (container == null) return;
 
     container.Visible = true;
