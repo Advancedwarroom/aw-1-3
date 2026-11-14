@@ -19,7 +19,21 @@ public partial class Infantry
     [Export] public int cost = 1000;  // 单位造价（可在Inspector中修改，非硬编码）
 
 // ========== ✅ 究极自由：补给范围计算（从 APC 迁移） ==========
-public virtual List<Grids> CalculateSupplyRange() => CalculateSupplyRange(grid);
+public virtual List<Grids> CalculateSupplyRange()
+{
+    // ✅ issue#1 二期：多格单位补给范围=射程锚点格合集各自计算取并集（单格单位=自身格，零变化）
+    var seen = new HashSet<Grids>();
+    var result = new List<Grids>();
+    foreach (var anchor in GetAnchorCells())
+    {
+        if (anchor == null) continue;
+        foreach (var g in CalculateSupplyRange(anchor))
+        {
+            if (g != null && seen.Add(g)) result.Add(g);
+        }
+    }
+    return result;
+}
 
 public virtual List<Grids> CalculateSupplyRange(Grids originGrid)
 {
@@ -52,7 +66,13 @@ public virtual List<Infantry> GetSupplyRangeUnits()
     foreach (var g in supplyRange)
     {
         if (g == null) continue;
-        
+
+        // ✅ issue#1 二期：多格单位任一脚在补给圈内也吃补给（与锚点语义对称，去重）
+        if (g.multiTileOccupant != null && IsInstanceValid(g.multiTileOccupant)
+            && g.multiTileOccupant.team == this.team && g.multiTileOccupant != this
+            && !result.Contains(g.multiTileOccupant))
+            result.Add(g.multiTileOccupant);
+
         foreach (var unit in g.infantries)
         {
             if (unit != null && IsInstanceValid(unit) && unit.team == this.team && unit != this)
