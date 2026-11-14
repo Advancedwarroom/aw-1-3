@@ -23,8 +23,8 @@ func _process(_delta: float) -> void:
 		set_process(false)
 		_loaded = ResourceLoader.load_threaded_get(GAME_SCENE) as PackedScene
 		label.text = "加载中：1000‰"
-		# 不自动跳场景：数字跳完，亮起按钮，玩家自己按进主菜单
-		enter_button.show()
+		# ✅ 开创人2026-11-14: 加载完成直接自动进场——零按钮,菜单自己会居中显示在战场上
+		call_deferred("_auto_enter")
 	elif status == ResourceLoader.THREAD_LOAD_FAILED:
 		set_process(false)
 		label.text = "加载失败！"
@@ -32,3 +32,7 @@ func _process(_delta: float) -> void:
 func _on_enter_pressed() -> void:
 	if _loaded != null:
 		get_tree().change_scene_to_packed(_loaded)
+
+func _auto_enter() -> void:
+	await get_tree().create_timer(0.4).timeout
+	_on_enter_pressed()
