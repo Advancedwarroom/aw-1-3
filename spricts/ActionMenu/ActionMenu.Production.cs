@@ -36,6 +36,7 @@ public partial class ActionMenu
     {
         if (menuButtonContainer == null)
             menuButtonContainer = GetNodeOrNull<VBoxContainer>("ButtonContainer");
+            AttachDrag(menuButtonContainer);
         var b = new Button();
         b.Name = nameKey;
         b.CustomMinimumSize = new Vector2(140, 36);
