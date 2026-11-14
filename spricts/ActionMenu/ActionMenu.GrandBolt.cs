@@ -26,9 +26,18 @@ public partial class ActionMenu
 
     private void OnProducePressed()
     {
-        if (currentWeapon is not GrandBolt gb) return;
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        gb.ManualProduce(gm);
+
+        if (currentWeapon is GrandBolt gb)
+        {
+            gb.ManualProduce(gm);
+        }
+        else if (currentWeapon is GrandBoltModule m)   // ✅ 2026-11-15 拆分模块同款手动生产
+        {
+            m.ManualModuleProduce(gm);
+        }
+        else return;
+
         Hide();
     }
 
@@ -37,7 +46,8 @@ public partial class ActionMenu
     {
         EnsureProduceButton();
         if (produceButton == null) return;
-        produceButton.Visible = currentWeapon is GrandBolt gb && gb.CanManualProduce();
+        produceButton.Visible = (currentWeapon is GrandBolt gb && gb.CanManualProduce())
+            || (currentWeapon is GrandBoltModule m && m.CanManualModuleProduce());   // ✅ 2026-11-15 拆分模块同款
     }
 
     private void EnsureWriggleButton()
@@ -66,25 +76,64 @@ public partial class ActionMenu
         {
             if (wriggleButton != null) wriggleButton.Visible = true;
         }
+        else if (currentWeapon is GrandBoltModule m && m.moduleWriggleEnabled && m.CanModuleWriggle())   // ✅ 2026-11-15 拆分模块同款
+        {
+            if (wriggleButton != null) wriggleButton.Visible = true;
+        }
     }
 
     private void OnWrigglePressed()
     {
         if (currentWeapon == null || !IsInstanceValid(currentWeapon)) return;
-        if (currentWeapon is not GrandBolt gb) return;
+        GrandBolt gb = currentWeapon as GrandBolt;
+        GrandBoltModule m = currentWeapon as GrandBoltModule;   // ✅ 2026-11-15 拆分模块同款蠕动
+        if (gb == null && m == null) return;
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null) return;
 
         if (!isWriggleTargeting)
         {
             isWriggleTargeting = true;
-            BeginWriggleTargeting(gb, gm);
+            if (gb != null) BeginWriggleTargeting(gb, gm);
+            else BeginModuleWriggleTargeting(m, gm);
         }
         else
         {
             isWriggleTargeting = false;
             CancelWriggleTargeting(gm);
         }
+    }
+
+    // ✅ 2026-11-15 拆分模块蠕动瞄准：与 BeginWriggleTargeting 同构（4邻格高亮，点击执行）
+    public void BeginModuleWriggleTargeting(GrandBoltModule m, GameManager gm)
+    {
+        if (m == null || gm?.gridManager == null) return;
+        Hide();
+        gm.gridManager.ClearWeaponRange();
+        Grids.IsForceActionMode = true;
+
+        var directions = new Vector2I[] {
+            new Vector2I(0, -1), // 上
+            new Vector2I(0, 1),  // 下
+            new Vector2I(-1, 0), // 左
+            new Vector2I(1, 0),  // 右
+        };
+
+        foreach (var dir in directions)
+        {
+            var anchor = m.grid.GridIndex + dir;
+            if (anchor.X < 0 || anchor.Y < 0 || anchor.X >= gm.gridManager.searchRange.X || anchor.Y >= gm.gridManager.searchRange.Y) continue;
+            var g = gm.gridManager.map[anchor.X, anchor.Y];
+            if (g == null) continue;
+
+            g.attackRangeIcon?.Show();
+            g.OnClickGrid = (grid) =>
+            {
+                m.ModuleWriggle(dir, gm);
+                CancelWriggleTargeting(gm);
+            };
+        }
+        gm.gridManager.grids.ForEach(g => g.OnClickEmpty = () => CancelWriggleTargeting(gm));
     }
 
     // ✅ 蠕动瞄准：高亮4个方向格，点击方向格执行蠕动

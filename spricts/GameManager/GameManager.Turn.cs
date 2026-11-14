@@ -108,6 +108,7 @@ public partial class GameManager
         {
             if (wp == null || !IsInstanceValid(wp)) continue;
             if (wp.team != currentTeam) continue;
+            wp.OnTurnStart();   // ✅ 2026-11-15 双跑修复：行动/攻击次数重置收编为本势力专属一次（原195行无过滤全量循环已删）
             wp.OnTurnStart(this);   // ✅ B组通用化：回合开始回调（GrandBolt=蠕动/生产/电磁爆，BlackArc=冷却/护卫联动）
             wp.OnTurnStartWeaponRadar();   // ✅ 兵器雷达模块：每回合开始重置/激活（自动模式），与设施版 OnTurnStartRadar 同位
         }
@@ -186,15 +187,6 @@ public partial class GameManager
             }
         }
 
-        // 重置所有单位状态
-
-                foreach (var wp in weaponManager?.AllWeapons ?? new List<Weapon>())
-        {
-            if (IsInstanceValid(wp))
-            {
-                wp.OnTurnStart();
-            }
-        }
         foreach (var unit in unitManager?.AllUnits ?? new List<Infantry>())
         {
             if (!IsInstanceValid(unit)) 
