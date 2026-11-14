@@ -87,6 +87,9 @@ public static Dictionary<Infantry, int> unitsCannotMove = new Dictionary<Infantr
     public virtual void ConsumeFuel(int amount)
     {
         if (!consumeFuel) return;
+        // ✅ 开创人2026-11-15 区域天气:移动耗油增减(flat delta,保底0)
+        var __wmF = GetTree()?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+        if (__wmF != null && grid != null) amount = Mathf.Max(0, amount + __wmF.GetFuelCostDelta(grid.GridIndex));
         if (!fuelLocked) fuel -= amount; // 力场锁油
     }
 
@@ -95,7 +98,14 @@ public static Dictionary<Infantry, int> unitsCannotMove = new Dictionary<Infantr
     {
         bool hasStealthCost = isStealthed && HasAnyStealthCost();
         if ((!consumeFuel || dailyFuelConsumption <= 0) && !hasStealthCost) return;
-        if (consumeFuel && dailyFuelConsumption > 0) if (!fuelLocked) fuel -= dailyFuelConsumption; // 力场锁油
+        if (consumeFuel && dailyFuelConsumption > 0)
+        {
+            // ✅ 开创人2026-11-15 区域天气:日耗油增减(flat delta,保底0)
+            var __wmD = GetTree()?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
+            int __dayCost = dailyFuelConsumption;
+            if (__wmD != null && grid != null) __dayCost = Mathf.Max(0, dailyFuelConsumption + __wmD.GetFuelCostDelta(grid.GridIndex));
+            if (!fuelLocked) fuel -= __dayCost; // 力场锁油
+        }
 
         stealthFlareRevealed = false;   // 照明临时显形每回合刷新
         ApplyStealthDailyCost();   // ✅ 隐身日耗（独立于燃料开关）
