@@ -752,8 +752,19 @@ public partial class Grids : Node2D
 
                 if (weapons.Count > 0)
                 {
-                    var w = weapons[0];
-                    if (gm != null && gm.IsTurnPhaseValid(w.team) && !w.hasActed) { w.OnClickWeapon?.Invoke(w); return; }
+                    // ✅ 修复2026-11-15：跳过已销毁/排队的尸体兵器。旧代码盲取 weapons[0]，
+                    //    若是失效引用，访问 w.hasActed / w.OnClickWeapon 会抛异常被引擎吞掉
+                    //    （selfplay 日志里的 CSharpInstanceBridge NRE），点击毫无反应、菜单永不弹。
+                    var w = weapons.FirstOrDefault(x => x != null && IsInstanceValid(x) && !x.IsQueuedForDeletion());
+                    if (w != null && gm != null && gm.IsTurnPhaseValid(w.team) && !w.hasActed)
+                    {
+                        if (w.OnClickWeapon != null)
+                        {
+                            w.OnClickWeapon.Invoke(w);
+                            GetViewport().SetInputAsHandled();
+                        }
+                        return;   // 兵器格点击被消费，不再落到 OnClickEmpty（防空回调把已开的菜单秒关）
+                    }
                 }
 
                 if (infantries == null) infantries = new List<Infantry>();

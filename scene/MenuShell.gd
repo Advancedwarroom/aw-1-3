@@ -21,11 +21,10 @@ func _ready() -> void:
         $MenuList.gui_input.connect(_on_menu_drag)
 
 func _auto_layout() -> void:
-    var vp: Vector2 = get_viewport().get_visible_rect().size
+    var vp := get_viewport().get_visible_rect().size
     var sz: Vector2 = $MenuList.size
-    if sz.x < 100.0:
-        sz = $MenuList.get_combined_minimum_size()
-    $MenuList.position = Vector2(maxf(8.0, (vp.x - sz.x) / 2.0), maxf(8.0, (vp.y - sz.y) / 2.0))
+    if sz.x < 100: sz = $MenuList.get_combined_minimum_size()
+    $MenuList.position = Vector2(maxi(8, (vp.x - sz.x) / 2), maxi(8, (vp.y - sz.y) / 2))
     $MenuList.visible = true
 
 func _on_menu_drag(event: InputEvent) -> void:
