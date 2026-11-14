@@ -39,8 +39,18 @@ func _ready() -> void:
 	game_instance = main_scene.instantiate()
 	add_child(game_instance)
 
-	game_manager = get_tree().get_first_node_in_group("game_manager")
-	ai_manager = get_tree().get_first_node_in_group("ai_manager")
+	# ✅ 修复2026-11-15：菜单改版后 GameManager._Ready 是 async 分步让帧，
+	#    AI_Manager 由 DeferredInit 晚数帧兜底创建——不再同步一帧内立即判死，改为跨帧轮询等组注册。
+	game_manager = null
+	ai_manager = null
+	var waited := 0
+	while waited < 180:
+		game_manager = get_tree().get_first_node_in_group("game_manager")
+		ai_manager = get_tree().get_first_node_in_group("ai_manager")
+		if game_manager != null and ai_manager != null:
+			break
+		await get_tree().process_frame
+		waited += 1
 	if game_manager == null or ai_manager == null:
 		_fail("场景里找不到 game_manager / ai_manager 组节点")
 		_finish()
