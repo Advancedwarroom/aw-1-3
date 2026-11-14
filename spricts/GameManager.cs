@@ -86,6 +86,17 @@ public partial class GameManager : Node
     // ✅ 导入地图时屏蔽胜利检查
     public bool blockVictoryCheck = false;
 
+    // ✅ 开创人2026-11-14: 后台/退出自动存档——滑后台不再丢进度,回前台"生存·继续"一键回战场
+    public override void _Notification(int what)
+    {
+        base._Notification(what);
+        if (what == MainLoop.NotificationApplicationPaused || what == NotificationWMCloseRequest)
+        {
+            SurvivalSession.Instance?.SaveRun();
+            GD.Print("[Lifecycle] 应用暂停/关闭——生存进度已自动落盘");
+        }
+    }
+
     public override async void _Ready()   // ✅ 开创人2026-11-14: async分步让帧,加载进度肉眼可见
     {   
 
