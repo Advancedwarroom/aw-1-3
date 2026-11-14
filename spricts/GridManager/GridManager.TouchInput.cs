@@ -134,7 +134,7 @@ public partial class GridManager
         if (c.MouseFilter != Control.MouseFilterEnum.Stop) return false;
         // 注意：PopupPanel/PopupMenu 均派生自 Popup；CodeEdit 派生自 TextEdit——只写基类避免警告。
         // AcceptDialog/ConfirmationDialog 是独立 Window（不挂场景树），天然不在拾取范围。
-        return c is BaseButton || c is Panel || c is PanelContainer || c is Popup
+        return c is BaseButton || c is Panel || c is PanelContainer   // ✅ Popup为Window非Control,静态不可能——移除消警告(其135行注释已述)
             || c is LineEdit || c is TextEdit
             || c is ItemList || c is Tree || c is TabContainer
             || c is ScrollContainer || c is SplitContainer
