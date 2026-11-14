@@ -5,6 +5,9 @@ var _panel: PanelContainer
 var _info: RichTextLabel
 var _selected: Button = null
 
+var _dragging := false
+var _drag_off := Vector2.ZERO
+
 func _ready() -> void:
     for child in $MenuList.get_children():
         if child is Button:
@@ -12,6 +15,25 @@ func _ready() -> void:
             child.pressed.connect(_on_pressed.bind(child))
             child.focus_mode = Control.FOCUS_NONE
     _build_panel()
+    # ✅ 开创人2026-11-14: 开局自动居中显示+可拖动——手机不点按钮,拖开即玩
+    call_deferred("_auto_layout")
+    if not $MenuList.gui_input.is_connected(_on_menu_drag):
+        $MenuList.gui_input.connect(_on_menu_drag)
+
+func _auto_layout() -> void:
+    var vp := get_viewport().get_visible_rect().size
+    var sz := $MenuList.size
+    if sz.x < 100: sz = $MenuList.get_combined_minimum_size()
+    $MenuList.position = Vector2(maxi(8, (vp.x - sz.x) / 2), maxi(8, (vp.y - sz.y) / 2))
+    $MenuList.visible = true
+
+func _on_menu_drag(event: InputEvent) -> void:
+    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+        _dragging = event.pressed
+        if _dragging: _drag_off = $MenuList.get_global_mouse_position() - $MenuList.global_position
+        $MenuList.accept_event()
+    elif event is InputEventMouseMotion and _dragging:
+        $MenuList.global_position = $MenuList.get_global_mouse_position() - _drag_off
 
 func _build_panel() -> void:
     _panel = PanelContainer.new()
