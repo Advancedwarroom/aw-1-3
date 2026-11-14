@@ -19,9 +19,8 @@ public partial class GameManager
         // 批量请求清单中声明的危险权限（READ/WRITE_EXTERNAL_STORAGE，旧版安卓有效）
         OS.RequestPermissions();
 
-        // MANAGE_EXTERNAL_STORAGE（所有文件访问）需单独请求，会跳转系统设置页由用户手动开启
-        if (!HasStoragePermission())
-            OS.RequestPermission("android.permission.MANAGE_EXTERNAL_STORAGE");
+        // ✅ 开创人2026-11-14: 启动不再请求MANAGE_EXTERNAL_STORAGE——它跳转系统设置页,返回时Activity重建,
+        // 导致"授权后必须再次进入"。特殊权限改为导入时才按需请求(EnsureStoragePermission),开局零打断。
     }
 
     // 是否已有存储访问权限（非安卓平台视为已有）
