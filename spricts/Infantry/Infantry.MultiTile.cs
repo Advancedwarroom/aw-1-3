@@ -150,6 +150,16 @@ public partial class Infantry
     /// <summary>转身时贴图随朝向转90°（像素画糊可关，自换横竖双版贴图）</summary>
     [Export] public bool rotateSpriteWithFacing = true;
 
+    /// <summary>落点朝向回退：优先当前朝向，依次试 0~3，返回第一个整足印落得的朝向；-1=都落不下（卸载/推动用）</summary>
+    public int FindFittingFacing(Vector2I anchorIndex, GameManager gm)
+    {
+        if (!isMultiTileUnit) return 0;
+        if (CheckFootprintFit(anchorIndex, gm, unitFacing)) return unitFacing;
+        for (int f = 0; f < 4; f++)
+            if (f != unitFacing && CheckFootprintFit(anchorIndex, gm, f)) return f;
+        return -1;
+    }
+
     /// <summary>可旋转检查：四个朝向里是否有非当前朝向能落脚</summary>
     public bool CanAnyRotationFit(GameManager gm)
     {

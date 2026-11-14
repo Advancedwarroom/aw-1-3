@@ -302,9 +302,13 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
     if (blockingUnit != null)
     { ScreenErrorLogger.Diag($"[卸载] 拒绝：目标格被非重叠单位 {blockingUnit.Name}({blockingUnit.team}) 阻挡"); return false; }
 
-    // ✅ issue#1 二期（开创人2026-11-15 拍板）：多格乘员可卸载——候选锚点整足印预检 + 侧格占用裁定
+    // ✅ issue#1 二期（开创人2026-11-15 拍板）：多格乘员可卸载——朝向回退(当前落不下自动换朝向) + 整足印预检 + 侧格占用裁定
     if (unit.isMultiTileUnit)
     {
+        int fitFacing = unit.FindFittingFacing(targetGrid.GridIndex, gm);
+        if (fitFacing < 0) return false;
+        unit.unitFacing = fitFacing;
+        unit.ApplyFacingVisual();
         if (!unit.CheckFootprintFit(targetGrid.GridIndex, gm, unit.unitFacing)) return false;
         foreach (var sideIdx in unit.GetFootprintIndices(targetGrid.GridIndex, unit.unitFacing))
         {
@@ -394,12 +398,13 @@ public virtual bool CanUnloadUnitToGrid(Infantry unit, Grids targetGrid)
     if (unit == null) return true;
     int cost = unit.GetMoveCostOnGrid(targetGrid);
     if (cost >= 999 || cost == int.MaxValue) return false;
-    // ✅ issue#1 二期：多格乘员候选锚点整足印校验（卸载高亮同步生效）
+    // ✅ issue#1 二期：多格乘员候选锚点校验（含朝向回退，卸载高亮同步生效）
     if (unit.isMultiTileUnit)
     {
         var gmU = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-        if (!unit.CheckFootprintFit(targetGrid.GridIndex, gmU, unit.unitFacing)) return false;
-        foreach (var sideIdx in unit.GetFootprintIndices(targetGrid.GridIndex, unit.unitFacing))
+        int fitFacing = unit.FindFittingFacing(targetGrid.GridIndex, gmU);
+        if (fitFacing < 0) return false;
+        foreach (var sideIdx in unit.GetFootprintIndices(targetGrid.GridIndex, fitFacing))
         {
             if (sideIdx == targetGrid.GridIndex) continue;
             var sideGrid = gmU?.gridManager?.map?[sideIdx.X, sideIdx.Y];
