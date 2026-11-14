@@ -83,6 +83,10 @@ public partial class GameManager
 
         string currentTeam = TeamHelper.GetPhaseTeamName(turnPhase);
 
+        // ✅ 修复2026-11-15：强视野豁免集按回合清空——旧代码从不Clear，被照过的森林/礁石永久豁免"需临格"判定。
+        //    清在应用之前：本回合的强视野设施/兵器马上会重新把自己范围内的格子加回来，当回合语义不变。
+        Radar.StrongVisionExemptGrids.Clear();
+
         // ✅ 切换回合：刷新当前势力建筑的生产次数（P-1通用建筑每个势力回合开始都刷新）
         if (gridManager?.grids != null)
         {
