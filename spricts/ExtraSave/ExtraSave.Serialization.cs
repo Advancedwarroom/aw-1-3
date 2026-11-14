@@ -460,6 +460,7 @@ public partial class ExtraSave
         if (value is Color c) return c.ToHtml();
         if (value is Vector2 v2) return $"({v2.X},{v2.Y})";
         if (value is Vector2I v2i) return $"({v2i.X},{v2i.Y})";
+        if (value is int[] ia) return string.Join(",", ia);   // ✅ issue#1 二期：attackAnchorCells 射程锚点勾选
         if (value.GetType().IsEnum) return ((int)value).ToString();
         if (ExportPersistenceCodec.TrySerialize(value, out string encoded)) return encoded;
         return value.ToString();

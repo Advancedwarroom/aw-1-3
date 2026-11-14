@@ -248,7 +248,7 @@ public partial class AI_Manager
         if (u.canIlluminate && u.currentFlareAmmo > 0 && ctx.fogOn && (!moved || u.canIlluminateAfterMove) && customOk)
         {
             Grids bestC = null; float bestV = 0;
-            foreach (var c in Ring(g, Math.Max(0, u.minLaunchRange), Math.Max(0, u.maxLaunchRange)).Where(x => gameManager.gridManager.IsRangeAllowed(g, x, u.flareLaunchCanCrossScreens)))
+            foreach (var c in u.AnchorRingFrom(gameManager, g.GridIndex, u.unitFacing, Math.Max(0, u.minLaunchRange), Math.Max(0, u.maxLaunchRange), u.flareLaunchCanCrossScreens))   // ✅ issue#1 二期：锚点环带并集
             {
                 float v = 0;
                 foreach (var t in Ring(c, Math.Max(0, u.minIlluminationRange), Math.Max(0, u.maxIlluminationRange)).Where(x => gameManager.gridManager.IsRangeAllowed(c, x, u.flareEffectCanCrossScreens)))

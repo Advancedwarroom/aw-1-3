@@ -40,6 +40,9 @@ public partial class Infantry
         var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null || originGrid == null) return result;
         if (repairTargetMode == 3) { result.Add(originGrid); return result; }
+        // ✅ issue#1 二期：多格单位修理圈=以originGrid为锚的足印锚点环带并集（单格单位走原单格路径，零变化）
+        if (isMultiTileUnit)
+            return AnchorRingFrom(gm, originGrid.GridIndex, unitFacing, minRepairRange, maxRepairRange, repairCanCrossScreens);
         var allRange = gm.gridManager.FindRange(originGrid, maxRepairRange, false, repairCanCrossScreens);
         if (minRepairRange > 1)
         {

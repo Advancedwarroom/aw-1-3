@@ -453,6 +453,13 @@ public partial class TerrainEditor
             if (str == "0" || str.Equals("false", StringComparison.OrdinalIgnoreCase)) return false;
         }
         if (targetType.IsEnum && int.TryParse(str, out int e)) return e;
+        if (targetType == typeof(int[]))
+        {
+            // ✅ issue#1 二期：多格单位射程锚点勾选（attackAnchorCells）存档往返
+            if (string.IsNullOrWhiteSpace(str)) return new int[0];
+            try { return str.Split(',').Select(x => int.Parse(x.Trim(), System.Globalization.CultureInfo.InvariantCulture)).ToArray(); }
+            catch { return null; }
+        }
         if (targetType == typeof(Color)) return new Color(str);
         return null;
     }

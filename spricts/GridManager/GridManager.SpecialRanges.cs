@@ -36,12 +36,11 @@ public partial class GridManager
         HideExplosionRange();
         if (unit?.grid == null) return;
 
-        var allRangeGrids = grids.Where(g => g != null && Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) <= maxR && IsRangeAllowed(unit.grid, g, unit.explosionCanCrossScreens)).ToList();
-        List<Grids> innerGrids = minR > 0 ? allRangeGrids.Where(g => Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) < minR).ToList() : new List<Grids>();
+        // ✅ issue#1 二期：自爆圈=射程锚点合集环带并集（与 ExecuteExplosion 判定同口径；单格单位零变化）
+        var allRangeGrids = unit.AnchorRing(GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager, minR, maxR, unit.explosionCanCrossScreens);
 
         foreach (var grid in allRangeGrids)
         {
-            if (innerGrids.Contains(grid)) continue; // 排除内圈（形成环形）
             explosionRange.Add(grid);
             if (grid.attackRangeIcon != null)
             {
@@ -70,12 +69,11 @@ public partial class GridManager
         HideFlareRange();
         if (unit?.grid == null) return;
 
-        var allRangeGrids = grids.Where(g => g != null && Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) <= maxR && IsRangeAllowed(unit.grid, g, unit.flareLaunchCanCrossScreens)).ToList();
-        List<Grids> innerGrids = minR > 0 ? allRangeGrids.Where(g => Mathf.Abs(g.GridIndex.X - unit.grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - unit.grid.GridIndex.Y) < minR).ToList() : new List<Grids>();
+        // ✅ issue#1 二期：照明弹投射圈=射程锚点合集环带并集（单格单位零变化）
+        var allRangeGrids = unit.AnchorRing(GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager, minR, maxR, unit.flareLaunchCanCrossScreens);
 
         foreach (var grid in allRangeGrids)
         {
-            if (innerGrids.Contains(grid)) continue;
             flareRange.Add(grid);
             if (grid.attackRangeIcon != null)
             {

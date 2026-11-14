@@ -160,6 +160,69 @@ public partial class Infantry
         return -1;
     }
 
+    /// <summary>目标格到任一锚点格的最小曼哈顿距离（n-m远程资格判定用；-1=无锚点）</summary>
+    public int MinAnchorDistance(Vector2I targetIdx)
+    {
+        int best = int.MaxValue;
+        foreach (var a in GetAnchorCells())
+        {
+            if (a == null) continue;
+            int d = Mathf.Abs(targetIdx.X - a.GridIndex.X) + Mathf.Abs(targetIdx.Y - a.GridIndex.Y);
+            if (d < best) best = d;
+        }
+        return best == int.MaxValue ? -1 : best;
+    }
+
+    /// <summary>n-m 远程圈（假设锚点=anchorIdx/朝向=facing）：各足印锚点环带取并集，盲区=距任一锚点不足minR。AI假想位评估用。</summary>
+    public List<Grids> AnchorRingFrom(GameManager gm, Vector2I anchorIdx, int facing, int minR, int maxR, bool canCross)
+    {
+        var result = new List<Grids>();
+        if (gm?.gridManager?.map == null || maxR < 0) return result;
+        var anchors = new List<Grids>();
+        if (isMultiTileUnit)
+        {
+            var sr = gm.gridManager.searchRange;
+            foreach (var idx in GetFootprintIndices(anchorIdx, facing))
+            {
+                if (idx.X < 0 || idx.Y < 0 || idx.X >= sr.X || idx.Y >= sr.Y) continue;
+                var g = gm.gridManager.map[idx.X, idx.Y];
+                if (g != null) anchors.Add(g);
+            }
+        }
+        else
+        {
+            if (anchorIdx.X >= 0 && anchorIdx.Y >= 0 && anchorIdx.X < gm.gridManager.searchRange.X && anchorIdx.Y < gm.gridManager.searchRange.Y)
+            {
+                var g0 = gm.gridManager.map[anchorIdx.X, anchorIdx.Y];
+                if (g0 != null) anchors.Add(g0);
+            }
+        }
+        if (anchors.Count == 0) return result;
+        var blind = new HashSet<Grids>();
+        var seen = new HashSet<Grids>();
+        foreach (var a in anchors)
+        {
+            foreach (var g in gm.gridManager.FindRange(a, maxR, false, canCross))
+            {
+                if (g == null || g == a || !seen.Add(g)) continue;
+                int d = Mathf.Abs(g.GridIndex.X - a.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - a.GridIndex.Y);
+                if (d >= minR) result.Add(g);
+            }
+            if (minR > 0)
+                foreach (var g in gm.gridManager.FindRange(a, minR - 1, false, canCross))
+                    if (g != null) blind.Add(g);
+        }
+        if (blind.Count > 0) result.RemoveAll(blind.Contains);
+        return result;
+    }
+
+    /// <summary>n-m 远程圈（当前位置锚点）：AnchorRingFrom(grid.GridIndex, unitFacing) 简写</summary>
+    public List<Grids> AnchorRing(GameManager gm, int minR, int maxR, bool canCross)
+    {
+        if (grid == null) return new List<Grids>();
+        return AnchorRingFrom(gm, grid.GridIndex, unitFacing, minR, maxR, canCross);
+    }
+
     /// <summary>可旋转检查：四个朝向里是否有非当前朝向能落脚</summary>
     public bool CanAnyRotationFit(GameManager gm)
     {

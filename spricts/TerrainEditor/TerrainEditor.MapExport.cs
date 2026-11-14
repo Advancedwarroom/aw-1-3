@@ -435,6 +435,7 @@ public partial class TerrainEditor
         if (val is bool b) return b ? "true" : "false";
         if (val is float f) return f.ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (val is double d) return d.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        if (val is int[] ia) return string.Join(",", ia);   // ✅ issue#1 二期：attackAnchorCells 射程锚点勾选
         if (ExportPersistenceCodec.TrySerialize(val, out string encoded)) return encoded;
         return val.ToString();
     }

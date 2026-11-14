@@ -691,6 +691,7 @@ public partial class TerrainEditor
         if (t == typeof(Vector2I)) return true;
         if (t == typeof(Vector3)) return true;
         if (t == typeof(Vector3I)) return true;
+        if (t == typeof(int[])) return true;   // ✅ issue#1 二期：attackAnchorCells 射程锚点勾选
         return false;
     }
 
@@ -713,6 +714,13 @@ public partial class TerrainEditor
         {
             if (int.TryParse(str, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out int iv)) return iv;
             return null;
+        }
+        if (targetType == typeof(int[]))
+        {
+            // ✅ issue#1 二期：attackAnchorCells 射程锚点勾选
+            if (string.IsNullOrWhiteSpace(str)) return new int[0];
+            try { return str.Split(',').Select(x => int.Parse(x.Trim(), System.Globalization.CultureInfo.InvariantCulture)).ToArray(); }
+            catch { return null; }
         }
         if (targetType == typeof(uint))
         {

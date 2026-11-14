@@ -169,7 +169,6 @@ private void ShowTransportSelectionMenu(List<Infantry> transports)
 {
     // 清空卸载容器（借用这个容器显示APC选择）
     var container = GetNodeOrNull<VBoxContainer>("unloadContainer");
-    AttachDrag(container);
     if (container == null) return;
 
     container.Visible = true;
@@ -407,8 +406,7 @@ private List<Infantry> GetAvailableTransportsInRange(Infantry unit)
 
         if (!transport.CanFarMounting) continue;
 
-        int dist = Mathf.Abs(currentGrid.GridIndex.X - transport.grid.GridIndex.X) 
-                 + Mathf.Abs(currentGrid.GridIndex.Y - transport.grid.GridIndex.Y);
+        int dist = unit.MinAnchorDistance(transport.grid.GridIndex);   // ✅ issue#1 二期：锚点合集取最近（多格隔空搭载资格）
 
         bool inRange = dist >= transport.minFarMountingDistance && dist <= transport.maxFarMountingDistance;
         if (inRange && dist > 0 && transport.CanTransportUnit(unit))

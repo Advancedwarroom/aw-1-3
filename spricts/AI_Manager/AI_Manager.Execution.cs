@@ -136,9 +136,9 @@ public partial class AI_Manager
             case Act.Illuminate:
                 if (p.actGrid != null && u.currentFlareAmmo > 0 && u.grid != null)
                 {
-                    int launchDistance = Mathf.Abs(p.actGrid.GridIndex.X - u.grid.GridIndex.X) + Mathf.Abs(p.actGrid.GridIndex.Y - u.grid.GridIndex.Y);
+                    int launchDistance = u.MinAnchorDistance(p.actGrid.GridIndex);   // ✅ issue#1 二期
                     if (launchDistance >= u.minLaunchRange && launchDistance <= u.maxLaunchRange
-                        && gm.gridManager.IsRangeAllowed(u.grid, p.actGrid, u.flareLaunchCanCrossScreens))
+                        && u.GetAnchorCells().Any(a => a != null && gm.gridManager.IsRangeAllowed(a, p.actGrid, u.flareLaunchCanCrossScreens)))
                     {
                         u.TryConsumeAmmo(Infantry.AmmoKind.Flare);
                         gm.fogOfWarManager?.AddIllumination(p.actGrid, u.minIlluminationRange, u.maxIlluminationRange, u.flareDurationTurns, u.flareEffectCanCrossScreens);
