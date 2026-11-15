@@ -17,7 +17,7 @@ public partial class ActionMenu
     public void EnsureTeleportButton()
     {
         // ✅ 开创人2026-11-15: 准备模块传送门（按钮可见性）
-        if (currentUnit != null && currentUnit.actionResourceEnabled && !ActionResourceRuntime.CanUse(currentUnit, ActionIds.Teleport)) return;
+        if (currentUnit != null && currentUnit.Get("actionResourceEnabled").VariantType == Variant.Type.Bool && currentUnit.Get("actionResourceEnabled").AsBool() && !ActionResourceRuntime.CanUse(currentUnit, ActionIds.Teleport)) return;
         if (teleportButton != null && IsInstanceValid(teleportButton)) return;
         if (moveButton == null) return;
         teleportButton = new Button();
