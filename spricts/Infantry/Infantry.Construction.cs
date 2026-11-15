@@ -98,6 +98,10 @@ public partial class Infantry
     /// <summary>开始建造</summary>
     public bool StartConstruction(string facilityType, bool internalMode, Grids externalTargetGrid = null)
     {
+        // ✅ 开创人2026-11-15: 准备模块建造门
+        if (!ActionResourceRuntime.CanUse(this, ActionIds.Build)) return false;
+        ActionResourceRuntime.Consume(this, ActionIds.Build);
+        ActionResourceRuntime.FireEvents(this, ActionIds.Build);
         if (!CanStartConstruction(internalMode)) return false;
         ActionResourceRuntime.Consume(this, ActionIds.Build);         // ✅ A7③
         ActionResourceRuntime.FireEvents(this, ActionIds.Build);
