@@ -88,6 +88,7 @@ public partial class TerrainEditor
                                 
         hideUnitsCheck = MakeCheckRow("地形隐蔽", grid.terrainHidesUnits, moduleCsvContainer);
         cannotStopCheck = MakeCheckRow("单位不能停靠(可穿过)", grid.cannotStopOnThisGrid, moduleCsvContainer);
+        var carvedCheck = MakeCheckRow(terrainModuleContent, "山道（开凿态）", terrainModule?.carvedPath ?? false, v => { if (terrainModule != null) terrainModule.carvedPath = v; });
 
         visionEnableCheck = MakeCheckRow("视野加成开关", grid.visionBonusEnabled, moduleCsvContainer);
         visionBlacklistEdit = MakeCsvRow("势力黑名单csv", JoinInts(grid.visionBonusFactionBlacklist), moduleCsvContainer);
