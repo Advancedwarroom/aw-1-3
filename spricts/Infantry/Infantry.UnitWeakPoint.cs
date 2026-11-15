@@ -14,6 +14,8 @@ public partial class Infantry
     [Export] public int[] unitWeakPointCellIndices = new int[] { };       // 弱点格足印序号（0=锚点格恒可打；1~n同attackAnchorCells序号语义）
     [Export] public bool unitWeakPointRotatesWithFacing = true;           // 弱点随朝向旋转
     [Export] public float[] weakCellDamageFactors = new float[] { };      // 每格受击倍率（1=全伤，0=免疫，>1=加伤；留空=全1）
+    [Export] public float[] weakCellOutputFactors = new float[] { };      // 精度崩：每格被打→目标【下次攻击】乘数（1=无影响，0.5=精度崩，0=哑火级，>1=反向校准增益；留空=全1不触发）
+    [Export] public float nextAttackOutputMul = 1f;                       // 下次攻击输出乘数（被打弱点格写入，下次攻击消耗归零；走Export存档管线）
 
     // 可被打的目标格：开关关=全足印格；开=锚点格+弱点格（随朝向旋转）。单格单位=自身格。
     public List<Grids> GetUnitHittableGrids()
@@ -76,16 +78,20 @@ public partial class Infantry
         return weakCellDamageFactors[0];
     }
 
+
+    // 精度崩查表：被打格→目标下次攻击乘数（开关关/未配置=1）
+    public float GetWeakCellOutputFactor(Grids g)
+    {
+        if (!unitWeakPointEnabled || weakCellOutputFactors == null || weakCellOutputFactors.Length == 0) return 1f;
+        int idx = GetUnitCellIndexOf(g);
+        if (idx < 0) return 1f;
+        if (idx < weakCellOutputFactors.Length) return weakCellOutputFactors[idx];
+        return weakCellOutputFactors[0];
+    }
+
     private Grids GetGridByIndexSafe(Vector2I idx)
     {
-        try
-        {
-            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-            var grids = gm?.gridManager?.grids;
-            if (grids == null) return null;
-            if (idx.X < 0 || idx.Y < 0 || idx.X >= grids.GetLength(0) || idx.Y >= grids.GetLength(1)) return null;
-            return grids[idx.X, idx.Y];
-        }
-        catch { return null; }
+        var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        return gm?.gridManager?.GetGridAt(idx);   // ✅ GetGridAt自带越界/空图防护
     }
 }
