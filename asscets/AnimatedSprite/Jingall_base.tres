@@ -1,0 +1,20 @@
+[gd_resource type="SpriteFrames" load_steps=5 format=3]
+
+[ext_resource type="Texture2D" path="res://art/official/jingall_base1.png" id="1_f"]
+[ext_resource type="Texture2D" path="res://art/official/jingall_base2.png" id="2_f"]
+[ext_resource type="Texture2D" path="res://art/official/jingall_base3.png" id="3_f"]
+[ext_resource type="Texture2D" path="res://art/official/jingall_base4.png" id="4_f"]
+
+[resource]
+animations = [{"frames": [{"duration": 1.0, "texture": ExtResource("1_f")}, {"duration": 1.0, "texture": ExtResource("2_f")}, {"duration": 1.0, "texture": ExtResource("3_f")}, {"duration": 1.0, "texture": ExtResource("4_f")}],
+"loop": true,
+"name": &"P0Jingall",
+"speed": 5.0},
+{"frames": [{"duration": 1.0, "texture": ExtResource("1_f")}, {"duration": 1.0, "texture": ExtResource("2_f")}, {"duration": 1.0, "texture": ExtResource("3_f")}, {"duration": 1.0, "texture": ExtResource("4_f")}],
+"loop": true,
+"name": &"jingallteam1",
+"speed": 5.0},
+{"frames": [{"duration": 1.0, "texture": ExtResource("1_f")}, {"duration": 1.0, "texture": ExtResource("2_f")}, {"duration": 1.0, "texture": ExtResource("3_f")}, {"duration": 1.0, "texture": ExtResource("4_f")}],
+"loop": true,
+"name": &"jingallteam2",
+"speed": 5.0}]
