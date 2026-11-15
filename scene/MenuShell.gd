@@ -54,7 +54,7 @@ func _drag_handle(event: InputEvent, target: Control) -> void:
 
 func _on_enter_battle() -> void:
     # ✅ 开创人2026-11-15: 单程票改往返——⚔ 常驻壳上,切换 MenuList 显隐
-    var open := not $MenuList.visible
+    var open: bool = not $MenuList.visible   # ✅ 开创人2026-11-15: $节点返回未定型, :=推断失败致ParseError,显式注解
     $MenuList.visible = open
     if not open:
         _panel.visible = false
