@@ -139,7 +139,7 @@ public static class UnitRegistry
             TransportUnitTypes = new[] { "Infantry" },
         },
 
-        ["Bike"] = new UnitConfig
+        ["Jingall"] = new UnitConfig
         {
             UnitId = "Jingall",
             DisplayName = "抬枪兵",
@@ -149,7 +149,8 @@ public static class UnitRegistry
             AnimPrefix = "jingall",
             HasPrimaryWeapon = true,
         },
-        new UnitConfig
+
+        ["Bike"] = new UnitConfig
         {
             UnitId = "Bike",
             DisplayName = TranslateGroup.T("摩托兵"),
