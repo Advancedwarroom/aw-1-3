@@ -363,7 +363,8 @@ private List<Grids> GetAdjacentGrids(Grids center)
 
         // ✅ 导弹井发射 / 天基打击按钮
         UpdateSiloStrikeButtons();
-        UpdatePaidResupplyButtons();   // ✅ 自费补给：自点自补/代点他补（开创人2026-11-11）
+        UpdatePaidResupplyButtons();
+        UpdateCarveButton();   // ✅ 开凿按钮（开创人2026-11-15，开山P1差的那半口气）   // ✅ 自费补给：自点自补/代点他补（开创人2026-11-11）
         UpdateForceSupportButtons();
         UpdateEmpowermentButton(unit);
         UpdateShelterButtons(null);
