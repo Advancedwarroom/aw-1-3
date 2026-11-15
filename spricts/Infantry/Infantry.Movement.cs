@@ -61,6 +61,9 @@ public static Dictionary<Infantry, int> unitsCannotMove = new Dictionary<Infantr
             && (moveType == MoveType.Naval || moveType == MoveType.Hover))
             return 1;
         int __cost = GetMoveCost(targetGrid != null ? targetGrid.gridType : GridType.GROUND);
+        // ✅ 开创人2026-11-15 山脉开道：山道态覆盖——999的山被凿通后按山道耗走(寻路/AI零改动)
+        if (targetGrid != null && targetGrid.carvedPath && __cost >= 999)
+            __cost = targetGrid.carvedMoveCost;
         // ✅ 开创人2026-11-14 区域天气接入(审查三节):移耗增减(delta,保底1)
         var __wm2 = GetTree()?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
         if (__wm2 != null && targetGrid != null)
