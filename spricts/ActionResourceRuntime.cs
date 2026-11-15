@@ -5,6 +5,14 @@ using System.Collections.Generic;
 
 public static partial class ActionResourceRuntime   // ✅ 移植层：partial 以便 ActionResourceRuntime.Port.cs 同班扩展
 {
+    /// <summary>字典/对象字符串读取双重重载——参谋二CleanupEvents/事件v2接线依赖,双方共用。</summary>
+    private static string Str(Godot.Collections.Dictionary d, string k) => d.GetValueOrDefault(k, "").ToString();
+    private static string Str(GodotObject o, string k)
+    {
+        var v = o.Get(k);
+        return v.VariantType == Variant.Type.Nil ? "" : v.ToString();
+    }
+
     private static readonly Dictionary<GodotObject, List<(string action, string field, Variant oldVal, int turnsLeft, int scope)>> _tempEvents = new();   // ✅ A9 v2：action/scope 随身带，供计数器精确减回
 
     private static int Idx(GodotObject o, string action)
@@ -240,7 +248,7 @@ public static partial class ActionResourceRuntime   // ✅ 移植层：partial �
                 // 全军/全局：跨单位栈数走 GameManager 场景登记（新游戏自动归零）
                 if (v2scope == 1 || v2scope == 2)
                 {
-                    var gmSc = o.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+                    var gmSc = (o as Node)?.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
                     if (gmSc == null) continue;
                     string ek = $"{Str(d, "action")}|{d.GetValueOrDefault("field", "")}";
                     counted += v2scope == 1 ? gmSc.GetArmyEventStack(Str(o, "team"), ek) : gmSc.GetGlobalEventStack(ek);
@@ -262,7 +270,7 @@ public static partial class ActionResourceRuntime   // ✅ 移植层：partial �
                 // ✅ A9 v2 登记全军/全局栈数（到期/清理/手动关时由 UnregisterEventScope 精确减回）
                 if (v2scope == 1 || v2scope == 2)
                 {
-                    var gmRg = o.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+                    var gmRg = (o as Node)?.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
                     string ekRg = $"{Str(d, "action")}|{field}";
                     if (v2scope == 1) gmRg?.AddArmyEventStack(Str(o, "team"), ekRg, 1);
                     else gmRg?.AddGlobalEventStack(ekRg, 1);
