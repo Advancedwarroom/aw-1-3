@@ -53,7 +53,12 @@ public partial class PatternEditorGrid : VBoxContainer
         RefreshChecks();
     }
 
-    private static Label MakeHead(string t) => new Label { Text = t, CustomMinimumSize = new Vector2(22, 14), AddThemeFontSizeOverride = { ["font_size"] = 8 } };
+    private static Label MakeHead(string t)
+    {
+        var l = new Label { Text = t, CustomMinimumSize = new Vector2(22, 14) };
+        l.AddThemeFontSizeOverride("font_size", 8);
+        return l;
+    }
 
     private void OnToggle(int dx, int dy)
     {
