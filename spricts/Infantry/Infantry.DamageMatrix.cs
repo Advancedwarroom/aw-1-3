@@ -46,7 +46,7 @@ public void InitializeDefaultMatrix()
             ["Jingall_RepairBoat"] = 10,   ["Jingall_Cruiser"] = 0,   ["Jingall_Battleship"] = 0,
             ["Jingall_Submarine"] = 0,   ["Jingall_Carrier"] = 0,
             // 特殊：Boss/管道/神风/对枪
-            ["Jingall_Oozium"] = 55   // ✅ 2026-11-16 开创人令：5→55,   ["Jingall_PipeRunner"] = 10,   ["Jingall_FlyBomb"] = 15,
+            ["Jingall_Oozium"] = 55,   ["Jingall_PipeRunner"] = 10,   ["Jingall_FlyBomb"] = 15,
             ["Jingall_Jingall"] = 55,
             ["Infantry_Jingall"] = 55,   ["Mech_Jingall"] = 65,   ["LightTank_Jingall"] = 85,
             ["Infantry_Artillery"] = 25,  ["Infantry_Rocket"] = 25, ["Infantry_APC"] = 15,
