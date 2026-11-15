@@ -331,7 +331,76 @@ GitHub Actions 手动触发（workflow_dispatch），Mono+android-arm64 正路�
 **机制**：范围Buff/Debuff任意Export映射＋解能快照恢复＋N:M叠层＋权重裁决＋手动/自动＋目标筛选（敌友盟/三对象/黑名单）。
 **三界适配**：✅ 三界全通吃。
 
-## 提案中：准备/冷却·哑火（抬枪兵架枪）
+## 模块四十三：ActionResource 操作资源体系（2026-11-15 补录·正式立档）
+
+> 原"提案中：准备/冷却·哑火"于今夜落地，升级为正式模块。抬枪兵架枪为首个实装单位。
+
+### 总开关
+`actionResourceEnabled=false`（默认）= 全部操作不受管，零干扰；只在显式开启的单位上接管。与 PrepEngine 行动门串联不并联。
+
+### 每操作独立三池（A 的消耗碰不到 B）
+- `actionTable`：受管操作名表（默认 attack/move/capture/stealth/push/produce，可自定义任意名）
+- `actionFillPerTurn`：各池每回合独立装填（抬枪 attack=10）
+- `actionMax`：池上限（0/缺省=无限蓄能——220 连打 11 发/一辈子变身全合法）
+- `actionCosts`：消耗品法：自己的池扣多少（-1/缺省=不扣）
+- `actionUnlockAt`：纪念法：攒到 n 永久解锁（-1=不用）
+- `actionCooldownTurns`：用后该操作自己冷却 n 回合——绝不拖累别的操作
+- `actionMaxPerTurn`：每操作每回合次数上限
+
+### 共享全局桶（可选通道）
+`useSharedBucket`：消耗从共享桶扣（跨操作经济）；`sharedBucketFillPerTurn` 回充；`maxBucketAmmo/currentBucketAmmo`。
+
+### 冷却对表三规则（v3）
+`actionCooldownRules`：{kind:1=窗口|2=全局, window, limit, cooldown, refresh}，运行时 `actionWindowUses/actionWindowTurn/actionTotalUses/actionTotalTurns`。
+
+### 哑火全家
+- 阈值：`misfireHpBelow/Above`（血量）、`misfireDamageBelow/Above`（伤害量）、`misfireAmmoKind+Below/Above+DeltaBelow/DeltaAbove`（弹药现值/一次性变化量）
+- 处置：`misfireBlockOps`（禁哪些操作）+ `misfireBlockTurns`（0=仅当回合），运行时 `actionBlockLeft`
+- 弱点格：`actionWeakCellReset`（序号格=1 → 被打中全池清零）
+- 手动：`actionManualOff`（自主关效果）、`actionFillConsumesAction`（装填耗不耗行动）
+
+### 触发事件 v1
+`actionEvents`：{action, when(always/current>=n), field, mode(set/add), value, temp(0永久)}。
+
+### 炮台锁
+`actionLockAsTurret`：有存货=固定炮台。`ActionResourceRuntime.MovementLocked` 判分池或共享桶存货，锁行动菜单"移动"按钮与快捷移动（TryQuickMove）双门禁。
+
+### 七道门（执行入口挂门清单）
+| 操作 | 位置 | 资源ID |
+|---|---|---|
+| 攻击/隐身 | 行动菜单门禁 | attack/stealth |
+| 移动 | MovementLocked 双门禁 | （锁，非消耗） |
+| 推动 | CanUseSeparatePushAction/TryMarkPushActionUsed | push |
+| 占领 | PerformCapture 启动点 | capture |
+| 建造 | CanStartConstruction/StartConstruction | build |
+| 生产 | CanStartProduction/StartProduction | produce |
+| 传送 | PerformTeleport（落点校验后结算） | teleport |
+| 兵器开火 | DeathRay/黑水晶/黑炮 PerformAttack 首行 | specialfire |
+| AI 侧 | AI_Manager DoAction 顶挂，未装填跳过计划 | attack/capture |
+
+### ActionIds ↔ PrepEngine(Ops) 对照表（A11）
+| ActionIds | PrepEngine Ops | 状态 |
+|---|---|---|
+| attack | Ops.Attack | 待对齐 |
+| move | Ops.Move | 参谋门禁已引用 |
+| capture | Ops.Capture | 待对齐 |
+| stealth | Ops.Stealth | 待对齐 |
+| push | Ops.Push | 待对齐 |
+| produce | Ops.Produce | 待对齐 |
+| build | Ops.Build | 待对齐 |
+| teleport | Ops.Teleport | 待对齐 |
+| specialfire | Ops.SpecialFire | 待对齐 |
+
+> PrepEngine 本体尚未入库，Ops 全命名暴露后逐格核对本表。
+
+### 文件
+- `spricts/ActionIds.cs`（操作名常量）
+- `spricts/ActionResourceRuntime.cs` + `ActionResourceRuntime.Port.cs`（运行时/桥）
+- `spricts/Infantry/Infantry.ActionResource.cs`、`spricts/Facility/Facility.ActionResource.cs`、`spricts/Weapon/Weapon.ActionResource.cs`（三界同构 Export 组，逐字段一致）
+
+---
+
+## ~~提案中：准备/冷却·哑火（抬枪兵架枪）~~ → 已落地为模块四十三
 
 两阶段Export骨架已设计（冷却水桶弹药＋消耗品/纪念法双方案＋触发事件引擎＋冷却对表三规则），代码未落，接入点侦察完毕待命。
 
@@ -346,15 +415,6 @@ GitHub Actions 手动触发（workflow_dispatch），Mono+android-arm64 正路�
 | 弱点格/精度崩 | ✅ | ⚠️工单 | ⚠️工单 | 二十九 |
 | 多格/足印 | ✅ | ✅ | ✅(三套并存) | 统一足印层? |
 | 维护费/变形/赋能/色板 | ✅ | ✅ | ✅ | — |
-| 准备/冷却(提案) | 设计 | 设计 | 设计 | P1开工 |
+| 准备/冷却 | ✅ | ✅ | ✅ | 模块四十三 |
 
 > 图鉴维护规矩：新模块落地须补录本表＋更新三界适配列。
-
----
-
-## 模块四十三：操作资源·统一基底（2026-11-15 立档）
-
-**文件**：`spricts/ActionResourceRuntime.cs` / `ActionIds.cs` / 三界 `*.ActionResource.cs`
-**机制**：全引擎操作注册表＋通用动作层——每操作独立池/独立冷却（A不拖B铁律）/纪念法解锁/哑火阈值/事件引擎（add/set×临时永久/清理标签cleanupMove等）/共享全局桶（可选）/冷却对表三规则。已挂门：attack/stealth/move/capture/build/push/teleport/produce。
-**三界适配**：✅ 三界同构Export组。
-**共建记录**：本模块由双参谋AI协作——ActionIds/Runtime骨架/三界Export/attack·stealth·build·teleport·produce门=一方；move门·MovementLocked炮台锁·事件清理标签·Bucket补给全通·抬枪兵犀牛参数=另一方。
