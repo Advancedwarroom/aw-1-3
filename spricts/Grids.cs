@@ -735,6 +735,7 @@ public partial class Grids : Node2D
 
     public void ClickGrid(Node viewport, InputEvent inputs, int shape_index)
     {
+        if (BindPickService.ConsumeClick(GridIndex)) return;   // ✅ 开创人2026-11-16: 绑定拾取优先（无拾取时零开销直通）
         if (inputs is InputEventMouseButton mouseEvent && mouseEvent.Pressed)
         {
             if (mouseEvent.ButtonIndex == MouseButton.Left)
