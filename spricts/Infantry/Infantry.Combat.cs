@@ -547,8 +547,8 @@ public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitG
                 ActionResourceRuntime.OnHitMisfire(target, target.health, attackDamage);
                 // ✅ 移植层：弱点格装填手——被打格是装填手格 → 全部池清零
                 ActionResourceRuntime.OnWeakCellHit(target, target.GetUnitCellIndexOf(hitGrid));
-                // ✅ 移植层：弱点格装填手——被打格是装填手格 → 全部池清零
-                ActionResourceRuntime.OnWeakCellHit(target, target.GetUnitCellIndexOf(hitGrid));
+                // ✅ A9 v2 清理条件·受击清：挨打清掉标了 cleanupHit 的事件（重复行已收）
+                ActionResourceRuntime.OnUnitHit(target);
             }
             if (!target.healthLocked) target.health -= attackDamage; // 力场锁血
             // ✅ 开创人2026-11-15: 攻击成功结算（扣自己的池/记次/置自己的冷却）+触发事件

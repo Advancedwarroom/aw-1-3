@@ -64,6 +64,13 @@ public static partial class ActionResourceRuntime
         o.Set("actionCurrent", cur);
     }
 
+    /// <summary>事件清理·受击清（A9 v2，开创人2026-11-15）：单位挨打时清掉标了 cleanupHit 的事件</summary>
+    public static void OnUnitHit(GodotObject o)
+    {
+        if (!Flag(o, "actionResourceEnabled")) return;
+        CleanupEvents(o, d => d.GetValueOrDefault("cleanupHit").AsBool());
+    }
+
     /// <summary>哑火·弹药监视：被监视弹药的变化量超阈值 → 哑火旗 + 禁操作块。misfireAmmoKind=-1 不看。</summary>
     public static void OnAmmoChanged(GodotObject o, int ammoKind, int delta)
     {

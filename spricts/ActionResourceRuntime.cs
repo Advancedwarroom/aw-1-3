@@ -87,6 +87,10 @@ public static partial class ActionResourceRuntime   // ✅ 移植层：partial �
         int cd = At(IArr(o, "actionCooldownTurns"), i, 0);
         if (cd > 0) o.Set("actionCooldownLeft", CloneSet(IArr(o, "actionCooldownLeft"), i, cd));
 
+        // ✅ A9 v2 清理条件·操作后清：再用一次该操作 → 清掉挂在它上面的事件（CleanupEvents 机器早已就绪，此为其操作侧接线）
+        CleanupEvents(o, d => d.GetValueOrDefault("cleanupOps").AsBool()
+            && string.Equals(Str(d, "action"), action, StringComparison.Ordinal));
+
         // ── 冷却对表三规则（v3）──
         int ownTurn = Int(o, "actionTotalTurns");
         var rulesV = o.Get("actionCooldownRules");
