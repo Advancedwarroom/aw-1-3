@@ -311,6 +311,7 @@ public partial class GridManager
 
     public void MoveTo(Infantry infantry, Grids to, bool showMenu = true, System.Collections.Generic.List<Grids> forcedPath = null)
     {
+        infantry.OnActionMoved();   // ✅ 开创人2026-11-15: 准备模块——移动清池(actionClearOnMove各操作独立)
         if (infantry == null || to == null) return;
         // 移动时推动（原文方式①）：记录出发格，落子后沿移动方向触发推挤
         var pushFromIndex = infantry.grid?.GridIndex;
