@@ -54,8 +54,8 @@ public partial class ActionMenu
         if (currentUnit == null || !IsInstanceValid(currentUnit)) return;
         if (isTeleportSelecting)
         {
-            ActionResourceRuntime.Consume(unit, ActionIds.Teleport);     // ✅ A7⑤
-        ActionResourceRuntime.FireEvents(unit, ActionIds.Teleport);
+            ActionResourceRuntime.Consume(currentUnit, ActionIds.Teleport);     // ✅ A7⑤
+            ActionResourceRuntime.FireEvents(currentUnit, ActionIds.Teleport);
         CancelTeleportSelect();
             ShowMenu(currentUnit, false);
             return;
