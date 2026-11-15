@@ -139,6 +139,9 @@ public partial class ActionMenu
 
     private void OnProducePressed(bool internalMode)
     {
+        // ✅ 开创人2026-11-15: 准备模块生产门
+        if (currentUnit != null && !ActionResourceRuntime.CanUse(currentUnit, ActionIds.Produce)) return;
+        if (currentUnit != null) { ActionResourceRuntime.Consume(currentUnit, ActionIds.Produce); ActionResourceRuntime.FireEvents(currentUnit, ActionIds.Produce); }
         GetViewport().SetInputAsHandled();
         if (currentUnit == null) return;
         if (!currentUnit.CanStartProduction(internalMode)) return;
