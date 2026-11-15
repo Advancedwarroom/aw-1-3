@@ -36,5 +36,18 @@ public partial class Weapon
     public void ActionTurnStart() => ActionResourceRuntime.TurnStart(this);
     public void ActionFireEvents(string action) => ActionResourceRuntime.FireEvents(this, action);
     public void ActionMisfireCheck(int hpAfter, int damage) => ActionResourceRuntime.OnHitMisfire(this, hpAfter, damage);
+    // ── v3：共享全局桶+冷却对表三规则 ──
+    [Export] public bool useSharedBucket = false;                                     // 消耗从共享全局桶扣（跨操作经济）
+    [Export] public int sharedBucketFillPerTurn = 0;                                  // 共享桶每回合装填
+    [Export] public Godot.Collections.Array<Godot.Collections.Dictionary> actionCooldownRules = new(); // 冷却对表：{kind:1=窗口|2=全局, window, limit, cooldown, refresh}
+    [Export] public int[] actionWindowUses = new int[] { };                          // 运行时：窗口计数
+    [Export] public int[] actionWindowTurn = new int[] { };                          // 运行时：窗口锚定
+    [Export] public int[] actionTotalUses = new int[] { };                           // 运行时：全局总次数
+    [Export] public int actionTotalTurns = 0;                                          // 运行时：己方回合计数
 
+    [Export] public int currentBucketAmmo = 0;     // 共享桶现值
+    [Export] public int maxBucketAmmo = 100;      // 共享桶上限
+
+
+    public void OnActionMoved() => ActionResourceRuntime.OnMoved(this);
 }
