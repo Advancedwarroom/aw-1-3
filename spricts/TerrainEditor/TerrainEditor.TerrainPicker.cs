@@ -68,7 +68,7 @@ public partial class TerrainEditor
                             list.Add($"{TerrainArtDir}/{f}");
                     }
                 }
-                if (list.Count == 0)
+                if (list.Count == 0 && FileAccess.FileExists($"{TerrainArtDir}/{file}"))
                     list.Add($"{TerrainArtDir}/{file}");
             }
             variantCache[type] = list;
@@ -81,6 +81,9 @@ public partial class TerrainEditor
         {
             if (string.IsNullOrEmpty(path)) return null;
             if (cache.TryGetValue(path, out var t) && GodotObject.IsInstanceValid(t)) return t;
+            // ✅ 缺文件防空载：硬编码默认表里 7 张贴图(Fire/Lake/RoughSea/Street/Path/TryRiver/Mine)
+            // 从未入库，GD.Load 会刷 "No loader found" 错误风暴（极简导入时刷屏）。先验存在性，缺失静默返回 null。
+            if (!FileAccess.FileExists(path)) { cache[path] = null; return null; }
             var tex = GD.Load<Texture2D>(path);
             cache[path] = tex;
             return tex;
