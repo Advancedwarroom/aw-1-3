@@ -13,6 +13,9 @@ public partial class ActionMenu
 
     public void OnCapturePressed()
     {
+        // ✅ 开创人2026-11-15: 准备模块占领门
+        if (unit != null && !ActionResourceRuntime.CanUse(unit, ActionIds.Capture)) return;
+        if (unit != null) { ActionResourceRuntime.Consume(unit, ActionIds.Capture); ActionResourceRuntime.FireEvents(unit, ActionIds.Capture); }
         GetViewport().SetInputAsHandled();
         if (isCaptureProcessing) return;
         if (currentUnit == null) return;
