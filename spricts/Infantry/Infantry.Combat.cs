@@ -425,7 +425,7 @@ public virtual (int damage, string info) CalculateCounterPreview(Infantry attack
     return (damage, $"反击({counterWeapon}):{damage}");
 }
 
-public virtual void Attack(Infantry target, bool allowCounter = true)
+public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitGrid = null)
 {
         if (target != null) target.lastAttackerTeam = team;   // ✅ 开创人2026-11-14 战役记账：步兵凶手追踪
         // ✅ 隐身攻击门：白名单外的单位打不了隐身目标（所有攻击路径的唯一闸门）
@@ -523,7 +523,10 @@ public virtual void Attack(Infantry target, bool allowCounter = true)
     }
     
     // 应用伤害
-    if (!target.healthLocked) target.health -= attackDamage; // 力场锁血
+    // ✅ 开创人2026-11-15: 多格单位受击弱点格——按被打格结算倍率（0=免疫/>1=加伤）
+            if (hitGrid != null && target.isMultiTileUnit && !target.healthLocked)
+                attackDamage = Mathf.Max(0, Mathf.RoundToInt(attackDamage * target.GetWeakCellDamageFactor(hitGrid)));
+            if (!target.healthLocked) target.health -= attackDamage; // 力场锁血
     __theater?.AddVolley(true, attackDamage, target.health, BattleAnimCatalog.GetFireClass(this, weapon, target));   // ✅ 剧场：主攻记录
         // ✅ CO 模块系统·模块27（能量条积累）：造成/受到伤害打点
         CoModuleSystem.OnDamageDealt(team, attackDamage);
