@@ -349,3 +349,12 @@ GitHub Actions 手动触发（workflow_dispatch），Mono+android-arm64 正路�
 | 准备/冷却(提案) | 设计 | 设计 | 设计 | P1开工 |
 
 > 图鉴维护规矩：新模块落地须补录本表＋更新三界适配列。
+
+---
+
+## 模块四十三：操作资源·统一基底（2026-11-15 立档）
+
+**文件**：`spricts/ActionResourceRuntime.cs` / `ActionIds.cs` / 三界 `*.ActionResource.cs`
+**机制**：全引擎操作注册表＋通用动作层——每操作独立池/独立冷却（A不拖B铁律）/纪念法解锁/哑火阈值/事件引擎（add/set×临时永久/清理标签cleanupMove等）/共享全局桶（可选）/冷却对表三规则。已挂门：attack/stealth/move/capture/build/push/teleport/produce。
+**三界适配**：✅ 三界同构Export组。
+**共建记录**：本模块由双参谋AI协作——ActionIds/Runtime骨架/三界Export/attack·stealth·build·teleport·produce门=一方；move门·MovementLocked炮台锁·事件清理标签·Bucket补给全通·抬枪兵犀牛参数=另一方。
