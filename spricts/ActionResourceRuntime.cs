@@ -1,8 +1,4 @@
-// ActionResourceRuntime.cs — ✅ 开创人2026-11-15: 统一性基底·第一住户（修正版：每操作独立池）
-// 三界（单位/兵器/设施）同构Export组 + 本静态运行时 = 所有通用模块的可编程动作层。
-// 铁律：每条操作持有自己的 装填/上限/现值/冷却/次数——A操作的任何消耗在物理上碰不到B操作。
-// 上限actionMax[i]=0 → 无上限（无限蓄能：纪念法变身/220连打11发全合法）。
-// 经Godot原生Get/Set读写Export字段——对三个类完全同一套代码（真·通用化+可联动修改化）。
+// ActionResourceRuntime.cs — ✅ 开创人2026-11-15: 统一性基底·第一住户（修正版：每操作独立池 + Godot4 Variant惯用法）
 using Godot;
 using System;
 using System.Collections.Generic;
@@ -13,15 +9,29 @@ public static class ActionResourceRuntime
 
     private static int Idx(GodotObject o, string action)
     {
-        var table = o.Get("actionTable") as string[];
-        if (table == null) return -1;
+        var v = o.Get("actionTable");
+        if (v.VariantType == Variant.Type.Nil) return -1;
+        var table = v.AsStringArray();
         for (int i = 0; i < table.Length; i++)
             if (string.Equals(table[i], action, StringComparison.OrdinalIgnoreCase)) return i;
         return -1;
     }
-    private static int[] IArr(GodotObject o, string name) => o.Get(name) as int[] ?? Array.Empty<int>();
-    private static bool[] BArr(GodotObject o, string name) => o.Get(name) as bool[] ?? Array.Empty<bool>();
-    private static T At<T>(T[] a, int i, T dflt) => (a != null && i >= 0 && i < a.Length) ? a[i] : dflt;
+    private static int[] IArr(GodotObject o, string name)
+    {
+        var v = o.Get(name);
+        return v.VariantType == Variant.Type.Nil ? Array.Empty<int>() : v.AsInt32Array();
+    }
+    private static int At(int[] a, int i, int dflt) => (a != null && i >= 0 && i < a.Length) ? a[i] : dflt;
+    private static bool Flag(GodotObject o, string name)
+    {
+        var v = o.Get(name);
+        return v.VariantType != Variant.Type.Nil && v.AsBool();
+    }
+    private static int Int(GodotObject o, string name)
+    {
+        var v = o.Get(name);
+        return v.VariantType == Variant.Type.Nil ? 0 : v.AsInt32();
+    }
     private static int[] CloneSet(int[] a, int i, int v)
     {
         var b = (int[])(a ?? Array.Empty<int>()).Clone();
@@ -29,30 +39,29 @@ public static class ActionResourceRuntime
         return b;
     }
 
-    /// <summary>能否执行（总开关关=永远可以）。四道门全按操作独立：纪念法解锁/消耗品存量/独立冷却/次数。</summary>
+    /// <summary>能否执行（总开关关=永远可以）。四道门按操作独立：纪念法解锁/消耗品存量/独立冷却/次数。</summary>
     public static bool CanUse(GodotObject o, string action)
     {
-        if (!(bool)(o.Get("actionResourceEnabled") ?? false)) return true;
+        if (!Flag(o, "actionResourceEnabled")) return true;
         int i = Idx(o, action);
         if (i < 0) return true;
         var costs = IArr(o, "actionCosts");
         var unlockAt = IArr(o, "actionUnlockAt");
-        var cur = IArr(o, "actionCurrent");
+        var unlocked = IArr(o, "actionUnlocked");
+        int cur = At(IArr(o, "actionCurrent"), i, 0);
 
-        // 纪念法：首次攒到阈值即永久解锁
         if (At(unlockAt, i, -1) >= 0)
         {
-            var unlocked = BArr(o, "actionUnlocked");
-            if (!At(unlocked, i, false) && At(cur, i, 0) >= unlockAt[i])
+            if (At(unlocked, i, 0) == 0 && cur >= unlockAt[i])
             {
-                var u2 = (bool[])unlocked.Clone(); u2[i] = true; o.Set("actionUnlocked", u2);
+                var u2 = (int[])unlocked.Clone(); u2[i] = 1; o.Set("actionUnlocked", u2);
                 unlocked = u2;
             }
-            if (!At(unlocked, i, false)) return false;
+            if (At(unlocked, i, 0) == 0) return false;
         }
         int cost = At(costs, i, -1);
-        if (cost > 0 && At(cur, i, 0) < cost) return false;               // 自己的池子不够（绝不碰别人的）
-        if (At(IArr(o, "actionCooldownLeft"), i, 0) > 0) return false;     // 自己的冷却
+        if (cost > 0 && cur < cost) return false;
+        if (At(IArr(o, "actionCooldownLeft"), i, 0) > 0) return false;
         int maxPerTurn = At(IArr(o, "actionMaxPerTurn"), i, 0);
         if (maxPerTurn > 0 && At(IArr(o, "actionUsedThisTurn"), i, 0) >= maxPerTurn) return false;
         return true;
@@ -61,7 +70,7 @@ public static class ActionResourceRuntime
     /// <summary>执行成功后结算：扣自己的池/记次/置自己的冷却。</summary>
     public static void Consume(GodotObject o, string action)
     {
-        if (!(bool)(o.Get("actionResourceEnabled") ?? false)) return;
+        if (!Flag(o, "actionResourceEnabled")) return;
         int i = Idx(o, action);
         if (i < 0) return;
         int cost = At(IArr(o, "actionCosts"), i, -1);
@@ -74,14 +83,13 @@ public static class ActionResourceRuntime
     /// <summary>己方回合开始：各池独立装填（上限0=无限）/各冷却-1/次数清零/哑火清算/临时事件到期。</summary>
     public static void TurnStart(GodotObject o)
     {
-        if (!(bool)(o.Get("actionResourceEnabled") ?? false)) return;
-        var table = o.Get("actionTable") as string[];
-        int n = table?.Length ?? 0;
+        if (!Flag(o, "actionResourceEnabled")) return;
+        var v = o.Get("actionTable");
+        int n = v.VariantType == Variant.Type.Nil ? 0 : v.AsStringArray().Length;
         var cur = IArr(o, "actionCurrent");
         var fill = IArr(o, "actionFillPerTurn");
         var max = IArr(o, "actionMax");
-        // 哑火：装填全白干
-        if ((bool)(o.Get("actionMisfireFlag") ?? false))
+        if (Flag(o, "actionMisfireFlag"))
         {
             for (int k = 0; k < cur.Length; k++) cur[k] = 0;
             o.Set("actionMisfireFlag", false);
@@ -91,7 +99,7 @@ public static class ActionResourceRuntime
             int f = At(fill, i, 0);
             if (f <= 0) continue;
             int cap = At(max, i, 0);
-            long sum = (long)At(cur, i, 0) + f;                          // 无上限用long防溢出,钳回int
+            long sum = (long)At(cur, i, 0) + f;
             int nv = (cap > 0) ? (int)Math.Min(cap, sum) : (int)Math.Min(int.MaxValue, sum);
             cur = CloneSet(cur, i, nv);
         }
@@ -113,14 +121,14 @@ public static class ActionResourceRuntime
         }
     }
 
-    /// <summary>哑火判定：受击后按 血量/单次伤害 阈值 → 置哑火旗（TurnStart清算清零全池）。条件全空=任何受击都哑。</summary>
+    /// <summary>哑火判定：受击后按 血量/单次伤害 阈值→哑火旗（回合开始清全池）。条件全空=任何受击都哑。</summary>
     public static void OnHitMisfire(GodotObject o, int hpAfter, int damage)
     {
-        if (!(bool)(o.Get("actionResourceEnabled") ?? false)) return;
-        int below = (int)(o.Get("misfireHpBelow") ?? -1);
-        int above = (int)(o.Get("misfireHpAbove") ?? -1);
-        int dmgBelow = (int)(o.Get("misfireDamageBelow") ?? -1);
-        int dmgAbove = (int)(o.Get("misfireDamageAbove") ?? -1);
+        if (!Flag(o, "actionResourceEnabled")) return;
+        int below = Int(o, "misfireHpBelow");
+        int above = Int(o, "misfireHpAbove");
+        int dmgBelow = Int(o, "misfireDamageBelow");
+        int dmgAbove = Int(o, "misfireDamageAbove");
         bool anySet = below >= 0 || above >= 0 || dmgBelow >= 0 || dmgAbove >= 0;
         bool trigger = !anySet
             || (below >= 0 && hpAfter < below)
@@ -130,31 +138,32 @@ public static class ActionResourceRuntime
         if (trigger) o.Set("actionMisfireFlag", true);
     }
 
-    /// <summary>事件引擎v1：操作成功后触发——when缺省=always；module=Godot原生Set/Get改任意Export（add/set，永久或temp回合后还原）。</summary>
+    /// <summary>事件引擎v1：操作成功后触发——when缺省=always/current>=n；Godot原生Set/Get改任意Export（add/set；永久或temp回合后还原）。</summary>
     public static void FireEvents(GodotObject o, string action)
     {
-        if (!(bool)(o.Get("actionResourceEnabled") ?? false)) return;
-        var events = o.Get("actionEvents") as Godot.Collections.Array<Godot.Collections.Dictionary>;
-        if (events == null) return;
+        if (!Flag(o, "actionResourceEnabled")) return;
+        var ev = o.Get("actionEvents");
+        if (ev.VariantType == Variant.Type.Nil) return;
+        var events = ev.AsGodotArray();
         foreach (var raw in events)
         {
-            if (raw is not Godot.Collections.Dictionary d) continue;
-            if (!string.Equals(d.GetValueOrDefault("action", "").ToString(), action, StringComparison.OrdinalIgnoreCase)) continue;
+            if (raw.Obj is not Godot.Collections.Dictionary d) continue;
+            string act = d.GetValueOrDefault("action", "").ToString();
+            if (!string.Equals(act, action, StringComparison.OrdinalIgnoreCase)) continue;
             string when = d.GetValueOrDefault("when", "always").ToString();
             if (when.StartsWith("current>="))
             {
                 int i = Idx(o, action);
-                if (i < 0 || At(IArr(o, "actionCurrent"), i, 0) < Convert.ToInt32(when.Substring(9))) continue;
+                if (i < 0 || !int.TryParse(when.Substring(9), out var need) || At(IArr(o, "actionCurrent"), i, 0) < need) continue;
             }
             else if (when != "always") continue;
             string field = d.GetValueOrDefault("field", "").ToString();
             if (string.IsNullOrEmpty(field)) continue;
             string mode = d.GetValueOrDefault("mode", "set").ToString();
-            float value = Convert.ToSingle(d.GetValueOrDefault("value", 0f));
-            int temp = Convert.ToInt32(d.GetValueOrDefault("temp", 0));
+            float value = d.GetValueOrDefault("value", 0f).AsSingle();
+            int temp = d.GetValueOrDefault("temp", 0).AsInt32();
             var oldVal = o.Get(field);
-            float cur2 = 0f;
-            try { cur2 = Convert.ToSingle(oldVal); } catch { }
+            float cur2 = oldVal.VariantType == Variant.Type.Nil ? 0f : oldVal.AsSingle();
             o.Set(field, mode == "add" ? cur2 + value : value);
             if (temp > 0)
             {
