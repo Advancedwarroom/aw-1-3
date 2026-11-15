@@ -28,12 +28,18 @@ func _auto_layout() -> void:
     $MenuList.visible = true
 
 func _on_menu_drag(event: InputEvent) -> void:
+    _drag_handle(event, $MenuList)
+
+func _on_panel_drag(event: InputEvent) -> void:
+    _drag_handle(event, _panel)
+
+func _drag_handle(event: InputEvent, target: Control) -> void:
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
         _dragging = event.pressed
-        if _dragging: _drag_off = $MenuList.get_global_mouse_position() - $MenuList.global_position
-        $MenuList.accept_event()
+        if _dragging: _drag_off = target.get_global_mouse_position() - target.global_position
+        target.accept_event()
     elif event is InputEventMouseMotion and _dragging:
-        $MenuList.global_position = $MenuList.get_global_mouse_position() - _drag_off
+        target.global_position = target.get_global_mouse_position() - _drag_off
 
 func _build_panel() -> void:
     _panel = PanelContainer.new()
@@ -41,6 +47,7 @@ func _build_panel() -> void:
     _panel.size = Vector2(520, 560)
     _panel.visible = false
     add_child(_panel)
+    _panel.gui_input.connect(_on_panel_drag)   # ✅ 开创人2026-11-15: 详情弹窗可拖动
     _info = RichTextLabel.new()
     _info.bbcode_enabled = true
     _info.fit_content = true
