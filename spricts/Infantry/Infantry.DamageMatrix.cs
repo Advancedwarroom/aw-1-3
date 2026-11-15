@@ -23,10 +23,31 @@ public void InitializeDefaultMatrix()
         defaultMatrix = new Dictionary<string, int>
         {
             ["Infantry_Infantry"] = 55,   ["Infantry_Mech"] = 45,   ["Infantry_LightTank"] = 15,
-            // ✅ 2026-11-16 A4 补空缺：开创人点名的歧视链——步兵120/轻甲60/坦克15
-            ["Jingall_Infantry"] = 120,   ["Jingall_Mech"] = 120,   ["Jingall_LightTank"] = 15,
-            ["Jingall_APC"] = 60,   ["Jingall_MdTank"] = 15,
-            ["Jingall_Artillery"] = 20,   ["Jingall_Recon"] = 60,   ["Jingall_AntiAir"] = 18,
+            // ✅ 2026-11-16 A4 全修：抬枪兵整行41键全补——点名的歧视链(步兵120/轻甲60/坦克15) +
+            //    未点名行=反器材步枪设计通行(对软目标狠/对空对海零/重甲刮痧),开创人可逐格改
+            // 步兵类：通吃
+            ["Jingall_Infantry"] = 120,   ["Jingall_Mech"] = 120,   ["Jingall_Bike"] = 120,
+            ["Jingall_Dog"] = 130,   ["Jingall_PipeWorker"] = 110,
+            // 轻甲轮式：点名 60
+            ["Jingall_Recon"] = 60,   ["Jingall_APC"] = 60,   ["Jingall_Rig"] = 50,
+            ["Jingall_Flare"] = 70,
+            // 坦克履带：点名 15，重坦递减
+            ["Jingall_LightTank"] = 15,   ["Jingall_MdTank"] = 15,   ["Jingall_Neotank"] = 12,
+            ["Jingall_Megatank"] = 8,   ["Jingall_WarTank"] = 10,   ["Jingall_AntiTank"] = 20,
+            // 火炮/防空（敞开乘员）：中低
+            ["Jingall_Artillery"] = 30,   ["Jingall_Rocket"] = 25,   ["Jingall_AntiAir"] = 22,
+            ["Jingall_AntiAirMissile"] = 22,
+            // 直升机（低慢可及）：中；固定翼：零
+            ["Jingall_BCopter"] = 35,   ["Jingall_TCopter"] = 45,   ["Jingall_Duster"] = 10,
+            ["Jingall_Fighter"] = 0,   ["Jingall_Bomber"] = 0,   ["Jingall_Stealth"] = 0,
+            // 海军：主力舰零，小艇刮痧
+            ["Jingall_Lander"] = 12,   ["Jingall_Gunboat"] = 8,   ["Jingall_Seaplane"] = 15,
+            ["Jingall_ProducibleBoat"] = 8,   ["Jingall_KamikazeBoat"] = 20,
+            ["Jingall_RepairBoat"] = 10,   ["Jingall_Cruiser"] = 0,   ["Jingall_Battleship"] = 0,
+            ["Jingall_Submarine"] = 0,   ["Jingall_Carrier"] = 0,
+            // 特殊：Boss/管道/神风/对枪
+            ["Jingall_Oozium"] = 5,   ["Jingall_PipeRunner"] = 10,   ["Jingall_FlyBomb"] = 15,
+            ["Jingall_Jingall"] = 55,
             ["Infantry_Jingall"] = 55,   ["Mech_Jingall"] = 65,   ["LightTank_Jingall"] = 85,
             ["Infantry_Artillery"] = 25,  ["Infantry_Rocket"] = 25, ["Infantry_APC"] = 15,
             ["Infantry_Oozium"] = 35,       ["Infantry_MdTank"] = 4,
