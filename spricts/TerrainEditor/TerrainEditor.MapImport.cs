@@ -885,6 +885,7 @@ public partial class TerrainEditor
 /// </summary>
 public bool TryImportPendingCampaign()
 {
+    if (BootMapLoader.BootRequested) return false; // ✅ 方案甲：boot 模式已由 BootMapLoader 消费 pending，勿重复导入
     const string pendingPath = "user://campaign_pending.map";
     if (!Godot.FileAccess.FileExists(pendingPath)) return false;
     using var f = Godot.FileAccess.Open(pendingPath, Godot.FileAccess.ModeFlags.Read);

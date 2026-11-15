@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 public partial class BootMapLoader : Node
 {
     // ===== 阶段开关（commit 2 翻转）=====
-    public const bool BOOT_ENABLED = false;
+    public const bool BOOT_ENABLED = true;
 
     // ===== GDScript 可读状态（loading_screen.gd 轮询）=====
     /// <summary>phase B 子进度 0..500（与 phase A 的 0..500 拼接成全程千分制）。</summary>

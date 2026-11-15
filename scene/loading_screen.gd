@@ -6,7 +6,7 @@ const GAME_SCENE := "res://scene/main.tscn"
 #    main.tscn 的格子/单位改为运行时从 campaigns/main_battlefield.txt 逐行分帧生成，
 #    本界面常驻顶层直到 BootMapLoader 报完成才淡出（消灭 change_scene 的 700+ 节点原子实例化黑块）。
 #    ⚠️ commit1 dormant：BOOT_ENABLED=false 时全文件行为与旧版逐字节一致。
-const BOOT_ENABLED := false
+const BOOT_ENABLED := true
 const BOOT_MAP := "res://campaigns/main_battlefield.txt"
 const PHASE_A_PERMILLE := 500  # 资源加载段权重(0-500‰)，开盘段 BootMapLoader 报 500-1000‰
 var _boot_active := false
@@ -130,7 +130,10 @@ func _on_enter_pressed() -> void:
 func _start_boot() -> void:
 	_boot_active = true
 	enter_button.hide()
-	BootMapLoader.RequestBoot(BOOT_MAP)
+	var boot_map := BOOT_MAP
+	if FileAccess.file_exists("user://campaign_pending.map"):
+		boot_map = "user://campaign_pending.map"
+	BootMapLoader.RequestBoot(boot_map)
 	var scene := _loaded.instantiate()
 	get_tree().root.add_child(scene)
 	get_tree().current_scene = scene
