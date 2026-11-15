@@ -86,6 +86,14 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
             grid.CellsChanged += v => onChanged(v);
             return grid;
         }
+        // ✅ 开创人2026-11-16: 设施/兵器伤害表→行编辑器
+        if ((fieldName == "unitDamageTable" || fieldName == "weaponDamageTable") && value is System.Collections.Generic.Dictionary<string, int> wt)
+        {
+            var we = new MatrixRowEditor();
+            we.Matrix = new System.Collections.Generic.Dictionary<string, int>(wt);
+            we.ValueChanged += v => onChanged(v);
+            return we;
+        }
         // ✅ 开创人2026-11-16: 绑定偏移→图形化行编辑器（BlackArc/SuperFactory/GrandBolt通用）
         if (fieldName is "forceFieldGridOffsets" or "escortGridOffsets" or "boundFactoryOffsets" or "shieldSourceOffsets"
             && value is Godot.Collections.Array<Vector2I> offs)
@@ -111,13 +119,13 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
             ae.ValueChanged += v => onChanged(v);
             return ae;
         }
-        // ✅ 开创人2026-11-16: 伤害矩阵→行编辑器
+        // ✅ 开创人2026-11-16: 伤害矩阵→热力图（行编辑器MatrixRowEditor保留服务weaponDamageTable等）
         if (fieldName == "attackMatrix" && value is System.Collections.Generic.Dictionary<string, int> mtx)
         {
-            var me = new MatrixRowEditor();
-            me.Matrix = new System.Collections.Generic.Dictionary<string, int>(mtx);
-            me.ValueChanged += v => onChanged(v);
-            return me;
+            var mh = new MatrixHeatmapEditor();
+            mh.Matrix = new System.Collections.Generic.Dictionary<string, int>(mtx);
+            mh.ValueChanged += v => onChanged(v);
+            return mh;
         }
         // ✅ 开创人2026-11-16: 地形消耗覆写→行编辑器
         if (fieldName == "terrainMoveCostOverrides" && value is string[] trows)
