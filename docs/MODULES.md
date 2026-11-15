@@ -379,19 +379,8 @@ GitHub Actions 手动触发（workflow_dispatch），Mono+android-arm64 正路�
 | AI 侧 | AI_Manager DoAction 顶挂，未装填跳过计划 | attack/capture |
 
 ### ActionIds ↔ PrepEngine(Ops) 对照表（A11）
-| ActionIds | PrepEngine Ops | 状态 |
-|---|---|---|
-| attack | Ops.Attack | 待对齐 |
-| move | Ops.Move | 参谋门禁已引用 |
-| capture | Ops.Capture | 待对齐 |
-| stealth | Ops.Stealth | 待对齐 |
-| push | Ops.Push | 待对齐 |
-| produce | Ops.Produce | 待对齐 |
-| build | Ops.Build | 待对齐 |
-| teleport | Ops.Teleport | 待对齐 |
-| specialfire | Ops.SpecialFire | 待对齐 |
 
-> PrepEngine 本体尚未入库，Ops 全命名暴露后逐格核对本表。
+全量对照（31 常量 + AI Act 实映射 + Ops 预留位 + 对齐协议）见 **`docs/action-ids-mapping.md`**——该文件为唯一基准，PrepEngine 命名暴露后按其中协议逐行核对。
 
 ### 文件
 - `spricts/ActionIds.cs`（操作名常量）
