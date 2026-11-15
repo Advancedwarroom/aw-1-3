@@ -78,6 +78,15 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
 
 private Control CreateEditorForType(Type propType, object value, Func<object> getter, Action<object> onChanged, string fieldName = null)
 {
+        // ✅ 开创人2026-11-16: 多格攻击模式字段→图形化格板
+        if (fieldName == "attackPatternCells" && value is string[] arr)
+        {
+            var grid = new PatternEditorGrid();
+            grid.Cells = arr;
+            grid.CellsChanged += v => onChanged(v);
+            return grid;
+        }
+
     if (propType == typeof(int))
     {
         var spinBox = new SpinBox();
