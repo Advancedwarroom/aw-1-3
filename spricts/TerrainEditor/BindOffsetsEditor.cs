@@ -18,16 +18,16 @@ public static class BindPickService
 
 public partial class BindOffsetsEditor : VBoxContainer
 {
-    public event Action<Array<Vector2I>> ValueChanged;
-    private Array<Vector2I> _offsets = new();
+    public event Action<Godot.Collections.Array<Vector2I>> ValueChanged;
+    private Godot.Collections.Array<Vector2I> _offsets = new();
     private VBoxContainer _list;
     private Button _pickBtn;
     private bool _suppress;
 
-    public Array<Vector2I> Offsets
+    public Godot.Collections.Array<Vector2I> Offsets
     {
         get => _offsets;
-        set { _offsets = value ?? new Array<Vector2I>(); Rebuild(); }
+        set { _offsets = value ?? new Godot.Collections.Array<Vector2I>(); Rebuild(); }
     }
 
     public override void _Ready()
@@ -45,7 +45,7 @@ public partial class BindOffsetsEditor : VBoxContainer
             _pickBtn.Text = "点击地图格子…";
             BindPickService.RequestOnce(idx =>
             {
-                var l = new Array<Vector2I>(_offsets) { idx };
+                var l = new Godot.Collections.Array<Vector2I>(_offsets) { idx };
                 Commit(l);
                 _pickBtn.Text = "＋ 点图添加";
                 return true;
@@ -53,7 +53,7 @@ public partial class BindOffsetsEditor : VBoxContainer
         };
         btns.AddChild(_pickBtn);
         var add = new Button { Text = "＋ 手动(0,0)" };
-        add.Pressed += () => { var l = new Array<Vector2I>(_offsets) { new Vector2I(0, 0) }; Commit(l); Rebuild(); };
+        add.Pressed += () => { var l = new Godot.Collections.Array<Vector2I>(_offsets) { new Vector2I(0, 0) }; Commit(l); Rebuild(); };
         btns.AddChild(add);
         AddChild(btns);
         Rebuild();
@@ -68,16 +68,16 @@ public partial class BindOffsetsEditor : VBoxContainer
             int idx = i;
             var row = new HBoxContainer();
             var x = new SpinBox { MinValue = -99, MaxValue = 99, Value = _offsets[i].X, CustomMinimumSize = new Vector2(70, 0) };
-            x.ValueChanged += v => { var l = new Array<Vector2I>(_offsets); var e = l[idx]; e.X = (int)v; l[idx] = e; Commit(l); };
+            x.ValueChanged += v => { var l = new Godot.Collections.Array<Vector2I>(_offsets); var e = l[idx]; e.X = (int)v; l[idx] = e; Commit(l); };
             var y = new SpinBox { MinValue = -99, MaxValue = 99, Value = _offsets[i].Y, CustomMinimumSize = new Vector2(70, 0) };
-            y.ValueChanged += v => { var l = new Array<Vector2I>(_offsets); var e = l[idx]; e.Y = (int)v; l[idx] = e; Commit(l); };
+            y.ValueChanged += v => { var l = new Godot.Collections.Array<Vector2I>(_offsets); var e = l[idx]; e.Y = (int)v; l[idx] = e; Commit(l); };
             var del = new Button { Text = "✕" };
-            del.Pressed += () => { var l = new Array<Vector2I>(_offsets); l.RemoveAt(idx); Commit(l); Rebuild(); };
+            del.Pressed += () => { var l = new Godot.Collections.Array<Vector2I>(_offsets); l.RemoveAt(idx); Commit(l); Rebuild(); };
             row.AddChild(new Label { Text = "偏移" });
             row.AddChild(x); row.AddChild(y); row.AddChild(del);
             _list.AddChild(row);
         }
     }
 
-    private void Commit(Array<Vector2I> v) { _offsets = v; if (!_suppress) ValueChanged?.Invoke(v); Rebuild(); }
+    private void Commit(Godot.Collections.Array<Vector2I> v) { _offsets = v; if (!_suppress) ValueChanged?.Invoke(v); Rebuild(); }
 }
