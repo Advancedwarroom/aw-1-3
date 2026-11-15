@@ -55,6 +55,13 @@ public virtual int CalculateFinalDamage(Infantry target, WeaponType weaponType, 
     float attackerHealthPercent = (float)health / GetEffectiveMaxHealth();
     float actualAttack = baseDamage * attackerHealthPercent;
 
+    // ✅ 开创人2026-11-15: 精度崩消耗点——被打弱点格后的下次攻击乘数（一次性消耗）
+    if (!Mathf.IsEqualApprox(nextAttackOutputMul, 1f))
+    {
+        actualAttack *= nextAttackOutputMul;
+        nextAttackOutputMul = 1f;
+    }
+
     // ✅ CO 模块系统·模块1（伤害加成）+ 天气系统·模块15（沙暴-15%）
     float coOffBonus = CoModuleSystem.GetOffenseBonusPercent(this) + WeatherSystem.GetOffenseModifierPercent(this);
     actualAttack *= Mathf.Max(0f, 100f + coOffBonus) / 100f;
@@ -525,7 +532,12 @@ public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitG
     // 应用伤害
     // ✅ 开创人2026-11-15: 多格单位受击弱点格——按被打格结算倍率（0=免疫/>1=加伤）
             if (hitGrid != null && target.isMultiTileUnit && !target.healthLocked)
+            {
                 attackDamage = Mathf.Max(0, Mathf.RoundToInt(attackDamage * target.GetWeakCellDamageFactor(hitGrid)));
+                // ✅ 开创人2026-11-15: 精度崩——被打格决定目标下次攻击乘数（哑火等准备冷却模块接同一点）
+                float outMul = target.GetWeakCellOutputFactor(hitGrid);
+                if (!Mathf.IsEqualApprox(outMul, 1f)) target.nextAttackOutputMul = outMul;
+            }
             if (!target.healthLocked) target.health -= attackDamage; // 力场锁血
     __theater?.AddVolley(true, attackDamage, target.health, BattleAnimCatalog.GetFireClass(this, weapon, target));   // ✅ 剧场：主攻记录
         // ✅ CO 模块系统·模块27（能量条积累）：造成/受到伤害打点
