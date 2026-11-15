@@ -883,7 +883,8 @@ public partial class Grids : Node2D
     public bool HasAttackableEnemyInfantry(Infantry attacker, List<Grids> allGrids = null)
     {
         // allGrids 非空时追加感知判定（隐身/林地隐蔽中看不见的不算目标，防按钮泄漏位置）
-        return GetEnemyInfantries(attacker).Any(e => attacker.SelectWeaponByMatrix(e) != WeaponType.None
+        return GetEnemyInfantries(attacker).Any(e => (!e.isMultiTileUnit || e.IsUnitHittableGrid(this)) // ✅ 开创人2026-11-15: 多格单位仅弱点格可打（攻击菜单+范围高亮共用此chokepoint）
+            && attacker.SelectWeaponByMatrix(e) != WeaponType.None
             && (allGrids == null || Infantry.IsVisibleTo(e, attacker.team, allGrids)));
     }
 
