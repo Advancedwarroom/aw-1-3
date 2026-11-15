@@ -148,8 +148,6 @@ public static class UnitRegistry
             Cost = 2500,
             AnimPrefix = "jingall",
             HasPrimaryWeapon = true,
-            MaxHealth = 100,
-            BaseDefense = 10,
         },
         new UnitConfig
         {
