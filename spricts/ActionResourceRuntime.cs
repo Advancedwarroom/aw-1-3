@@ -16,6 +16,9 @@ public static partial class ActionResourceRuntime   // ✅ 移植层：partial �
             if (string.Equals(table[i], action, StringComparison.OrdinalIgnoreCase)) return i;
         return -1;
     }
+    /// <summary>字典字符串读取助手（参谋二CleanupEvents依赖,补定义）。</summary>
+    private static string Str(Godot.Collections.Dictionary d, string k) => d.GetValueOrDefault(k, "").ToString();
+
     private static int[] IArr(GodotObject o, string name)
     {
         var v = o.Get(name);
