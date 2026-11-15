@@ -61,7 +61,7 @@ public partial class PatternEditorGrid : VBoxContainer
         var set = new HashSet<string>(_cells ?? Array.Empty<string>());
         string key = dx + "," + dy;
         if (!set.Add(key)) set.Remove(key);
-        _cells = new List<string>(set) { "0,0" }.Contains("0,0") ? ListToArray(set) : ListToArray(set);
+        _cells = ListToArray(set);
         CellsChanged?.Invoke(_cells);
     }
 
