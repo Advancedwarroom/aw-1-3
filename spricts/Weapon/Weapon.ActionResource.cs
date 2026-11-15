@@ -1,0 +1,40 @@
+// Weapon.ActionResource.cs — ✅ 开创人2026-11-15: 统一性基底·三界同构Export组（与另两界逐字段一致）
+using Godot;
+using System;
+
+public partial class Weapon
+{
+    [ExportGroup("操作资源·准备/冷却/充能（统一基底）")]
+    [Export] public bool actionResourceEnabled = false;                                  // 总开关（关=全部操作不受管，零干扰）
+    [Export] public string[] actionTable = new string[] { "attack", "move", "capture", "stealth", "push", "produce" };  // 本实例受管操作（从ActionIds挑，可自定义任意名）
+    // ── 每操作独立三池（A的任何消耗碰不到B）──
+    [Export] public int[] actionFillPerTurn = new int[] { };                          // 各池每回合独立装填（抬枪attack=10）
+    [Export] public int[] actionMax = new int[] { };                                    // 各池上限（0/缺省=无限蓄能——220连打11发/一辈子变身全合法）
+    [Export] public int[] actionCosts = new int[] { };                                   // 消耗品法：自己的池扣多少（-1/缺省=不扣）
+    [Export] public int[] actionUnlockAt = new int[] { };                              // 纪念法：攒到n永久解锁（-1=不用；20可攻/40变身）
+    [Export] public int[] actionCooldownTurns = new int[] { };                          // 用后【该操作自己】冷却n回合——绝不拖累别的操作
+    [Export] public int[] actionMaxPerTurn = new int[] { };                            // 每操作每回合次数上限（0/缺省=不限）
+    [Export] public bool[] actionClearOnMove = new bool[] { };                         // 移动清哪些池/解锁（P1.5接移动钩子）
+    [Export] public bool actionLockAsTurret = false;                                    // 有存货=固定炮台（P1.5锁移动按钮）
+    [Export] public bool actionMisfireFlag = false;                                     // 运行时：哑火旗（受击置位,回合开始清算）
+    [Export] public Godot.Collections.Array<Godot.Collections.Dictionary> actionEvents = new(); // 触发事件：{action,when(always/current>=n),field,mode(set/add),value,temp(0永久)}
+
+    // ── 哑火阈值（受击判定）──
+    [Export] public int misfireHpBelow = -1;
+    [Export] public int misfireHpAbove = -1;
+    [Export] public int misfireDamageBelow = -1;
+    [Export] public int misfireDamageAbove = -1;
+
+    // ── 运行时（全走Export存档管线）──
+    [Export] public int[] actionCurrent = new int[] { };                              // 各池现值
+    [Export] public int[] actionUsedThisTurn = new int[] { };
+    [Export] public int[] actionCooldownLeft = new int[] { };
+    [Export] public bool[] actionUnlocked = new bool[] { };
+
+    public bool ActionCanUse(string action) => ActionResourceRuntime.CanUse(this, action);
+    public void ActionConsume(string action) => ActionResourceRuntime.Consume(this, action);
+    public void ActionTurnStart() => ActionResourceRuntime.TurnStart(this);
+    public void ActionFireEvents(string action) => ActionResourceRuntime.FireEvents(this, action);
+    public void ActionMisfireCheck(int hpAfter, int damage) => ActionResourceRuntime.OnHitMisfire(this, hpAfter, damage);
+
+}
