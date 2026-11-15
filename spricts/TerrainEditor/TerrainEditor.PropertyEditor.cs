@@ -95,6 +95,14 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
             be.ValueChanged += v => onChanged(v);
             return be;
         }
+        // ✅ 开创人2026-11-16: 护盾弱点索引→序号行编辑器
+        if (fieldName == "shieldWeakPointIndices" && value is int[] sidx)
+        {
+            var sw = new ShieldWeakPointEditor();
+            sw.Indices = (int[])sidx.Clone();
+            sw.ValueChanged += v => onChanged(v);
+            return sw;
+        }
         // ✅ 开创人2026-11-16: 触发事件→全表单编辑器
         if (fieldName == "actionEvents" && value is Godot.Collections.Array<Godot.Collections.Dictionary> evs)
         {
