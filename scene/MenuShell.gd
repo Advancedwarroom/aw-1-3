@@ -2,6 +2,7 @@ extends CanvasLayer
 # MenuShell.gd - 主菜单十二项接信号+选中高亮+详情面板 (开创人2026-11-14)
 var _buttons: Array[Button] = []
 var _panel: PanelContainer
+var _enter_btn: Button = null
 var _info: RichTextLabel
 var _selected: Button = null
 
@@ -23,8 +24,8 @@ func _ready() -> void:
     var enter_battle_btn = Button.new()
     enter_battle_btn.text = "⚔ 进入战场"
     enter_battle_btn.pressed.connect(_on_enter_battle)
-    $MenuList.add_child(enter_battle_btn)
-    $MenuList.move_child(enter_battle_btn, 0)
+    _enter_btn = enter_battle_btn
+    add_child(enter_battle_btn)   # ✅ 常驻壳上不进 MenuList：壳不藏，按钮才永远够得着
 
 func _auto_layout() -> void:
     var vp := get_viewport().get_visible_rect().size
@@ -32,6 +33,10 @@ func _auto_layout() -> void:
     if sz.x < 100: sz = $MenuList.get_combined_minimum_size()
     $MenuList.position = Vector2(maxi(8, (vp.x - sz.x) / 2), maxi(8, (vp.y - sz.y) / 2))
     $MenuList.visible = true
+    if _enter_btn:
+        var bsz: Vector2 = _enter_btn.size
+        if bsz.x < 10: bsz = _enter_btn.get_combined_minimum_size()
+        _enter_btn.position = Vector2(maxi(8, (vp.x - bsz.x) / 2), 8)
 
 func _on_menu_drag(event: InputEvent) -> void:
     _drag_handle(event, $MenuList)
@@ -48,7 +53,15 @@ func _drag_handle(event: InputEvent, target: Control) -> void:
         target.global_position = target.get_global_mouse_position() - _drag_off
 
 func _on_enter_battle() -> void:
-    visible = false
+    # ✅ 开创人2026-11-15: 单程票改往返——⚔ 常驻壳上,切换 MenuList 显隐
+    var open := not $MenuList.visible
+    $MenuList.visible = open
+    if not open:
+        _panel.visible = false
+        if _selected and is_instance_valid(_selected): _selected.modulate = Color.WHITE
+        _selected = null
+    if _enter_btn:
+        _enter_btn.text = "⚔ 进入战场" if open else "☰ 返回菜单"
 
 func _build_panel() -> void:
     _panel = PanelContainer.new()
