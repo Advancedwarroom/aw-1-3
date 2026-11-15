@@ -37,7 +37,25 @@ public partial class Infantry
     }
 }
 
-       public virtual bool CanCaptureCurrentGrid()
+           /// <summary>✅ 开创人2026-11-15: 多格单位两格任一可占——锚点格无城则扫足印侧格。</summary>
+    public Grids GetCaptureCityGrid()
+    {
+        if (grid?.city != null) return grid;
+        if (!isMultiTileUnit || grid == null) return null;
+        try
+        {
+            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            foreach (var off in GetFootprintIndices(grid.GridIndex, unitFacing))
+            {
+                var g = gm?.gridManager?.GetGridAt(off);
+                if (g?.city != null) return g;
+            }
+        }
+        catch { }
+        return null;
+    }
+
+public virtual bool CanCaptureCurrentGrid()
 {
     if (captureAbility == CaptureAbility.CannotCapture)
         return false;
@@ -45,21 +63,22 @@ public partial class Infantry
     if (grid == null)
         return false;
     
-    if (grid.city == null)
+    var capGrid = GetCaptureCityGrid();
+    if (capGrid == null)
         return false;
     
     // ✅ 关键：如果城市已被己方占领，不能再次占领
-    if (grid.city.facilityTeam == team)
+    if (capGrid.city.facilityTeam == team)
         return false;
     
     // ✅ 如果正在占领中，但占领的是当前格子，允许继续
-    if (currentCaptureProgress > 0 && capturingGrid == grid)
+    if (currentCaptureProgress > 0 && capturingGrid == capGrid)
         return true;
     
     // ✅ 如果其他己方单位正在占领，检查是否可以协助
-    if (grid.city.capturingUnits.Count > 0)
+    if (capGrid.city.capturingUnits.Count > 0)
     {
-        var allyCapturing = grid.city.capturingUnits
+        var allyCapturing = capGrid.city.capturingUnits
             .FirstOrDefault(u => u.team == this.team && u != this);
         if (allyCapturing != null)
         {
@@ -105,7 +124,7 @@ public partial class Infantry
             }
             
             currentCaptureProgress = 0;
-            capturingGrid = grid;
+            capturingGrid = GetCaptureCityGrid() ?? grid;   // ✅ 开创人2026-11-15: 两格任一可占
             grid.city?.OnCaptureStarted(this);
         }
         
