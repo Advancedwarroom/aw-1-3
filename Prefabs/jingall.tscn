@@ -23,7 +23,7 @@ health = 100
 primaryAmmo = 4
 maxFuel = 50
 fuel = 50
-terrainMoveCostOverrides = ["CLIFF=2", "FOREST=1"]   // ✅ 开创人: 抬枪兵山陵出身——CLIFF(山)可上耗2,森林耗1(湘军镇压山地起义的历史还原)
+terrainMoveCostOverrides = ["CLIFF=2", "FOREST=1"]
 script = ExtResource("1_74lvt")
 animSprite = NodePath("AnimatedSprite2D")
 idleSprite = NodePath("Sprite2D")
