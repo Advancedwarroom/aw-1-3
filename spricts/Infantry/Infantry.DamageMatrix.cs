@@ -23,8 +23,10 @@ public void InitializeDefaultMatrix()
         defaultMatrix = new Dictionary<string, int>
         {
             ["Infantry_Infantry"] = 55,   ["Infantry_Mech"] = 45,   ["Infantry_LightTank"] = 15,
-            ["Jingall_Infantry"] = 65,   ["Jingall_Mech"] = 45,   ["Jingall_LightTank"] = 12,
-            ["Jingall_Artillery"] = 20,   ["Jingall_Recon"] = 55,   ["Jingall_AntiAir"] = 18,
+            // ✅ 2026-11-16 A4 补空缺：开创人点名的歧视链——步兵120/轻甲60/坦克15
+            ["Jingall_Infantry"] = 120,   ["Jingall_Mech"] = 120,   ["Jingall_LightTank"] = 15,
+            ["Jingall_APC"] = 60,   ["Jingall_MdTank"] = 15,
+            ["Jingall_Artillery"] = 20,   ["Jingall_Recon"] = 60,   ["Jingall_AntiAir"] = 18,
             ["Infantry_Jingall"] = 55,   ["Mech_Jingall"] = 65,   ["LightTank_Jingall"] = 85,
             ["Infantry_Artillery"] = 25,  ["Infantry_Rocket"] = 25, ["Infantry_APC"] = 15,
             ["Infantry_Oozium"] = 35,       ["Infantry_MdTank"] = 4,
