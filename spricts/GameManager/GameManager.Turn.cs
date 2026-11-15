@@ -221,6 +221,7 @@ public partial class GameManager
             bool canMoveThisTurn = APC.CanUnitMove(unit);
             unit.isMoved = false;
             unit.isAttacked = false;
+            unit.ActionTurnStart();   // ✅ 开创人2026-11-15: 准备模块——各池独立装填/各冷却-1/次数清零/哑火清算
 
             // ✅ 电磁爆麻痹：麻痹中强制待机（不能移动/攻击）；当前行动势力的单位在其回合开始时递减
             if (unit.stunTurnsRemaining > 0)
