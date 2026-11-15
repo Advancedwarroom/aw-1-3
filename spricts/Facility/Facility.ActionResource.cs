@@ -50,4 +50,15 @@ public partial class Facility
 
 
     public void OnActionMoved() => ActionResourceRuntime.OnMoved(this);
+
+    [ExportGroup("准备模块·移植层（开创人令 2026-11-15）")]
+    [Export] public int[] actionBlockLeft = new int[] { };        // 运行时：各操作哑火禁操作剩余回合
+    [Export] public int[] actionWeakCellReset = new int[] { };    // 弱点格装填手：序号格=1 → 被打中全池清零
+    [Export] public bool actionManualOff = false;                  // 运行时：自主关闭效果（关闭效果按钮）
+    [Export] public bool actionFillConsumesAction = true;          // 手动装填耗不耗行动
+    [Export] public int misfireAmmoKind = -1;                    // 哑火·监视弹药（AmmoKind；-1=不看）
+    [Export] public int misfireAmmoBelow = -1, misfireAmmoAbove = -1;          // 现值小于/大于 x
+    [Export] public int misfireAmmoDeltaBelow = -1, misfireAmmoDeltaAbove = -1; // 一次性变化量小于/大于 x
+    [Export] public string[] misfireBlockOps = new string[] { };  // 哑火触发时禁这些操作
+    [Export] public int misfireBlockTurns = 0;                     // 禁操作持续回合（0=仅当回合）
 }

@@ -94,7 +94,6 @@ public partial class GameManager
             {
                 if (g?.city != null && (g.city.facilityTeam == currentTeam || g.city.facilityTeam == TeamHelper.Player))
                     g.city.ResetProductionCount();
-                    PrepEngine.OnTurnStart(g.city);   // ✅ 准备/冷却模块：设施回合开始
                 // ✅ 雷达：每回合开始重置/激活（自动模式）
                 if (g?.city is Radar radar)
                     radar.OnTurnStartRadar();
@@ -113,7 +112,6 @@ public partial class GameManager
             wp.OnTurnStart(this);   // ✅ B组通用化：回合开始回调（GrandBolt=蠕动/生产/电磁爆，BlackArc=冷却/护卫联动）
             wp.OnTurnStartWeaponRadar();   // ✅ 兵器雷达模块：每回合开始重置/激活（自动模式），与设施版 OnTurnStartRadar 同位
             wp.RotateAmmoTick();   // ✅ 2026-11-15 旋转弹：兵器池充能/连发锁递减（本势力专属）
-            PrepEngine.OnTurnStart(wp);   // ✅ 准备/冷却模块：兵器回合开始
         }
 
         // ✅ 资金系统：每回合开始时给当前phase的势力增加资金
@@ -165,7 +163,6 @@ public partial class GameManager
         foreach (var unit in unitManager?.AllUnits ?? new List<Infantry>())
         {
             if (!IsInstanceValid(unit)) continue;
-            PrepEngine.SetTurn(turns); PrepEngine.OnTurnStart(unit);   // ✅ 准备/冷却模块：回合开始（引擎内双跑保护）
             // APC 自动补给
             if (unit is APC apc && apc.autoSupplyOnTurnStart)
             {
@@ -224,6 +221,7 @@ public partial class GameManager
             bool canMoveThisTurn = APC.CanUnitMove(unit);
             unit.isMoved = false;
             unit.isAttacked = false;
+            unit.ActionTurnStart();   // ✅ 开创人2026-11-15: 准备模块——各池独立装填/各冷却-1/次数清零/哑火清算
 
             // ✅ 电磁爆麻痹：麻痹中强制待机（不能移动/攻击）；当前行动势力的单位在其回合开始时递减
             if (unit.stunTurnsRemaining > 0)

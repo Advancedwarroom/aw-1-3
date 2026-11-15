@@ -66,7 +66,7 @@ public partial class ActionMenu
         if (unit.isMoved || unit.state == UnitState.Acted || !unit.CanMove()) return false;
         if (unit.movePoints <= 0) return false;
         if (unit.isStealthed && !unit.canMoveWhileStealthed) return false;
-        if (!PrepEngine.CanPerform(unit, Ops.Move)) return false;   // ✅ 准备/冷却门禁：快速移动同判（固定炮台锁移动）
+        if (!ActionResourceRuntime.CanUse(unit, ActionIds.Move) || ActionResourceRuntime.MovementLocked(unit)) return false;   // ✅ 准备模块门禁：快速移动同判
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null) return false;
 
@@ -288,19 +288,25 @@ public void ShowMoveChoiceDialog(Infantry movingUnit, Infantry targetUnit, Grids
         remoteCapturePopup.PopupCentered();
     }
 
-    // ✅ 准备/冷却模块：手动装填（抬枪就叫"装填"）
+    // ✅ 准备模块：手动装填（抬枪就叫"装填"）
     public void OnPrepFillPressed()
     {
         if (currentUnit == null) return;
-        PrepEngine.ManualFill(currentUnit);
+        ActionResourceRuntime.ManualFill(currentUnit);
+        var consume = currentUnit.Get("actionFillConsumesAction");
+        if (consume.VariantType != Variant.Type.Bool || consume.AsBool())
+        {
+            currentUnit.state = UnitState.Acted;
+            currentUnit.hasActed = true;
+        }
         Hide();
     }
 
-    // ✅ 准备/冷却模块：关闭/开启模块效果
+    // ✅ 准备模块：关闭/开启效果（关闭=还原全部临时事件）
     public void OnPrepOffPressed()
     {
         if (currentUnit == null) return;
-        PrepEngine.ToggleOff(currentUnit);
+        ActionResourceRuntime.ToggleOff(currentUnit);
         Hide();
     }
 }

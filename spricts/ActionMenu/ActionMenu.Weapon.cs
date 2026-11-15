@@ -30,7 +30,7 @@ public partial class ActionMenu
         // ✅ Crystal 黑水晶：显示"治疗"按钮，隐藏"攻击"按钮
         if (weapon is Crystal crystal)
         {
-            bool canHeal = crystal.CanAttack() && PrepEngine.CanPerform(weapon, Ops.Heal); // ✅ 准备/冷却门禁：治疗行（CanAttack = !hasActed && remainingAttacks > 0）
+            bool canHeal = crystal.CanAttack() && ActionResourceRuntime.CanUse(weapon, ActionIds.Attack); // ✅ 准备模块门禁：治疗行
             attackButton.Visible = false;
             if (healButton != null)
             {
@@ -62,10 +62,10 @@ public partial class ActionMenu
                 });
             }
 
-            attackButton.Visible = canAttack && hasTargetInRange && PrepEngine.CanPerform(weapon, Ops.WeaponAttack);   // ✅ 准备/冷却门禁：兵器攻击行（含装填/冷却/哑火）
+            attackButton.Visible = canAttack && hasTargetInRange && ActionResourceRuntime.CanUse(weapon, ActionIds.Attack);   // ✅ 准备模块门禁：兵器攻击行
         }
 
-        waitButton.Visible = PrepEngine.CanPerform(weapon, Ops.WeaponWait);   // ✅ 准备/冷却门禁：兵器等待行
+        waitButton.Visible = ActionResourceRuntime.CanUse(weapon, ActionIds.Wait);   // ✅ 准备模块门禁：兵器等待行
         infoButton.Visible = true;
 
         unitInfoLabel.Visible = false;

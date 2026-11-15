@@ -14,6 +14,11 @@ public static class ActionIds
     public const string Rotate = "rotate";
     public const string Build = "build";
     public const string Produce = "produce";
+    // ✅ 移植层补登记（与命名对齐：小写语义名）
+    public const string Wait = "wait";
+    public const string Repair = "repair";
+    public const string Illuminate = "illuminate";
+    public const string Supply = "supply";
     public const string Teleport = "teleport";
     public const string Counter = "counter";
     public const string Rebound = "rebound";

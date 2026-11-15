@@ -26,8 +26,8 @@ public partial class Infantry
         Rebound,        // 反弹推进弹
         Mitigation,     // 卸力弹
         AntiGravity,    // 反重力场弹
-        Rotate,         // ✅ 第14种：旋转弹（开创人令 2026-11-15）
-        PrepBucket       // ✅ 第15种：冷却水桶（准备/冷却模块，开创人令 2026-11-15）
+        Rotate,          // ✅ 第14种：旋转弹
+        Bucket          // 冷却水桶（准备/冷却/充能模块货币，共享全局桶可选通道）（开创人令 2026-11-15）
     }
 
     public static readonly AmmoKind[] AllAmmoKinds =
@@ -51,7 +51,7 @@ public partial class Infantry
         AmmoKind.Mitigation => currentMitigationAmmo,
         AmmoKind.AntiGravity => currentAntiGravityAmmo,
         AmmoKind.Rotate => currentRotateAmmo,   // ✅ 旋转弹
-        AmmoKind.PrepBucket => currentPrepBucket,   // ✅ 冷却水桶
+        AmmoKind.Bucket => currentBucketAmmo,   // ✅ 冷却水桶
         _ => 0
     };
 
@@ -71,6 +71,7 @@ public partial class Infantry
         AmmoKind.Mitigation => maxMitigationAmmo,
         AmmoKind.AntiGravity => maxAntiGravityAmmo,
         AmmoKind.Rotate => maxRotateAmmo,   // ✅ 旋转弹
+        AmmoKind.Bucket => maxBucketAmmo,   // ✅ 冷却水桶上限
         _ => 0
     };
 
@@ -126,7 +127,6 @@ public partial class Infantry
         AmmoKind.Mitigation => maxMitigationAmmo,
         AmmoKind.AntiGravity => maxAntiGravityAmmo,
         AmmoKind.Rotate => maxRotateAmmo,   // ✅ 旋转弹
-        AmmoKind.PrepBucket => maxPrepBucket,   // ✅ 冷却水桶
         _ => 0,
     };
 
@@ -150,13 +150,12 @@ public partial class Infantry
             case AmmoKind.Mitigation: maxMitigationAmmo = value; break;
             case AmmoKind.AntiGravity: maxAntiGravityAmmo = value; break;
             case AmmoKind.Rotate: maxRotateAmmo = value; break;   // ✅ 旋转弹
-            case AmmoKind.PrepBucket: maxPrepBucket = value; break;   // ✅ 冷却水桶
         }
     }
 
     public void SetAmmoRaw(AmmoKind kind, int value) // ✦优化：改为public供地形效果模块使用
     {
-        int oldValue = GetAmmo(kind);   // ✅ 准备/冷却模块：弹药变化钩子（哑火表监视总入口）
+        int oldValue = GetAmmo(kind);   // ✅ 移植层：弹药变化钩子（哑火表弹药监视总入口）
         switch (kind)
         {
             case AmmoKind.Primary: currentPrimaryAmmo = value; break;
@@ -173,8 +172,8 @@ public partial class Infantry
             case AmmoKind.Mitigation: currentMitigationAmmo = value; break;
             case AmmoKind.AntiGravity: currentAntiGravityAmmo = value; break;
             case AmmoKind.Rotate: currentRotateAmmo = value; break;   // ✅ 旋转弹
-            case AmmoKind.PrepBucket: currentPrepBucket = value; break;   // ✅ 冷却水桶
+            case AmmoKind.Bucket: currentBucketAmmo = value; break;   // ✅ 冷却水桶
         }
-        PrepEngine.OnAmmoChanged(this, (int)kind, value - oldValue);   // ✅ 哑火表：弹药一次性变化量判定
+        ActionResourceRuntime.OnAmmoChanged(this, (int)kind, value - oldValue);   // ✅ 哑火表：弹药一次性变化量判定
     }
 }

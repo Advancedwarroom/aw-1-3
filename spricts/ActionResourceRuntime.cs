@@ -3,7 +3,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 
-public static class ActionResourceRuntime
+public static partial class ActionResourceRuntime   // ✅ 移植层：partial 以便 ActionResourceRuntime.Port.cs 同班扩展
 {
     private static readonly Dictionary<GodotObject, List<(string field, Variant oldVal, int turnsLeft)>> _tempEvents = new();
 
@@ -43,8 +43,10 @@ public static class ActionResourceRuntime
     public static bool CanUse(GodotObject o, string action)
     {
         if (!Flag(o, "actionResourceEnabled")) return true;
+        if (Flag(o, "actionManualOff")) return false;   // ✅ 移植层：自主关闭效果（关闭效果按钮）
         int i = Idx(o, action);
         if (i < 0) return true;
+        if (IsBlocked(o, i)) return false;              // ✅ 移植层：哑火禁操作块
         var costs = IArr(o, "actionCosts");
         var unlockAt = IArr(o, "actionUnlockAt");
         var unlocked = IArr(o, "actionUnlocked");
@@ -157,6 +159,14 @@ public static class ActionResourceRuntime
         var cd = IArr(o, "actionCooldownLeft");
         for (int k = 0; k < cd.Length; k++) if (cd[k] > 0) cd[k]--;
         o.Set("actionCooldownLeft", cd);
+        // ✅ 移植层：哑火禁操作块递减
+        var bl = IArr(o, "actionBlockLeft");
+        for (int k = 0; k < bl.Length; k++) if (bl[k] > 0) bl[k]--;
+        o.Set("actionBlockLeft", bl);
+        // ✅ 移植层：事件每回合调用计数清零
+        var staleKeys = new List<(GodotObject, int)>();
+        foreach (var key in _eventCounts.Keys) if (ReferenceEquals(key.Item1, o)) staleKeys.Add(key);
+        foreach (var key in staleKeys) _eventCounts.Remove(key);
         var used = IArr(o, "actionUsedThisTurn");
         for (int k = 0; k < used.Length; k++) used[k] = 0;
         o.Set("actionUsedThisTurn", used);
@@ -185,7 +195,7 @@ public static class ActionResourceRuntime
             || (above >= 0 && hpAfter > above)
             || (dmgBelow >= 0 && damage < dmgBelow)
             || (dmgAbove >= 0 && damage > dmgAbove);
-        if (trigger) o.Set("actionMisfireFlag", true);
+        if (trigger) { o.Set("actionMisfireFlag", true); SetMisfireBlocks(o); }   // ✅ 移植层：哑火→禁操作块
     }
 
     /// <summary>事件引擎v1：操作成功后触发——when缺省=always/current>=n；Godot原生Set/Get改任意Export（add/set；永久或temp回合后还原）。</summary>
@@ -195,8 +205,10 @@ public static class ActionResourceRuntime
         var ev = o.Get("actionEvents");
         if (ev.VariantType == Variant.Type.Nil) return;
         var events = ev.AsGodotArray();
+        int _evIdx = -1;
         foreach (var raw in events)
         {
+            _evIdx++;
             if (raw.Obj is not Godot.Collections.Dictionary d) continue;
             string act = d.GetValueOrDefault("action", "").ToString();
             if (!string.Equals(act, action, StringComparison.OrdinalIgnoreCase)) continue;
@@ -207,6 +219,22 @@ public static class ActionResourceRuntime
                 if (i < 0 || !int.TryParse(when.Substring(9), out var need) || At(IArr(o, "actionCurrent"), i, 0) < need) continue;
             }
             else if (when != "always") continue;
+
+            // ✅ 移植层：事件上限口径——perTurn 每回合调用上限 + maxStacks 层数（capScope: 0=只看不同种类/1=全部叠加/2=除自身以外）
+            int perTurn = d.GetValueOrDefault("perTurn", 0).AsInt32();
+            var ck = (o, _evIdx);
+            _eventCounts.TryGetValue(ck, out int usedN);
+            if (perTurn > 0 && usedN >= perTurn) continue;
+            int maxStacks = d.GetValueOrDefault("maxStacks", 0).AsInt32();
+            if (maxStacks > 0)
+            {
+                int total = _tempEvents.TryGetValue(o, out var tl) ? tl.Count : 0;
+                int sameField = 0;
+                if (tl != null) foreach (var tt in tl) if (tt.field == d.GetValueOrDefault("field", "").ToString()) sameField++;
+                int scope = d.GetValueOrDefault("capScope", 2).AsInt32();
+                int counted = scope == 1 ? total : scope == 0 ? (sameField > 0 ? 1 : 0) : sameField;
+                if (counted >= maxStacks) continue;
+            }
             string field = d.GetValueOrDefault("field", "").ToString();
             if (string.IsNullOrEmpty(field)) continue;
             string mode = d.GetValueOrDefault("mode", "set").ToString();
@@ -215,6 +243,7 @@ public static class ActionResourceRuntime
             var oldVal = o.Get(field);
             float cur2 = oldVal.VariantType == Variant.Type.Nil ? 0f : oldVal.AsSingle();
             o.Set(field, mode == "add" ? cur2 + value : value);
+            _eventCounts[(o, _evIdx)] = usedN + 1;   // ✅ 移植层：事件调用计数（perTurn 上限用）
             if (temp > 0)
             {
                 if (!_tempEvents.TryGetValue(o, out var list)) { list = new(); _tempEvents[o] = list; }
@@ -230,8 +259,7 @@ public static class ActionResourceRuntime
         var tv = o.Get("actionTable");
         int n = tv.VariantType == Variant.Type.Nil ? 0 : tv.AsStringArray().Length;
         var clear = IArr(o, "actionClearOnMove");
-        if (clear.Length == 0) return;
-        var cur = IArr(o, "actionCurrent");
+        var cur = IArr(o, "actionCurrent");   // ✅ 移植层：拆早退——事件清理判定即使无 clear 行也要走
         var unlocked = IArr(o, "actionUnlocked");
         bool touched = false;
         for (int i = 0; i < n && i < clear.Length; i++)
@@ -242,5 +270,7 @@ public static class ActionResourceRuntime
             touched = true;
         }
         if (touched) { o.Set("actionCurrent", cur); o.Set("actionUnlocked", unlocked); }
+        // ✅ 移植层：事件清理判定·移动（cleanupMove）
+        CleanupEvents(o, d => { var v = d.GetValueOrDefault("cleanupMove", false); return v.VariantType == Variant.Type.Bool && v.AsBool(); });
     }
 }

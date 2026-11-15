@@ -311,8 +311,8 @@ public partial class GridManager
 
     public void MoveTo(Infantry infantry, Grids to, bool showMenu = true, System.Collections.Generic.List<Grids> forcedPath = null)
     {
+        infantry.OnActionMoved();   // ✅ 开创人2026-11-15: 准备模块——移动清池(actionClearOnMove各操作独立)
         if (infantry == null || to == null) return;
-        PrepEngine.NotifyPerformed(infantry, Ops.Move); PrepEngine.OnMove(infantry);   // ✅ 准备/冷却模块：移动记账+白装判定
         // 移动时推动（原文方式①）：记录出发格，落子后沿移动方向触发推挤
         var pushFromIndex = infantry.grid?.GridIndex;
         // 最终安全门：任何调用路径都不能把单位停进禁停地形；经过禁停格不受影响。
