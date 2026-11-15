@@ -17,14 +17,21 @@ z_index = 10
 isMultiTileUnit = true
 unitFootprintSize = Vector2i(1, 2)
 canRotate = true
-moveType = 0
-movePoints = 3
-baseAttack = 110
+moveType = 1
+defaultMovePoints = 2
+movePoints = 2
+baseAttack = 150
 maxHealth = 100
 health = 100
-primaryAmmo = 4
-maxFuel = 50
-fuel = 50
+maxFuel = 70
+fuel = 70
+consumeFuel = true
+hasPrimaryWeapon = true
+maxPrimaryAmmo = 3
+currentPrimaryAmmo = 3
+secondaryAttack = 80
+counterMul = 0.4
+cost = 3000
 terrainMoveCostOverrides = ["FOREST=1", "CLIFF=4"]
 actionResourceEnabled = true
 actionFillPerTurn = [10.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -38,20 +45,6 @@ useDefaultConfig = false
 unitCategory = 3
 loadedIcon = NodePath("loaded")
 noFuelIcon = NodePath("NoFuelIcno")
-moveType = 1
-defaultMovePoints = 2
-movePoints = 2
-baseAttack = 150
-maxFuel = 70
-fuel = 70
-consumeFuel = true
-hasPrimaryWeapon = true
-maxPrimaryAmmo = 3
-currentPrimaryAmmo = 3
-secondaryAttack = 80
-counterMul = 0.4
-cost = 3000
-
 [node name="Area2D" type="Area2D" parent="." unique_id=1539668194]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=330701370]
