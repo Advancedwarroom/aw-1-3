@@ -113,6 +113,12 @@ public partial class Infantry
     /// <summary>补满单种弹药</summary>
     public void RefillAmmo(AmmoKind kind)
     {
+        // ✅ 2026-11-15 A10 补链：补给车单种补给路径同咽喉——共享桶单位补主弹药=补桶
+        if (useSharedBucket && kind == AmmoKind.Primary)
+        {
+            currentBucketAmmo = maxBucketAmmo;
+            return;
+        }
         int max = GetMaxAmmo(kind);
         if (max > 0) SetAmmoRaw(kind, max);
     }
