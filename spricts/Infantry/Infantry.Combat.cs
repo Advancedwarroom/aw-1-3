@@ -434,6 +434,12 @@ public virtual (int damage, string info) CalculateCounterPreview(Infantry attack
 
 public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitGrid = null)
 {
+        // ✅ 开创人2026-11-15: 准备模块攻击门——自己的池/独立冷却/次数（不碰别的操作）
+        if (!ActionResourceRuntime.CanUse(this, ActionIds.Attack))
+        {
+            GD.PushError("[准备模块] attack 条件未满足（池内不足/该操作冷却中/次数用尽）");
+            return;
+        }
         if (target != null) target.lastAttackerTeam = team;   // ✅ 开创人2026-11-14 战役记账：步兵凶手追踪
         // ✅ 隐身攻击门：白名单外的单位打不了隐身目标（所有攻击路径的唯一闸门）
         if (!CanTargetStealth(this, target)) return;
@@ -537,8 +543,13 @@ public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitG
                 // ✅ 开创人2026-11-15: 精度崩——被打格决定目标下次攻击乘数（哑火等准备冷却模块接同一点）
                 float outMul = target.GetWeakCellOutputFactor(hitGrid);
                 if (!Mathf.IsEqualApprox(outMul, 1f)) target.nextAttackOutputMul = outMul;
+                // ✅ 开创人2026-11-15: 哑火阈值判定（血量/单次伤害→哑火旗,回合开始清算全池）
+                ActionResourceRuntime.OnHitMisfire(target, target.health, attackDamage);
             }
             if (!target.healthLocked) target.health -= attackDamage; // 力场锁血
+            // ✅ 开创人2026-11-15: 攻击成功结算（扣自己的池/记次/置自己的冷却）+触发事件
+            ActionResourceRuntime.Consume(this, ActionIds.Attack);
+            ActionResourceRuntime.FireEvents(this, ActionIds.Attack);
     __theater?.AddVolley(true, attackDamage, target.health, BattleAnimCatalog.GetFireClass(this, weapon, target));   // ✅ 剧场：主攻记录
         // ✅ CO 模块系统·模块27（能量条积累）：造成/受到伤害打点
         CoModuleSystem.OnDamageDealt(team, attackDamage);
