@@ -141,6 +141,18 @@ public static class UnitRegistry
 
         ["Bike"] = new UnitConfig
         {
+            UnitId = "Jingall",
+            DisplayName = "抬枪兵",
+            MoveType = MoveType.Infantry,
+            MovePoints = 3,
+            Cost = 2500,
+            AnimPrefix = "jingall",
+            HasPrimaryWeapon = true,
+            MaxHealth = 100,
+            BaseDefense = 10,
+        },
+        new UnitConfig
+        {
             UnitId = "Bike",
             DisplayName = TranslateGroup.T("摩托兵"),
             MoveType = MoveType.Tire,
