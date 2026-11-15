@@ -10,6 +10,9 @@ public partial class Grids
     // ==================== 停靠限制（可穿过，但不可作为最终落点） ====================
     [ExportGroup("停靠限制")]
     [Export] public bool cannotStopOnThisGrid = false; // 当前格：所有单位均不可停靠；不影响路径穿过
+    // ✅ 开创人2026-11-15 山脉开道：山道态——被开凿的山格（可通行，移动耗由carvedMoveCost决定）
+    [Export] public bool carvedPath = false;
+    [Export] public int carvedMoveCost = 3;
 
     /// <summary>格级开关 + GridManager 地形种类开关共同决定是否禁止最终停靠。</summary>
     public bool PreventsUnitStop(GridManager manager)
@@ -118,7 +121,4 @@ public partial class Grids
         }
     }
 
-    // ✅ 开创人2026-11-15 山脉开道：山道态——被开凿的山格（可通行，移动耗由carvedMoveCost决定）
-    [Export] public bool carvedPath = false;
-    [Export] public int carvedMoveCost = 3;
 }
