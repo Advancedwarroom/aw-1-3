@@ -19,6 +19,12 @@ func _ready() -> void:
     call_deferred("_auto_layout")
     if not $MenuList.gui_input.is_connected(_on_menu_drag):
         $MenuList.gui_input.connect(_on_menu_drag)
+    # ✅ 开创人2026-11-15: 十三号按钮"进入战场"——隐藏主菜单,直进背后已加载的main战场
+    var enter_battle_btn = Button.new()
+    enter_battle_btn.text = "⚔ 进入战场"
+    enter_battle_btn.pressed.connect(_on_enter_battle)
+    $MenuList.add_child(enter_battle_btn)
+    $MenuList.move_child(enter_battle_btn, 0)
 
 func _auto_layout() -> void:
     var vp := get_viewport().get_visible_rect().size
@@ -40,6 +46,9 @@ func _drag_handle(event: InputEvent, target: Control) -> void:
         target.accept_event()
     elif event is InputEventMouseMotion and _dragging:
         target.global_position = target.get_global_mouse_position() - _drag_off
+
+func _on_enter_battle() -> void:
+    visible = false
 
 func _build_panel() -> void:
     _panel = PanelContainer.new()
