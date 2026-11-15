@@ -86,6 +86,22 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
             grid.CellsChanged += v => onChanged(v);
             return grid;
         }
+        // ✅ 开创人2026-11-16: 伤害矩阵→行编辑器
+        if (fieldName == "attackMatrix" && value is System.Collections.Generic.Dictionary<string, int> mtx)
+        {
+            var me = new MatrixRowEditor();
+            me.Matrix = new System.Collections.Generic.Dictionary<string, int>(mtx);
+            me.ValueChanged += v => onChanged(v);
+            return me;
+        }
+        // ✅ 开创人2026-11-16: 地形消耗覆写→行编辑器
+        if (fieldName == "terrainMoveCostOverrides" && value is string[] trows)
+        {
+            var te = new TerrainCostEditor();
+            te.Rows = trows;
+            te.ValueChanged += v => onChanged(v);
+            return te;
+        }
 
     if (propType == typeof(int))
     {
