@@ -121,8 +121,9 @@ public partial class Grids
     [Export] public bool carvedPath = false;
     [Export] public int carvedMoveCost = 3;
     }
-
-}
     // ✅ 开创人2026-11-15 山脉开道：山道态——被开凿的山格（可通行，移动耗由carvedMoveCost决定）
     [Export] public bool carvedPath = false;
     [Export] public int carvedMoveCost = 3;
+
+
+}
