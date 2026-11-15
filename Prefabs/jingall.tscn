@@ -38,7 +38,10 @@ actionFillPerTurn = [10.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 actionCosts = [20.0, -1.0, -1.0, -1.0, -1.0, -1.0]
 actionCooldownTurns = [1, 0, 0, 0, 0, 0]
 actionWeakCellReset = [1]   # ✅ A4：格0(自身)=弱点——装填手中弹全队全池清零
-misfireDamageAbove = 0      // ✅ 哑火：挨任何实弹即哑（开创人2026-11-16 钦定纯挨弹档）
+misfireDamageAbove = 0      ; ✅ 哑火：挨任何实弹即哑（开创人2026-11-16 钦定纯挨弹档）
+multiCellAttackEnabled = true
+attackPatternCells = ["0,0", "1,1", "1,-1"]
+attackCellFactors = [1.0, 0.6, 0.6]
 misfireBlockOps = ["attack"]
 misfireBlockTurns = 1
 script = ExtResource("1_74lvt")
