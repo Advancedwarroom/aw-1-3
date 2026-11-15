@@ -1028,7 +1028,8 @@ private void RefreshAllUnitVision()
         var widthSpin = new SpinBox();
         widthSpin.Name = "MapWidthSpin";
         widthSpin.MinValue = 1;
-        widthSpin.MaxValue = 100;
+        // ✅ 2026-11-15 开创人令：地图宽上限 9999——多屏革命时 cba45d9a 未经请示自砍到 100，越权回退
+        widthSpin.MaxValue = 9999;
         widthSpin.Value = gridManager?.map?.GetLength(0) ?? 20;
         widthSpin.CustomMinimumSize = new Vector2(70, 28);
         widthSpin.AddThemeFontSizeOverride("font_size", 12);
@@ -1043,7 +1044,8 @@ private void RefreshAllUnitVision()
         var heightSpin = new SpinBox();
         heightSpin.Name = "MapHeightSpin";
         heightSpin.MinValue = 1;
-        heightSpin.MaxValue = 100;
+        // ✅ 2026-11-15 开创人令：地图高上限 9999——同上，100 为越权自砍
+        heightSpin.MaxValue = 9999;
         heightSpin.Value = gridManager?.map?.GetLength(1) ?? 15;
         heightSpin.CustomMinimumSize = new Vector2(70, 28);
         heightSpin.AddThemeFontSizeOverride("font_size", 12);
