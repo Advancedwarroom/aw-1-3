@@ -112,6 +112,8 @@ public partial class AI_Manager
         foreach (var e in ctx.enemies)
         {
             if (e.grid == null || !gameManager.gridManager.IsRangeAllowed(g, e.grid, u.attackCanCrossScreens)) continue;
+            // ✅ 开创人2026-11-15: 准备模块AI门——未装填单位不进攻击评分
+            if (u.actionResourceEnabled && !ActionResourceRuntime.CanUse(u, ActionIds.Attack)) continue;
             // ✅ 开创人2026-11-15: 多格单位仅弱点格可打（AI侧同武器循环语义）
             if (e.isMultiTileUnit && e.GetUnitHittableGrids().Count == 0) continue;
             int d = Dist(g, e.grid);
