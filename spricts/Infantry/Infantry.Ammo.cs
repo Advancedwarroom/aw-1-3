@@ -86,12 +86,25 @@ public partial class Infantry
     }
 
     /// <summary>是否持有至少 need 发弹药</summary>
-    public bool HasAmmo(AmmoKind kind, int need = 1) => GetAmmo(kind) >= need;
+    public bool HasAmmo(AmmoKind kind, int need = 1)
+    {
+        // ✅ 2026-11-15 A10：共享桶走统一咽喉——主弹药查询从桶读（桶=统一弹匣）
+        if (useSharedBucket && kind == AmmoKind.Primary)
+            return currentBucketAmmo >= need;
+        return GetAmmo(kind) >= need;
+    }
 
     /// <summary>尝试消耗 amount 发弹药：不足则拒绝并返回 false（不扣）</summary>
     public bool TryConsumeAmmo(AmmoKind kind, int amount = 1)
     {
         if (amount <= 0) return true;
+        // ✅ 2026-11-15 A10：共享桶走统一咽喉——开启后主弹药从桶扣，全链（开火/技能/AI判定）同一入口
+        if (useSharedBucket && kind == AmmoKind.Primary)
+        {
+            if (currentBucketAmmo < amount) return false;
+            currentBucketAmmo -= amount;
+            return true;
+        }
         if (GetAmmo(kind) < amount) return false;
         AddAmmo(kind, -amount);
         return true;
@@ -108,6 +121,8 @@ public partial class Infantry
     public void RefillAllAmmo()
     {
         foreach (var kind in AllAmmoKinds) RefillAmmo(kind);
+        // ✅ 2026-11-15 A10：补给链统一——共享桶一并补满（补给车喂的不只是主炮弹药）
+        if (useSharedBucket) currentBucketAmmo = maxBucketAmmo;
     }
 
     /// <summary>✦优化：读取单种弹药上限基础值（不含雾战等加成；地形最大值变化模块用）</summary>
