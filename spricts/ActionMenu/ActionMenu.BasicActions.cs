@@ -66,6 +66,7 @@ public partial class ActionMenu
         if (unit.isMoved || unit.state == UnitState.Acted || !unit.CanMove()) return false;
         if (unit.movePoints <= 0) return false;
         if (unit.isStealthed && !unit.canMoveWhileStealthed) return false;
+        if (!PrepEngine.CanPerform(unit, Ops.Move)) return false;   // ✅ 准备/冷却门禁：快速移动同判（固定炮台锁移动）
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm?.gridManager == null) return false;
 
@@ -285,5 +286,21 @@ public void ShowMoveChoiceDialog(Infantry movingUnit, Infantry targetUnit, Grids
         }
         AddChild(remoteCapturePopup);
         remoteCapturePopup.PopupCentered();
+    }
+
+    // ✅ 准备/冷却模块：手动装填（抬枪就叫"装填"）
+    public void OnPrepFillPressed()
+    {
+        if (currentUnit == null) return;
+        PrepEngine.ManualFill(currentUnit);
+        Hide();
+    }
+
+    // ✅ 准备/冷却模块：关闭/开启模块效果
+    public void OnPrepOffPressed()
+    {
+        if (currentUnit == null) return;
+        PrepEngine.ToggleOff(currentUnit);
+        Hide();
     }
 }

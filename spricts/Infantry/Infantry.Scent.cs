@@ -31,6 +31,7 @@ public partial class Infantry
     public void ToggleScent()
     {
         if (!scentEnabled) return;
+        PrepEngine.NotifyPerformed(this, Ops.Scent);   // ✅ 准备/冷却模块：嗅探记账（中心点，UI+AI 全覆盖）
         SetWaitVisual(true);
         state = UnitState.Acted;
         PerformScentScan();

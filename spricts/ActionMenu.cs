@@ -23,6 +23,8 @@ public partial class ActionMenu : Control
     [Export] public Button scentButton; // ✅ 嗅探按钮
 
     [Export] public Button healButton; // ✅ Crystal 黑水晶治疗按钮
+    public Button prepFillButton;   // ✅ 准备/冷却模块：动态「装填」按钮（不进场景，运行时建）
+    public Button prepOffButton;    // ✅ 准备/冷却模块：动态「关闭效果」按钮
 
     // APC专用按钮
     [Export] public Button loadButton;
@@ -93,6 +95,34 @@ public override void _Ready()
             healButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
             container.AddChild(healButton);
             healButton.Pressed += OnHealPressed;
+        }
+    }
+
+    // ✅ 准备/冷却模块：动态创建「装填」按钮（场景中没有时）——手动装填走 PrepEngine.ManualFill
+    if (prepFillButton == null)
+    {
+        var container2 = GetNodeOrNull<VBoxContainer>("ButtonContainer");
+        if (container2 != null)
+        {
+            prepFillButton = new Button();
+            prepFillButton.Name = "PrepFillButton";
+            prepFillButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+            container2.AddChild(prepFillButton);
+            prepFillButton.Pressed += OnPrepFillPressed;
+        }
+    }
+    // ✅ 准备/冷却模块：动态创建「关闭效果」按钮（manualToggleButton=true 的模块出此钮）
+    if (prepOffButton == null)
+    {
+        var container3 = GetNodeOrNull<VBoxContainer>("ButtonContainer");
+        if (container3 != null)
+        {
+            prepOffButton = new Button();
+            prepOffButton.Name = "PrepOffButton";
+            TranslateGroup.SetText(prepOffButton, "关闭效果");
+            prepOffButton.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+            container3.AddChild(prepOffButton);
+            prepOffButton.Pressed += OnPrepOffPressed;
         }
     }
 
@@ -243,8 +273,19 @@ private List<Grids> GetAdjacentGrids(Grids center)
         var container = GetNode<VBoxContainer>("unloadContainer");
         foreach (var child in container.GetChildren())
         child.QueueFree();
-        bool canSupply = !unit.hasActed && HasSupplyableUnits(unit);
+        bool canSupply = !unit.hasActed && HasSupplyableUnits(unit) && PrepEngine.CanPerform(unit, Ops.Supply);   // ✅ 门禁：补给行
         supplyButton.Visible = canSupply;
+
+        // ✅ 准备/冷却模块：手动装填按钮（模块要求手动且未架满时出现；抬枪就叫"装填"）
+        var prepMod = Mods.FindModule<PrepModule>(unit);
+        if (prepFillButton != null)
+        {
+            prepFillButton.Visible = prepMod != null && prepMod.prepEnabled && !prepMod.moduleOff && !prepMod.prepAutoStart
+                && unit != null && !unit.hasActed && unit.health > 0;
+            if (prepFillButton.Visible) TranslateGroup.SetText(prepFillButton, prepMod.prepActionName);
+        }
+        if (prepOffButton != null)
+            prepOffButton.Visible = prepMod != null && prepMod.prepEnabled && prepMod.manualToggleButton;
         currentTransport = null;
 
         // ✅ 究极自由：搭载菜单对所有可搭载单位显示！
@@ -287,6 +328,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
 
         // ✅ 统一判定：可攻击类型 + 未攻击 + 移动后允许 + 有弹药 + 射程内有可伤害目标
         attackButton.Visible = CanShowAttackButton(unit);
+        if (attackButton.Visible) attackButton.Visible = PrepEngine.CanPerform(unit, Ops.Attack);   // ✅ 准备/冷却门禁：攻击行
         // ✅ 舱内攻击
         if (!attackButton.Visible)
             attackButton.Visible = unit.HasLoadedAttackOption();
@@ -297,15 +339,16 @@ private List<Grids> GetAdjacentGrids(Grids center)
 
         bool allowCaptureAfterMove = unit?.allowCaptureAfterMove ?? true;
 
-        moveButton.Visible = !afterMove && !unit.isMoved && unit.CanMove();
+        moveButton.Visible = !afterMove && !unit.isMoved && unit.CanMove() && PrepEngine.CanPerform(unit, Ops.Move);   // ✅ 门禁：移动行（含固定炮台锁）
         bool canTear = unit.CanTearCurrentGrid();
         bool isTearing = unit.currentTearProgress > 0 && unit.tearingGrid == unit.grid;
         bool canLoadedCapture = unit.CanPerformLoadedCapture();
         bool canLoadedTear = unit.CanPerformLoadedTearFlag();      // ✅ 舱内撕旗   // ✅ 内部单位操作：舱内占领
         captureButton.Visible = (canCapture || canRemoteCapture || isCapturing || canTear || isTearing || canLoadedCapture || canLoadedTear) && !unit.isAttacked && (!unit.isMoved || allowCaptureAfterMove);
+        if (captureButton.Visible) captureButton.Visible = PrepEngine.CanPerform(unit, Ops.Capture);   // ✅ 门禁：占领行
         rotateButton?.Hide();
 
-        waitButton.Visible = true;
+        waitButton.Visible = PrepEngine.CanPerform(unit, Ops.Wait);   // ✅ 门禁：等待行
         infoButton.Visible = true;
         if (loadButton != null) loadButton.Visible = false;
         if (healButton != null) healButton.Visible = false;
@@ -340,6 +383,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
             bool canRepairNow = unit.CanPerformRepair && !unit.hasActed && unit.state != UnitState.Acted
                                 && (!unit.isMoved || unit.canRepairAfterMove);
             repairButton.Visible = canRepairNow;
+            if (repairButton.Visible) repairButton.Visible = PrepEngine.CanPerform(unit, Ops.Repair);   // ✅ 门禁：修理行
             if (isRepairPreview)
                 TranslateGroup.SetText(repairButton, "确认修复");
             else
@@ -353,6 +397,7 @@ private List<Grids> GetAdjacentGrids(Grids center)
                                 && !unit.hasActed && unit.state != UnitState.Acted
                                 && (!unit.isMoved || unit.canIlluminateAfterMove);
             illuminateButton.Visible = canIlluminateNow;
+            if (illuminateButton.Visible) illuminateButton.Visible = PrepEngine.CanPerform(unit, Ops.Illuminate);   // ✅ 门禁：照明行
             if (isIlluminationPreview)
                 TranslateGroup.SetText(illuminateButton, "确认照明");
             else if (isFlarePreview)
@@ -375,12 +420,12 @@ private List<Grids> GetAdjacentGrids(Grids center)
         {
             bool canToggleStealth = unit.canStealth && !unit.IsStealthFormLocked
                 && (!unit.stealthToggleCostsAction || (!unit.hasActed && unit.state != UnitState.Acted));
-            stealthButton.Visible = canToggleStealth || unit.CanPerformLoadedStealth();
+            stealthButton.Visible = (canToggleStealth && PrepEngine.CanPerform(unit, Ops.Stealth)) || unit.CanPerformLoadedStealth();   // ✅ 门禁：隐身行
             TranslateGroup.SetText(stealthButton, unit.isStealthed ? unit.GetStealthShowButtonText() : unit.GetStealthHideButtonText());
         }
         if (scentButton != null)
         {
-            scentButton.Visible = unit.scentEnabled && !unit.hasActed && unit.state != UnitState.Acted;
+            scentButton.Visible = unit.scentEnabled && !unit.hasActed && unit.state != UnitState.Acted && PrepEngine.CanPerform(unit, Ops.Scent);   // ✅ 门禁：嗅探行
             TranslateGroup.SetText(scentButton, "嗅探");
         }
 

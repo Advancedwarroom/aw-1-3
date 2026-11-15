@@ -127,16 +127,9 @@ public partial class Infantry
     // ==================== 隐身模块 ====================
     public void ToggleStealth()
     {
-        // ✅ 开创人2026-11-15: 准备模块隐身门+结算（独立池/冷却）
-        if (!ActionResourceRuntime.CanUse(this, ActionIds.Stealth))
-        {
-            GD.PushError("[准备模块] stealth 条件未满足");
-            return;
-        }
-        ActionResourceRuntime.Consume(this, ActionIds.Stealth);
-        ActionResourceRuntime.FireEvents(this, ActionIds.Stealth);
         if (!canStealth) return;
         if (IsStealthFormLocked) return;   // ✅ 形态锁定（手动锁/阈值锁）：玩家不可操作（阈值强制改写不受此限）
+        PrepEngine.NotifyPerformed(this, Ops.Stealth);   // ✅ 准备/冷却模块：隐身记账（中心点）
         // ✅ 弹系统（三选一模式，不能通吃）：切换扣弹，无弹拒绝
         if (stealthAmmoMode == 1)
         {
