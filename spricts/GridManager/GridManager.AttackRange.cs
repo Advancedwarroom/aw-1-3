@@ -407,7 +407,7 @@ public partial class GridManager
             attacker.originalGrid = null;
             
             var gameManager = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-            gameManager?.OnAttack(attacker, target);
+            gameManager?.OnAttack(attacker, target, to); // ✅ 开创人2026-11-15: 点选格透传(受击格判定用)
         }
     }
 
