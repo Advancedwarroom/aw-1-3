@@ -107,6 +107,10 @@ func _process(delta: float) -> void:
 		set_process(false)
 		_loaded = ResourceLoader.load_threaded_get(GAME_SCENE) as PackedScene
 		label.text = "加载中：1000‰"
+		# ✅ 战役选关接力：pending 存在时自动进 boot，无需再点一次"进入战场"
+		if FileAccess.file_exists("user://campaign_pending.map"):
+			_on_enter_pressed()
+			return
 		# 不自动跳场景：数字跳完，亮起按钮，玩家自己按进主菜单
 		enter_button.show()
 	elif status == ResourceLoader.THREAD_LOAD_FAILED or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
@@ -151,6 +155,9 @@ func _poll_boot() -> void:
 	elif BootMapLoader.IsCompleted:
 		label.text = "加载中：1000‰"
 		set_process(false)
+		# ✅ 战役选关经 boot 消费 pending：成功后清掉，防止下次"进入战场"重放旧选关图
+		if FileAccess.file_exists("user://campaign_pending.map"):
+			DirAccess.remove_absolute("user://campaign_pending.map")
 		var tw := create_tween()
 		tw.tween_interval(0.15)
 		tw.tween_property(self, "modulate:a", 0.0, 0.4)

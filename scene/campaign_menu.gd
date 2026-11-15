@@ -36,7 +36,9 @@ func _on_pick(file_name: String) -> void:
 		return
 	dst.store_string(content)
 	dst.close()
-	get_tree().change_scene_to_file("res://scene/main.tscn")
+	# ✅ 方案甲：改走 loading_screen 的 boot 路径——选关也享千分制分帧开盘（pending 由 boot 消费）
+	get_tree().change_scene_to_file("res://scene/loading_screen.tscn")
 
 func _on_back() -> void:
-	get_tree().change_scene_to_file("res://scene/main.tscn")   # ✅ 开创人2026-11-14: 僵尸标题页已火化,返回直落main
+	# ✅ 方案甲: main.tscn 已掏实体,直落=空战场;返回走 loading_screen 重新 boot 默认图
+	get_tree().change_scene_to_file("res://scene/loading_screen.tscn")
