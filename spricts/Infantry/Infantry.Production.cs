@@ -58,6 +58,8 @@ public partial class Infantry
     /// <summary>能否开始一次生产（按钮显示条件）</summary>
     virtual public bool CanStartProduction(bool internalMode)
     {
+        // ✅ 2026-11-15 准备模块挂门(A7④ 生产)
+        if (!ActionResourceRuntime.CanUse(this, ActionIds.Produce)) return false;
         if (!canProduceUnits) return false;
         if (isProducing) return false;
         if (productionCooldownRemaining > 0) return false;
@@ -98,6 +100,8 @@ public partial class Infantry
     virtual public bool StartProduction(string unitId, bool internalMode, Grids externalTargetGrid = null)
     {
         if (!CanStartProduction(internalMode)) return false;
+        ActionResourceRuntime.Consume(this, ActionIds.Produce);       // ✅ A7④
+        ActionResourceRuntime.FireEvents(this, ActionIds.Produce);
         if (!internalMode && externalTargetGrid != null)
         {
             if (grid == null) return false;

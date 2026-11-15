@@ -23,7 +23,11 @@ health = 100
 primaryAmmo = 4
 maxFuel = 50
 fuel = 50
-terrainMoveCostOverrides = ["CLIFF=2", "FOREST=1"]
+terrainMoveCostOverrides = ["FOREST=1", "CLIFF=4"]
+actionResourceEnabled = true
+actionFillPerTurn = [10.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+actionCosts = [20.0, -1.0, -1.0, -1.0, -1.0, -1.0]
+actionCooldownTurns = [1, 0, 0, 0, 0, 0]
 script = ExtResource("1_74lvt")
 animSprite = NodePath("AnimatedSprite2D")
 idleSprite = NodePath("Sprite2D")

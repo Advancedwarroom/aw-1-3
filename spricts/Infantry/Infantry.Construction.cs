@@ -83,6 +83,8 @@ public partial class Infantry
     /// <summary>能否开始一次建造（按钮显示条件）</summary>
     public bool CanStartConstruction(bool internalMode)
     {
+        // ✅ 2026-11-15 准备模块挂门(A7③ 建造)
+        if (!ActionResourceRuntime.CanUse(this, ActionIds.Build)) return false;
         if (!canBuildFacilities) return false;
         if (isConstructing) return false;
         if (constructionCooldownRemaining > 0) return false;
@@ -97,6 +99,8 @@ public partial class Infantry
     public bool StartConstruction(string facilityType, bool internalMode, Grids externalTargetGrid = null)
     {
         if (!CanStartConstruction(internalMode)) return false;
+        ActionResourceRuntime.Consume(this, ActionIds.Build);         // ✅ A7③
+        ActionResourceRuntime.FireEvents(this, ActionIds.Build);
         if (!internalMode && externalTargetGrid != null && !GetValidExternalConstructionGrids(facilityType).Contains(externalTargetGrid)) return false;
         // 支持三类条目：① FacilityDatabase 建筑；② "Terrain:地形名"；③ "Weapon:模板键"（兵器建造）
         if (FacilityDatabase.GetScenePath(facilityType) == null && !IsTerrainBuildEntry(facilityType) && !IsWeaponBuildEntry(facilityType)) return false;

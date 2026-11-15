@@ -141,6 +141,8 @@ public partial class Infantry
 
     public bool CanUseSeparatePushAction()
     {
+        // ✅ 2026-11-15 准备模块挂门(A7① 推动)
+        if (!ActionResourceRuntime.CanUse(this, ActionIds.Push)) return false;
         if (!pushEnabled || pushTriggerMode != PushTriggerMode.SeparateAction)
             return false;
         if (pushCooldownTurnsRemaining > 0) return false;
@@ -157,6 +159,8 @@ public partial class Infantry
     {
         if (!CanUseSeparatePushAction())
             return false;
+        ActionResourceRuntime.Consume(this, ActionIds.Push);          // ✅ A7①
+        ActionResourceRuntime.FireEvents(this, ActionIds.Push);
         hasUsedPushThisTurn = true;
         pushCooldownTurnsRemaining = Mathf.Max(pushCooldownTurnsRemaining, pushCooldownTurns);
         if (pushActionCountsAsAction)

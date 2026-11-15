@@ -100,6 +100,10 @@ public virtual bool CanCaptureCurrentGrid()
     if (!CanCaptureCurrentGrid())
         return;
 
+    // ✅ 2026-11-15 准备模块挂门(A7② 占领)
+    if (!ActionResourceRuntime.CanUse(this, ActionIds.Capture)) return;
+    ActionResourceRuntime.Consume(this, ActionIds.Capture);
+
     // 拆旗冻结：敌方撕旗者在场时，本楼占领进度冻结（只冻结不清零；遭遇清零由 PerformTearFlag 负责）
     if (grid != null && grid.city != null && grid.infantries != null &&
         grid.infantries.Any(u => u != this && u != null && IsInstanceValid(u) && u.team != this.team
