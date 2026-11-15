@@ -26,6 +26,7 @@ public partial class Infantry
         if (fuel < carveFuelPerCell) return false;
         gm.SetTeamFunds(team, gm.GetTeamFunds(team) - carveCostPerCell);
         fuel -= carveFuelPerCell;
+        ActionResourceRuntime.EvalFuelMisfire(this, -carveFuelPerCell);   // ✅ A9 燃油哑火
         target.carvedPath = true;
         target.carvedMoveCost = carveMoveCost;
         return true;

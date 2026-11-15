@@ -88,6 +88,28 @@ public static partial class ActionResourceRuntime
         }
     }
 
+    /// <summary>哑火·燃油阈值求值（A9 v2，开创人2026-11-15）：现值+一次性变化量，与弹药哑火同式。
+    /// 在燃油变动点调 EvalFuelMisfire(o, 变化量)；回合开始可用 delta=0 轮询现值。</summary>
+    public static void EvalFuelMisfire(GodotObject o, int delta)
+    {
+        var below = Int(o, "misfireFuelBelow");
+        var above = Int(o, "misfireFuelAbove");
+        var dBelow = Int(o, "misfireFuelDeltaBelow");
+        var dAbove = Int(o, "misfireFuelDeltaAbove");
+        if (below < 0 && above < 0 && dBelow < 0 && dAbove < 0) return;
+        var fuel = Int(o, "fuel");
+        bool hit = false;
+        if (below >= 0 && fuel < below) hit = true;
+        if (above >= 0 && fuel > above) hit = true;
+        if (dBelow >= 0 && delta < dBelow) hit = true;
+        if (dAbove >= 0 && delta > dAbove) hit = true;
+        if (hit)
+        {
+            o.Set("actionMisfireFlag", true);
+            SetMisfireBlocks(o);
+        }
+    }
+
     /// <summary>哑火·禁操作块：misfireBlockOps 命中的操作各禁 misfireBlockTurns 回合（0/缺省=仅当回合→1）。</summary>
     public static void SetMisfireBlocks(GodotObject o)
     {

@@ -94,6 +94,7 @@ public static Dictionary<Infantry, int> unitsCannotMove = new Dictionary<Infantr
         var __wmF = GetTree()?.GetFirstNodeInGroup("weather_manager") as WeatherManager;
         if (__wmF != null && grid != null) amount = Mathf.Max(0, amount + __wmF.GetFuelCostDelta(grid.GridIndex));
         if (!fuelLocked) fuel -= amount; // 力场锁油
+        ActionResourceRuntime.EvalFuelMisfire(this, -amount);   // ✅ A9 燃油哑火
     }
 
     // ✅ 每日回合开始时自动消耗燃料
@@ -108,6 +109,7 @@ public static Dictionary<Infantry, int> unitsCannotMove = new Dictionary<Infantr
             int __dayCost = dailyFuelConsumption;
             if (__wmD != null && grid != null) __dayCost = Mathf.Max(0, dailyFuelConsumption + __wmD.GetFuelCostDelta(grid.GridIndex));
             if (!fuelLocked) fuel -= __dayCost; // 力场锁油
+        ActionResourceRuntime.EvalFuelMisfire(this, -__dayCost);   // ✅ A9 燃油哑火
         }
 
         stealthFlareRevealed = false;   // 照明临时显形每回合刷新

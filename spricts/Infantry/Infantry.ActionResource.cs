@@ -61,4 +61,6 @@ public partial class Infantry
     [Export] public int misfireAmmoDeltaBelow = -1, misfireAmmoDeltaAbove = -1; // 一次性变化量小于/大于 x
     [Export] public string[] misfireBlockOps = new string[] { };  // 哑火触发时禁这些操作
     [Export] public int misfireBlockTurns = 0;                     // 禁操作持续回合（0=仅当回合）
+    [Export] public int misfireFuelBelow = -1, misfireFuelAbove = -1;          // ✅ 2026-11-15 A9：哑火·燃油现值小于/大于 x（-1=不看）
+    [Export] public int misfireFuelDeltaBelow = -1, misfireFuelDeltaAbove = -1; // 一次性变化量小于/大于 x
 }
