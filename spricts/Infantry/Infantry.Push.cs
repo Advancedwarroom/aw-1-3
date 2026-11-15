@@ -141,6 +141,8 @@ public partial class Infantry
 
     public bool CanUseSeparatePushAction()
     {
+        // ✅ 开创人2026-11-15: 准备模块推动门
+        if (!ActionResourceRuntime.CanUse(this, ActionIds.Push)) return false;
         // ✅ 2026-11-15 准备模块挂门(A7① 推动)
         if (!ActionResourceRuntime.CanUse(this, ActionIds.Push)) return false;
         if (!pushEnabled || pushTriggerMode != PushTriggerMode.SeparateAction)
@@ -157,6 +159,9 @@ public partial class Infantry
 
     public bool TryMarkPushActionUsed()
     {
+        // ✅ 开创人2026-11-15: 推动成功结算
+        ActionResourceRuntime.Consume(this, ActionIds.Push);
+        ActionResourceRuntime.FireEvents(this, ActionIds.Push);
         if (!CanUseSeparatePushAction())
             return false;
         ActionResourceRuntime.Consume(this, ActionIds.Push);          // ✅ A7①
