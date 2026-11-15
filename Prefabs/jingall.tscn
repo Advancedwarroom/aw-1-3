@@ -28,6 +28,7 @@ actionResourceEnabled = true
 actionFillPerTurn = [10.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 actionCosts = [20.0, -1.0, -1.0, -1.0, -1.0, -1.0]
 actionCooldownTurns = [1, 0, 0, 0, 0, 0]
+actionWeakCellReset = [1]   # ✅ A4：格0(自身)=弱点——装填手中弹全队全池清零
 script = ExtResource("1_74lvt")
 animSprite = NodePath("AnimatedSprite2D")
 idleSprite = NodePath("Sprite2D")

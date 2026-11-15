@@ -61,7 +61,9 @@ public partial class Infantry
     // 目标格→足印序号（差异表查用）；非本足印格返回-1
     public int GetUnitCellIndexOf(Grids g)
     {
-        if (!isMultiTileUnit || grid == null || g == null) return -1;
+        // ✅ 2026-11-16 A4：单体单位的弱点格=自身所在格（格0）——此前单体恒返-1，弱点格机制只服务多格单位
+        if (!isMultiTileUnit) return (grid != null && g != null && g.GridIndex == grid.GridIndex) ? 0 : -1;
+        if (grid == null || g == null) return -1;
         var offs = GetFootprintIndices(grid.GridIndex, unitFacing);
         for (int i = 0; i < offs.Count; i++)
             if (offs[i] == g.GridIndex) return i;
