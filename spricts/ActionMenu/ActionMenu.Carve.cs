@@ -48,7 +48,7 @@ public partial class ActionMenu
         {
             ActionResourceRuntime.Consume(currentUnit, "carve");
             ActionResourceRuntime.FireEvents(currentUnit, "carve");
-            HideMenu();
+            Visible = false;   // ActionMenu自隐(无HideMenu方法,直接Control.Visible)
         }
     }
 }
