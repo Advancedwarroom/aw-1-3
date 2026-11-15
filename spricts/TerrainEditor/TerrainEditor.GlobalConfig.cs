@@ -101,6 +101,14 @@ private readonly List<UnitTemplate> unitTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("✈ 战斗机"), ScenePath = "res://Prefabs/Fighter.tscn",
         Category = TranslateGroup.T("空军"), Team = "Player1", DisplayColor = new Color(0.45f, 0.65f, 0.95f),
         Description = TranslateGroup.T("制空战斗机，仅可攻击空中单位，弹药9发，日耗油5") },
+        new UnitTemplate
+        {
+            DisplayName = "犀牛",
+            ScenePath = "res://Prefabs/Rhino.tscn",
+            Category = TranslateGroup.T("陆军"),
+            Team = TeamHelper.Player,
+            Description = "装甲推土车——推动四件套始祖，反僵局神器。",
+        },
     new UnitTemplate { DisplayName = TranslateGroup.T("✈ 轰炸机"), ScenePath = "res://Prefabs/Bomber.tscn",
         Category = TranslateGroup.T("空军"), Team = "Player1", DisplayColor = new Color(0.85f, 0.55f, 0.35f),
         Description = TranslateGroup.T("对地毁灭打击，完全无力对空，弹药9发，日耗油5") },
