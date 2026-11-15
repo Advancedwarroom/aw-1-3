@@ -220,6 +220,10 @@ public partial class DeathRay : BlackCannon
     {
         if (isDestroyed) return;
         if (!CanAttack()) return;
+        // ✅ 2026-11-15 准备模块挂门(A7⑥ 兵器开火——DeathRay)
+        if (!ActionResourceRuntime.CanUse(this, ActionIds.SpecialFire)) return;
+        ActionResourceRuntime.Consume(this, ActionIds.SpecialFire);
+        ActionResourceRuntime.FireEvents(this, ActionIds.SpecialFire);
 
         var allTargets = GetAllTargetsInLaserBeam();
 

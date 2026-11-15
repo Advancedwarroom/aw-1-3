@@ -416,6 +416,10 @@ public override void TakeDamage(int damage, Infantry attacker = null)
 
         // 最终执行校验：自定义射线/扇形范围与屏幕许可必须同时通过
         if (target?.grid == null || IsScreenBlocked(target.grid) || !CalculateAttackRange().Contains(target.grid)) return;
+        // ✅ 2026-11-15 准备模块挂门(A7⑥ 兵器开火——黑炮)
+        if (!ActionResourceRuntime.CanUse(this, ActionIds.SpecialFire)) return;
+        ActionResourceRuntime.Consume(this, ActionIds.SpecialFire);
+        ActionResourceRuntime.FireEvents(this, ActionIds.SpecialFire);
         // 严格有效性检查
         if (target == null || !IsInstanceValid(target)) 
         {

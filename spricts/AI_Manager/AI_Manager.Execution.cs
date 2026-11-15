@@ -85,6 +85,21 @@ public partial class AI_Manager
     {
         var u = p.unit;
         var gm = gameManager;
+        // ✅ 2026-11-15 准备模块挂门(A7⑦ AI 侧)——与玩家侧同一资源池，
+        //    未装填/被锁直接跳过本计划（AI 当前可执行：attack/attack_weapon/capture）
+        string actRes = null;
+        switch (p.act)
+        {
+            case Act.Attack:
+            case Act.AttackWeapon: actRes = ActionIds.Attack; break;
+            case Act.Capture: actRes = ActionIds.Capture; break;
+        }
+        if (actRes != null)
+        {
+            if (!ActionResourceRuntime.CanUse(u, actRes)) return;
+            ActionResourceRuntime.Consume(u, actRes);
+            ActionResourceRuntime.FireEvents(u, actRes);
+        }
         switch (p.act)
         {
             case Act.Attack:

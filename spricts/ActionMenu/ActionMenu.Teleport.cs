@@ -54,7 +54,9 @@ public partial class ActionMenu
         if (currentUnit == null || !IsInstanceValid(currentUnit)) return;
         if (isTeleportSelecting)
         {
-            CancelTeleportSelect();
+            ActionResourceRuntime.Consume(unit, ActionIds.Teleport);     // ✅ A7⑤
+        ActionResourceRuntime.FireEvents(unit, ActionIds.Teleport);
+        CancelTeleportSelect();
             ShowMenu(currentUnit, false);
             return;
         }
@@ -68,6 +70,8 @@ public partial class ActionMenu
         if (unit == null || unit.grid == null) return;
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm == null || gm.gridManager == null) return;
+        // ✅ 2026-11-15 准备模块挂门(A7⑤ 传送)
+        if (!ActionResourceRuntime.CanUse(unit, ActionIds.Teleport)) return;
 
         var links = gm.gridManager.GetOutgoingTeleportLinks(unit.grid);
         if (links.Count == 0) return;

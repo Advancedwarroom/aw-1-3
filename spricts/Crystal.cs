@@ -629,6 +629,10 @@ public partial class Crystal : Weapon
     {
         // 黑水晶不需要选择特定目标，点击范围内任意格子即触发
         // 这里保留接口兼容性
+        // ✅ 2026-11-15 准备模块挂门(A7⑥ 兵器开火——黑水晶)
+        if (!ActionResourceRuntime.CanUse(this, ActionIds.SpecialFire)) return;
+        ActionResourceRuntime.Consume(this, ActionIds.SpecialFire);
+        ActionResourceRuntime.FireEvents(this, ActionIds.SpecialFire);
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         PerformCrystalEffect(gm);
     }
