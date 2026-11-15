@@ -97,9 +97,9 @@ public partial class GameManager
     }
 
     // 执行攻击
-    public void OnAttack(Infantry attacker, Infantry target)
+    public void OnAttack(Infantry attacker, Infantry target, Grids hitGrid = null)
     {
-        attacker.Attack(target);
+        attacker.Attack(target, hitGrid: hitGrid);
 
         gridManager.HideAttackRange();
         (GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu)?.Hide();
