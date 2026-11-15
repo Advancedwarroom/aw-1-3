@@ -33,7 +33,9 @@ public partial class ActionMenu
         if (show)
         {
             var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-            multiTileRotateButton.Disabled = !unit.CanAnyRotationFit(gm);
+            multiTileRotateButton.Disabled = !unit.CanAnyRotationFit(gm)
+                || !unit.CanRotateByAmmo()
+                || (unit.rotatePerTurnBeforeActed > 0 && unit.rotateUsesThisTurn >= unit.rotatePerTurnBeforeActed);
         }
     }
 

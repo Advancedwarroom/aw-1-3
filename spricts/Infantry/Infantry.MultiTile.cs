@@ -236,6 +236,9 @@ public partial class Infantry
     public bool TryRotate(int steps, GameManager gm)
     {
         if (!isMultiTileUnit || !canRotate || steps == 0) return false;
+        // ✅ 旋转弹（开创人令2026-11-15）：弹药/连发锁资格 + 每回合n次机会
+        if (!CanRotateByAmmo()) return false;
+        if (rotatePerTurnBeforeActed > 0 && rotateUsesThisTurn >= rotatePerTurnBeforeActed) return false;
         if (grid == null || gm?.gridManager?.map == null) return false;
         int newFacing = ((unitFacing + steps) % 4 + 4) % 4;
         var anchor = grid.GridIndex;
@@ -252,6 +255,16 @@ public partial class Infantry
         unitFacing = newFacing;
         OccupyFootprint(gm, newFacing);
         ApplyFacingVisual();
+        ConsumeRotateAmmo();
+        rotateUsesThisTurn++;
+        if (rotatePerTurnBeforeActed > 0 && rotateUsesThisTurn >= rotatePerTurnBeforeActed)
+        {
+            // ✅ 第n次旋转：和攻击一样的待机
+            hasActed = true;
+            state = UnitState.Acted;
+            isAttacked = true;
+            SetWaitVisual(true);
+        }
         return true;
     }
 

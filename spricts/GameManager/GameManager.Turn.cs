@@ -111,6 +111,7 @@ public partial class GameManager
             wp.OnTurnStart();   // ✅ 2026-11-15 双跑修复：行动/攻击次数重置收编为本势力专属一次（原195行无过滤全量循环已删）
             wp.OnTurnStart(this);   // ✅ B组通用化：回合开始回调（GrandBolt=蠕动/生产/电磁爆，BlackArc=冷却/护卫联动）
             wp.OnTurnStartWeaponRadar();   // ✅ 兵器雷达模块：每回合开始重置/激活（自动模式），与设施版 OnTurnStartRadar 同位
+            wp.RotateAmmoTick();   // ✅ 2026-11-15 旋转弹：兵器池充能/连发锁递减（本势力专属）
         }
 
         // ✅ 资金系统：每回合开始时给当前phase的势力增加资金
@@ -242,6 +243,7 @@ public partial class GameManager
                 }
                 if (unit.weakTurnsRemaining > 0)
                     unit.weakTurnsRemaining--;
+                unit.RotateAmmoTick();   // ✅ 2026-11-15 旋转弹：本回合计数复位+池充能/锁递减（本势力专属）
             }
 
             // ✅ 生产/建造占用回合（非自动化）：进度没走完的回合，单位保持待机

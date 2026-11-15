@@ -143,12 +143,18 @@ public partial class AI_Manager
                 }
             }
             if (!bc.canRotate) break;
+            if (!bc.CanRotateByAmmo()) break;   // ✅ 旋转弹：连发锁/库存拦截（开创人令2026-11-15）
+            if (!bc.ConsumeRotateAmmo()) break;
             bc.RotateDirection();
         }
 
         // 转到最佳朝向（没有目标则恢复原朝向）
         var want = bestGrid != null ? bestDir : origDir;
-        for (int i = 0; i < 4 && bc.direction != want; i++) bc.RotateDirection();
+        for (int i = 0; i < 4 && bc.direction != want; i++)
+        {
+            if (!bc.CanRotateByAmmo() || !bc.ConsumeRotateAmmo()) break;   // ✅ 旋转弹
+            bc.RotateDirection();
+        }
         if (bestGrid == null) { Log($"兵器 {bc.GetType().Name}@{bc.grid?.GridIndex} 四向无可打目标"); return false; }
 
         bool fired;

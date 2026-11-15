@@ -25,7 +25,8 @@ public partial class Infantry
         Push,           // 推送弹
         Rebound,        // 反弹推进弹
         Mitigation,     // 卸力弹
-        AntiGravity     // 反重力场弹
+        AntiGravity,    // 反重力场弹
+        Rotate          // ✅ 第14种：旋转弹（开创人令 2026-11-15）
     }
 
     public static readonly AmmoKind[] AllAmmoKinds =
@@ -48,6 +49,7 @@ public partial class Infantry
         AmmoKind.Rebound => currentReboundAmmo,
         AmmoKind.Mitigation => currentMitigationAmmo,
         AmmoKind.AntiGravity => currentAntiGravityAmmo,
+        AmmoKind.Rotate => currentRotateAmmo,   // ✅ 旋转弹
         _ => 0
     };
 
@@ -66,6 +68,7 @@ public partial class Infantry
         AmmoKind.Rebound => maxReboundAmmo,
         AmmoKind.Mitigation => maxMitigationAmmo,
         AmmoKind.AntiGravity => maxAntiGravityAmmo,
+        AmmoKind.Rotate => maxRotateAmmo,   // ✅ 旋转弹
         _ => 0
     };
 
@@ -120,6 +123,7 @@ public partial class Infantry
         AmmoKind.Rebound => maxReboundAmmo,
         AmmoKind.Mitigation => maxMitigationAmmo,
         AmmoKind.AntiGravity => maxAntiGravityAmmo,
+        AmmoKind.Rotate => maxRotateAmmo,   // ✅ 旋转弹
         _ => 0,
     };
 
@@ -142,6 +146,7 @@ public partial class Infantry
             case AmmoKind.Rebound: maxReboundAmmo = value; break;
             case AmmoKind.Mitigation: maxMitigationAmmo = value; break;
             case AmmoKind.AntiGravity: maxAntiGravityAmmo = value; break;
+            case AmmoKind.Rotate: maxRotateAmmo = value; break;   // ✅ 旋转弹
         }
     }
 
@@ -162,6 +167,7 @@ public partial class Infantry
             case AmmoKind.Rebound: currentReboundAmmo = value; break;
             case AmmoKind.Mitigation: currentMitigationAmmo = value; break;
             case AmmoKind.AntiGravity: currentAntiGravityAmmo = value; break;
+            case AmmoKind.Rotate: currentRotateAmmo = value; break;   // ✅ 旋转弹
         }
     }
 }
