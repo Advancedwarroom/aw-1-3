@@ -54,9 +54,7 @@ public partial class ActionMenu
         if (currentUnit == null || !IsInstanceValid(currentUnit)) return;
         if (isTeleportSelecting)
         {
-            ActionResourceRuntime.Consume(currentUnit, ActionIds.Teleport);     // ✅ A7⑤
-            ActionResourceRuntime.FireEvents(currentUnit, ActionIds.Teleport);
-        CancelTeleportSelect();
+            CancelTeleportSelect();
             ShowMenu(currentUnit, false);
             return;
         }
@@ -147,6 +145,9 @@ public partial class ActionMenu
             return;
         }
 
+        // ✅ 2026-11-15 准备模块挂门(A7⑤ 传送)——落点校验全过后才结算资源
+        ActionResourceRuntime.Consume(unit, ActionIds.Teleport);
+        ActionResourceRuntime.FireEvents(unit, ActionIds.Teleport);
         CancelTeleportSelect();
 
         var from = unit.grid;
