@@ -562,6 +562,31 @@ public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitG
         target.CheckStealthThresholds();   // ✅ 受伤后阈值矩阵重判
         target.SyncDamageRevealTracker();     // ✅ 已按"单位攻击"处理过，广义监听不重复触发
 
+            // ✅ 开创人2026-11-16: 多格攻击模式——目标零点核心,逐格独立结算(倍率×弱点格/三军/哑火/现形/剧场/CO能量)
+            if (multiCellAttackEnabled && hitGrid != null)
+            {
+                var patternCells = ResolvePatternCells(hitGrid);
+                for (int i = 0; i < patternCells.Count; i++)
+                {
+                    if (patternCells[i] == null || patternCells[i] == hitGrid) continue;
+                    var vic = patternCells[i].infantries != null && patternCells[i].infantries.Count > 0 ? patternCells[i].infantries[0] : null;
+                    if (vic == null || !IsInstanceValid(vic) || vic == target || !PolicyAllowsAt(i, vic.team)) continue;
+                    float cf = FactorAt(i) * vic.GetWeakCellDamageFactor(patternCells[i]);
+                    int cdmg = Mathf.Max(0, Mathf.RoundToInt(attackDamage * cf));
+                    if (!vic.healthLocked)
+                    {
+                        vic.health -= cdmg;
+                        ActionResourceRuntime.OnHitMisfire(vic, vic.health, cdmg);
+                    }
+                    ApplyStealthRevealOnDamage(vic);
+                    vic.CheckStealthThresholds();
+                    vic.SyncDamageRevealTracker();
+                    __theater?.AddVolley(true, cdmg, vic.health, BattleAnimCatalog.GetFireClass(this, weapon, vic));
+                    CoModuleSystem.OnDamageDealt(team, cdmg);
+                    CoModuleSystem.OnDamageTaken(vic.team, cdmg);
+                }
+            }
+
     // ✅ AW 原作：反击按挨打后的血量计算（先手优势）
     if (canTargetCounter && !target.counterUsePreDamageHp)
     {
