@@ -354,13 +354,16 @@ GitHub Actions 手动触发（workflow_dispatch），Mono+android-arm64 正路�
 `actionCooldownRules`：{kind:1=窗口|2=全局, window, limit, cooldown, refresh}，运行时 `actionWindowUses/actionWindowTurn/actionTotalUses/actionTotalTurns`。
 
 ### 哑火全家
-- 阈值：`misfireHpBelow/Above`（血量）、`misfireDamageBelow/Above`（伤害量）、`misfireAmmoKind+Below/Above+DeltaBelow/DeltaAbove`（弹药现值/一次性变化量）
+- 阈值：`misfireHpBelow/Above`（血量）、`misfireDamageBelow/Above`（伤害量）、`misfireAmmoKind+Below/Above+DeltaBelow/DeltaAbove`（弹药现值/一次性变化量）、`misfireFuelBelow/Above/DeltaBelow/DeltaAbove`（燃油，A9 落——移动/凿山扣油点已挂 `EvalFuelMisfire`）
 - 处置：`misfireBlockOps`（禁哪些操作）+ `misfireBlockTurns`（0=仅当回合），运行时 `actionBlockLeft`
 - 弱点格：`actionWeakCellReset`（序号格=1 → 被打中全池清零）
 - 手动：`actionManualOff`（自主关效果）、`actionFillConsumesAction`（装填耗不耗行动）
 
-### 触发事件 v1
-`actionEvents`：{action, when(always/current>=n), field, mode(set/add), value, temp(0永久)}。
+### 触发事件 v2（A9 全量落，2026-11-15）
+`actionEvents`：{action, when(always/current>=n), field, mode(set/add), value, temp(0永久→N回合后还原), maxStacks+capScope(计数口径), perTurn, scope}。
+- **三 scope**：`scope` 0=单位(默认)/1=全军(同team跨单位)/2=全局——后两档栈数登记在 GameManager.EventScopes 场景级字典，新游戏自动归零，零静态泄漏
+- **清理条件全家**：`cleanupMove` 移动清（OnMoved✓）、`cleanupOps` 操作后清（Consume 内挂，操作名数组匹配✓）、`cleanupHit` 受击清（Combat 伤害点挂 OnUnitHit✓）、`temp` 到期还原（OnTurnEnd✓）、手动关（ToggleOff 还原全部✓）
+- 四条还原路（到期/清理/手动关）统一经 `UnregisterEventScope` 精确减回全军/全局计数
 
 ### 炮台锁
 `actionLockAsTurret`：有存货=固定炮台。`ActionResourceRuntime.MovementLocked` 判分池或共享桶存货，锁行动菜单"移动"按钮与快捷移动（TryQuickMove）双门禁。

@@ -47,7 +47,7 @@ public static partial class ActionResourceRuntime
         o.Set("actionManualOff", !off);
         if (!off && _tempEvents.TryGetValue(o, out var list))
         {
-            foreach (var (field, old, _) in list) o.Set(field, old);
+            foreach (var e2 in list) { o.Set(e2.field, e2.oldVal); UnregisterEventScope(o, e2.action, e2.field, e2.scope); }
             _tempEvents.Remove(o);
         }
     }
@@ -75,7 +75,7 @@ public static partial class ActionResourceRuntime
     public static void UnregisterEventScope(GodotObject o, string action, string field, int v2scope)
     {
         if (v2scope < 1 || !Flag(o, "actionResourceEnabled")) return;
-        var gm = o.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        var gm = (o as Node)?.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;   // ✅ GodotObject 无 GetTree，单位皆 Node
         if (gm == null) return;
         string ek = $"{action}|{field}";
         if (v2scope == 1) gm.AddArmyEventStack(Str(o, "team"), ek, -1);
