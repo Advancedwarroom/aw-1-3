@@ -1,4 +1,4 @@
-// ActionMenu.Carve.cs — ✅ 开创人2026-11-15: 山脉开道·游戏内开凿按钮（镜像传送按钮模式）
+// ActionMenu.Carve.cs — ✅ 开创人2026-11-15: 山脉开道·开凿按钮（实现参谋二预留的 UpdateCarveButton() 调用）
 using Godot;
 using System;
 
@@ -6,7 +6,6 @@ public partial class ActionMenu
 {
     private Button _carveButton;
 
-    /// <summary>建一次：放在移动按钮后。</summary>
     public void EnsureCarveButton()
     {
         if (_carveButton != null && GodotObject.IsInstanceValid(_carveButton)) return;
@@ -14,27 +13,33 @@ public partial class ActionMenu
         _carveButton.Pressed += OnCarvePressed;
         var parent = moveButton.GetParent();
         parent.AddChild(_carveButton);
-        int idx = moveButton.GetIndex();
-        parent.MoveChild(_carveButton, idx + 2);
+        parent.MoveChild(_carveButton, moveButton.GetIndex() + 2);
     }
 
-    /// <summary>菜单刷新可见性——可开凿且四邻有未凿高山。</summary>
-    public void UpdateCarveButtonVisibility(Infantry unit)
+    /// <summary>参谋二在ShowMenu预留的调用点（无参，用currentUnit）。</summary>
+    public void UpdateCarveButton()
     {
         EnsureCarveButton();
+        var unit = currentUnit;
         if (unit == null || !GodotObject.IsInstanceValid(unit)) { _carveButton.Visible = false; return; }
-        bool show = unit.canCarveMountains && !unit.isMoved && !unit.isAttacked && FindCarveTarget(unit) != null;
-        _carveButton.Visible = show;
+        _carveButton.Visible = unit.canCarveMountains && !unit.isMoved && !unit.isAttacked && FindCarveTarget(unit) != null;
     }
 
     private Grids FindCarveTarget(Infantry unit)
     {
-        if (unit?.grid?.availableGrids == null) return null;
-        foreach (var g in unit.grid.availableGrids)
+        if (unit?.grid == null) return null;
+        try
         {
-            if (g == null || g.carvedPath) continue;
-            if (unit.GetMoveCost(g.gridType) >= 999) return g;
+            var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            var gi = unit.grid.GridIndex;
+            foreach (var off in new[] { new Vector2I(1, 0), new Vector2I(-1, 0), new Vector2I(0, 1), new Vector2I(0, -1) })
+            {
+                var g = gm?.gridManager?.GetGridAt(gi + off);
+                if (g == null || g.carvedPath) continue;
+                if (unit.GetMoveCost(g.gridType) >= 999) return g;
+            }
         }
+        catch { }
         return null;
     }
 
@@ -48,7 +53,7 @@ public partial class ActionMenu
         {
             ActionResourceRuntime.Consume(currentUnit, "carve");
             ActionResourceRuntime.FireEvents(currentUnit, "carve");
-            Visible = false;   // ActionMenu自隐(无HideMenu方法,直接Control.Visible)
+            Visible = false;
         }
     }
 }
