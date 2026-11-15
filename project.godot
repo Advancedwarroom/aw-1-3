@@ -21,6 +21,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+BootMapLoader="*res://spricts/Boot/BootMapLoader.cs"
 TranslateGroup="*uid://4xuno5nrdnv0"
 CampaignProfile="*res://spricts/Campaign/CampaignProfile.cs"
 CampaignSettlement="*res://spricts/Campaign/CampaignSettlement.cs"

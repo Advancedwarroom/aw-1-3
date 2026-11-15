@@ -56,9 +56,10 @@ public partial class TerrainEditor
     }
 
     // ✅ 极简导出
-    private void ExportCompactMap()
+    // ✅ 方案甲：文本构建抽成纯函数，ExportCompactMap(下载) 与 ExportBootMap(campaigns) 共用
+    private string BuildCompactText()
     {
-        if (gridManager?.map == null) { ShowImportHint(TranslateGroup.T("❌ GridManager 未初始化")); return; }
+        if (gridManager?.map == null) return null;
 
         int minX = int.MaxValue, minY = int.MaxValue, maxX = int.MinValue, maxY = int.MinValue;
         foreach (var grid in gridManager.grids)
@@ -158,7 +159,13 @@ public partial class TerrainEditor
             sb.AppendLine($"{a}:{b}");
         sb.AppendLine();
 
-        string content = sb.ToString();
+        return sb.ToString();
+    }
+
+    private void ExportCompactMap()
+    {
+        string content = BuildCompactText();
+        if (content == null) { ShowImportHint(TranslateGroup.T("❌ GridManager 未初始化")); return; }
         string fileName = $"AW13_Compact_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
         try
         {

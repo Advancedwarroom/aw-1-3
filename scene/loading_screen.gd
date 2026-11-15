@@ -2,6 +2,15 @@ extends Control
 
 const GAME_SCENE := "res://scene/main.tscn"
 
+# ✅ 方案甲（2026-11-15）：进入战场后的"开盘加载"并入千分制——
+#    main.tscn 的格子/单位改为运行时从 campaigns/main_battlefield.txt 逐行分帧生成，
+#    本界面常驻顶层直到 BootMapLoader 报完成才淡出（消灭 change_scene 的 700+ 节点原子实例化黑块）。
+#    ⚠️ commit1 dormant：BOOT_ENABLED=false 时全文件行为与旧版逐字节一致。
+const BOOT_ENABLED := false
+const BOOT_MAP := "res://campaigns/main_battlefield.txt"
+const PHASE_A_PERMILLE := 500  # 资源加载段权重(0-500‰)，开盘段 BootMapLoader 报 500-1000‰
+var _boot_active := false
+
 var label: Label
 var enter_button: Button
 var _loaded: PackedScene = null
@@ -77,6 +86,9 @@ func _cached_count() -> int:
 	return n
 
 func _process(delta: float) -> void:
+	if _boot_active:
+		_poll_boot()
+		return
 	var status := ResourceLoader.load_threaded_get_status(GAME_SCENE)
 	# 千分制真进度：依赖树已缓存比例
 	label.text = "加载中：%d‰" % int(float(_cached_count()) / float(max(1, _dep_paths.size())) * 1000.0)
@@ -106,7 +118,39 @@ func _process(delta: float) -> void:
 
 func _on_enter_pressed() -> void:
 	if _loaded != null:
+		if BOOT_ENABLED and FileAccess.file_exists(BOOT_MAP):
+			_start_boot()
+			return
 		get_tree().change_scene_to_packed(_loaded)
 	else:
 		# ✅ 加载未成时按钮=重试（失败后重进那次点击直接救场）
 		_start_load()
+
+# ✅ 方案甲：boot 模式——实例化轻量 main 场景，常驻顶层报千分制，BootMapLoader 分帧生成地图
+func _start_boot() -> void:
+	_boot_active = true
+	enter_button.hide()
+	BootMapLoader.RequestBoot(BOOT_MAP)
+	var scene := _loaded.instantiate()
+	get_tree().root.add_child(scene)
+	get_tree().current_scene = scene
+	# 盖住战场画面，进度走完才淡出
+	z_index = 4096
+	top_level = true
+	label.text = "加载中：%d‰" % PHASE_A_PERMILLE
+
+func _poll_boot() -> void:
+	if BootMapLoader.IsFailed:
+		label.text = "战场加载失败：" + BootMapLoader.FailMessage
+		enter_button.text = "请重启游戏"
+		enter_button.show()
+		set_process(false)
+	elif BootMapLoader.IsCompleted:
+		label.text = "加载中：1000‰"
+		set_process(false)
+		var tw := create_tween()
+		tw.tween_interval(0.15)
+		tw.tween_property(self, "modulate:a", 0.0, 0.4)
+		tw.tween_callback(queue_free)
+	else:
+		label.text = "加载中：%d‰  %s" % [PHASE_A_PERMILLE + BootMapLoader.Permille, BootMapLoader.PhaseLabel]

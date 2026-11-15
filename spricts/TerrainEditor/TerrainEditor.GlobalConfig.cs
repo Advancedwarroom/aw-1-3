@@ -26,15 +26,6 @@ private readonly List<UnitTemplate> unitTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("🚶 步兵"), ScenePath = "res://Prefabs/infantry(1).tscn", 
         Category = TranslateGroup.T("步兵"), Team = "Player1", DisplayColor = new Color(0.4f, 0.7f, 0.4f), 
         Description = TranslateGroup.T("基础步兵单位，可占领城市") },
-        new UnitTemplate
-        {
-            DisplayName = "抬枪兵",
-            ScenePath = "res://Prefabs/jingall.tscn",
-            Category = TranslateGroup.T("步兵"),
-            Team = TeamHelper.Player,
-            DisplayColor = new Color(0.45f, 0.35f, 0.25f),
-            Description = "晚清双人抬枪队——前格枪架后格射手，1×2占格，两格任一格可占领。",
-        },
     new UnitTemplate { DisplayName = TranslateGroup.T("🦾 机甲"), ScenePath = "res://Prefabs/mech.tscn", 
         Category = TranslateGroup.T("步兵"), Team = "Player1", DisplayColor = new Color(0.5f, 0.6f, 0.4f), 
         Description = TranslateGroup.T("反装甲步兵，移动力较低") },
@@ -101,14 +92,6 @@ private readonly List<UnitTemplate> unitTemplates = new()
     new UnitTemplate { DisplayName = TranslateGroup.T("✈ 战斗机"), ScenePath = "res://Prefabs/Fighter.tscn",
         Category = TranslateGroup.T("空军"), Team = "Player1", DisplayColor = new Color(0.45f, 0.65f, 0.95f),
         Description = TranslateGroup.T("制空战斗机，仅可攻击空中单位，弹药9发，日耗油5") },
-        new UnitTemplate
-        {
-            DisplayName = "犀牛",
-            ScenePath = "res://Prefabs/Rhino.tscn",
-            Category = TranslateGroup.T("陆军"),
-            Team = TeamHelper.Player,
-            Description = "装甲推土车——推动四件套始祖，反僵局神器。",
-        },
     new UnitTemplate { DisplayName = TranslateGroup.T("✈ 轰炸机"), ScenePath = "res://Prefabs/Bomber.tscn",
         Category = TranslateGroup.T("空军"), Team = "Player1", DisplayColor = new Color(0.85f, 0.55f, 0.35f),
         Description = TranslateGroup.T("对地毁灭打击，完全无力对空，弹药9发，日耗油5") },
@@ -951,6 +934,14 @@ private void RefreshAllUnitVision()
         compactExportBtn.AddThemeFontSizeOverride("font_size", 13);
         compactExportBtn.Pressed += ExportCompactMap;
         globalConfigContainer.AddChild(compactExportBtn);
+
+        // ✅ 方案甲：导出启动地图（写 res://campaigns/main_battlefield.txt，供 BootMapLoader 分帧开盘）
+        var bootExportBtn = new Button();
+        TranslateGroup.SetText(bootExportBtn, "📤 导出启动地图(方案甲)");
+        bootExportBtn.CustomMinimumSize = new Vector2(300, 40);
+        bootExportBtn.AddThemeFontSizeOverride("font_size", 13);
+        bootExportBtn.Pressed += ExportBootMap;
+        globalConfigContainer.AddChild(bootExportBtn);
 
         var compactImportBtn = new Button();
 

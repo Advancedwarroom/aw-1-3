@@ -102,9 +102,10 @@ public partial class GameManager : Node
 
         AddToGroup("game_manager");
         // ===== 启动进度遮罩(最先建,最先显示) =====
+        // ✅ 方案甲：boot 模式由常驻 loading_screen 报千分制全程进度，不建自带遮罩（杀假指标）
         var __cs = GetTree()?.CurrentScene;
         var __vp = GetViewport().GetVisibleRect().Size;
-        if (__cs != null)
+        if (__cs != null && !BootMapLoader.BootRequested)
         {
             _boot = new RichTextLabel { Position = new Vector2(0, __vp.Y * 0.35f), Size = new Vector2(__vp.X, 260), BbcodeEnabled = true, ScrollActive = false, ZIndex = 900, MouseFilter = Control.MouseFilterEnum.Ignore };
             _boot.AddThemeFontSizeOverride("normal_font_size", 46);
@@ -133,25 +134,35 @@ public partial class GameManager : Node
         RequestStoragePermissionsIfNeeded();
         await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         _step("地图装载…");
-        CallDeferred(nameof(DeferredInit));
-        turnEndLabel = GetTree().CurrentScene.GetNodeOrNull<Label>("TurnEndLabel");
-        TurnLabel = GetTree().CurrentScene.GetNodeOrNull<Label>("TurnLabel");
-        UnitLists = GetTree().CurrentScene.GetNodeOrNull<RichTextLabel>("UnitLists");
+        if (!BootMapLoader.BootRequested)
+        {
+            CallDeferred(nameof(DeferredInit));
+            turnEndLabel = GetTree().CurrentScene.GetNodeOrNull<Label>("TurnEndLabel");
+            TurnLabel = GetTree().CurrentScene.GetNodeOrNull<Label>("TurnLabel");
+            UnitLists = GetTree().CurrentScene.GetNodeOrNull<RichTextLabel>("UnitLists");
 
-        // 确保 GridManager 先初始化
-        gridManager?.Init();
+            // 确保 GridManager 先初始化
+            gridManager?.Init();
 
-        // 延迟一帧确保所有节点就绪
-        CallDeferred(nameof(DeferredUnitInit));
+            // 延迟一帧确保所有节点就绪
+            CallDeferred(nameof(DeferredUnitInit));
 
-        UpdateTurnLabel();
-        UpdateUnitLists();  // ✅ 初始化单位统计
+            UpdateTurnLabel();
+            UpdateUnitLists();  // ✅ 初始化单位统计
+        }
+        else
+        {
+            // ✅ 方案甲 boot 模式：此刻 CurrentScene 还是 loading_screen（add_child 先于切换），
+            //    UI 引用延迟到切换完成后由 WireBootUiRefs 补接；地图本体由 BootMapLoader 分帧生成
+            CallDeferred(nameof(WireBootUiRefs));
+        }
 
         // ✅ 创建统计切换按钮
         CreateStatsToggleButtons();
         CreateTerrainStyleUI();   // ✅ 游戏内"全图换风格"按钮/面板
         SetProcessInput(true);
         if (_boot != null)
+        if (!BootMapLoader.BootRequested)   // ✅ 方案甲：boot 模式淡出由 loading_screen 完成信号驱动（杀 0.6s 假定时）
         {
             var __tw = CreateTween();
             __tw.TweenInterval(0.6);
@@ -184,19 +195,27 @@ public partial class GameManager : Node
     }
 
     // 延迟刷新战争迷雾，确保所有节点就绪
-    if (fogOfWarManager != null && fogOfWarManager.isFogOfWarEnabled)
+    // ✅ 方案甲：boot 模式迷雾由 BootParseCompactMap 收尾兜底刷
+    if (!BootMapLoader.BootRequested && fogOfWarManager != null && fogOfWarManager.isFogOfWarEnabled)
     {
         CallDeferred(nameof(DeferredFogRefresh));
     }
 
-    // ✅ 确保 AI_Manager 存在
-    var aiManager = GetTree().GetFirstNodeInGroup("ai_manager") as AI_Manager;
-    if (aiManager == null)
+    // ✅ 确保 AI_Manager 存在（boot 模式由 BootMapLoader 在地图生成完毕后兜底创建）
+    if (BootMapLoader.BootRequested)
+    {
+        BootMapLoader.Instance?.StartFromGameManager(this);
+    }
+    else
+    {
+        var aiManager = GetTree().GetFirstNodeInGroup("ai_manager") as AI_Manager;
+        if (aiManager == null)
     {
         aiManager = new AI_Manager();
         aiManager.Name = "AI_Manager";
         aiManager.gameManager = this;
         AddChild(aiManager);
+        }
     }
 
     gameEnded = false;
@@ -205,6 +224,19 @@ public partial class GameManager : Node
 private void DeferredFogRefresh()
 {
     fogOfWarManager?.RefreshFog();
+}
+
+// ✅ 方案甲 boot 模式：CurrentScene 切到 main 之后补接 UI 引用（_Ready 运行时它还是 loading_screen）
+private void WireBootUiRefs()
+{
+    turnEndLabel = GetTree().CurrentScene.GetNodeOrNull<Label>("TurnEndLabel");
+    TurnLabel = GetTree().CurrentScene.GetNodeOrNull<Label>("TurnLabel");
+    UnitLists = GetTree().CurrentScene.GetNodeOrNull<RichTextLabel>("UnitLists");
+    if (turnEndLabel != null) turnEndLabel.ZIndex = 200;
+    if (TurnLabel != null) TurnLabel.ZIndex = 200;
+    if (UnitLists != null) UnitLists.ZIndex = 200;
+    UpdateTurnLabel();
+    UpdateUnitLists();
 }
     // GameManager.cs - 在类顶部添加
 // 已移除：三连击/右键切换回合逻辑，改用独立 UI 按钮
