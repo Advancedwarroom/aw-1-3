@@ -26,7 +26,8 @@ public partial class Infantry
         Rebound,        // 反弹推进弹
         Mitigation,     // 卸力弹
         AntiGravity,    // 反重力场弹
-        Rotate          // ✅ 第14种：旋转弹（开创人令 2026-11-15）
+        Rotate,          // ✅ 第14种：旋转弹
+        Bucket          // 冷却水桶（准备/冷却/充能模块货币，共享全局桶可选通道）（开创人令 2026-11-15）
     }
 
     public static readonly AmmoKind[] AllAmmoKinds =
@@ -50,6 +51,7 @@ public partial class Infantry
         AmmoKind.Mitigation => currentMitigationAmmo,
         AmmoKind.AntiGravity => currentAntiGravityAmmo,
         AmmoKind.Rotate => currentRotateAmmo,   // ✅ 旋转弹
+        AmmoKind.Bucket => currentBucketAmmo,   // ✅ 冷却水桶
         _ => 0
     };
 
@@ -69,6 +71,7 @@ public partial class Infantry
         AmmoKind.Mitigation => maxMitigationAmmo,
         AmmoKind.AntiGravity => maxAntiGravityAmmo,
         AmmoKind.Rotate => maxRotateAmmo,   // ✅ 旋转弹
+        AmmoKind.Bucket => maxBucketAmmo,   // ✅ 冷却水桶上限
         _ => 0
     };
 
@@ -168,6 +171,7 @@ public partial class Infantry
             case AmmoKind.Mitigation: currentMitigationAmmo = value; break;
             case AmmoKind.AntiGravity: currentAntiGravityAmmo = value; break;
             case AmmoKind.Rotate: currentRotateAmmo = value; break;   // ✅ 旋转弹
+            case AmmoKind.Bucket: currentBucketAmmo = value; break;   // ✅ 冷却水桶
         }
     }
 }
