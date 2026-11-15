@@ -14,7 +14,7 @@ public partial class Facility
     [Export] public int[] actionUnlockAt = new int[] { };                              // 纪念法：攒到n永久解锁（-1=不用；20可攻/40变身）
     [Export] public int[] actionCooldownTurns = new int[] { };                          // 用后【该操作自己】冷却n回合——绝不拖累别的操作
     [Export] public int[] actionMaxPerTurn = new int[] { };                            // 每操作每回合次数上限（0/缺省=不限）
-    [Export] public bool[] actionClearOnMove = new bool[] { };                         // 移动清哪些池/解锁（P1.5接移动钩子）
+    [Export] public int[] actionClearOnMove = new int[] { };                          // 移动清哪些池/解锁（0否1是；P1.5接移动钩子）
     [Export] public bool actionLockAsTurret = false;                                    // 有存货=固定炮台（P1.5锁移动按钮）
     [Export] public bool actionMisfireFlag = false;                                     // 运行时：哑火旗（受击置位,回合开始清算）
     [Export] public Godot.Collections.Array<Godot.Collections.Dictionary> actionEvents = new(); // 触发事件：{action,when(always/current>=n),field,mode(set/add),value,temp(0永久)}
@@ -29,7 +29,7 @@ public partial class Facility
     [Export] public int[] actionCurrent = new int[] { };                              // 各池现值
     [Export] public int[] actionUsedThisTurn = new int[] { };
     [Export] public int[] actionCooldownLeft = new int[] { };
-    [Export] public bool[] actionUnlocked = new bool[] { };
+    [Export] public int[] actionUnlocked = new int[] { };                            // 纪念法解锁态（0未解锁1已解锁）
 
     public bool ActionCanUse(string action) => ActionResourceRuntime.CanUse(this, action);
     public void ActionConsume(string action) => ActionResourceRuntime.Consume(this, action);
