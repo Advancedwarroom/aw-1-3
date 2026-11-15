@@ -5,6 +5,21 @@ const GAME_SCENE := "res://scene/main.tscn"
 var label: Label
 var enter_button: Button
 var _loaded: PackedScene = null
+# ✅ 开创人2026-11-15: 主菜单整体可拖动——按住背景拖走,不抢按钮
+var _menu_drag := false
+var _menu_drag_offset := Vector2.ZERO
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_menu_drag = true
+			_menu_drag_offset = get_global_mouse_position() - global_position
+			accept_event()
+		else:
+			_menu_drag = false
+	elif event is InputEventMouseMotion and _menu_drag:
+		global_position = get_global_mouse_position() - _menu_drag_offset
+		accept_event()
 
 func _ready() -> void:
 	label = $Label
