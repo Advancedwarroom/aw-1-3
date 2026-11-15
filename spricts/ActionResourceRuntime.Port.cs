@@ -13,6 +13,9 @@ public static partial class ActionResourceRuntime
     public static bool MovementLocked(GodotObject o)
     {
         if (!Flag(o, "actionLockAsTurret")) return false;
+        // ✅ 2026-11-15 补水桶口径：共享弹药桶有存货同样锁（此前只查分池——纯水桶单位永不锁，与"有水桶=锁移动"设计不符）
+        if (Flag(o, "useSharedBucket") && Int(o, "maxBucketAmmo") > 0)
+            return Int(o, "currentBucketAmmo") > 0;
         foreach (var c in IArr(o, "actionCurrent")) if (c > 0) return true;
         return false;
     }
