@@ -54,6 +54,8 @@ metadata/_edit_horizontal_guides_ = [280.0]
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1462766648]
 tile_set = ExtResource("2_v0l8b")
 
+[node name="Grids" type="Node" parent="." unique_id=261828434]
+
 [node name="TileMapLayer2" type="TileMapLayer" parent="." unique_id=928204701]
 tile_set = ExtResource("2_v0l8b")
 
@@ -125,6 +127,8 @@ color = Color(1, 0.6392157, 0, 1)
 script = ExtResource("11_hybxs")
 gridManager = NodePath("GridManager")
 units = NodePath("Units")
+
+[node name="Units" type="Node" parent="UnitManager" unique_id=364518799]
 
 [node name="GridManager" type="Node" parent="UnitManager" unique_id=1082731550 node_paths=PackedStringArray("GridsNode", "unitManager")]
 script = ExtResource("7_p1hux")
@@ -248,6 +252,8 @@ layout_mode = 0
 script = ExtResource("19_0vlqb")
 gridManager = NodePath("../UnitManager/GridManager")
 weaponsNode = NodePath("Weapons")
+
+[node name="Weapons" type="Node" parent="WeaponManager" unique_id=1120507966]
 
 [node name="CameraController" type="Camera2D" parent="." unique_id=37389023]
 position = Vector2(576, 328)

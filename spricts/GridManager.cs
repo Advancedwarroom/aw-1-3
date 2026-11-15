@@ -188,6 +188,7 @@ public partial class GridManager : Node
     {
         map = new Grids[searchRange.X, searchRange.Y];
         grids.Clear(); // ✅ 防止重复填充导致统计翻倍
+        if (GridsNode == null) return; // ✅ 方案甲：空壳场景无烘焙格子时跳过填充，boot/import 随后接管
         for (int i = 0; i < GridsNode.GetChildCount(); i++)
         {
             Grids grid = GridsNode.GetChild<Grids>(i);
