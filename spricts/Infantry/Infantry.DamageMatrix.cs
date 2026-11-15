@@ -23,6 +23,9 @@ public void InitializeDefaultMatrix()
         defaultMatrix = new Dictionary<string, int>
         {
             ["Infantry_Infantry"] = 55,   ["Infantry_Mech"] = 45,   ["Infantry_LightTank"] = 15,
+            ["Jingall_Infantry"] = 65,   ["Jingall_Mech"] = 45,   ["Jingall_LightTank"] = 12,
+            ["Jingall_Artillery"] = 20,   ["Jingall_Recon"] = 55,   ["Jingall_AntiAir"] = 18,
+            ["Infantry_Jingall"] = 55,   ["Mech_Jingall"] = 65,   ["LightTank_Jingall"] = 85,
             ["Infantry_Artillery"] = 25,  ["Infantry_Rocket"] = 25, ["Infantry_APC"] = 15,
             ["Infantry_Oozium"] = 35,       ["Infantry_MdTank"] = 4,
             ["Mech_Infantry"] = 65,       ["Mech_Mech"] = 55,       ["Mech_LightTank"] = 85,
