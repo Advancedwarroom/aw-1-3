@@ -12,8 +12,8 @@ public partial class TerrainEditor
     private LineEdit spreadTerrainEdit, spreadWeaponEdit, spreadBuildingEdit, spreadUnitEdit;
     private LineEdit destroyTerrainEdit, destroyUnitEdit, destroyBuildingEdit, destroyWeaponEdit;
     private LineEdit visionBlacklistEdit;
-    private SpinBox spreadCooldownSpin, spreadCapSpin, spreadManhattanSpin, visionMinSpin, visionMaxSpin, visionAmountSpin;
-    private CheckBox spreadEnableCheck, spreadCapCheck, hideUnitsCheck, visionEnableCheck, cannotStopCheck;
+    private SpinBox spreadCooldownSpin, spreadCapSpin, spreadManhattanSpin, visionMinSpin, visionMaxSpin, visionAmountSpin, carvedMoveCostSpin;
+    private CheckBox spreadEnableCheck, spreadCapCheck, hideUnitsCheck, visionEnableCheck, cannotStopCheck, carvedPathCheck;
 
     private LineEdit MakeCsvRow(string label, string value, VBoxContainer parent)
     {
@@ -88,7 +88,8 @@ public partial class TerrainEditor
                                 
         hideUnitsCheck = MakeCheckRow("地形隐蔽", grid.terrainHidesUnits, moduleCsvContainer);
         cannotStopCheck = MakeCheckRow("单位不能停靠(可穿过)", grid.cannotStopOnThisGrid, moduleCsvContainer);
-        var carvedCheck = MakeCheckRow(terrainModuleContent, "山道（开凿态）", terrainModule?.carvedPath ?? false, v => { if (terrainModule != null) terrainModule.carvedPath = v; });
+        carvedPathCheck = MakeCheckRow("山道（开凿态）", grid.carvedPath, moduleCsvContainer);
+        carvedMoveCostSpin = MakeNumRow("山道移动耗", grid.carvedMoveCost, moduleCsvContainer);
 
         visionEnableCheck = MakeCheckRow("视野加成开关", grid.visionBonusEnabled, moduleCsvContainer);
         visionBlacklistEdit = MakeCsvRow("势力黑名单csv", JoinInts(grid.visionBonusFactionBlacklist), moduleCsvContainer);
@@ -129,6 +130,8 @@ public partial class TerrainEditor
         g.destroyChainBuildingWhitelist = destroyBuildingEdit.Text.Trim();
         g.destroyChainWeaponWhitelist = destroyWeaponEdit.Text.Trim();
         g.terrainHidesUnits = hideUnitsCheck.ButtonPressed;
+        g.carvedPath = carvedPathCheck.ButtonPressed;   // ✅ 山道（开凿态）回写
+        g.carvedMoveCost = (int)carvedMoveCostSpin.Value;   // ✅ 山道移动耗回写
         g.cannotStopOnThisGrid = cannotStopCheck.ButtonPressed;
         g.visionBonusEnabled = visionEnableCheck.ButtonPressed;
         g.visionBonusFactionBlacklist = ParseInts(visionBlacklistEdit.Text);
