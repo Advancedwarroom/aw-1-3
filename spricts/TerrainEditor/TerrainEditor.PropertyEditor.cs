@@ -95,6 +95,14 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
             be.ValueChanged += v => onChanged(v);
             return be;
         }
+        // ✅ 开创人2026-11-16: 触发事件→全表单编辑器
+        if (fieldName == "actionEvents" && value is Godot.Collections.Array<Godot.Collections.Dictionary> evs)
+        {
+            var ae = new ActionEventsEditor();
+            ae.Events = new Godot.Collections.Array<Godot.Collections.Dictionary>(evs);
+            ae.ValueChanged += v => onChanged(v);
+            return ae;
+        }
         // ✅ 开创人2026-11-16: 伤害矩阵→行编辑器
         if (fieldName == "attackMatrix" && value is System.Collections.Generic.Dictionary<string, int> mtx)
         {
