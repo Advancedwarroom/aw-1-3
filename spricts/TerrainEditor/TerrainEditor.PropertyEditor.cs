@@ -86,6 +86,15 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
             grid.CellsChanged += v => onChanged(v);
             return grid;
         }
+        // ✅ 开创人2026-11-16: 绑定偏移→图形化行编辑器（BlackArc/SuperFactory/GrandBolt通用）
+        if (fieldName is "forceFieldGridOffsets" or "escortGridOffsets" or "boundFactoryOffsets" or "shieldSourceOffsets"
+            && value is Godot.Collections.Array<Vector2I> offs)
+        {
+            var be = new BindOffsetsEditor();
+            be.Offsets = new Godot.Collections.Array<Vector2I>(offs);
+            be.ValueChanged += v => onChanged(v);
+            return be;
+        }
         // ✅ 开创人2026-11-16: 伤害矩阵→行编辑器
         if (fieldName == "attackMatrix" && value is System.Collections.Generic.Dictionary<string, int> mtx)
         {
