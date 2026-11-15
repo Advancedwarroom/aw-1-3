@@ -71,6 +71,17 @@ public static partial class ActionResourceRuntime
         CleanupEvents(o, d => d.GetValueOrDefault("cleanupHit").AsBool());
     }
 
+    /// <summary>A9 v2 三 scope 计数减回：到期/清理/手动关三条还原路统一走这里（开创人2026-11-15）。</summary>
+    public static void UnregisterEventScope(GodotObject o, string action, string field, int v2scope)
+    {
+        if (v2scope < 1 || !Flag(o, "actionResourceEnabled")) return;
+        var gm = o.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (gm == null) return;
+        string ek = $"{action}|{field}";
+        if (v2scope == 1) gm.AddArmyEventStack(Str(o, "team"), ek, -1);
+        else gm.AddGlobalEventStack(ek, -1);
+    }
+
     /// <summary>哑火·弹药监视：被监视弹药的变化量超阈值 → 哑火旗 + 禁操作块。misfireAmmoKind=-1 不看。</summary>
     public static void OnAmmoChanged(GodotObject o, int ammoKind, int delta)
     {
@@ -153,6 +164,7 @@ public static partial class ActionResourceRuntime
                     && predicate(d))
                 {
                     o.Set(list[k].field, list[k].oldVal);
+                    UnregisterEventScope(o, list[k].action, list[k].field, list[k].scope);
                     list.RemoveAt(k);
                     break;
                 }

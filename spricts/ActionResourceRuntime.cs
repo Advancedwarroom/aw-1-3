@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public static partial class ActionResourceRuntime   // ✅ 移植层：partial 以便 ActionResourceRuntime.Port.cs 同班扩展
 {
-    private static readonly Dictionary<GodotObject, List<(string field, Variant oldVal, int turnsLeft)>> _tempEvents = new();
+    private static readonly Dictionary<GodotObject, List<(string action, string field, Variant oldVal, int turnsLeft, int scope)>> _tempEvents = new();   // ✅ A9 v2：action/scope 随身带，供计数器精确减回
 
     private static int Idx(GodotObject o, string action)
     {
@@ -16,9 +16,6 @@ public static partial class ActionResourceRuntime   // ✅ 移植层：partial �
             if (string.Equals(table[i], action, StringComparison.OrdinalIgnoreCase)) return i;
         return -1;
     }
-    /// <summary>字典字符串读取助手（参谋二CleanupEvents依赖,补定义）。</summary>
-    private static string Str(Godot.Collections.Dictionary d, string k) => d.GetValueOrDefault(k, "").ToString();
-
     private static int[] IArr(GodotObject o, string name)
     {
         var v = o.Get(name);
@@ -91,8 +88,7 @@ public static partial class ActionResourceRuntime   // ✅ 移植层：partial �
         if (cd > 0) o.Set("actionCooldownLeft", CloneSet(IArr(o, "actionCooldownLeft"), i, cd));
 
         // ✅ A9 v2 清理条件·操作后清：再用一次该操作 → 清掉挂在它上面的事件（CleanupEvents 机器早已就绪，此为其操作侧接线）
-        CleanupEvents(o, d => d.GetValueOrDefault("cleanupOps").AsBool()
-            && string.Equals(Str(d, "action"), action, StringComparison.Ordinal));
+        CleanupEvents(o, d => EventNamesAction(d, action));   // ✅ A9 v2：cleanupOps=操作名数组，用现成判定
 
         // ── 冷却对表三规则（v3）──
         int ownTurn = Int(o, "actionTotalTurns");
@@ -182,7 +178,7 @@ public static partial class ActionResourceRuntime   // ✅ 移植层：partial �
             for (int k = list.Count - 1; k >= 0; k--)
             {
                 var e = list[k]; e.turnsLeft--;
-                if (e.turnsLeft <= 0) { o.Set(e.field, e.oldVal); list.RemoveAt(k); } else list[k] = e;
+                if (e.turnsLeft <= 0) { o.Set(e.field, e.oldVal); UnregisterEventScope(o, e.action, e.field, e.scope); list.RemoveAt(k); } else list[k] = e;
             }
             if (list.Count == 0) _tempEvents.Remove(o);
         }
@@ -233,6 +229,7 @@ public static partial class ActionResourceRuntime   // ✅ 移植层：partial �
             _eventCounts.TryGetValue(ck, out int usedN);
             if (perTurn > 0 && usedN >= perTurn) continue;
             int maxStacks = d.GetValueOrDefault("maxStacks", 0).AsInt32();
+            int v2scope = d.GetValueOrDefault("scope", 0).AsInt32();   // ✅ A9 v2 三 scope：0=单位(默认) 1=全军 2=全局
             if (maxStacks > 0)
             {
                 int total = _tempEvents.TryGetValue(o, out var tl) ? tl.Count : 0;
@@ -240,6 +237,14 @@ public static partial class ActionResourceRuntime   // ✅ 移植层：partial �
                 if (tl != null) foreach (var tt in tl) if (tt.field == d.GetValueOrDefault("field", "").ToString()) sameField++;
                 int scope = d.GetValueOrDefault("capScope", 2).AsInt32();
                 int counted = scope == 1 ? total : scope == 0 ? (sameField > 0 ? 1 : 0) : sameField;
+                // 全军/全局：跨单位栈数走 GameManager 场景登记（新游戏自动归零）
+                if (v2scope == 1 || v2scope == 2)
+                {
+                    var gmSc = o.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+                    if (gmSc == null) continue;
+                    string ek = $"{Str(d, "action")}|{d.GetValueOrDefault("field", "")}";
+                    counted += v2scope == 1 ? gmSc.GetArmyEventStack(Str(o, "team"), ek) : gmSc.GetGlobalEventStack(ek);
+                }
                 if (counted >= maxStacks) continue;
             }
             string field = d.GetValueOrDefault("field", "").ToString();
@@ -254,7 +259,15 @@ public static partial class ActionResourceRuntime   // ✅ 移植层：partial �
             if (temp > 0)
             {
                 if (!_tempEvents.TryGetValue(o, out var list)) { list = new(); _tempEvents[o] = list; }
-                list.Add((field, oldVal, temp));
+                // ✅ A9 v2 登记全军/全局栈数（到期/清理/手动关时由 UnregisterEventScope 精确减回）
+                if (v2scope == 1 || v2scope == 2)
+                {
+                    var gmRg = o.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+                    string ekRg = $"{Str(d, "action")}|{field}";
+                    if (v2scope == 1) gmRg?.AddArmyEventStack(Str(o, "team"), ekRg, 1);
+                    else gmRg?.AddGlobalEventStack(ekRg, 1);
+                }
+                list.Add((Str(d, "action"), field, oldVal, temp, v2scope));
             }
         }
     }
