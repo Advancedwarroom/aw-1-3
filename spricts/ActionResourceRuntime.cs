@@ -48,7 +48,8 @@ public static class ActionResourceRuntime
         var costs = IArr(o, "actionCosts");
         var unlockAt = IArr(o, "actionUnlockAt");
         var unlocked = IArr(o, "actionUnlocked");
-        int cur = At(IArr(o, "actionCurrent"), i, 0);
+        bool shared = Flag(o, "useSharedBucket") && Int(o, "maxBucketAmmo") > 0;
+        int cur = shared ? Int(o, "currentBucketAmmo") : At(IArr(o, "actionCurrent"), i, 0);
 
         if (At(unlockAt, i, -1) >= 0)
         {
@@ -73,11 +74,55 @@ public static class ActionResourceRuntime
         if (!Flag(o, "actionResourceEnabled")) return;
         int i = Idx(o, action);
         if (i < 0) return;
+        bool shared = Flag(o, "useSharedBucket") && Int(o, "maxBucketAmmo") > 0;
         int cost = At(IArr(o, "actionCosts"), i, -1);
-        if (cost > 0) o.Set("actionCurrent", CloneSet(IArr(o, "actionCurrent"), i, Math.Max(0, At(IArr(o, "actionCurrent"), i, 0) - cost)));
+        if (cost > 0)
+        {
+            if (shared) o.Set("currentBucketAmmo", Math.Max(0, Int(o, "currentBucketAmmo") - cost));
+            else o.Set("actionCurrent", CloneSet(IArr(o, "actionCurrent"), i, Math.Max(0, At(IArr(o, "actionCurrent"), i, 0) - cost)));
+        }
         o.Set("actionUsedThisTurn", CloneSet(IArr(o, "actionUsedThisTurn"), i, At(IArr(o, "actionUsedThisTurn"), i, 0) + 1));
         int cd = At(IArr(o, "actionCooldownTurns"), i, 0);
         if (cd > 0) o.Set("actionCooldownLeft", CloneSet(IArr(o, "actionCooldownLeft"), i, cd));
+
+        // ── 冷却对表三规则（v3）──
+        int ownTurn = Int(o, "actionTotalTurns");
+        var rulesV = o.Get("actionCooldownRules");
+        if (rulesV.VariantType != Variant.Type.Nil)
+        {
+            var windowUses = IArr(o, "actionWindowUses");
+            var windowTurn = IArr(o, "actionWindowTurn");
+            var totalUses = IArr(o, "actionTotalUses");
+            foreach (var raw in rulesV.AsGodotArray())
+            {
+                if (raw.Obj is not Godot.Collections.Dictionary d) continue;
+                int kind = d.GetValueOrDefault("kind", 0).AsInt32();
+                int limit = d.GetValueOrDefault("limit", 0).AsInt32();
+                int cooldownR = d.GetValueOrDefault("cooldown", 0).AsInt32();
+                if (kind == 0 || limit <= 0 || cooldownR <= 0) continue;
+                if (kind == 1)
+                {
+                    int window = Math.Max(1, d.GetValueOrDefault("window", 3).AsInt32());
+                    if (ownTurn - At(windowTurn, i, -9999) >= window) { windowUses = CloneSet(windowUses, i, 0); windowTurn = CloneSet(windowTurn, i, ownTurn); }
+                    int wu = At(windowUses, i, 0) + 1;
+                    windowUses = CloneSet(windowUses, i, wu);
+                    if (wu > limit) o.Set("actionCooldownLeft", CloneSet(IArr(o, "actionCooldownLeft"), i, cooldownR));
+                }
+                else if (kind == 2)
+                {
+                    int tu = At(totalUses, i, 0) + 1;
+                    totalUses = CloneSet(totalUses, i, tu);
+                    if (tu >= limit)
+                    {
+                        o.Set("actionCooldownLeft", CloneSet(IArr(o, "actionCooldownLeft"), i, cooldownR));
+                        totalUses = CloneSet(totalUses, i, d.GetValueOrDefault("refresh", 0).AsInt32());
+                    }
+                }
+            }
+            o.Set("actionWindowUses", windowUses);
+            o.Set("actionWindowTurn", windowTurn);
+            o.Set("actionTotalUses", totalUses);
+        }
     }
 
     /// <summary>己方回合开始：各池独立装填（上限0=无限）/各冷却-1/次数清零/哑火清算/临时事件到期。</summary>
@@ -104,6 +149,11 @@ public static class ActionResourceRuntime
             cur = CloneSet(cur, i, nv);
         }
         o.Set("actionCurrent", cur);
+        // v3：共享桶装填 + 己方回合计数
+        int sf = Int(o, "sharedBucketFillPerTurn");
+        int smax = Int(o, "maxBucketAmmo");
+        if (sf > 0 && smax > 0) o.Set("currentBucketAmmo", Math.Min(smax, Int(o, "currentBucketAmmo") + sf));
+        o.Set("actionTotalTurns", Int(o, "actionTotalTurns") + 1);
         var cd = IArr(o, "actionCooldownLeft");
         for (int k = 0; k < cd.Length; k++) if (cd[k] > 0) cd[k]--;
         o.Set("actionCooldownLeft", cd);
@@ -171,5 +221,26 @@ public static class ActionResourceRuntime
                 list.Add((field, oldVal, temp));
             }
         }
+    }
+
+    /// <summary>移动清池：actionClearOnMove[i]=1 → 清该操作自己的池+解锁（不动别人）。</summary>
+    public static void OnMoved(GodotObject o)
+    {
+        if (!Flag(o, "actionResourceEnabled")) return;
+        var tv = o.Get("actionTable");
+        int n = tv.VariantType == Variant.Type.Nil ? 0 : tv.AsStringArray().Length;
+        var clear = IArr(o, "actionClearOnMove");
+        if (clear.Length == 0) return;
+        var cur = IArr(o, "actionCurrent");
+        var unlocked = IArr(o, "actionUnlocked");
+        bool touched = false;
+        for (int i = 0; i < n && i < clear.Length; i++)
+        {
+            if (clear[i] == 0) continue;
+            cur = CloneSet(cur, i, 0);
+            unlocked = CloneSet(unlocked, i, 0);
+            touched = true;
+        }
+        if (touched) { o.Set("actionCurrent", cur); o.Set("actionUnlocked", unlocked); }
     }
 }
