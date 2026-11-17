@@ -128,6 +128,18 @@ public partial class SurvivalSession : Node
             EndRun(false, elite && Campaign.moraleEnabled ? TranslateGroup.T("精英关失守,战役终结") : (Campaign.moraleEnabled ? TranslateGroup.T("军心耗尽") : TranslateGroup.T("战役失利")));
             return;
         }
+        // ✅ 军心回充(开创人2026-11-18):精英关胜→eliteWinMoraleRefill,其余关胜→winMoraleRefill(可为负;二者不叠加)
+        if (Campaign.moraleEnabled)
+        {
+            bool wonElite = Campaign.eliteStageIndices != null && System.Array.IndexOf(Campaign.eliteStageIndices, StageIndex) >= 0;
+            int refill = wonElite ? Campaign.eliteWinMoraleRefill : Campaign.winMoraleRefill;
+            if (refill != 0)
+            {
+                int before = MoraleRemaining;
+                MoraleRemaining = Mathf.Clamp(MoraleRemaining + refill, 0, Mathf.Max(0, Campaign.moraleMax));
+                GD.Print($"[Survival] 军心{(refill > 0 ? "+" : "")}{refill}:{before}→{MoraleRemaining}{(wonElite ? "(精英关胜利)" : "")}");
+            }
+        }
         int clearedSlot; string _pp; ResolveCurrentStage(out clearedSlot, out _pp);   // ✅ 接缝:刚通关槽位(推进前捕获)
         // ✅ 树状选关(开创人2026-11-14):解析分支DSL,多路弹出选关面板
         var nextNodes = ParseStageTree(Campaign.stageTree, StageIndex);
@@ -631,6 +643,8 @@ public partial class SurvivalSession : Node
             ["saveFileName"] = c.saveFileName,
             ["moraleEnabled"] = c.moraleEnabled,
             ["moraleMax"] = c.moraleMax,
+            ["eliteWinMoraleRefill"] = c.eliteWinMoraleRefill,
+            ["winMoraleRefill"] = c.winMoraleRefill,
             ["eliteStageIndices"] = new Godot.Collections.Array<int>(c.eliteStageIndices),
             ["stageTree"] = c.stageTree ?? "",
             ["aiFundsMultiplier"] = c.aiFundsMultiplier,
@@ -677,6 +691,8 @@ public partial class SurvivalSession : Node
             saveFileName = parsed.ContainsKey("saveFileName") ? parsed["saveFileName"].AsString() : "survival_save",
             moraleEnabled = parsed.ContainsKey("moraleEnabled") && parsed["moraleEnabled"].AsBool(),
             moraleMax = parsed.ContainsKey("moraleMax") ? parsed["moraleMax"].AsInt32() : 3,
+            eliteWinMoraleRefill = parsed.ContainsKey("eliteWinMoraleRefill") ? parsed["eliteWinMoraleRefill"].AsInt32() : 1,
+            winMoraleRefill = parsed.ContainsKey("winMoraleRefill") ? parsed["winMoraleRefill"].AsInt32() : 0,
             eliteStageIndices = parsed.ContainsKey("eliteStageIndices") ? parsed["eliteStageIndices"].AsInt32Array() : new int[0],
             stageTree = parsed.ContainsKey("stageTree") ? parsed["stageTree"].AsString() : "",
             aiFundsMultiplier = parsed.ContainsKey("aiFundsMultiplier") ? parsed["aiFundsMultiplier"].AsDouble() : 1.0,
@@ -721,7 +737,7 @@ public partial class SurvivalSession : Node
         int mainCount = Mathf.Max(Campaign.stageSlots.Length, Campaign.stageMapPaths.Length);
         int total = Campaign.endlessMode ? -1 : mainCount;
         string prog = total > 0 ? $"{StageIndex + 1}/{total}" : $"第{StageIndex + 1}层";
-        _hud.Text = $"[Survival] {Campaign.campaignName} {prog}  预算:{RemainingBudget}{unit}";
+        _hud.Text = $"[Survival] {Campaign.campaignName} {prog}  预算:{RemainingBudget}{unit}{(Campaign.moraleEnabled ? $"  军心:{MoraleRemaining}/{Campaign.moraleMax}" : "")}";
     }
 
     // ✅ 非static:SavePath 现为实例字段（并发演进）

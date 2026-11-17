@@ -25,6 +25,8 @@ public partial class SurvivalCampaign : Resource
     [ExportGroup("军心(命数制)")]
     [Export] public bool moraleEnabled = false;            // ✅ 军心系:败一关扣1点命,归零终局(与预算制并存)
     [Export] public int moraleMax = 3;
+    [Export] public int eliteWinMoraleRefill = 1;    // ✅ 精英关胜利回充军心(开创人2026-11-18,与全关卡回充不叠加)
+    [Export] public int winMoraleRefill = 0;         // ✅ 所有关胜利回充军心(可为负=胜利也耗命;精英关不适用本项)
     [Export] public int[] eliteStageIndices = new int[0];    // 精英关(主线索引):输掉无视军心直接终局
 
     [ExportGroup("树状选关")]
