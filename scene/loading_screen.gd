@@ -78,6 +78,8 @@ func _notification(what: int) -> void:
 		NOTIFICATION_APPLICATION_RESUMED:
 			# ✅ 2026-11-15 恢复兜底：安卓切后台会冻住/打断加载线程，回来若已失败立刻重开，
 			#    不再永驻"加载失败"死标签（此前无任何前后台处理，进不去只能杀进程）
+			# ✅ 2026-11-18：GL 上下文重建后不自动重绘，菜单侧同样全树刷一遍防黑屏
+			_redraw_all(self)
 			if _load_started and _loaded == null:
 				var st := ResourceLoader.load_threaded_get_status(GAME_SCENE)
 				if st == ResourceLoader.THREAD_LOAD_FAILED or st == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
@@ -172,3 +174,9 @@ func _poll_boot() -> void:
 		tw.tween_callback(queue_free)
 	else:
 		label.text = "加载中：%d‰  %s" % [PHASE_A_PERMILLE + BootMapLoader.Permille, BootMapLoader.PhaseLabel]
+
+func _redraw_all(n: Node) -> void:
+	if n is CanvasItem:
+		n.queue_redraw()
+	for c in n.get_children():
+		_redraw_all(c)

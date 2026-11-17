@@ -141,3 +141,25 @@ func zoom_out():
 	if camera:
 		var new_zoom = clamp(camera.zoom.x - zoom_speed, min_zoom, max_zoom)
 		camera.zoom = Vector2(new_zoom, new_zoom)
+
+# ✅ 开创人令（2026-11-18）：安卓切后台回前台黑屏修复——
+# GL 上下文重建后引擎不自动重绘全画布，回来手动全树刷一遍+重挂染色材质
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_WM_WINDOW_FOCUS_IN:
+			call_deferred("_recover_from_background")
+
+func _recover_from_background() -> void:
+	_redraw_all(self)
+	var gm = get_tree().get_first_node_in_group("game_manager")
+	if gm and gm.has_method("SetFogOfWarEnabled"):
+		gm.SetFogOfWarEnabled(gm.IsFogOfWarEnabled())   # 借公开开关重铺雾面
+	for u in get_tree().get_nodes_in_group("infantry"):
+		if u.has_method("UpdateTeamVisual"):
+			u.UpdateTeamVisual()
+
+func _redraw_all(n: Node) -> void:
+	if n is CanvasItem:
+		n.queue_redraw()
+	for c in n.get_children():
+		_redraw_all(c)
