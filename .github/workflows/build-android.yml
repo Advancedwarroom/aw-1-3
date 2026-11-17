@@ -74,6 +74,7 @@ jobs:
 
       - name: 手动发布 .NET（预热 + 探雷，参数与 Godot 内部一致）
         run: |
+          set -o pipefail
           mkdir -p build
           dotnet publish AWone1.csproj -c ExportRelease -r android-arm64 --self-contained true -p:GodotTargetPlatform=android -o .godot/mono/publish/arm64 2>&1 | tee build/prepublish.log
 
@@ -92,8 +93,8 @@ jobs:
           name: AWone1-android
           path: build/AWone1.apk
 
-      - name: 失败时导出日志（发这个给我）
-        if: failure()
+      - name: 导出日志（每次必传,成功也要可查）
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: export-log
