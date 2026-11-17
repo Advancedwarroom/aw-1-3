@@ -60,7 +60,7 @@ shape = SubResource("RectangleShape2D_74q0g")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=618790426]
 position = Vector2(16, 16)
 sprite_frames = ExtResource("2_t35l2")
-animation = &"mech1"
+animation = &"P0Jingall"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=525152588]
 position = Vector2(16, 16)
