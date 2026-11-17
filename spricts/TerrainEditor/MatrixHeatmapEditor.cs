@@ -7,6 +7,7 @@ using System.Collections.Generic;
 public partial class MatrixHeatmap : Control
 {
     public event Action<int, int> CellSelected;        // (攻击序号, 防御序号)
+    public event Action<string, int> CellEdited;       // ✅ (攻击方_防御方, 新值) 开创人2026-11-18完善:格子数值被编辑时触发(脏标记/联动/自动保存钩子)
     public Dictionary<string, int> Matrix = new();
     public List<string> Attackers = new();
     public List<string> Defenders = new();
@@ -55,6 +56,9 @@ public partial class MatrixHeatmap : Control
         if (SelA >= 0 && SelD >= 0)
             DrawRect(new Rect2(Head + SelD * Cell - 1, Head + SelA * Cell - 1, Cell + 1, Cell + 1), new Color(1, 1, 0.2f), false, 2f);
     }
+
+    // ✅ 开创人2026-11-18完善:由编辑器在数值生效后调用,广播格子编辑事件
+    public void NotifyCellEdited(string key, int value) => CellEdited?.Invoke(key, value);
 
     public override void _GuiInput(InputEvent e)
     {
@@ -132,6 +136,7 @@ public partial class MatrixHeatmapEditor : VBoxContainer
         if (_suppress || _map.SelA < 0 || _map.SelD < 0) return;
         string key = _map.Attackers[_map.SelA] + "_" + _map.Defenders[_map.SelD];
         _matrix[key] = v;
+        _map.NotifyCellEdited(key, v);   // ✅ 开创人2026-11-18:编辑钩子在此触发
         ValueChanged?.Invoke(new Dictionary<string, int>(_matrix));
         _map.QueueRedraw();
     }
