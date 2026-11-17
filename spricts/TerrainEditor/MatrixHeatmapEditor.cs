@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 public partial class MatrixHeatmap : Control
 {
-    public event Action<string, int> CellEdited;      // (攻击方_防御方, 新值)
     public event Action<int, int> CellSelected;        // (攻击序号, 防御序号)
     public Dictionary<string, int> Matrix = new();
     public List<string> Attackers = new();
