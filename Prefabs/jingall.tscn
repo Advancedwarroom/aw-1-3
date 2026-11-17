@@ -48,6 +48,9 @@ useDefaultConfig = false
 unitCategory = 3
 loadedIcon = NodePath("loaded")
 noFuelIcon = NodePath("NoFuelIcno")
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_74q0g"]
+size = Vector2(34, 34)
+
 [node name="Area2D" type="Area2D" parent="." unique_id=1539668194]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=330701370]
