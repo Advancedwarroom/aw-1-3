@@ -8,6 +8,7 @@ const PACK_CAMPAIGNS := "res://campaigns"
 
 func _ready() -> void:
 	_seed_pack_campaigns()
+	BootMaps.SeedUserCampaigns()   # ✅ 开创人2026-11-18:res://缺文件时,编译内置图兜底写入 user://campaigns
 	var box: VBoxContainer = $MapList
 	var dir := DirAccess.open(USER_CAMPAIGNS)
 	var found := false

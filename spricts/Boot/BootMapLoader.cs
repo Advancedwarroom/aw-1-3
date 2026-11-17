@@ -56,10 +56,15 @@ public partial class BootMapLoader : Node
     {
         try
         {
-            using var f = FileAccess.Open(_mapPath, FileAccess.ModeFlags.Read);
-            if (f == null)
-                throw new Exception($"无法读取启动地图：{_mapPath}（err={FileAccess.GetOpenError()}）");
-            string content = f.GetAsText();
+            string content = null;
+            using (var f = FileAccess.Open(_mapPath, FileAccess.ModeFlags.Read))
+                if (f != null) content = f.GetAsText();
+            if (string.IsNullOrEmpty(content))
+            {
+                // ✅ 开创人2026-11-18:打包缺文件时回退编译内置图,战场永不空屏
+                GD.PushWarning($"[BootMapLoader] 启动地图 {_mapPath} 不可读(err={FileAccess.GetOpenError()})→回退内置应急图");
+                content = BootMaps.MainBattlefield;
+            }
 
             // 地图本体：逐行/逐实体分帧生成（TerrainEditor 内需私有 spawn 方法，故由其托管）
             SetPhase("部署战场");
