@@ -9,18 +9,22 @@ public partial class CampaignSettlement : Node
     public CampaignManifest Manifest { get; private set; }
     public int CurrentSlot { get; private set; } = -1;
     private readonly Dictionary<string, (double score, double crystals)> _killLedger = new();
+    private readonly Dictionary<string, int> _killCount = new();   // ✅ 军心注入:按凶手计击杀数(开创人2026-11-18)
     public override void _Ready() { Instance = this; AddToGroup("campaign_settlement"); }
-    public void ResetRun(CampaignManifest m, int slot) { Manifest = m; CurrentSlot = slot; _killLedger.Clear(); Active = m != null; }
+    public void ResetRun(CampaignManifest m, int slot) { Manifest = m; CurrentSlot = slot; _killLedger.Clear(); _killCount.Clear(); Active = m != null; }
     // ✅ 接线点(下一轮换锚):单位/兵器/设施死亡入口调用 RecordKill(受害者的两个Export值, 凶手team)
     public void RecordKill(double scoreValue, double crystalValue, string killerTeam)
     {
         if (!Active || killerTeam == "P0" || killerTeam == "Player0" || string.IsNullOrEmpty(killerTeam)) return;
         _killLedger.TryGetValue(killerTeam, out var cur);
         _killLedger[killerTeam] = (CampaignProfile.Round4(cur.score + scoreValue), CampaignProfile.Round4(cur.crystals + crystalValue));
+        _killCount.TryGetValue(killerTeam, out int kc);
+        _killCount[killerTeam] = kc + 1;   // ✅ 军心注入计数(开创人2026-11-18)
     }
     public void OnVictoryDeclared(string winner)
     {
         if (!Active || CampaignProfile.Instance == null) { Active = false; return; }
+        int capCount = 0;   // ✅ 军心注入:占领记账设施计数(开创人2026-11-18)
         foreach (var kv in _killLedger) CampaignProfile.Instance.AddKillRewards(kv.Value.score, kv.Value.crystals);
         var root = GetTree()?.Root; if (root == null) { Active = false; return; }
         foreach (var node in root.FindChildren("*", "Facility", true, false))
@@ -29,6 +33,7 @@ public partial class CampaignSettlement : Node
             double os = Num(f, "campaignOccupierScoreValue"), oc = Num(f, "campaignOccupierCrystalValue");
             if (os != 0 || oc != 0) CampaignProfile.Instance.AddKillRewards(os, oc);   // 终局占领者得账(不看胜负)
             string occ = f.facilityTeam;
+            if ((os != 0 || oc != 0) && occ == winner) capCount++;   // ✅ 军心注入:占领计数
             if (occ == winner || occ == "P-1" || occ == "Player0") continue;
             if (f.Get("takeoverEnabled").VariantType == Variant.Type.Bool && (bool)f.Get("takeoverEnabled")) f.facilityTeam = winner; f.UpdateCityVisual();   // 设施换主=直写+刷新(全库惯例)
         }
@@ -50,6 +55,14 @@ public partial class CampaignSettlement : Node
                 CampaignProfile.Instance.RecordStageClear(CurrentSlot, pv, strict, s, c);
                 GD.Print($"[Campaign] 通关 slot={CurrentSlot} 进度→{CampaignProfile.Instance.CurrentProgress} 分+{s} 宝钞+{c}");
             }
+        }
+        // ✅ 军心注入(开创人2026-11-18):击毁数×killMoraleAward + 占领数×captureMoraleAward(均可为负;仅胜利结算=失败重打不计)
+        var sv = SurvivalSession.Instance;
+        var svc = sv?.Campaign;
+        if (svc != null && svc.moraleEnabled)
+        {
+            _killCount.TryGetValue(winner, out int kills);
+            sv.InjectMorale(kills * svc.killMoraleAward + capCount * svc.captureMoraleAward);
         }
         Active = false;
     }

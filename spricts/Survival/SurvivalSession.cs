@@ -13,6 +13,15 @@ public partial class SurvivalSession : Node
     public SurvivalCampaign Campaign { get; private set; }
     public int StageIndex { get; private set; }
     public int MoraleRemaining { get; private set; }
+
+    // ✅ 记账系统注入(开创人2026-11-18):胜利结算时命数增减(可为负),钳 0..moraleMax;供 CampaignSettlement 调用
+    public void InjectMorale(int delta)
+    {
+        if (Campaign == null || !Campaign.moraleEnabled || delta == 0) return;
+        int before = MoraleRemaining;
+        MoraleRemaining = Mathf.Clamp(MoraleRemaining + delta, 0, Mathf.Max(0, Campaign.moraleMax));
+        GD.Print($"[Survival] 军心{(delta > 0 ? "+" : "")}{delta}(记账注入):{before}→{MoraleRemaining}");
+    }
     public int Depth { get; private set; }   // ✅ 树状选关:已通关层数(节点号=StageIndex,进度=Depth)
     public double RemainingBudget { get; private set; }
     public bool Active { get; private set; }
@@ -645,6 +654,8 @@ public partial class SurvivalSession : Node
             ["moraleMax"] = c.moraleMax,
             ["eliteWinMoraleRefill"] = c.eliteWinMoraleRefill,
             ["winMoraleRefill"] = c.winMoraleRefill,
+            ["killMoraleAward"] = c.killMoraleAward,
+            ["captureMoraleAward"] = c.captureMoraleAward,
             ["eliteStageIndices"] = new Godot.Collections.Array<int>(c.eliteStageIndices),
             ["stageTree"] = c.stageTree ?? "",
             ["aiFundsMultiplier"] = c.aiFundsMultiplier,
@@ -693,6 +704,8 @@ public partial class SurvivalSession : Node
             moraleMax = parsed.ContainsKey("moraleMax") ? parsed["moraleMax"].AsInt32() : 3,
             eliteWinMoraleRefill = parsed.ContainsKey("eliteWinMoraleRefill") ? parsed["eliteWinMoraleRefill"].AsInt32() : 1,
             winMoraleRefill = parsed.ContainsKey("winMoraleRefill") ? parsed["winMoraleRefill"].AsInt32() : 0,
+            killMoraleAward = parsed.ContainsKey("killMoraleAward") ? parsed["killMoraleAward"].AsInt32() : 0,
+            captureMoraleAward = parsed.ContainsKey("captureMoraleAward") ? parsed["captureMoraleAward"].AsInt32() : 0,
             eliteStageIndices = parsed.ContainsKey("eliteStageIndices") ? parsed["eliteStageIndices"].AsInt32Array() : new int[0],
             stageTree = parsed.ContainsKey("stageTree") ? parsed["stageTree"].AsString() : "",
             aiFundsMultiplier = parsed.ContainsKey("aiFundsMultiplier") ? parsed["aiFundsMultiplier"].AsDouble() : 1.0,

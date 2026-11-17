@@ -27,6 +27,8 @@ public partial class SurvivalCampaign : Resource
     [Export] public int moraleMax = 3;
     [Export] public int eliteWinMoraleRefill = 1;    // ✅ 精英关胜利回充军心(开创人2026-11-18,与全关卡回充不叠加)
     [Export] public int winMoraleRefill = 0;         // ✅ 所有关胜利回充军心(可为负=胜利也耗命;精英关不适用本项)
+    [Export] public int killMoraleAward = 0;      // ✅ 胜利结算:击毁数×本值回充军心(可为负;开创人2026-11-18记账注入)
+    [Export] public int captureMoraleAward = 0;   // ✅ 胜利结算:占领记账设施数×本值回充军心(可为负)
     [Export] public int[] eliteStageIndices = new int[0];    // 精英关(主线索引):输掉无视军心直接终局
 
     [ExportGroup("树状选关")]
