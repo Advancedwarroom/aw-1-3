@@ -8,7 +8,9 @@ const PACK_CAMPAIGNS := "res://campaigns"
 
 func _ready() -> void:
 	_seed_pack_campaigns()
-	BootMaps.SeedUserCampaigns()   # ✅ 开创人2026-11-18:res://缺文件时,编译内置图兜底写入 user://campaigns
+	var _bm = ClassDB.instantiate("BootMaps")   # ✅ 字符串化实例化:扫描期C#未编译时,本脚本不再解析失败
+	if _bm != null and _bm.has_method("SeedUserCampaigns"):
+		_bm.SeedUserCampaigns()
 	var box: VBoxContainer = $MapList
 	var dir := DirAccess.open(USER_CAMPAIGNS)
 	var found := false

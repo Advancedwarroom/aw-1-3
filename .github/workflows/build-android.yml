@@ -66,6 +66,9 @@ jobs:
             -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass android -keypass android -dname "CN=Debug,O=AW,C=CN"
 
+      - name: 先构建 C# 程序集(让扫描期脚本能解析 C# 类,消灭 not compiling)
+        run: dotnet build AWone1.csproj -c ExportRelease
+
       - name: 导入资源
         run: godot --headless --import --path . --quit
 
