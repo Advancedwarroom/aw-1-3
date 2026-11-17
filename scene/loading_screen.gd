@@ -23,6 +23,7 @@ var _menu_drag_offset := Vector2.ZERO
 #    整段加载期恒 0‰ 最后一刻跳满，是假指标，弃用。
 var _dep_paths: Array[String] = []
 var _load_started := false
+var _autocontinue := false   # ✅ 开创人令：点击发起的加载完成后自动续行进战场
 # ✅ 卡住检测：IN_PROGRESS 但已缓存数长期不涨 → 亮重试
 var _last_cached := -1
 var _stall_time := 0.0
@@ -45,7 +46,11 @@ func _ready() -> void:
 	enter_button.hide()
 	enter_button.pressed.connect(_on_enter_pressed)
 	_collect_dependencies(GAME_SCENE)
-	_start_load()
+	# ✅ 开创人令（2026-11-18）：进度从按下"进入战场"才开始算——
+	#    此前菜单空转就把条跑满，点击后的等待时间完全裸奔
+	label.text = "整装待发"
+	enter_button.text = "进入战场"
+	enter_button.show()
 
 # ✅ 递归收集场景依赖（去重）作分母；脚本(.gd/.cs/.csproj)跳过——has_cached 对脚本不可靠
 func _collect_dependencies(path: String) -> void:
@@ -107,11 +112,10 @@ func _process(delta: float) -> void:
 		set_process(false)
 		_loaded = ResourceLoader.load_threaded_get(GAME_SCENE) as PackedScene
 		label.text = "加载中：1000‰"
-		# ✅ 战役选关接力：pending 存在时自动进 boot，无需再点一次"进入战场"
-		if FileAccess.file_exists("user://campaign_pending.map"):
+		# ✅ 战役选关接力 / 开创人令的点击续行：两类都自动进，无需再点一次"进入战场"
+		if _autocontinue or FileAccess.file_exists("user://campaign_pending.map"):
 			_on_enter_pressed()
 			return
-		# 不自动跳场景：数字跳完，亮起按钮，玩家自己按进主菜单
 		enter_button.show()
 	elif status == ResourceLoader.THREAD_LOAD_FAILED or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 		set_process(false)
@@ -126,6 +130,10 @@ func _on_enter_pressed() -> void:
 			_start_boot()
 			return
 		get_tree().change_scene_to_packed(_loaded)
+	elif not _load_started:
+		# ✅ 开创人令（2026-11-18）：点击这一刻才开始加载，完成后 _autocontinue 自动续行进战场
+		_autocontinue = true
+		_start_load()
 	else:
 		# ✅ 加载未成时按钮=重试（失败后重进那次点击直接救场）
 		_start_load()
