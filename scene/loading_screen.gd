@@ -121,10 +121,19 @@ func _process(delta: float) -> void:
 		enter_button.show()
 	elif status == ResourceLoader.THREAD_LOAD_FAILED or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 		set_process(false)
-		# ✅ 失败不再一死了之：亮重试按钮
-		label.text = "加载失败！点击重试"
-		enter_button.text = "重试加载"
-		enter_button.show()
+		# mono 安卓线程加载偶发失败：先回退同步加载，仍失败才亮重试
+		var fallback := load(GAME_SCENE)
+		if fallback != null:
+			_loaded = fallback as PackedScene
+			label.text = "加载中：1000‰"
+			if _autocontinue or FileAccess.file_exists("user://campaign_pending.map"):
+				_on_enter_pressed()
+				return
+			enter_button.show()
+		else:
+			label.text = "加载失败！点击重试"
+			enter_button.text = "重试加载"
+			enter_button.show()
 
 func _on_enter_pressed() -> void:
 	if _loaded != null:
