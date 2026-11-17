@@ -9,6 +9,9 @@
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Jingall_base.tres" id="90_base"]
 [ext_resource type="SpriteFrames" path="res://asscets/AnimatedSprite/Jingall_overlay.tres" id="91_over"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_74q0g"]
+size = Vector2(34, 34)
+
 [node name="Jingall" type="Node2D" unique_id=1491786005 node_paths=PackedStringArray("animSprite", "idleSprite", "loadedIcon", "noFuelIcon")]
 z_index = 10
 isMultiTileUnit = true
@@ -48,9 +51,6 @@ useDefaultConfig = false
 unitCategory = 3
 loadedIcon = NodePath("loaded")
 noFuelIcon = NodePath("NoFuelIcno")
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_74q0g"]
-size = Vector2(34, 34)
-
 [node name="Area2D" type="Area2D" parent="." unique_id=1539668194]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=330701370]
