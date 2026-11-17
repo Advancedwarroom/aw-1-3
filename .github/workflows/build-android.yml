@@ -69,6 +69,9 @@ jobs:
       - name: 先构建 C# 程序集(让扫描期脚本能解析 C# 类,消灭 not compiling)
         run: dotnet build AWone1.csproj -c ExportRelease
 
+      - name: 编辑器构建 C# 胶水(根治扫描期 autoload not compiling)
+        run: godot --headless --build-solutions --quit --path .
+
       - name: 导入资源
         run: godot --headless --import --path . --quit
 
