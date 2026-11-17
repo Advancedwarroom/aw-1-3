@@ -35,7 +35,7 @@ public partial class TerrainEditor
     {
         batchTerrainBtn = new Button();
         batchTerrainBtn.Name = "BatchTerrainBtn";
-        TranslateGroup.SetText(batchTerrainBtn, "🗺️ 批量地形");
+        TranslateGroup.SetText(batchTerrainBtn, "🗺️ 地形编辑");
         batchTerrainBtn.CustomMinimumSize = new Vector2(140, 50);
 
         var style = new StyleBoxFlat();
@@ -85,7 +85,7 @@ public partial class TerrainEditor
 
         // 标题
         batchTerrainTitleLabel = new Label();
-        TranslateGroup.SetText(batchTerrainTitleLabel, "🗺️ 批量地形放置");
+        TranslateGroup.SetText(batchTerrainTitleLabel, "🗺️ 地形编辑");
         batchTerrainTitleLabel.HorizontalAlignment = HorizontalAlignment.Center;
         batchTerrainTitleLabel.AddThemeFontSizeOverride("font_size", 20);
         batchTerrainTitleLabel.AddThemeColorOverride("font_color", new Color(0.5f, 0.9f, 0.7f));
@@ -341,11 +341,11 @@ public partial class TerrainEditor
         // 更新标题显示当前状态
         if (isBatchTerrainMode)
         {
-            batchTerrainTitleLabel.Text = $"🗺️ {TranslateGroup.T("批量地形")} - {TranslateGroup.T("当前")}: {GetTerrainDisplayName(batchTerrainType)}";
+            batchTerrainTitleLabel.Text = $"🗺️ {TranslateGroup.T("地形编辑")} - {TranslateGroup.T("当前")}: {GetTerrainDisplayName(batchTerrainType)}";
         }
         else
         {
-            TranslateGroup.SetText(batchTerrainTitleLabel, "🗺️ 批量地形放置");
+            TranslateGroup.SetText(batchTerrainTitleLabel, "🗺️ 地形编辑");
         }
     }
 
@@ -432,7 +432,7 @@ public partial class TerrainEditor
         }
         else
         {
-            TranslateGroup.SetText(batchTerrainBtn, "🗺️ 批量地形");
+            TranslateGroup.SetText(batchTerrainBtn, "🗺️ 地形编辑");
             var style = new StyleBoxFlat();
             style.BgColor = new Color(0.3f, 0.5f, 0.5f, 0.9f);
             style.SetCornerRadiusAll(8);

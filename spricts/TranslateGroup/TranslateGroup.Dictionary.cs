@@ -235,7 +235,7 @@ public partial class TranslateGroup
         Add("生成地图", "Generate Map", "マップ生成", "맵 생성", "Karte erstellen", "Сгенерировать карту", "生成地图", "生成地圖");
         Add("导入地图", "Import Map", "マップ読込", "맵 불러오기", "Karte importieren", "Импорт карты", "导入地图", "匯入地圖");
         Add("导出地图", "Export Map", "マップ書出", "맵 내보내기", "Karte exportieren", "Экспорт карты", "导出地图", "匯出地圖");
-        Add("批量地形", "Batch Terrain", "地形一括", "지형 일괄", "Gelände-Stapel", "Массовое местность", "批量地形", "批量地形");
+        Add("地形编辑", "Terrain Edit", "地形編集", "지형 편집", "Gelände bearbeiten", "Редактировать местность", "地形编辑", "地形編輯");
         Add("贴图上传", "Upload Texture", "テクスチャ", "텍스처 업로드", "Textur hochladen", "Загрузить текстуру", "贴图上传", "貼圖上傳");
         Add("贴图替换", "Replace Texture", "テクスチャ差替", "텍스처 교체", "Textur ersetzen", "Заменить текстуру", "贴图替换", "貼圖替換");
         Add("填充工具", "Fill Tool", "塗りつぶし", "채우기 도구", "Füllwerkzeug", "Заливка", "填充工具", "填充工具");
@@ -1158,7 +1158,7 @@ public partial class TranslateGroup
         Add("槽位", "Slot", "スロット", "슬롯", "Slot", "Слот", "槽位", "槽位");
         Add("点击地图上的", "Click on map", "マップ上でクリック", "맵에서 클릭", "Auf Karte klicken", "Кликнуть на карте", "点击地图上的", "點擊地圖上的");
         Add("点击地图格子生成", "Click grid to spawn", "マスをクリックして生成", "맵 칸 클릭으로 생성", "Feld klicken zum Spawnen", "Кликнуть клетку для создания", "点击地图格子生成", "點擊地圖格子生成");
-        Add("点击批量地形按钮直接铺设", "Click batch terrain btn to place", "バッチ地形ボタンで直接配置", "배치 지형 버튼으로 직접 배치", "Batch-Gelände-Button zum Platzieren", "Кнопка пакет. местности для размещ.", "点击批量地形按钮直接铺设", "點擊批次地形按鈕直接鋪設");
+        Add("点击地形编辑按钮直接铺设", "Click terrain edit btn to place", "地形編集ボタンで直接配置", "지형 편집 버튼으로 직접 배치", "Gelände-Bearbeiten-Button zum Platzieren", "Кнопка редакт. местности для размещ.", "点击地形编辑按钮直接铺设", "點擊地形編輯按鈕直接鋪設");
         Add("点击格子设置对称轴", "Click grid to set symmetry axis", "マスをクリックして対称軸設定", "칸 클릭으로 대칭축 설정", "Feld klicken für Symmetrieachse", "Кликнуть клетку для оси симм.", "点击格子设置对称轴", "點擊格子設定對稱軸");
         Add("点击目标格子，全图相同地形替换为", "Click target grid to replace all same terrain to", "目標マスクリックで全マップ同地形を", "대상 칸 클릭으로 전체 동일 지형을", "Zielfeld klicken, alle gleichen Gelände ersetzen zu", "Кликнуть цел. клетку, заменить все один. местности на", "点击目标格子，全图相同地形替换为", "點擊目標格子，全圖相同地形替換為");
         Add("点击目标格子，相邻相同地形替换为", "Click target grid to replace adjacent same terrain to", "目標マスクリックで隣接同地形を", "대상 칸 클릭으로 인접 동일 지형을", "Zielfeld klicken, angrenz. gleiches Gelände ersetzen zu", "Кликнуть цел. клетку, заменить сосед. один. местности на", "点击目标格子，相邻相同地形替换为", "點擊目標格子，相鄰相同地形替換為");

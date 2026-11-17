@@ -77,7 +77,7 @@ public partial class CustomConfigUI : Control
     {
         openConfigBtn = new Button();
         openConfigBtn.Name = "OpenCustomConfigBtn";
-        TranslateGroup.SetText(openConfigBtn, "📦 Extra配置");
+        TranslateGroup.SetText(openConfigBtn, "💾 保存配置");
         openConfigBtn.CustomMinimumSize = new Vector2(120, 50);
         openConfigBtn.AddThemeFontSizeOverride("font_size", 14);
 
