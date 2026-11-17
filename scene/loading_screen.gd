@@ -71,7 +71,28 @@ func _start_load() -> void:
 	enter_button.hide()
 	enter_button.text = "进入战场"
 	label.text = "加载中：0‰"
+	if OS.has_feature("android"):
+		# 安卓 mono 线程加载已知不可靠：直接同步加载
+		set_process(false)
+		var ps: PackedScene = load(GAME_SCENE)
+		if ps != null:
+			_loaded = ps
+			label.text = "加载中：1000‰"
+			if _autocontinue or FileAccess.file_exists("user://campaign_pending.map"):
+				_on_enter_pressed()
+				return
+			enter_button.show()
+		else:
+			_show_load_failure()
+		return
 	ResourceLoader.load_threaded_request(GAME_SCENE)
+
+func _show_load_failure() -> void:
+	# 诊断探测器：区分"整个加载器坏死"还是"仅主场景坏"
+	var probe = load("res://scene/campaign_menu.tscn")
+	label.text = "加载失败！点击重试\n诊断: 战役菜单探测 %s" % ("OK" if probe != null else "FAIL")
+	enter_button.text = "重试加载"
+	enter_button.show()
 
 func _notification(what: int) -> void:
 	match what:
@@ -131,9 +152,7 @@ func _process(delta: float) -> void:
 				return
 			enter_button.show()
 		else:
-			label.text = "加载失败！点击重试"
-			enter_button.text = "重试加载"
-			enter_button.show()
+			_show_load_failure()
 
 func _on_enter_pressed() -> void:
 	if _loaded != null:
