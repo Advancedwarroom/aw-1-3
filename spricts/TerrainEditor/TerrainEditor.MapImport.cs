@@ -486,6 +486,9 @@ public partial class TerrainEditor
                                 var spawned = grid.weapon;
                                 if (spawned != null)
                                 {
+                                    // ✅ 开创人2026-11-18: 恢复方向(旧档无D:标记→保持默认朝上,向后兼容)
+                                    var dm = System.Text.RegularExpressions.Regex.Match(diffPart, @"D:([URDL])");
+                                    if (dm.Success) ApplyWeaponDirection(spawned, dm.Groups[1].Value[0]);
                                     spawned.health = wHp * 10;
                                     spawned.UpdateHpLabel();
                                     ApplyDiffString(spawned, diffPart);
@@ -575,7 +578,16 @@ public partial class TerrainEditor
         }
     }
 
-    public void ApplyDiffString(object target, string diffPart)
+        /// ✅ 开创人2026-11-18: 单字符方向→武器方向枚举(BlackCannon系含LargeCannon继承;GhostCannon独立枚举但同序)
+    private void ApplyWeaponDirection(Weapon w, char d)
+    {
+        int idx = "URDL".IndexOf(d);
+        if (idx < 0) return;
+        if (w is BlackCannon bc) bc.direction = (BlackCannon.CannonDirection)idx;
+        else if (w is GhostCannon gc) gc.direction = (GhostCannon.GhostDirection)idx;
+    }
+
+public void ApplyDiffString(object target, string diffPart)
     {
         if (target == null || string.IsNullOrWhiteSpace(diffPart)) return;
 
