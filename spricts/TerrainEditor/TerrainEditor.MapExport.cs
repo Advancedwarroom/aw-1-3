@@ -455,7 +455,15 @@ private string GetWeaponDiffString(Weapon weapon)
         var tmpl = unitTemplates.FirstOrDefault(t => System.IO.Path.GetFileNameWithoutExtension(t.ScenePath).Replace("_", "").Replace("(1)", "").Equals(typeName, StringComparison.OrdinalIgnoreCase));
         if (tmpl != null) return tmpl.ScenePath;
         tmpl = unitTemplates.FirstOrDefault(t => t.ScenePath.IndexOf(typeName, StringComparison.OrdinalIgnoreCase) >= 0);
-        return tmpl?.ScenePath ?? "";
+        return WarnUnresolvedTemplate(typeName, tmpl?.ScenePath);   // ✅ 开创人2026-11-18: 失败喧哗,不再沉默
+    }
+
+    /// ✅ 开创人2026-11-18: 模板解析失败从沉默改喧哗——此前 return "" 让整个 Export 差异无声蒸发
+    string WarnUnresolvedTemplate(string typeName, string scenePath)
+    {
+        if (string.IsNullOrEmpty(scenePath))
+            GD.PushWarning($"[地图导出] 类型 {typeName} 的场景模板未解析，该对象的全部 Export 差异将被丢弃！");
+        return scenePath ?? "";
     }
 
     private string GetScenePathForWeaponType(string typeName)
@@ -499,7 +507,7 @@ private string GetWeaponDiffString(Weapon weapon)
         var tmpl = weaponTemplates.FirstOrDefault(t => System.IO.Path.GetFileNameWithoutExtension(t.ScenePath).Replace("_", "").Equals(typeName, StringComparison.OrdinalIgnoreCase));
         if (tmpl != null) return tmpl.ScenePath;
         tmpl = weaponTemplates.FirstOrDefault(t => t.ScenePath.IndexOf(typeName, StringComparison.OrdinalIgnoreCase) >= 0);
-        return tmpl?.ScenePath ?? "";
+        return WarnUnresolvedTemplate(typeName, tmpl?.ScenePath);   // ✅ 开创人2026-11-18: 失败喧哗,不再沉默
     }
 
     private string GetScenePathForFacilityType(string typeName)
@@ -507,6 +515,6 @@ private string GetWeaponDiffString(Weapon weapon)
         var tmpl = facilityTemplates.FirstOrDefault(t => System.IO.Path.GetFileNameWithoutExtension(t.ScenePath).Replace("_", "").Equals(typeName, StringComparison.OrdinalIgnoreCase));
         if (tmpl != null) return tmpl.ScenePath;
         tmpl = facilityTemplates.FirstOrDefault(t => t.ScenePath.IndexOf(typeName, StringComparison.OrdinalIgnoreCase) >= 0);
-        return tmpl?.ScenePath ?? "";
+        return WarnUnresolvedTemplate(typeName, tmpl?.ScenePath);   // ✅ 开创人2026-11-18: 失败喧哗,不再沉默
     }
 }
