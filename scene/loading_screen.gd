@@ -44,7 +44,11 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 func _ready() -> void:
+	# ✅ 开创人令（2026-11-18）：根本不吃触摸——按钮子节点自己 STOP 照常可点，
+	# 其余全放行。防"幕布淡出后残影/未释放"把下层全屏按钮活活饿死
+	mouse_filter = MOUSE_FILTER_IGNORE
 	label = $Label
+	label.mouse_filter = MOUSE_FILTER_IGNORE
 	enter_button = $EnterButton
 	enter_button.hide()
 	enter_button.pressed.connect(_on_enter_pressed)
@@ -230,7 +234,7 @@ func _poll_boot() -> void:
 		var tw := create_tween()
 		tw.tween_interval(0.15)
 		tw.tween_property(self, "modulate:a", 0.0, 0.4)
-		tw.tween_callback(queue_free)
+		tw.tween_callback(_vanish)   # ✅ 双保险：即便 queue_free 落空也不留吃触摸的隐形残影
 	else:
 		label.text = "加载中：%d‰  %s" % [PHASE_A_PERMILLE + BootMapLoader.Permille, BootMapLoader.PhaseLabel]
 
@@ -239,3 +243,8 @@ func _redraw_all(n: Node) -> void:
 		n.queue_redraw()
 	for c in n.get_children():
 		_redraw_all(c)
+
+func _vanish() -> void:
+	visible = false
+	mouse_filter = MOUSE_FILTER_IGNORE
+	queue_free()
