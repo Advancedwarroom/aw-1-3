@@ -11,12 +11,14 @@ var _enter_btn: Button = null
 var _info: RichTextLabel
 var _selected: Button = null
 var _scroll: ScrollContainer = null
+var _menu_list: Control = null
 
 var _dragging := false
 var _drag_off := Vector2.ZERO
 
 func _ready() -> void:
-	for child in $MenuList.get_children():
+	_menu_list = $MenuList   # 先捕获引用:滚动模式会搬家,$路径不再可靠
+	for child in _menu_list.get_children():
 		if child is Button:
 			_buttons.append(child)
 			child.pressed.connect(_on_pressed.bind(child))
@@ -24,8 +26,8 @@ func _ready() -> void:
 	_build_panel()
 	_make_scrollable()   # ✅ 2026-11-18修复①:超高列表包滚动容器
 	call_deferred("_auto_layout")
-	if not $MenuList.gui_input.is_connected(_on_menu_drag):
-		$MenuList.gui_input.connect(_on_menu_drag)
+	if not _menu_list.gui_input.is_connected(_on_menu_drag):
+		_menu_list.gui_input.connect(_on_menu_drag)
 	if has_node("Title") and not $Title.gui_input.is_connected(_on_menu_drag):
 		$Title.gui_input.connect(_on_menu_drag)   # ✅ 2026-11-18修复③:标题区也能拖
 	# ✅ 开创人2026-11-15: 十三号按钮"进入战场"——隐藏主菜单,直进背后已加载的main战场
@@ -38,10 +40,10 @@ func _ready() -> void:
 # ✅ 2026-11-18修复①:MenuList 最小高度超出屏幕时,包进 ScrollContainer 全按钮可滚达
 func _make_scrollable() -> void:
 	var vp := get_viewport().get_visible_rect().size
-	var need: float = $MenuList.get_combined_minimum_size().y
+	var need: float = _menu_list.get_combined_minimum_size().y
 	if need <= vp.y - 16:
 		return
-	var ml: Control = $MenuList
+	var ml: Control = _menu_list
 	var col_w: float = ml.get_combined_minimum_size().x + 24
 	var scroll := ScrollContainer.new()
 	scroll.name = "MenuScroll"
@@ -60,21 +62,21 @@ func _make_scrollable() -> void:
 func _auto_layout() -> void:
 	var vp := get_viewport().get_visible_rect().size
 	if _scroll != null and is_instance_valid(_scroll):
-		var col_w: float = $MenuList.get_combined_minimum_size().x + 24
+		var col_w: float = _menu_list.get_combined_minimum_size().x + 24
 		_scroll.size = Vector2(mini(col_w, vp.x - 16), vp.y - 16)
 		_scroll.position = Vector2(maxi(8, (vp.x - _scroll.size.x) / 2), 8)
 		return   # 滚动模式:MenuList 由 ScrollContainer 托管,不再手工居中
-	var sz: Vector2 = $MenuList.size
-	if sz.x < 100: sz = $MenuList.get_combined_minimum_size()
-	$MenuList.position = Vector2(maxi(8, (vp.x - sz.x) / 2), maxi(8, (vp.y - sz.y) / 2))
-	$MenuList.visible = true
+	var sz: Vector2 = _menu_list.size
+	if sz.x < 100: sz = _menu_list.get_combined_minimum_size()
+	_menu_list.position = Vector2(maxi(8, (vp.x - sz.x) / 2), maxi(8, (vp.y - sz.y) / 2))
+	_menu_list.visible = true
 	if _enter_btn:
 		var bsz: Vector2 = _enter_btn.size
 		if bsz.x < 10: bsz = _enter_btn.get_combined_minimum_size()
 		_enter_btn.position = Vector2(maxi(8, (vp.x - bsz.x) / 2), 8)
 
 func _on_menu_drag(event: InputEvent) -> void:
-	_drag_handle(event, $MenuList)
+	_drag_handle(event, _menu_list)
 
 func _on_panel_drag(event: InputEvent) -> void:
 	_drag_handle(event, _panel)
@@ -89,8 +91,8 @@ func _drag_handle(event: InputEvent, target: Control) -> void:
 
 func _on_enter_battle() -> void:
 	# ✅ 开创人2026-11-15: 单程票改往返——⚔ 常驻壳上,切换 MenuList 显隐
-	var open: bool = not $MenuList.visible   # ✅ 开创人2026-11-15: $节点返回未定型, :=推断失败致ParseError,显式注解
-	$MenuList.visible = open
+	var open: bool = not _menu_list.visible   # ✅ 开创人2026-11-15: $节点返回未定型, :=推断失败致ParseError,显式注解
+	_menu_list.visible = open
 	if _scroll != null and is_instance_valid(_scroll):
 		_scroll.visible = open
 	if not open:
