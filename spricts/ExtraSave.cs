@@ -319,6 +319,14 @@ public partial class ExtraSave : Node
         gm.UpdateUnitLists();
         gm.RefreshSpecializedUnitLists();
 
+        // ✅ 开创人2026-11-19: 方向性地形(管道/山地/海崖)CoW贴图在格子创建时按默认方向烘焙——批量铺格/载入后必须全员重刷
+        if (gm?.gridManager?.map != null)
+        {
+            foreach (var g in gm.gridManager.map)
+                if (g != null && GodotObject.IsInstanceValid(g))
+                    g.UpdateCowTerrainIcon();
+        }
+
         return true;
     }
 
