@@ -23,6 +23,9 @@ var _menu_drag_offset := Vector2.ZERO
 #    整段加载期恒 0‰ 最后一刻跳满，是假指标，弃用。
 var _dep_paths: Array[String] = []
 var _load_started := false
+# ✅ 开创人2026-11-18: 安卓mono线程加载不可靠→改逐帧手喂依赖表,标签真实时刷新
+var _manual_load := false
+var _dep_index := 0
 var _autocontinue := false   # ✅ 开创人令：点击发起的加载完成后自动续行进战场
 # ✅ 卡住检测：IN_PROGRESS 但已缓存数长期不涨 → 亮重试
 var _last_cached := -1
@@ -78,20 +81,34 @@ func _start_load() -> void:
 	label.show()
 	label.text = "加载中：0‰"
 	if OS.has_feature("android"):
-		# 安卓 mono 线程加载已知不可靠：直接同步加载
-		set_process(false)
+		# ✅ 2026-11-18: 同步加载UI冻结、进度永远画不出来——改逐帧手喂依赖表:
+		#    每帧load少量依赖(缓存命中瞬时返回),标签按 已喂/总数 真实刷新,全喂完主场景秒出
+		_manual_load = true
+		_dep_index = 0
+		return
+	ResourceLoader.load_threaded_request(GAME_SCENE)
+
+func _manual_load_step() -> void:
+	var budget := 2
+	while budget > 0 and _dep_index < _dep_paths.size():
+		var p := _dep_paths[_dep_index]
+		_dep_index += 1
+		if ResourceLoader.exists(p) and not ResourceLoader.has_cached(p):
+			ResourceLoader.load(p)
+		budget -= 1
+	label.text = "加载中：%d‰" % int(_dep_index * 1000.0 / max(_dep_paths.size(), 1))
+	if _dep_index >= _dep_paths.size():
+		_manual_load = false
 		var ps: PackedScene = load(GAME_SCENE)
 		if ps != null:
 			_loaded = ps
 			label.text = "加载中：1000‰"
 			if _autocontinue or FileAccess.file_exists("user://campaign_pending.map"):
 				_on_enter_pressed()
-				return
-			enter_button.show()
+			else:
+				enter_button.show()
 		else:
 			_show_load_failure()
-		return
-	ResourceLoader.load_threaded_request(GAME_SCENE)
 
 func _show_load_failure() -> void:
 	label.show()
@@ -122,6 +139,9 @@ func _cached_count() -> int:
 
 func _process(delta: float) -> void:
 	if not _load_started:
+		return
+	if _manual_load:
+		_manual_load_step()
 		return
 	if _boot_active:
 		_poll_boot()
