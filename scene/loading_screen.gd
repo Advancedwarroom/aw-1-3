@@ -48,9 +48,14 @@ func _ready() -> void:
 	_collect_dependencies(GAME_SCENE)
 	# ✅ 开创人令（2026-11-18）：进度从按下"进入战场"才开始算——
 	#    此前菜单空转就把条跑满，点击后的等待时间完全裸奔
-	label.text = "整装待发"
+	# ✅ 开创人2026-11-18(补完): 不显示——进度标签隐藏,点击后才弹出
+	label.text = ""
+	label.hide()
 	enter_button.text = "进入战场"
 	enter_button.show()
+	# ✅ 关键: 菜单空闲期停轮询——_process 默认运行,首帧就把 INVALID_RESOURCE
+	#    当失败走同步加载,条被秒满1000‰(11-18前半修复只改文案没刹住车轮)
+	set_process(false)
 
 # ✅ 递归收集场景依赖（去重）作分母；脚本(.gd/.cs/.csproj)跳过——has_cached 对脚本不可靠
 func _collect_dependencies(path: String) -> void:
@@ -70,6 +75,7 @@ func _start_load() -> void:
 	set_process(true)
 	enter_button.hide()
 	enter_button.text = "进入战场"
+	label.show()
 	label.text = "加载中：0‰"
 	if OS.has_feature("android"):
 		# 安卓 mono 线程加载已知不可靠：直接同步加载
@@ -88,6 +94,7 @@ func _start_load() -> void:
 	ResourceLoader.load_threaded_request(GAME_SCENE)
 
 func _show_load_failure() -> void:
+	label.show()
 	# 诊断探测器：区分"整个加载器坏死"还是"仅主场景坏"
 	var probe = load("res://scene/campaign_menu.tscn")
 	label.text = "加载失败！点击重试\n诊断: 战役菜单探测 %s" % ("OK" if probe != null else "FAIL")
@@ -114,6 +121,8 @@ func _cached_count() -> int:
 	return n
 
 func _process(delta: float) -> void:
+	if not _load_started:
+		return
 	if _boot_active:
 		_poll_boot()
 		return
