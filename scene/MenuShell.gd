@@ -41,26 +41,28 @@ func _make_scrollable() -> void:
 	var need: float = $MenuList.get_combined_minimum_size().y
 	if need <= vp.y - 16:
 		return
+	var ml: Control = $MenuList
+	var col_w: float = ml.get_combined_minimum_size().x + 24
 	var scroll := ScrollContainer.new()
 	scroll.name = "MenuScroll"
-	scroll.position = Vector2(8, 8)
-	scroll.size = Vector2(vp.x - 16, vp.y - 16)
+	scroll.position = Vector2(maxi(8, (vp.x - col_w) / 2), 8)
+	scroll.size = Vector2(mini(col_w, vp.x - 16), vp.y - 16)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
-	var ml: Control = $MenuList
 	ml.get_parent().remove_child(ml)
 	scroll.add_child(ml)
 	ml.position = Vector2.ZERO
-	ml.custom_minimum_size = Vector2(maxi(220, vp.x - 64), 0)
 	_scroll = scroll
 	if ml.gui_input.is_connected(_on_menu_drag):
 		ml.gui_input.disconnect(_on_menu_drag)   # 滚动模式下拖动交给滚动,不再与按钮抢输入
+	_panel.move_to_front()   # 弹窗必须在滚动层之上,否则输入被滚动毯子吃掉
 
 func _auto_layout() -> void:
 	var vp := get_viewport().get_visible_rect().size
 	if _scroll != null and is_instance_valid(_scroll):
-		_scroll.size = Vector2(vp.x - 16, vp.y - 16)
-		_scroll.position = Vector2(8, 8)
+		var col_w: float = $MenuList.get_combined_minimum_size().x + 24
+		_scroll.size = Vector2(mini(col_w, vp.x - 16), vp.y - 16)
+		_scroll.position = Vector2(maxi(8, (vp.x - _scroll.size.x) / 2), 8)
 		return   # 滚动模式:MenuList 由 ScrollContainer 托管,不再手工居中
 	var sz: Vector2 = $MenuList.size
 	if sz.x < 100: sz = $MenuList.get_combined_minimum_size()
