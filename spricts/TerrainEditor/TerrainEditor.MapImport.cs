@@ -258,6 +258,9 @@ public partial class TerrainEditor
 
     }
 
+    /// ✅ 开创人2026-11-18: public 纯文本入口——无头回环/外部导入通道走这里
+    public void ImportMapText(string content) => ParseAndImportMap(content);
+
     private void ParseAndImportMap(string content)
     {
         try
