@@ -567,6 +567,14 @@ public partial class TerrainEditor
             }
 
             if (gameManager != null) gameManager.blockVictoryCheck = false; // ✅ 恢复胜利检查
+            // ✅ 开创人2026-11-18: 方向性地形(管道/山地/海崖)的CoW贴图在格子创建时按默认方向烘焙——
+            //    customs diff 已把 terrainDirection 写回,但必须全员重刷一次,否则加载出来管道方向全错
+            if (gridManager?.map != null)
+            {
+                foreach (var g in gridManager.map)
+                    if (g != null && GodotObject.IsInstanceValid(g))
+                        g.UpdateCowTerrainIcon();
+            }
             gameManager?.unitManager?.RefreshUnitList();
             gameManager?.UpdateUnitLists();
             gameManager?.RefreshSpecializedUnitLists();
