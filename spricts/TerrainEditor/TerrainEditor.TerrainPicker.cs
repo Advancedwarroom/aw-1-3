@@ -309,6 +309,9 @@ public partial class TerrainEditor
         SaveAmmoFuelValues(g);
         g.gridType = newType;
         UpdateGridVisual(g);
+        // ✅ 开创人2026-11-19: 快速切换同调色板病——换格型必须重定向重绘,否则旧方向旧贴图残留到下次刷新
+        g.RefreshDirectionFromNeighbors(gridManager?.map);   // TerrainEditor分部字段
+        g.UpdateCowTerrainIcon();
         PushEditorAction(EditorActionType.PlaceTerrain, g, old);
         CloseQuickSwitch();
     }
@@ -425,6 +428,7 @@ public partial class TerrainEditor
             g.autoOptimizeDirection = true; // ✅ 方向恒自动, 贴图锁定与方向解耦
             g.manualCowTexturePath = lockPath;
             UpdateGridVisual(g);
+            g.UpdateCowTerrainIcon();   // ✅ 开创人2026-11-19: 被铺格子贴图即时重绘(BakeCowBrush只记风格不画图)
             parent.subActions.Add(new EditorActionRecord
             {
                 actionType = EditorActionType.PlaceTerrain,
