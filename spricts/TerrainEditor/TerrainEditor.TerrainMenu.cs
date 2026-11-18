@@ -693,6 +693,10 @@ private void OnTerrainSelected(GridType newTerrain)
 
     UpdateGridVisual(selectedGrid);
 
+    // ✅ 开创人2026-11-19: 换地形即重定向+重绘CoW贴图——此前换格型不重算不重绘,旧方向旧贴图残留到下次刷新
+    selectedGrid.RefreshDirectionFromNeighbors(gridManager?.map);
+    selectedGrid.UpdateCowTerrainIcon();
+
     // ✅ 换地形后方向选择器回到自动, 并重建分组列表(刷新方向行)
     dirAutoMode = true;
     manualDirMask = 0;
