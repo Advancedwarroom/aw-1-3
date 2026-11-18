@@ -12,12 +12,23 @@ var _info: RichTextLabel
 var _selected: Button = null
 var _scroll: ScrollContainer = null
 var _menu_list: Control = null
+var _initialized := false   # ✅ 2026-11-18: _ready 重入保险
 
 var _dragging := false
 var _drag_off := Vector2.ZERO
 
 func _ready() -> void:
-	_menu_list = $MenuList   # 先捕获引用:滚动模式会搬家,$路径不再可靠
+	# ✅ 2026-11-18 修复：_ready 重入保险——场景重挂树会二次触发 _ready，
+	# 此时 MenuList 已被 _make_scrollable 包进 MenuScroll（孙节点），裸 $MenuList 直查子级必炸
+	if _initialized:
+		return
+	_initialized = true
+	_menu_list = get_node_or_null("MenuList")   # 先捕获引用:滚动模式会搬家,$路径不再可靠
+	if _menu_list == null:
+		_menu_list = find_child("MenuList", "Control", true, false)   # 深度兜底
+	if _menu_list == null:
+		push_warning("[MenuShell] MenuList 缺失，主菜单构建跳过")
+		return
 	for child in _menu_list.get_children():
 		if child is Button:
 			_buttons.append(child)
@@ -39,6 +50,8 @@ func _ready() -> void:
 
 # ✅ 2026-11-18修复①:MenuList 最小高度超出屏幕时,包进 ScrollContainer 全按钮可滚达
 func _make_scrollable() -> void:
+	if _scroll != null and is_instance_valid(_scroll):   # ✅ 2026-11-18: 重入防双毯
+		return
 	var vp := get_viewport().get_visible_rect().size
 	var need: float = _menu_list.get_combined_minimum_size().y
 	if need <= vp.y - 16:
