@@ -456,10 +456,21 @@ private void CloseTerrainMenu()
     /// <summary>手动模式下把方向掩码写到目标格并即时重绘</summary>
     private void ApplyManualDirectionIfAny()
     {
-        if (dirAutoMode || selectedGrid == null) return;
+        if (selectedGrid == null) return;
+        if (dirAutoMode)
+        {
+            // ✅ 恢复自动：解除锁定,重走邻格适配
+            selectedGrid.autoOptimizeDirection = true;
+            selectedGrid.manualCowTexturePath = "";
+            selectedGrid.UpdateDirectionVariant();
+            selectedGrid.UpdateCowTerrainIcon();
+            return;
+        }
         selectedGrid.terrainDirection = manualDirMask;
+        // ✅ 开创人2026-11-19: 手动方向必须上锁——否则UpdateDirectionVariant/邻格重铺立刻把形态改回自动适配
+        selectedGrid.autoOptimizeDirection = false;
+        selectedGrid.manualCowTexturePath = TerrainStyleManager.ResolveCowTexturePath(selectedGrid.gridType, manualDirMask);
         selectedGrid.UpdateCowTerrainIcon();
-        selectedGrid.UpdateDirectionVariant();
     }
 
     private Button CreateTerrainButton(GridType terrainType)
