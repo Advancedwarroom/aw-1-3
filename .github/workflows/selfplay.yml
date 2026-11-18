@@ -161,6 +161,8 @@ jobs:
           fi
       - name: 杀掉 MSBuild 服务进程
         run: dotnet build-server shutdown
+      - name: 地图序列化 lint 门
+        run: timeout 120 godot --headless --path . res://tests/map_lint_check.tscn
       - name: City P-1 换色断言
         run: |
           mkdir -p build
