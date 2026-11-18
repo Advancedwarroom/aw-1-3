@@ -200,6 +200,8 @@ func _on_enter_pressed() -> void:
 # ✅ 方案甲：boot 模式——实例化轻量 main 场景，常驻顶层报千分制，BootMapLoader 分帧生成地图
 func _start_boot() -> void:
 	_boot_active = true
+	set_process(true)   # ✅ 2026-11-18: 到达 boot 前的 LOADED/失败分支已 set_process(false)，
+	                    # 不重启轮询则 _poll_boot 永不执行——标签永冻 500‰、淡出无人触发
 	enter_button.hide()
 	var boot_map := BOOT_MAP
 	if FileAccess.file_exists("user://campaign_pending.map"):
