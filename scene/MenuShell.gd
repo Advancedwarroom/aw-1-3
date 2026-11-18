@@ -25,7 +25,7 @@ func _ready() -> void:
 	_initialized = true
 	_menu_list = get_node_or_null("MenuList")   # 先捕获引用:滚动模式会搬家,$路径不再可靠
 	if _menu_list == null:
-		_menu_list = find_child("MenuList", "Control", true, false)   # 深度兜底
+		_menu_list = find_child("MenuList", true, false)   # 深度兜底（本版 find_child 三参签名，无类型过滤）
 	if _menu_list == null:
 		push_warning("[MenuShell] MenuList 缺失，主菜单构建跳过")
 		return
