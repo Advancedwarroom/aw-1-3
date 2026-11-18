@@ -100,5 +100,13 @@ public partial class MapEditorHelper
         PushAction(batchRecord);
         UpdateStatusHint($"{TranslateGroup.T("已填充")} {toFill.Count} {TranslateGroup.T("个格子")}");
         CancelAllModes();
-    }
+    
+        // ✅ 开创人2026-11-19: 方向性地形(管道/山地/海崖)CoW贴图在格子创建时按默认方向烘焙——批量铺格/载入后必须全员重刷
+        if (gridManager?.map != null)
+        {
+            foreach (var g in gridManager.map)
+                if (g != null && GodotObject.IsInstanceValid(g))
+                    g.UpdateCowTerrainIcon();
+        }
+}
 }
