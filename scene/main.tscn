@@ -301,7 +301,7 @@ offset_top = 18.0
 offset_right = 460.0
 offset_bottom = 52.0
 theme_override_font_sizes/font_size = 28
-text = "格 战"
+text = "aw-1-3"
 
 [node name="MenuList" type="VBoxContainer" parent="MenuShell"]
 offset_left = 60.0
