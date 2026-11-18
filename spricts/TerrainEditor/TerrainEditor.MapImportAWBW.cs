@@ -379,5 +379,13 @@ public partial class TerrainEditor
             // 保护计时器会在3秒后自动解除并调用 CheckVictoryCondition
             GD.Print(TranslateGroup.T("[Import] ParseAndImportMap 完成，保护计时器由 GameManager 管理"));
         }
-    }
+    
+        // ✅ 开创人2026-11-18: 方向性地形(管道/山地/海崖)CoW贴图在格子创建时按默认方向烘焙——导入后必须全员重刷
+        if (gridManager?.map != null)
+        {
+            foreach (var g in gridManager.map)
+                if (g != null && GodotObject.IsInstanceValid(g))
+                    g.UpdateCowTerrainIcon();
+        }
+}
 }
