@@ -141,7 +141,9 @@ public partial class TerrainEditor
                     string typeName = weapon.GetType().Name;
                     int hp = Mathf.CeilToInt(weapon.health / 10f);
                     string diff = GetWeaponDiffString(weapon);
-                    sb.AppendLine($"[{hx},{hy}] {typeName} {weapon.team} HP{hp}{diff}");
+                    // ✅ 开创人2026-11-18: 方向序列化——幽灵炮/黑炮/巨炮导入不再全员默认朝上
+                    string dir = GetWeaponDirChar(weapon);
+                    sb.AppendLine($"[{hx},{hy}] {typeName} {weapon.team} HP{hp}{diff}{(dir.Length > 0 ? " D:" + dir : "")}");
                 }
             }
         }
@@ -361,7 +363,15 @@ public partial class TerrainEditor
         return "{Test:true;" + string.Join(";", diffs) + "}";
     }
 
-    private string GetWeaponDiffString(Weapon weapon)
+        /// ✅ 开创人2026-11-18: 武器方向→单字符(U/R/D/L), 双枚举同序(Up,Right,Down,Left)故下标通用
+    static string GetWeaponDirChar(Weapon w)
+    {
+        if (w is BlackCannon bc) return "URDL"[(int)bc.direction].ToString();
+        if (w is GhostCannon gc) return "URDL"[(int)gc.direction].ToString();
+        return "";
+    }
+
+private string GetWeaponDiffString(Weapon weapon)
     {
         string scenePath = GetScenePathForWeaponType(weapon.GetType().Name);
         if (string.IsNullOrEmpty(scenePath)) return "";
