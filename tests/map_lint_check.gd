@@ -3,15 +3,10 @@ extends Node
 # 抓三类病: 节段缺失/行格式漂移/类型引用不可解析(沉默丢数据的上游)
 # 阶段一(本门): 语法+引用 lint; 阶段二(待纯API拆分): 导出→导入→再导出字节比对
 
-const KNOWN_UNITS = ["Infantry","Mech","Bike","Recon","Dog","LightTank","MdTank","Neotank","WarTank","Megatank","Oozium",
-	"PipeWorker","APC","Rig","Artillery","Rocket","AntiAir","AntiAirMissile","AntiTank","Flare","PipeRunner",
-	"Fighter","Bomber","Stealth","BCopter","TCopter","Duster","Seaplane","AeroSpacer",
-	"Gunboat","Cruiser","Submarine","Battleship","Lander","Carrier","ProducibleBoat","KamikazeBoat","RepairBoat",
-	"Rhino","Jingall","FlyBomb"]
-const KNOWN_WEAPONS = ["BlackCannon","LargeCannon","Laser","DeathRay","Crystal","BlackObelisk","MissileSilo",
-	"ForceSatellite","AttackSatellite","PipeSeam","SuperFactory","Gate","BlackArc","GhostCannon","GrandBolt"]
-const KNOWN_FACILITIES = ["City","Base","AirPort","Port","TempAirPort","TempPort","HQ","Lab","Radar","ComTower",
-	"WatchTower","RelayJunction"]
+const KNOWN_UNITS = ["AA","APC","AT","Art","FBo","Flr","Inf","LTk","Mch","Ooz","RBt","Rck","Rec"]
+# 扩展新兵种时在此登记其图内短名
+const KNOWN_WEAPONS = ["BCn","LargeCannon","Lsr"]
+const KNOWN_FACILITIES = ["Apt","Bse","Cty"]
 
 func _ready() -> void:
 	var path := "res://campaigns/main_battlefield.txt"
