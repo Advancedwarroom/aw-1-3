@@ -33,9 +33,11 @@ func _ready() -> void:
 		var line := ln.strip_edges()
 		if line.is_empty(): continue
 		if line.begins_with("=== "):
-			in_units = line.contains("Units")
-			in_weapons = line.contains("Weapons")
-			in_facs = line.contains("Facilit") or line.contains("Building")
+			# ✅ 开创人2026-11-18: 节段是短码(U/W/F),不是全词——首跑此处误判全空
+			var sec := line.trim_prefix("=== ").trim_suffix(" ===").strip_edges()
+			in_units = sec == "U"
+			in_weapons = sec == "W"
+			in_facs = sec == "F"
 			continue
 		if line.begins_with("["):
 			var m := RegEx.create_from_string("^\\[(\\d+),(\\d+)\\]\\s+(\\S+)").search(line)
