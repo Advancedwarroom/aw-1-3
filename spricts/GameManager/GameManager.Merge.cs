@@ -19,6 +19,7 @@ public partial class Infantry
     public int mergeResourceMode = 0;                            // 燃料/弹药合流方式
     [Export] public bool stealthBlocksMerge = true;              // 隐身单位禁止合流（原硬编码 stealthOverlapMode==1）
     [Export] public bool mergeLoadedTransportBlocked = true;       // 载有单位的运输单位禁止合流（原版：空载可合流）
+    [Export] public bool mergeOverflowAllowed = false;             // 合流结果可超上限（true=血量直接相加传递，无封顶无变现）
     [Export] public int mergeRefundPercent = 10;                   // 溢出变现率：每满血点返还造价百分比（10=原版；可负=反扣资金，可>10=超100%返还）
 }
 
@@ -38,17 +39,25 @@ public partial class GameManager
         if (!CanMerge(source, target)) return;   // ✅ 统一走 CanMerge（含全部 Export 门）
 
         // ① 血量合计封顶 + 溢出按满血比例变现（等价原版每点 10% 造价）
-        // 动态封顶：上限 = 被融合单位【自身的 maxHealth】（非固定100）；超出部分按 mergeRefundPercent 变现（可负=反扣，可>10=超100%）
+        // 动态封顶：上限 = 被融合单位【自身的 maxHealth】（非固定100）；overflowAllowed=true 则直接相加传递（无封顶无变现）
         int combinedHealth = source.health + target.health;
-        int maxHealthCap = Mathf.Max(1, target.maxHealth);
-        int excessHealth = Mathf.Max(0, combinedHealth - maxHealthCap);
-        target.health = Mathf.Min(maxHealthCap, combinedHealth);
-
-        if (excessHealth > 0 && target.cost > 0)
+        if (source.mergeOverflowAllowed)
         {
-            int fundsGained = Mathf.RoundToInt((float)excessHealth / maxHealthCap * target.cost * source.mergeRefundPercent / 10f);
-            int currentFunds = GetTeamFunds(target.team);
-            SetTeamFunds(target.team, currentFunds + fundsGained);
+            target.health = combinedHealth;
+        }
+        else
+        {
+            int maxHealthCap = Mathf.Max(1, target.maxHealth);
+            int excessHealth = Mathf.Max(0, combinedHealth - maxHealthCap);
+            target.health = Mathf.Min(maxHealthCap, combinedHealth);
+
+            // 溢出变现：可负=反扣资金，可>10=超100%返还
+            if (excessHealth > 0 && target.cost > 0)
+            {
+                int fundsGained = Mathf.RoundToInt((float)excessHealth / maxHealthCap * target.cost * source.mergeRefundPercent / 10f);
+                int currentFunds = GetTeamFunds(target.team);
+                SetTeamFunds(target.team, currentFunds + fundsGained);
+            }
         }
 
         // ② 燃料 + 八弹种（mergeResourceMode 见 Infantry 导出）
