@@ -13,7 +13,8 @@ public partial class Infantry
     [Export] public bool summonEnabled = false;
     [Export] public string summonUnitName = "";
     [Export] public int summonCount = 1;
-    [Export] public int summonRange = 1;
+    [Export] public int summonRangeMin = 1;   // 生成环带下限 n（曼哈顿距离 >= n；可配置空心环带，如 2-3 圈）
+    [Export] public int summonRangeMax = 1;   // 生成环带上限 m（曼哈顿距离 <= m）
     [Export] public int summonLifespan = 5;
     [Export] public int summonCooldownTurns = 0;
     [Export] public bool summonConsumesAction = true;
@@ -38,7 +39,7 @@ public partial class Infantry
         var cells = gm.gridManager.grids
             .Where(g => g != null && g.infantries.Count == 0 && g.weapon == null)
             .Select(g => new { g, d = Mathf.Abs(g.GridIndex.X - grid.GridIndex.X) + Mathf.Abs(g.GridIndex.Y - grid.GridIndex.Y) })
-            .Where(t => t.d >= 1 && t.d <= Mathf.Max(1, summonRange))
+            .Where(t => t.d >= summonRangeMin && t.d <= Mathf.Max(summonRangeMin, summonRangeMax))
             .OrderBy(t => t.d).ThenBy(t => t.g.GridIndex.Y).ThenBy(t => t.g.GridIndex.X)
             .ToList();
 
