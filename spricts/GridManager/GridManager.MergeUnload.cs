@@ -9,15 +9,19 @@ public partial class GridManager
     private Infantry pendingUnloadSource;
     private Infantry pendingUnloadTarget;
 
+    private GameManager GmRef() => GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+    private ActionMenu MenuRef() => GetTree()?.GetFirstNodeInGroup("action_menu") as ActionMenu;
+
     public void StartUnloadFirstMerge(Infantry source, Infantry target)
     {
+        var gm = GmRef();
         if (source == null || target == null) { gm?.MergeUnits(source, target); return; }
         pendingUnloadSource = source;
         pendingUnloadTarget = target;
         SetupEmptyClickForRollback(source);
-        menu?.ShowTransportUnloadButtonsOnly(source, false);
+        MenuRef()?.ShowTransportUnloadButtonsOnly(source, false);
         if (gm != null && gm.MergeLoadedConflict(source, target))
-            menu?.ShowTransportUnloadButtonsOnly(target, false);
+            MenuRef()?.ShowTransportUnloadButtonsOnly(target, false);
     }
 
     public void NotifyUnloadFirstProgress(Infantry transport)
@@ -27,6 +31,7 @@ public partial class GridManager
         if (!IsInstanceValid(pendingUnloadSource) || !IsInstanceValid(pendingUnloadTarget))
         { CancelUnloadFirstMerge(); return; }
         if ((pendingUnloadSource.transportedUnits?.Count ?? 0) > 0) return;
+        var gm = GmRef();
         if (gm != null && gm.MergeLoadedConflict(pendingUnloadSource, pendingUnloadTarget)) return;
         var s = pendingUnloadSource; var tg = pendingUnloadTarget;
         pendingUnloadSource = null; pendingUnloadTarget = null;
