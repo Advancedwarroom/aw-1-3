@@ -530,7 +530,7 @@ public void ShowTransportMenu(Infantry transport, bool afterMove)
 }
 
 
-private void ShowTransportUnloadButtonsOnly(Infantry transport, bool afterMove = false)
+public void ShowTransportUnloadButtonsOnly(Infantry transport, bool afterMove = false)
 {
     // 获取容器
     var container = GetNodeOrNull<VBoxContainer>("unloadContainer");
