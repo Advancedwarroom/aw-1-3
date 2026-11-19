@@ -113,7 +113,10 @@ public void RollbackMove()
 {
     HideProductionMenu();
 
-    if (selectedInfantry == null)
+    // ✦开创人2026-11-19：先卸后融——点空地整体回退时取消挂起合流
+    gridManager?.CancelUnloadFirstMerge();
+
+    if (selectedInfantry == null
     {
         return;
     }

@@ -473,7 +473,11 @@ public partial class GridManager
             .FirstOrDefault() as Infantry;
         if (mergeTarget != null && gm != null && gm.CanMerge(infantry, mergeTarget))
         {
-            gm.MergeUnits(infantry, mergeTarget);
+            int loadedPolicy = gm.GetMergeLoadedPolicy(infantry, mergeTarget);
+            if (loadedPolicy == 0 && showMenu)
+                StartUnloadFirstMerge(infantry, mergeTarget);   // ✦先卸后融：卸载流程接管（卸完自动合流；点空地整体回退）
+            else
+                gm.MergeUnits(infantry, mergeTarget);
             hasMerged = true;
         }
     }

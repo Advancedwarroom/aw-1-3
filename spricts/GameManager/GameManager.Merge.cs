@@ -19,6 +19,12 @@ public partial class Infantry
     public int mergeResourceMode = 0;                            // 燃料/弹药合流方式
     [Export] public bool stealthBlocksMerge = true;              // 隐身单位禁止合流（原硬编码 stealthOverlapMode==1）
     [Export] public bool mergeLoadedTransportBlocked = true;       // 载有单位的运输单位禁止合流（原版：空载可合流）
+    [ExportGroup("合流·舱内乘客策略（开创人2026-11-19）")]
+    [Export(PropertyHint.Enum, "先卸后融,拒融,保留乘客")]
+    public int mergeLoadedPolicy = 1;                          // 0=先卸后融 1=拒融(默认=旧行为) 2=保留乘客
+    [Export(PropertyHint.Enum, "只要搭载即触发,仅冲突时触发")]
+    public int mergeLoadedTrigger = 1;                          // 0=任一方有乘客即触发 1=合体装不下(超载/白名单)才触发
+    public bool transportMergeOverflowLock = false;             // 运行时：保留策略后锁再装载（"我的仁慈"只给一次）
     [Export] public bool mergeOverflowAllowed = false;             // 合流结果可超上限（true=血量直接相加传递，无封顶无变现）
     [Export] public int mergeRefundPercent = 10;                   // 溢出变现率：每满血点返还造价百分比（10=原版；可负=反扣资金，可>10=超100%返还）
 }
@@ -94,6 +100,21 @@ public partial class GameManager
 
         target.UpdateHpLabel();
 
+        // ✦舱内乘客·保留策略：target 吸收 source 全部乘客（可超载/违白名单——"我的仁慈"），锁再装载
+        if ((source.transportedUnits?.Count ?? 0) > 0)
+        {
+            target.transportedUnits ??= new System.Collections.Generic.List<Infantry>();
+            foreach (var p in source.transportedUnits)
+            {
+                if (p == null || !IsInstanceValid(p)) continue;
+                target.transportedUnits.Add(p);
+                p.isTransported = true;
+            }
+            source.transportedUnits.Clear();
+            target.transportMergeOverflowLock = true;
+            target.UpdateLoadedIcon();
+        }
+
         RemoveUnit(source);
         UpdateUnitLists();
 
@@ -125,11 +146,38 @@ public partial class GameManager
         if (source.stealthBlocksMerge && source.isStealthed) return false;
         if (target.stealthBlocksMerge && target.isStealthed) return false;
 
-        // 运输门：仅"载有单位"才禁（对齐原作：空载运输单位可合流；原 RepairBoat 写死例外由本规则取代）
-        if (source.mergeLoadedTransportBlocked && (source.transportedUnits?.Count ?? 0) > 0) return false;
-        if (target.mergeLoadedTransportBlocked && (target.transportedUnits?.Count ?? 0) > 0) return false;
+        // 运输门（✦2026-11-19 舱内乘客三策略，取代 mergeLoadedTransportBlocked 硬拒）：
+        //   0=先卸后融（移动层接管卸载流程） 1=拒融 2=保留（MergeUnits 吸收乘客）
+        if (AnyLoadedTransport(source, target) && GetMergeLoadedPolicy(source, target) == 1) return false;
 
         return true;
+    }
+
+    // ========== ✦舱内乘客策略（开创人2026-11-19）==========
+    public bool AnyLoadedTransport(Infantry a, Infantry b)
+        => ((a?.transportedUnits?.Count ?? 0) > 0) || ((b?.transportedUnits?.Count ?? 0) > 0);
+
+    // 冲突 = 合体后 target 装不下全部乘客：数量超载 或 白名单不符
+    public bool MergeLoadedConflict(Infantry source, Infantry target)
+    {
+        var all = (target?.transportedUnits ?? new System.Collections.Generic.List<Infantry>())
+            .Concat(source?.transportedUnits ?? Enumerable.Empty<Infantry>())
+            .Where(u => u != null && IsInstanceValid(u)).ToList();
+        if (all.Count > Mathf.Max(0, target?.maxTransportCapacity ?? 0)) return true;
+        var wl = target?.canTransportUnitTypes;
+        if (wl != null && wl.Count > 0)
+            foreach (var p in all)
+                if (!wl.Contains(p.UnitTypeId) && !wl.Contains(p.TemplateId)) return true;
+        return false;
+    }
+
+    // 裁决：-1=正常合流 0=先卸后融 1=拒融 2=保留
+    public int GetMergeLoadedPolicy(Infantry source, Infantry target)
+    {
+        if (!AnyLoadedTransport(source, target)) return -1;
+        bool triggered = source.mergeLoadedTrigger == 0 ? true : MergeLoadedConflict(source, target);
+        if (!triggered) return -1;
+        return source.mergeLoadedPolicy;
     }
 
     // ========== ✅ 真人「合流/取消」确认框（开创人2026-11-19：出按钮，不要直接） ==========

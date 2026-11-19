@@ -195,6 +195,7 @@ public List<Infantry> transportedUnits = new List<Infantry>();
 public virtual bool LoadUnit(Infantry unit)
 {
         if (isStealthed && !canLoadUnloadWhileStealthed) return false; // ✅ 隐身行为锁
+    if (transportMergeOverflowLock) return false;   // ✦开创人2026-11-19：合流·保留策略——不能再装回来
     if (!CanTransportUnit(unit)) return false;
     
     // ✅ 彻底停止所有视觉组件的动画残留（sprite + animSprite + 嵌套子节点）
@@ -370,6 +371,9 @@ public virtual bool UnloadUnit(Infantry unit, Grids targetGrid)
     gm?.fogOfWarManager?.OnUnitMoved(); // ✅ 卸载后刷新迷雾
     
     UpdateLoadedIcon();
+    
+    // ✦开创人2026-11-19：先卸后融——卸载成功推进挂起合流
+    (GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager)?.gridManager?.NotifyUnloadFirstProgress(this);
     
     return true;
 }
