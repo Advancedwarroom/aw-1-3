@@ -27,6 +27,8 @@ public partial class Infantry
     public bool transportMergeOverflowLock = false;             // 运行时：保留策略后锁再装载（"我的仁慈"只给一次）
     [Export] public bool mergeOverflowAllowed = false;             // 合流结果可超上限（true=血量直接相加传递，无封顶无变现）
     [Export] public int mergeRefundPercent = 10;                   // 溢出变现率：每满血点返还造价百分比（10=原版；可负=反扣资金，可>10=超100%返还）
+    [Export] public bool mergeRequiresDamaged = true;             // ✅ 双方受损门：true=原版（双方受损才可合流）；false=满血也可（变现阀全开）
+    [Export] public int mergeMinHpPercent = 0;                    // 受损门槛%：0=不限；50=双方血量均须低于50%才允许合流
 }
 
 public partial class GameManager
@@ -149,6 +151,13 @@ public partial class GameManager
         // 运输门（✦2026-11-19 舱内乘客三策略，取代 mergeLoadedTransportBlocked 硬拒）：
         //   0=先卸后融（移动层接管卸载流程） 1=拒融 2=保留（MergeUnits 吸收乘客）
         if (AnyLoadedTransport(source, target) && GetMergeLoadedPolicy(source, target) == 1) return false;
+
+        // ✅ 双方受损门（开创人2026-11-20 钦定，默认 true=原版行为）
+        int dmgGate = source.mergeRequiresDamaged ? (source.mergeMinHpPercent > 0 ? source.mergeMinHpPercent : 100) : source.mergeMinHpPercent;
+        if (dmgGate > 0
+            && (source.health * 100 >= source.maxHealth * dmgGate
+                || target.health * 100 >= target.maxHealth * dmgGate))
+            return false;
 
         return true;
     }
