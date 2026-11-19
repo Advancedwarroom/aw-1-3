@@ -374,6 +374,26 @@ public partial class GameManager
 
             // 6. 锁血判定
             grid.LockHealthIfNeeded(unit);
+
+            // 6.5 ✦开创人2026-11-19：召唤冷却 + 单位存在时限（仅整回合全量结算 pass：onlyTeam==null）
+            if (onlyTeam == null)
+            {
+                if (unit.summonCooldownRemaining > 0) unit.summonCooldownRemaining--;
+
+                if (unit.lifespanTurns > 0)
+                {
+                    unit.lifespanTurns--;
+                    if (unit.lifespanTurns <= 0)
+                    {
+                        // 到点立即消失（蒸发语义，不触发亡语/尸化）；先清占领/撕旗登记防幽灵
+                        if (unit.capturingGrid?.city != null) unit.capturingGrid.city.OnCaptureInterrupted(unit);
+                        if (unit.tearingGrid?.city != null) unit.tearingGrid.city.OnCaptureInterrupted(unit);
+                        unit.capturingGrid = null;
+                        unit.tearingGrid = null;
+                        RemoveUnit(unit);
+                    }
+                }
+            }
         }
 
         // 更新统计（可能有单位死亡）

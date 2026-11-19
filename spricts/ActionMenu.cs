@@ -373,6 +373,8 @@ private List<Grids> GetAdjacentGrids(Grids center)
 
         // ✅ N屏地图：传送按钮（站在有出链的格子上时显示）
         UpdateTeleportButtonVisibility(unit);
+        // ✦开创人2026-11-19: 召唤按钮（CO时限单位召唤）
+        UpdateSummonButtonVisibility(unit);
         UpdateCarveButton();   // ✅ 开创人2026-11-15: 开凿按钮(与参谋二调用点同名)
         UpdatePushChoiceButtonVisibility(unit);
 
