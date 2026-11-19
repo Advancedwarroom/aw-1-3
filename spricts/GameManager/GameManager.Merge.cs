@@ -19,9 +19,7 @@ public partial class Infantry
     public int mergeResourceMode = 0;                            // 燃料/弹药合流方式
     [Export] public bool stealthBlocksMerge = true;              // 隐身单位禁止合流（原硬编码 stealthOverlapMode==1）
     [Export] public bool mergeLoadedTransportBlocked = true;       // 载有单位的运输单位禁止合流（原版：空载可合流）
-    [Export] public bool mergeTargetDamagedRequired = true;        // 接收方须残血（原版）；false=满血/超上限单位也可被合流
-    [Export] public bool mergeOverflowAllowed = false;             // 合流结果可超上限（虚胖可传递；不封顶则无资金返还）
-    [Export] public int mergeRefundPercent = 10;                   // 溢出变现率：每满血点返还造价百分比（10=原版）
+    [Export] public int mergeRefundPercent = 10;                   // 溢出变现率：每满血点返还造价百分比（10=原版；可负=反扣资金，可>10=超100%返还）
 }
 
 public partial class GameManager
@@ -40,24 +38,17 @@ public partial class GameManager
         if (!CanMerge(source, target)) return;   // ✅ 统一走 CanMerge（含全部 Export 门）
 
         // ① 血量合计封顶 + 溢出按满血比例变现（等价原版每点 10% 造价）
+        // 动态封顶：上限 = 被融合单位【自身的 maxHealth】（非固定100）；超出部分按 mergeRefundPercent 变现（可负=反扣，可>10=超100%）
         int combinedHealth = source.health + target.health;
-        if (source.mergeOverflowAllowed)
-        {
-            // 不封顶：超上限血量直接传递（无溢出→无资金返还）
-            target.health = combinedHealth;
-        }
-        else
-        {
-            int maxHealthCap = Mathf.Max(1, target.maxHealth);
-            int excessHealth = Mathf.Max(0, combinedHealth - maxHealthCap);
-            target.health = Mathf.Min(maxHealthCap, combinedHealth);
+        int maxHealthCap = Mathf.Max(1, target.maxHealth);
+        int excessHealth = Mathf.Max(0, combinedHealth - maxHealthCap);
+        target.health = Mathf.Min(maxHealthCap, combinedHealth);
 
-            if (excessHealth > 0 && target.cost > 0)
-            {
-                int fundsGained = Mathf.RoundToInt((float)excessHealth / maxHealthCap * target.cost * Mathf.Max(0, source.mergeRefundPercent) / 10f);
-                int currentFunds = GetTeamFunds(target.team);
-                SetTeamFunds(target.team, currentFunds + fundsGained);
-            }
+        if (excessHealth > 0 && target.cost > 0)
+        {
+            int fundsGained = Mathf.RoundToInt((float)excessHealth / maxHealthCap * target.cost * source.mergeRefundPercent / 10f);
+            int currentFunds = GetTeamFunds(target.team);
+            SetTeamFunds(target.team, currentFunds + fundsGained);
         }
 
         // ② 燃料 + 八弹种（mergeResourceMode 见 Infantry 导出）
@@ -120,7 +111,6 @@ public partial class GameManager
         if (source.GetType() != target.GetType()) return false;
         if (source.team != target.team) return false;
         if (source == target) return false;
-        if (source.mergeTargetDamagedRequired && target.health >= target.maxHealth) return false;   // 残血门：Export 化（原硬编码 AW 规则）
 
         // 隐身门（Export 化；原硬编码 stealthOverlapMode==1）
         if (source.stealthBlocksMerge && source.isStealthed) return false;
