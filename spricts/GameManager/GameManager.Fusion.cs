@@ -108,23 +108,30 @@ public partial class GameManager
         return true;
     }
 
-    // ========== 范围带扫描（开创人2026-11-20：移动到目标位置融合；带 = 操作方 fusionRange，未开方取默认0-1） ==========
+    // ========== 范围带扫描（开创人2026-11-20：移动到目标位置融合）
+    // 钦定：默认只能移动到目标位置（0-1）。所有距离判定一律读 Export（fusionRangeMin/Max），无任何硬编码距离。
+    // 距离裁决：对每对候选取"配置归属方"（双方都开=操作单位；只一方开=开启方）的 fusionRange。
     public List<Infantry> GetFusionTargetsInBand(Infantry op, Vector2I centerIndex)
     {
         var result = new List<Infantry>();
         if (op == null || gridManager == null) return result;
-        int rMin = op.fusionEnabled ? Mathf.Max(0, op.fusionRangeMin) : 0;
-        int rMax = op.fusionEnabled ? Mathf.Max(rMin, op.fusionRangeMax) : 1;
-        for (int dx = -rMax; dx <= rMax; dx++)
-        for (int dy = -rMax; dy <= rMax; dy++)
+        // 扫描上限仅作裁剪：操作方开启取其上限，未开启取钦定默认 1（真正的距离判定在下面逐候选走 Export）
+        int scanMax = op.fusionEnabled ? Mathf.Max(0, op.fusionRangeMax) : 1;
+        for (int dx = -scanMax; dx <= scanMax; dx++)
+        for (int dy = -scanMax; dy <= scanMax; dy++)
         {
-            int man = Mathf.Abs(dx) + Mathf.Abs(dy);
-            if (man < rMin || man > rMax) continue;
             var pos = centerIndex + new Vector2I(dx, dy);
             if (!unitManager.IsValidGrid(pos)) continue;
             var g = gridManager.map[pos.X, pos.Y];
-            if (g?.infantry == null) continue;
-            if (CanFuse(op, g.infantry)) result.Add(g.infantry);
+            var cand = g?.infantry;
+            if (cand == null) continue;
+            var cfg = FusionConfigSource(op, cand);   // 双方都开→操作单位；只一方开→开启方
+            if (cfg == null) continue;
+            int rMin = Mathf.Max(0, cfg.fusionRangeMin);
+            int rMax = Mathf.Max(rMin, cfg.fusionRangeMax);
+            int man = Mathf.Abs(dx) + Mathf.Abs(dy);
+            if (man < rMin || man > rMax) continue;
+            if (CanFuse(op, cand)) result.Add(cand);
         }
         return result;
     }
@@ -256,7 +263,7 @@ public partial class GameManager
         var cfg = FusionConfigSource(op, target);
         string childName = ResolveFusionChild(op, target);
         var info = UnitProductionDatabase.GetInfo(childName);
-        if (info == null) return null;
+        if (string.IsNullOrWhiteSpace(info.ScenePath)) return null;
         var scene = GD.Load<PackedScene>(info.ScenePath);
         if (scene == null) return null;
 
