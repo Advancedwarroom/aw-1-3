@@ -487,8 +487,10 @@ public partial class GridManager
     bool hasFused = false;
     if (!hasMountedToTransport && !hasMerged && gm != null)
     {
-        var fusionTarget = gm.GetFusionTargetsInBand(infantry, to.GridIndex)
-            .OrderBy(u => u.health).FirstOrDefault();
+        var fusionCandidates = gm.GetFusionTargetsInBand(infantry, to.GridIndex);
+        var fusionTarget = showMenu
+            ? fusionCandidates.OrderBy(u => u.health).FirstOrDefault()
+            : fusionCandidates.Where(u => gm.ShouldAIFuse(infantry, u)).OrderBy(u => u.health).FirstOrDefault();
         if (fusionTarget != null)
         {
             if (showMenu)

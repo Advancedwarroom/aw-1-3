@@ -160,6 +160,15 @@ public partial class GameManager
         dlg.PopupCentered();
     }
 
+    // ========== AI 融合评估（开创人2026-11-20）：残血整合才融 ==========
+    // 至少一方受损才有融合收益（修理式整合）；满血融满血=白给编制，AI 不干。
+    // 真人不受此门限制——确认框本身就是裁决器。
+    public bool ShouldAIFuse(Infantry op, Infantry target)
+    {
+        if (op == null || target == null) return false;
+        return op.health < op.maxHealth || target.health < target.maxHealth;
+    }
+
     // ========== 数值合成：0=平均 1=取大 2=取小 3=合计封顶 ==========
     private static int FuseStat(int mode, int a, int b) => mode switch
     {
