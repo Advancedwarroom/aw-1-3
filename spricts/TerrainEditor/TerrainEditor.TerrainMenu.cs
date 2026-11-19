@@ -387,7 +387,19 @@ private void CloseTerrainMenu()
                 terrainButtonMap[t] = btn;
             }
             if (types.Contains(currentTerrain) && IsCowDirectional(currentTerrain))
-                CreateDirectionPickerRow();
+            {
+                if (currentTerrain == GridType.BEACH)
+                {
+                    // ✅ 开创人2026-11-19: 沙滩是专属上下文求解器(land/beach/diag三层掩码,119形态)——四向钮语义不适用,指路批量形态下拉
+                    var beachHint = new Label();
+                    beachHint.Text = "🏖 沙滩=上下文岸线(119形态)：用批量面板「形态」下拉选择；四向钮不适用";
+                    beachHint.AddThemeFontSizeOverride("font_size", 11);
+                    beachHint.AddThemeColorOverride("font_color", new Color(0.95f, 0.8f, 0.45f));
+                    terrainButtonContainer.AddChild(beachHint);
+                }
+                else
+                    CreateDirectionPickerRow();
+            }
         }
     }
 
