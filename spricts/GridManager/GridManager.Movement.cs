@@ -482,13 +482,41 @@ public partial class GridManager
         }
     }
 
-    if (!hasMountedToTransport && !hasMerged && showMenu)
+    // ✅ 融合检测（开创人2026-11-20）：移动到目标位置后，fusionRange 带内可融合目标
+    //    真人弹「融合/取消」确认框（确认=融合；取消=保持落点并正常弹菜单），AI(showMenu=false)直融
+    bool hasFused = false;
+    if (!hasMountedToTransport && !hasMerged && gm != null)
+    {
+        var fusionTarget = gm.GetFusionTargetsInBand(infantry, to.GridIndex)
+            .OrderBy(u => u.health).FirstOrDefault();
+        if (fusionTarget != null)
+        {
+            if (showMenu)
+            {
+                gm.PromptFusionConfirmation(infantry, fusionTarget, this,
+                    onConfirm: () => gm.ExecuteFusion(infantry, fusionTarget),
+                    onCancel: () =>
+                    {
+                        SetupEmptyClickForRollback(infantry);
+                        var fusionMenu = GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu;
+                        fusionMenu?.ShowMenu(infantry, true, true);
+                    });
+            }
+            else
+            {
+                gm.ExecuteFusion(infantry, fusionTarget);
+            }
+            hasFused = true;
+        }
+    }
+
+    if (!hasMountedToTransport && !hasMerged && !hasFused && showMenu)
     {
         SetupEmptyClickForRollback(infantry);
         var actionMenu = GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu;
         actionMenu?.ShowMenu(infantry, true, true);
     }
-    else if (!hasMountedToTransport && !hasMerged)
+    else if (!hasMountedToTransport && !hasMerged && !hasFused)
     {
         // ⬅️ 不弹菜单，直接待机
         infantry.isAttacked = true;

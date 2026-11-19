@@ -379,6 +379,7 @@ public partial class GameManager
             if (onlyTeam == null)
             {
                 if (unit.summonCooldownRemaining > 0) unit.summonCooldownRemaining--;
+                if (unit.fusionCooldownRemaining > 0) unit.fusionCooldownRemaining--;
 
                 if (unit.lifespanTurns > 0)
                 {
