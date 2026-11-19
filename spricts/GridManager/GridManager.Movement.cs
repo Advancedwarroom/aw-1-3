@@ -70,9 +70,11 @@ public partial class GridManager
                 if (mergeTarget != null)
                 {
                     var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-                    if (gm != null && !(infantry.isStealthed && infantry.stealthOverlapMode == 1) && gm.CanMerge(infantry, mergeTarget))
+                    if (gm != null && gm.CanMerge(infantry, mergeTarget))
                     {
-                        MoveTo(infantry, to);
+                        // ✅ 开创人2026-11-19：合流按钮制——真人先弹「合流/取消」，确认才移动（落点自动合流），取消=原地不动；AI 不经过此层
+                        gm.PromptMergeConfirmation(infantry, mergeTarget, this,
+                            onConfirm: () => MoveTo(infantry, to));
                         return;
                     }
                 }
@@ -293,7 +295,7 @@ public partial class GridManager
         if (mergeTarget != null)
         {
             var gm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-            if (gm != null && !(requestingUnit.isStealthed && requestingUnit.stealthOverlapMode == 1) && gm.CanMerge(requestingUnit, mergeTarget))
+            if (gm != null && gm.CanMerge(requestingUnit, mergeTarget))
                 return true;
         }
 
@@ -327,7 +329,7 @@ public partial class GridManager
                 // ✅ 允许合流：同类型友方残血单位
                 var mergeTarget = otherUnits.FirstOrDefault(u => u.team == infantry.team && u.UnitTypeId == infantry.UnitTypeId);
                 var gmer = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
-                bool canMerge = mergeTarget != null && gmer != null && !(infantry.isStealthed && infantry.stealthOverlapMode == 1) && gmer.CanMerge(infantry, mergeTarget);
+                bool canMerge = mergeTarget != null && gmer != null && gmer.CanMerge(infantry, mergeTarget);
                 // ✅ 允许搭载：友方运输单位
                 var transported = Infantry.FindTransportFor(otherUnits, infantry);
                 // ✅ P-1 公共运输单位可以搭载任何势力
@@ -461,7 +463,7 @@ public partial class GridManager
             .Where(u => u != infantry && IsInstanceValid(u) && u.team == infantry.team && u.UnitTypeId == infantry.UnitTypeId)
             .OrderBy(u => u.health)
             .FirstOrDefault() as Infantry;
-        if (mergeTarget != null && gm != null && !(infantry.isStealthed && infantry.stealthOverlapMode == 1) && gm.CanMerge(infantry, mergeTarget))
+        if (mergeTarget != null && gm != null && gm.CanMerge(infantry, mergeTarget))
         {
             gm.MergeUnits(infantry, mergeTarget);
             hasMerged = true;
