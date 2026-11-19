@@ -124,7 +124,7 @@ public partial class GridManager
                     }
                     
                     // 检查2: 兵器阻挡（非Oozium单位；宇宙战舰/空天战机可飞越；导弹井可站上发射）
-                    if (g.weapon != null && !g.weapon.AllowsPassage(infantry) && !g.weapon.CanShelterUnit(infantry))
+                    if (g.weapon != null && infantry.blockedByEnemyWeapons && TeamHelper.IsEnemyTeam(infantry.team, g.weapon.team) && !g.weapon.AllowsPassage(infantry) && !g.weapon.CanShelterUnit(infantry))
                     {
                         TruncateAndMove(infantry, lastValidGrid);
                         return;
@@ -202,7 +202,7 @@ public partial class GridManager
             }
         }
         // ✅ 设施通行控制三件套（照兵器同构）：设施自己决定本格能否进入；默认 allowAllPass=true 零影响。
-        if (grid.city != null && IsInstanceValid(grid.city) && !grid.city.allowAllPass)
+        if (grid.city != null && IsInstanceValid(grid.city) && !grid.city.allowAllPass && (requestingUnit.blockedByEnemyFacilities || !TeamHelper.IsEnemyTeam(requestingUnit.team, grid.city.facilityTeam)))
         {
             var fBlk = grid.city;
             bool fTeamHit = TeamHelper.MatchesTeamRelation(fBlk.facilityTeam, requestingUnit.team,
@@ -227,7 +227,7 @@ public partial class GridManager
                 bool hasEnemy = otherUnits.Any(u => TeamHelper.IsEnemyTeam(requestingUnit.team, u.team));
                 bool hasAlly = otherUnits.Any(u => TeamHelper.IsFriendlyTeam(requestingUnit.team, u.team) || TeamHelper.IsAlliedTeam(requestingUnit.team, u.team));
                 
-                if (hasEnemy)
+                if (hasEnemy && requestingUnit.blockedByEnemyUnits)
                 {
                     return false;
                 }
@@ -391,6 +391,14 @@ public partial class GridManager
         if (infantry.consumeFuel)
             infantry.ConsumeFuel(totalFuelCost);
 
+        // ✦开创人2026-11-19：穿过触发——路径中间格（不含终点）逐格结算触发目标（黑名单/势力过滤在模块内）
+        if (infantry.passthroughEnabled)
+        {
+            var pasGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+            for (int pi = 1; pi < path.Count - 1; pi++)
+                infantry.ApplyPassthroughOn(path[pi], pasGm);
+        }
+
         var fromGrid = infantry.grid;
         if (fromGrid != null)
         {
@@ -552,7 +560,7 @@ public partial class GridManager
             { hardBlocked = true; break; }
 
             // ✅ 检查2: 兵器阻挡（非Oozium；宇宙战舰/空天战机可飞越；导弹井可站上发射）
-            if (g.weapon != null && !g.weapon.AllowsPassage(infantry) && !g.weapon.CanShelterUnit(infantry)) { hardBlocked = true; break; }
+            if (g.weapon != null && infantry.blockedByEnemyWeapons && TeamHelper.IsEnemyTeam(infantry.team, g.weapon.team) && !g.weapon.AllowsPassage(infantry) && !g.weapon.CanShelterUnit(infantry)) { hardBlocked = true; break; }
 
             // ✅ 检查3: 地形不可移动
             int moveCost = infantry.GetMoveCostOnGrid(g);
