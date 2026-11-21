@@ -455,7 +455,11 @@ public partial class TerrainEditor
                             var grid = gridManager.map[ux, uy];
                             if (grid != null)
                             {
-                                SpawnUnitAtGrid(grid, scenePath, uTeam);
+                                int joinId = 0;
+                                var joinMatch = System.Text.RegularExpressions.Regex.Match(diffPart, @"JG(\d+)");
+                                if (joinMatch.Success) joinId = int.Parse(joinMatch.Groups[1].Value);
+                                diffPart = System.Text.RegularExpressions.Regex.Replace(diffPart, @"\s*JG\d+", "");
+                                SpawnUnitAtGrid(grid, scenePath, uTeam, preserveJoinedUnits: joinId > 0, joinGroupId: joinId);
                                 var spawned = grid.infantries.LastOrDefault();
                                 if (spawned != null)
                                 {

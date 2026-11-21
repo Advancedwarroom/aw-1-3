@@ -253,6 +253,8 @@ public virtual void UpdateHpLabel()
         bars = Mathf.RoundToInt(health / healthPerBar);
     }
     
+    if (joinGroupId > 0 && grid != null && grid.infantry == this && gameManager != null)
+        bars = gameManager.GetJoinDisplayHp(this);
     hpLabel.Text = bars.ToString();
 }
 

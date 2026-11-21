@@ -25,6 +25,9 @@ public partial class GridManager
             return;
         }
 
+        var joinGm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
+        if (infantry.joinGroupId > 0 && HandleJointMoveClick(infantry, to)) return;
+
         // ✅ 究极自由：检查任何可搭载单位
         var transport = to.infantries.FirstOrDefault(u => 
             u.canTransportUnits 
@@ -77,6 +80,12 @@ public partial class GridManager
                             onConfirm: () => MoveTo(infantry, to));
                         return;
                     }
+                }
+                var joinTarget = otherUnits.FirstOrDefault(u => joinGm != null && joinGm.CanJoinFormation(infantry, u));
+                if (joinTarget != null)
+                {
+                    MoveTo(infantry, to);
+                    return;
                 }
                 // ⬅️ 改为截断移动而非直接取消
                 HandleTruncatedMove(infantry, to);
@@ -221,6 +230,9 @@ public partial class GridManager
         var otherUnits = grid.infantries.Where(i => i != requestingUnit && IsInstanceValid(i)).ToList();
         if (otherUnits.Count == 0) return true;
 
+        var joinGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (joinGm != null && otherUnits.Any(u => joinGm.CanJoinFormation(requestingUnit, u))) return true;
+
         switch (requestingUnit.overlapType)
         {
             case UnitOverlapType.NonOverlapping:
@@ -290,6 +302,9 @@ public partial class GridManager
         var p1Transport = Infantry.FindTransportFor(otherUnits, requestingUnit);
         if (p1Transport != null) return true;
 
+        var joinGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (joinGm != null && otherUnits.Any(u => joinGm.CanJoinFormation(requestingUnit, u))) return true;
+
         // ✅ 合流检测：同类型友方残血单位可以合流
         var mergeTarget = otherUnits.FirstOrDefault(u => u.team == requestingUnit.team && u.UnitTypeId == requestingUnit.UnitTypeId);
         if (mergeTarget != null)
@@ -311,7 +326,7 @@ public partial class GridManager
         }
     }
 
-    public void MoveTo(Infantry infantry, Grids to, bool showMenu = true, System.Collections.Generic.List<Grids> forcedPath = null)
+    public void MoveTo(Infantry infantry, Grids to, bool showMenu = true, System.Collections.Generic.List<Grids> forcedPath = null, bool preserveAction = false)
     {
         infantry.OnActionMoved();   // ✅ 开创人2026-11-15: 准备模块——移动清池(actionClearOnMove各操作独立)
         if (infantry == null || to == null) return;
@@ -335,7 +350,8 @@ public partial class GridManager
                 // ✅ P-1 公共运输单位可以搭载任何势力
                 if (transported == null)
                     transported = Infantry.FindTransportFor(otherUnits, infantry);
-                if (transported == null && !canMerge)
+                bool canJoin = gmer != null && otherUnits.Any(u => gmer.CanJoinFormation(infantry, u));
+                if (transported == null && !canMerge && !canJoin)
                     return;
             }
         }
@@ -463,9 +479,16 @@ public partial class GridManager
         }
     }
 
+    bool hasJoined = false;
+    if (!hasMountedToTransport && gm != null)
+    {
+        var joinTarget = to.infantries.FirstOrDefault(u => u != infantry && gm.CanJoinFormation(infantry, u));
+        if (joinTarget != null) hasJoined = gm.FormJoin(infantry, joinTarget);
+    }
+
     // ✅ 合流检测：移动到同类型友方残血单位时自动合流
     bool hasMerged = false;
-    if (!hasMountedToTransport)
+    if (!hasMountedToTransport && !hasJoined)
     {
         var mergeTarget = to.infantries
             .Where(u => u != infantry && IsInstanceValid(u) && u.team == infantry.team && u.UnitTypeId == infantry.UnitTypeId)
@@ -485,7 +508,7 @@ public partial class GridManager
     // ✅ 融合检测（开创人2026-11-20）：移动到目标位置后，fusionRange 带内可融合目标
     //    真人弹「融合/取消」确认框（确认=融合；取消=保持落点并正常弹菜单），AI(showMenu=false)直融
     bool hasFused = false;
-    if (!hasMountedToTransport && !hasMerged && gm != null)
+    if (!hasMountedToTransport && !hasMerged && !hasJoined && gm != null)
     {
         var fusionCandidates = gm.GetFusionTargetsInBand(infantry, to.GridIndex);
         var fusionTarget = showMenu
@@ -521,12 +544,13 @@ public partial class GridManager
     else if (!hasMountedToTransport && !hasMerged && !hasFused)
     {
         // ⬅️ 不弹菜单，直接待机
-        infantry.isAttacked = true;
-        infantry.state = UnitState.Acted;
-        infantry.SetWaitVisual(true);
+        infantry.isAttacked = !preserveAction;
+        infantry.state = preserveAction ? UnitState.Moved : UnitState.Acted;
+        infantry.SetWaitVisual(!preserveAction);
         infantry.originalGrid = null;
-        gm?.ClearSelectedInfantry();
+        if (!preserveAction) gm?.ClearSelectedInfantry();
     }
+        gm?.RefreshJoinVisuals(to);
         }
 
         // ✅ CoW 式行走动画：沿路径逐格走完再结算（enableWalkAnim 关闭=旧瞬移行为）

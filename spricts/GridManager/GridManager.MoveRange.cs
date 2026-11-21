@@ -298,6 +298,7 @@ public partial class GridManager
 
         // ✅ 究极自由：所有单位使用统一的通用移动范围计算
         CalculateMoveRangeGeneric(infantry, effectiveMovePoints);
+        AddJointMoveRanges(infantry);
         SetupMoveRangeCallbacks(infantry);
 
         // ✅ issue#1 多格机动单位：选中时足印高亮（本体轮廓蓝；ForceClearAllRangeVisuals 统一清理，不用额外擦除）
@@ -485,6 +486,17 @@ private void SetupMoveRangeCallbacks(Infantry infantry)
 
         // ✅ 禁用移动范围内所有单位的输入，防止误选（包括己方未行动单位）
         OverrideUnitInput(g, true);
+
+        if (infantry.joinGroupId > 0)
+        {
+            bool anyCanStay = gm != null && gm.GetJoinedMembers(infantry).Any(m => CanJointMemberReach(m, g));
+            g.pathIcon.Modulate = anyCanStay ? new Color(1, 1, 1, 0.8f) : new Color(1, 0.3f, 0.3f, 0.6f);
+            g.OnClickGrid = to => HandleJointMoveClick(infantry, to);
+            g.OnClickEmpty = null;
+            g.OnHoverGrid = OnMouseEnteredGrid;
+            g.OnUnhoverGrid = OnMouseExitedGrid;
+            continue;
+        }
 
         bool canStay = CanStayOnGrid(g, infantry);
 

@@ -112,7 +112,8 @@ public partial class TerrainEditor
                     string diff = GetUnitDiffString(unit);
                     // ✅ 开创人2026-11-14：HP 非整十时追加 RAW 精确血量（Ceil 向上取整会吞 0.1 粒度）
                     string rawTag = (unit.health % 10 != 0) ? $" RAW{unit.health}" : "";
-                    sb.AppendLine($"[{hx},{hy}] {typeName} {unit.team} HP{hp}{rawTag}{diff}");
+                    string joinTag = unit.joinGroupId > 0 ? $" JG{unit.joinGroupId}" : "";
+                    sb.AppendLine($"[{hx},{hy}] {typeName} {unit.team} HP{hp}{rawTag}{joinTag}{diff}");
                     // ✅ 开创人2026-11-14：载员随行（此前 transportedUnits 里的兵 grid=null 且不在 AllUnits，导出即蒸发）
                     if (unit.transportedUnits != null && unit.transportedUnits.Count > 0)
                     {

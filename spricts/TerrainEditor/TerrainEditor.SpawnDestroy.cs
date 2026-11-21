@@ -73,7 +73,7 @@ private SavedFacilityData SerializeFacilityForUndo(Facility facility)
     };
 }
 
-private void SpawnUnitAtGrid(Grids grid, string scenePath, string team)
+private void SpawnUnitAtGrid(Grids grid, string scenePath, string team, bool preserveJoinedUnits = false, int joinGroupId = 0)
 {
     if (string.IsNullOrEmpty(scenePath) || grid == null) return;
 
@@ -110,10 +110,13 @@ private void SpawnUnitAtGrid(Grids grid, string scenePath, string team)
         var oldWeapon = grid.weapon != null ? SerializeWeaponForUndo(grid.weapon) : null;
         var oldFacility = grid.city != null ? SerializeFacilityForUndo(grid.city) : null;
         int replacedUnits = 0;
-        foreach (var old in grid.infantries.Where(u => u != null && IsInstanceValid(u)).ToList())
+        if (!preserveJoinedUnits)
         {
-            replacedUnits++;
-            gameManager.RemoveUnit(old);
+            foreach (var old in grid.infantries.Where(u => u != null && IsInstanceValid(u)).ToList())
+            {
+                replacedUnits++;
+                gameManager.RemoveUnit(old);
+            }
         }
 
 
@@ -127,6 +130,7 @@ private void SpawnUnitAtGrid(Grids grid, string scenePath, string team)
 
         unit.Position = grid.Position;
         unit.team = team;
+        unit.joinGroupId = joinGroupId;
         int unitNumber = gameManager.unitManager.AllUnits.Count + 1;
         string typeName = GetFriendlyTypeName(unit);
         unit.Name = $"{team}_{typeName}_{unitNumber}";

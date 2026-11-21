@@ -290,6 +290,8 @@ public partial class GridManager
             }
         }
 
+        AddJointAttackRanges(unit);
+
         // ✅ 攻击范围外点击回退（包括所有格子）
         foreach (var grid in grids)
         {

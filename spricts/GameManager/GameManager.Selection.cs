@@ -130,6 +130,12 @@ public void RollbackMove()
         return;
     }
 
+    if (gridManager != null && gridManager.RollbackJointMoves(selectedInfantry))
+    {
+        selectedInfantry = null;
+        return;
+    }
+
 
 
     var unit = selectedInfantry;
