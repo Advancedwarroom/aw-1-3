@@ -79,7 +79,7 @@ public partial class GameManager
         float coOffBonus = CoModuleSystem.GetOffenseBonusPercent(attacker) + WeatherSystem.GetOffenseModifierPercent(attacker);
         actualAttack *= Mathf.Max(0f, 100f + coOffBonus) / 100f;
 
-        float terrainDefense = (target.defenseBonusType == DefenseBonusType.CanDefenseBonus && target.grid != null
+        float terrainDefense = (target.defenseBonusType == Infantry.DefenseBonusType.CanDefenseBonus && target.grid != null
                 && (target.grid.city == null || !target.grid.city.HasStatus(FacilityStatusType.NoCover)))
             ? target.grid.TerrainDefenseBonus * Mathf.Max(0, 100 + (target.grid.city?.defenseSuppressPercent ?? 0)) / 100f
             : 0f;

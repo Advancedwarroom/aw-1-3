@@ -63,7 +63,7 @@ public partial class GridManager
     private int JointMoveAllowance(Infantry unit)
     {
         int allowance = unit.movePoints + CoModuleSystem.GetMovementBonus(unit);
-        if (!unit.canMoveWithoutFuel && unit.fuelBar >= 0) allowance = Mathf.Min(allowance, unit.fuelBar);
+        if (unit.consumeFuel && unit.fuel >= 0) allowance = Mathf.Min(allowance, unit.fuel);
         return allowance;
     }
 
@@ -72,7 +72,7 @@ public partial class GridManager
         if (unit == null || target == null || unit.grid == null || unit.isAttacked || unit.state == UnitState.Acted) return false;
         if (unit.grid == target) return true;
         if (!GetMoveRange(unit, JointMoveAllowance(unit)).Contains(target)) return false;
-        return CanStayOnGrid(unit, target);
+        return CanStayOnGrid(target, unit);
     }
 
     public void AddJointMoveRanges(Infantry selected)
@@ -94,7 +94,7 @@ public partial class GridManager
         Grids result = null;
         foreach (var grid in path)
         {
-            if (grid == unit.grid || !reachable.Contains(grid) || !CanStayOnGrid(unit, grid)) continue;
+            if (grid == unit.grid || !reachable.Contains(grid) || !CanStayOnGrid(grid, unit)) continue;
             result = grid;
         }
         return result;

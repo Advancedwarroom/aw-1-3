@@ -168,17 +168,4 @@ public partial class GameManager
             if (grid != null && grid.infantries.Any(u => u != null && u.joinGroupId > 0)) RefreshJoinVisuals(grid);
     }
 
-    public int GetJoinVision(Infantry unit)
-    {
-        var members = GetJoinedMembers(unit);
-        if (members.Count <= 1) return unit.vision;
-        return members.Max(m => m.vision);
-    }
-
-    public int GetJoinMovePoints(Infantry unit)
-    {
-        var members = GetJoinedMembers(unit);
-        if (members.Count <= 1) return unit.movePoints;
-        return members.Min(m => m.movePoints);
-    }
 }
