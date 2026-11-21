@@ -89,7 +89,7 @@ public partial class GridManager
 
     private Grids FurthestJointGrid(Infantry unit, Grids destination)
     {
-        var path = BuildPath(unit, destination, ignoreMovePoints: true);
+        var path = BuildPath(unit.grid, destination, unit, ignoreMovePoints: true);
         var reachable = GetMoveRange(unit, JointMoveAllowance(unit));
         Grids result = null;
         foreach (var grid in path)
