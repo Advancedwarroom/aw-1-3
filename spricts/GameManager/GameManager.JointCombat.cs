@@ -75,6 +75,7 @@ public partial class GameManager
 
         float actualAttack = baseDamage;
         if (includeHealth) actualAttack *= (float)attacker.health / attacker.GetEffectiveMaxHealth();
+        actualAttack *= GetJoinAttackMultiplier(attacker);
         actualAttack *= outputMul;
         float coOffBonus = CoModuleSystem.GetOffenseBonusPercent(attacker) + WeatherSystem.GetOffenseModifierPercent(attacker);
         actualAttack *= Mathf.Max(0f, 100f + coOffBonus) / 100f;

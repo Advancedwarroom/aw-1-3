@@ -54,6 +54,8 @@ public virtual int CalculateFinalDamage(Infantry target, WeaponType weaponType, 
     // 攻击方血量系数
     float attackerHealthPercent = (float)health / GetEffectiveMaxHealth();
     float actualAttack = baseDamage * attackerHealthPercent;
+    // 广义 Join：只增减该攻击成员自身攻击；普通攻击、反击与预览共用此公式。
+    actualAttack *= gameManager?.GetJoinAttackMultiplier(this) ?? 1f;
 
     // ✅ 开创人2026-11-15: 精度崩消耗点——被打弱点格后的下次攻击乘数（一次性消耗）
     if (!Mathf.IsEqualApprox(nextAttackOutputMul, 1f))

@@ -23,6 +23,7 @@ public partial class Infantry
     [Export] public bool canJoinFormation = false;
     [Export] public Godot.Collections.Array<string> joinBlacklist = new();
     [Export] public JointDamageMode jointDamageMode = JointDamageMode.WeightedAftermath;
+    // 最大联合上限按编队中的单位数量计算，不按血量、占格数或兵种数计算。
     [Export(PropertyHint.Range, "1,32,1")] public int joinMaxMembers = 2;
     [Export] public bool joinLimitAfterJoin = true;
     [Export(PropertyHint.Range, "0,999,1")] public int joinMinTargetHp = 0;
@@ -30,6 +31,8 @@ public partial class Infantry
     [Export(PropertyHint.Range, "-1,9999,1")] public int joinMaxTargetHp = -1;
     [Export] public bool canSplitFromJoin = true;
     [Export] public JointRemainderMoveMode jointRemainderMoveMode = JointRemainderMoveMode.Stay;
+    // 联合后只增减自身攻击百分比；默认 0，不设固定上下限，最终攻击倍率最低为 0。
+    [Export] public float joinAttackPercent = 0f;
     // 运行时编组号也随 Export 保存；0 表示未参加广义 Join。
     [Export] public int joinGroupId = 0;
 }
@@ -49,6 +52,10 @@ public partial class GameManager
             .Where(u => u != null && IsInstanceValid(u) && u.team == unit.team && u.joinGroupId == unit.joinGroupId)
             .OrderByDescending(u => u.health).ToList();
     }
+
+    // 仅真实的多成员编队生效；每个成员只读取自己的 Export，不影响同格队友。
+    public float GetJoinAttackMultiplier(Infantry unit)
+        => IsJoined(unit) ? Mathf.Max(0f, 1f + unit.joinAttackPercent / 100f) : 1f;
 
     public int NextJoinGroupId()
     {
@@ -99,7 +106,7 @@ public partial class GameManager
     {
         var members = GetJoinedMembers(target);
         if (members.Count == 0 || members.Any(m => !CanPairJoin(incoming, m))) return false;
-        int before = members.Count;
+        int before = members.Count; // members.Count 就是当前联合单位数。
         int countToCheck = incoming.joinLimitAfterJoin ? before + 1 : before;
         if (countToCheck > Mathf.Max(1, incoming.joinMaxMembers)) return false;
         int hp = GetJoinDisplayHp(members);

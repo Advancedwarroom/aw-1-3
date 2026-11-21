@@ -415,7 +415,7 @@ public partial class TerrainEditor
 
     // ==================== 辅助方法 ====================
 
-    private void ApplyFieldValues(object target, Dictionary<string, string> fieldValues)
+    public void ApplyFieldValues(object target, Dictionary<string, string> fieldValues)
     {
         if (target == null || fieldValues == null || fieldValues.Count == 0) return;
 

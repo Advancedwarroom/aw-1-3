@@ -39,6 +39,9 @@ public partial class ExtraSave
     {
         if (unit == null || slotIndex < 0 || slotIndex >= MAX_SLOTS) return false;
 
+        // 独立单位模板保留 Join 配置，但不携带某张战局的运行时编组号。
+        var unitFields = new Dictionary<string, string>(SerializeObjectFields(unit));
+        unitFields["joinGroupId"] = "0";
         var data = new SavedUnitData
         {
             slotName = $"{TranslateGroup.T("单位")}{slotIndex + 1}",
@@ -48,7 +51,7 @@ public partial class ExtraSave
             team = unit.team,
             savedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds(),
             lastUsedTimestamp = DateTimeOffset.Now.ToUnixTimeSeconds(),
-            fieldValues = SerializeObjectFields(unit),
+            fieldValues = unitFields,
             attackMatrix = ToSystemDict(unit.attackMatrix),
             secondaryAttackMatrix = ToSystemDict(unit.secondaryAttackMatrix)
         };

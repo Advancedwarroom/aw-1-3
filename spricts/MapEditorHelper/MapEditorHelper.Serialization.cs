@@ -17,7 +17,8 @@ public partial class MapEditorHelper
             scenePath = unit.SceneFilePath,
             typeName = unit.GetType().Name,
             team = unit.team,
-            fieldValues = new Dictionary<string, string>()
+            // 复制/粘贴保留全部 Join Export 与编组号；独立单位模板才在 SaveUnit 中归零编组号。
+            fieldValues = ExtraSave.Instance?.SerializeObjectFields(unit) ?? new Dictionary<string, string>()
         };
     }
 
@@ -58,6 +59,7 @@ public partial class MapEditorHelper
         var unit = scene.Instantiate<Infantry>();
         if (unit == null) return;
         unit.team = data.team;
+        terrainEditor?.ApplyFieldValues(unit, data.fieldValues);
 
         // ✅ 正规流程：加到 units 节点 → 通过 UnitManager 绑定格子 → 注册到 AllUnits
         if (gameManager?.unitManager?.units != null)
@@ -71,6 +73,7 @@ public partial class MapEditorHelper
             gameManager.unitManager.AllUnits.Add(unit);
 
         unit.GlobalPosition = grid.GlobalPosition;
+        gameManager?.RefreshJoinVisuals(grid);
     }
 
     private void SpawnWeaponFromData(Grids grid, SavedWeaponData data)

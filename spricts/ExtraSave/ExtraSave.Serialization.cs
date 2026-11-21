@@ -406,7 +406,7 @@ public partial class ExtraSave
 
     // ==================== 序列化辅助方法 ====================
 
-    private Dictionary<string, string> SerializeObjectFields(object obj)
+    public Dictionary<string, string> SerializeObjectFields(object obj)
     {
         var result = new Dictionary<string, string>();
         if (obj == null) return result;
