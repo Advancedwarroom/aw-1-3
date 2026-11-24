@@ -34,16 +34,22 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
     hbox.CustomMinimumSize = new Vector2(0, 32);
     hbox.AddThemeConstantOverride("separation", 8);
 
+    // ✅ 开创人2026-11-24: 中文字典标签 + 悬浮说明 + 搜索索引
+    var (zhName, zhDesc) = ExportLabelDb.Get(name);
     var nameLabel = new Label();
-    nameLabel.Text = name;
+    nameLabel.Text = string.IsNullOrEmpty(zhName) ? name : $"{zhName} ({name})";
     nameLabel.CustomMinimumSize = new Vector2(150, 28);
     nameLabel.AddThemeFontSizeOverride("font_size", 12);
     nameLabel.AddThemeColorOverride("font_color", new Color(0.8f, 0.8f, 0.9f));
+    if (!string.IsNullOrEmpty(zhDesc)) nameLabel.TooltipText = zhDesc;
+    hbox.SetMeta("search", $"{name} {zhName} {zhDesc}");
     hbox.AddChild(nameLabel);
 
     var value = getter();
 
-    Action<object> wrappedSetter = (newValue) => {
+    // ✅ 开创人2026-11-24: 应用+刷新统一入口，供正常提交与撤销复用
+    void ApplyValue(object newValue)
+    {
         setter(newValue);
 
         if (name == "team" && target is Node2D node)
@@ -63,9 +69,19 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
         {
             OnPropertyChanged(target, name);
         }
+    }
+
+    Action<object> wrappedSetter = (newValue) => {
+        // ✅ 开创人2026-11-24: 撤销快照——确认提交前记录原值，↩一键回退
+        var undoValue = value;
+        _lastEditUndo = () => ApplyValue(undoValue);
+        ApplyValue(newValue);
     };
 
-    Control editor = CreateEditorForType(memberType, value, getter, wrappedSetter, name);
+    // ✅ 开创人2026-11-24: 标量走显式确认编辑(✓应用/✗取消,防滑动误触)；复杂类型(字典等)维持原编辑器
+    Control editor = IsScalarType(memberType)
+        ? CreateConfirmedScalarEditor(memberType, value, wrappedSetter)
+        : CreateEditorForType(memberType, value, getter, wrappedSetter, name);
 
     if (editor != null)
     {
@@ -486,6 +502,8 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
         foreach (var child in propertyContainer.GetChildren())
             child.QueueFree();
 
+        // ✅ 开创人2026-11-24: 检查器V2——搜索+撤销工具栏（中文字典见ExportLabelDb）
+        BuildInspectorToolbar(target);
 
         if (target is Grids grid)
         {
@@ -526,11 +544,25 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
         {
             if (!string.IsNullOrEmpty(group.Key))
             {
-                var groupLabel = new Label();
-                groupLabel.Text = $"=== {group.Key} ===";
+                // ✅ 开创人2026-11-24: 分组标题升级为可折叠分区头（▼展开/▶收起）
+                var groupLabel = new Button();
+                groupLabel.Text = $"▼ {group.Key}";
+                groupLabel.SetMeta("sectionHeader", true);
                 groupLabel.AddThemeFontSizeOverride("font_size", 14);
-                groupLabel.AddThemeColorOverride("font_color", new Color(1f, 0.8f, 0.2f));
-                groupLabel.CustomMinimumSize = new Vector2(0, 25);
+                groupLabel.CustomMinimumSize = new Vector2(0, 30);
+                groupLabel.Pressed += () =>
+                {
+                    var kids = propertyContainer.GetChildren();
+                    int idx = kids.IndexOf(groupLabel);
+                    bool collapsing = groupLabel.Text.StartsWith("▼");
+                    groupLabel.Text = collapsing ? $"▶ {group.Key}" : $"▼ {group.Key}";
+                    for (int k = idx + 1; k < kids.Count; k++)
+                    {
+                        var nx = kids[k];
+                        if (nx is Button b && b.HasMeta("sectionHeader")) break;
+                        if (nx is CanvasItem ci) ci.Visible = !collapsing;
+                    }
+                };
                 propertyContainer.AddChild(groupLabel);
             }
 
