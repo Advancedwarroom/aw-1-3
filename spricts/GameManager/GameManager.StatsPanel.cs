@@ -11,13 +11,34 @@ public partial class GameManager
 
 
 
+    private int _statsBtnRetry;
+
+    // ✅ 开创人2026-11-25: CanvasLayer全树兜底+延迟重试——方案甲boot模式下CurrentScene还是加载屏,
+    //    原先两处静默return导致统计按钮整排消失;现在重试20帧后仍失败会PushError自报家门
+    private static CanvasLayer FindCanvasLayerNamed(Node node, string name)
+    {
+        if (node is CanvasLayer cl && cl.Name == name) return cl;
+        foreach (var ch in node.GetChildren())
+        {
+            var hit = FindCanvasLayerNamed(ch, name);
+            if (hit != null) return hit;
+        }
+        return null;
+    }
+
     // ✅ 创建统计面板切换按钮
     private void CreateStatsToggleButtons()
     {
-        if (UnitLists == null) return;
-
-        var canvasLayer = GetTree().CurrentScene.GetNodeOrNull<CanvasLayer>("CanvasLayer");
-        if (canvasLayer == null) return;
+        var canvasLayer = GetTree().CurrentScene?.GetNodeOrNull<CanvasLayer>("CanvasLayer")
+                          ?? FindCanvasLayerNamed(GetTree().Root, "CanvasLayer");
+        if (canvasLayer == null)
+        {
+            _statsBtnRetry++;
+            if (_statsBtnRetry <= 20) { CallDeferred(nameof(CreateStatsToggleButtons)); return; }
+            GD.PushError("[StatsPanel] 统计按钮创建失败：20帧内找不到CanvasLayer(boot模式UI骨架异常)");
+            return;
+        }
+        _statsBtnRetry = 0;
 
         // 5个按钮排成一排（价值、单位、设施、资金、统计）
         // 每个按钮宽80px，统计按钮宽60px
