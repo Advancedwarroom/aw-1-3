@@ -1315,5 +1315,11 @@ public partial class TranslateGroup
         Add("火力支援最小距", "Fire Support Min Range", "火力支援最小射程", "화력 지원 최소 사거리", "Feuerunterstützung min", "Мин. дальность огн. поддержки", "火力支援最小距", "火力支援最小距");
         Add("火力支援最大距", "Fire Support Max Range", "火力支援最大射程", "화력 지원 최대 사거리", "Feuerunterstützung max", "Макс. дальность огн. поддержки", "火力支援最大距", "火力支援最大距");
         Add("仅手动支援", "Manual Fire Support Only", "手動支援のみ", "수동 지원만", "Nur manuelle Unterstützung", "Только ручная поддержка", "仅手动支援", "僅手動支援");
+        Add("火力支援开关", "Fire Support", "火力支援", "화력 지원", "Feuerunterstützung", "Огневая поддержка", "火力支援开关", "火力支援開關");
+        Add("支援黑名单", "Support Blacklist", "支援ブラックリスト", "지원 블랙리스트", "Unterstützungsblackliste", "Чёрный список поддержки", "支援黑名单", "支援黑名單");
+        Add("支援伤害%", "Support Damage %", "支援ダメージ%", "지원 피해 %", "Unterstützungsschaden %", "Урон поддержки %", "支援伤害%", "支援傷害%");
+        Add("已行动可参与", "Acted Units Respond", "行動済みも反応", "행동 완료 유닛도 반응", "Aktionierte reagieren", "Действовавшие реагируют", "已行动可参与", "就行動可參與");
+        Add("最大响应数", "Max Responders", "最大応答数", "최대 반응 수", "Max. Reaktionen", "Макс. откликов", "最大响应数", "最大響應數");
+        Add("支援自伤", "Support Self-Damage", "支援自傷", "지원 자해", "Eigenschaden", "Урон по себе", "支援自伤", "支援自傷");
     }
 }
