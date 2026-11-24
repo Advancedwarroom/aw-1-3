@@ -434,7 +434,7 @@ public virtual (int damage, string info) CalculateCounterPreview(Infantry attack
     return (damage, $"反击({counterWeapon}):{damage}");
 }
 
-public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitGrid = null)
+public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitGrid = null, int damagePercent = 100)
 {
         // ✅ 开创人2026-11-15: 准备模块攻击门——自己的池/独立冷却/次数（不碰别的操作）
         if (!ActionResourceRuntime.CanUse(this, ActionIds.Attack))
@@ -442,7 +442,9 @@ public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitG
             GD.PushError("[准备模块] attack 条件未满足（池内不足/该操作冷却中/次数用尽）");
             return;
         }
-        if (gameManager != null && gameManager.TryExecuteSquadAttack(this, target, allowCounter, hitGrid)) return;
+        // ✅ 火力支援（开创人2026-11-24）：主攻手呼叫半径内支援火力齐射（系数/范围/耗行动全 Export；防递归）
+        if (gameManager != null) gameManager.TriggerFireSupport(this, target);
+        if (gameManager != null && !GameManager.resolvingFireSupport && gameManager.TryExecuteSquadAttack(this, target, allowCounter, hitGrid)) return;
         if (target != null) target.lastAttackerTeam = team;   // ✅ 开创人2026-11-14 战役记账：步兵凶手追踪
         // ✅ 隐身攻击门：白名单外的单位打不了隐身目标（所有攻击路径的唯一闸门）
         if (!CanTargetStealth(this, target)) return;
@@ -478,6 +480,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitG
     // 计算伤害（新：攻防表公式）
     int attackDamage = CalculateFinalDamage(target, weapon);
     if (attackUsesFixedDamage) attackDamage = -attackFixedDamage;   // 固定值攻击：配置正值=给目标加血
+    if (damagePercent != 100) attackDamage = attackDamage * damagePercent / 100;   // ✅ 火力支援系数
     int counterDamage = 0;
     
     // 反击
