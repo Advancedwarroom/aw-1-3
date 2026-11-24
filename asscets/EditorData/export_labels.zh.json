@@ -1,0 +1,202 @@
+{
+ "team": {
+  "name": "所属势力",
+  "desc": "单位归属的势力ID，如Player1/Player2/P-1"
+ },
+ "facilityTeam": {
+  "name": "设施势力",
+  "desc": "建筑归属势力，改动即时刷新贴图"
+ },
+ "health": {
+  "name": "当前血量",
+  "desc": "单位现有生命值，可超过常规值"
+ },
+ "maxHealth": {
+  "name": "最大血量",
+  "desc": "血量上限基准，0=自动按100"
+ },
+ "baseDefense": {
+  "name": "基础防御",
+  "desc": "平伤减法的防御基数，随血量百分比生效"
+ },
+ "canMerge": {
+  "name": "能否合流",
+  "desc": "同型单位叠放合并血量与弹药(原版Join)"
+ },
+ "mergeOverflowAllowed": {
+  "name": "合流溢出允许",
+  "desc": "血量相加超过上限时直接传递，不封顶"
+ },
+ "mergeRefundPercent": {
+  "name": "合流变现%",
+  "desc": "溢出血量按满血造价百分比变现，10=原版；可设负数=罚款"
+ },
+ "mergeResourceMode": {
+  "name": "资源合流模式",
+  "desc": "燃料弹药合并方式：0=合计封顶(原版) 1=取最大值"
+ },
+ "attackMatrix": {
+  "name": "攻防矩阵",
+  "desc": "对各单位类型的伤害基础值(平伤制)"
+ },
+ "counterMul": {
+  "name": "反击系数",
+  "desc": "反击伤害的倍率"
+ },
+ "isCoUnit": {
+  "name": "CO单位",
+  "desc": "该单位是否为CO本体，影响Zone与CO存亡"
+ },
+ "canCounterAtRange": {
+  "name": "范围内反击",
+  "desc": "被攻击时在自身射程内即可反击(不限贴身)"
+ },
+ "internalSupplyEnabled": {
+  "name": "舱内补给",
+  "desc": "每回合补给舱内单位燃料与全部弹药"
+ },
+ "internalHealEnabled": {
+  "name": "舱内回血",
+  "desc": "每回合治疗舱内单位，可为负=危险货舱"
+ },
+ "internalExportServiceEnabled": {
+  "name": "舱内服务映射",
+  "desc": "进驻时对乘员施加任意Export增减"
+ },
+ "empowermentEnabled": {
+  "name": "赋能开关",
+  "desc": "范围赋能/解能系统的总开关"
+ },
+ "deathTransformEnabled": {
+  "name": "死亡变形",
+  "desc": "死亡时在原格变身成指定兵种/兵器/设施"
+ },
+ "upkeepCostPerTurn": {
+  "name": "维持费/回合",
+  "desc": "每回合扣除的资金，不足触发失败事件"
+ },
+ "producedCargoBoardedThisTurn": {
+  "name": "产物视为登舰",
+  "desc": "true=产物本回合不能起飞(旧防白嫖规则)"
+ },
+ "productionInstantMove": {
+  "name": "产物立即可动",
+  "desc": "生产出的单位出场即可行动"
+ },
+ "productionDiscountPercent": {
+  "name": "产线降价%",
+  "desc": "该实例生产降价，正数降价负数加价"
+ },
+ "productionDiscountByUnit": {
+  "name": "逐兵种降价表",
+  "desc": "对指定兵种的独立降价百分比"
+ },
+ "canShelterUnits": {
+  "name": "兵器庇护",
+  "desc": "允许单位进驻该兵器(类运输)"
+ },
+ "shelterCapacity": {
+  "name": "庇护容量",
+  "desc": "可进驻的单位数量"
+ },
+ "illegalTerrainBehavior": {
+  "name": "非法地形策略",
+  "desc": "0=Warside自毁 1=宽容(默认)"
+ },
+ "canLaunchCargo": {
+  "name": "舰载起飞",
+  "desc": "允许舱内空军直接起飞出击"
+ },
+ "canBeAttacked": {
+  "name": "可被攻击",
+  "desc": "设施是否进入战斗目标(需血量系统配合)"
+ },
+ "canBeAttackedOnSameGrid": {
+  "name": "同格可攻击",
+  "desc": "正上方/同格能否攻击该设施"
+ },
+ "attackableMinRange": {
+  "name": "可攻击最小距",
+  "desc": "设施允许被攻击的最近距离"
+ },
+ "attackableMaxRange": {
+  "name": "可攻击最大距",
+  "desc": "设施允许被攻击的最远距离"
+ },
+ "unitDamageTable": {
+  "name": "单位伤害表",
+  "desc": "各单位攻击该设施时的固定扣血，0=免疫"
+ },
+ "weaponDamageTable": {
+  "name": "兵器伤害表",
+  "desc": "各兵器攻击该设施时的固定扣血"
+ },
+ "loseOnTeamChange": {
+  "name": "易主判负",
+  "desc": "总部被占领是否直接战败"
+ },
+ "productionFree": {
+  "name": "免费生产",
+  "desc": "该产线生产不消耗资金(原作工厂)"
+ },
+ "dualProductionMode": {
+  "name": "双菜单生产",
+  "desc": "即时1.2倍/待机0.8倍的生产经济"
+ },
+ "maxProductionsPerTurn": {
+  "name": "每回合生产数",
+  "desc": "产线每回合可生产次数"
+ },
+ "producibleUnitNames": {
+  "name": "生产兵种名单",
+  "desc": "留空=全部可生产"
+ },
+ "capturePointsRequired": {
+  "name": "占领所需点",
+  "desc": "占领该设施需要的点数"
+ },
+ "stealthFuelCostPerDay": {
+  "name": "隐身日耗油",
+  "desc": "主动隐身状态每天额外油耗"
+ },
+ "producedUnitHealthLocked": {
+  "name": "产物锁血",
+  "desc": "产物出场即锁定血量"
+ },
+ "forceSatelliteShielded": {
+  "name": "力场卫星护盾",
+  "desc": "力场保护开关"
+ },
+ "arcStrikeEnabled": {
+  "name": "天基轰炸",
+  "desc": "Black Arc区域轰炸开关"
+ },
+ "ooziumOverwriteUnits": {
+  "name": "覆盖生产",
+  "desc": "生产格有单位时直接覆盖(巨兽特权)"
+ },
+ "wriggleEnabled": {
+  "name": "巨兽蠕动",
+  "desc": "GrandBolt整体移动开关"
+ },
+ "desperateModeEnabled": {
+  "name": "困兽犹斗",
+  "desc": "弱点全毁后进入核心阶段"
+ },
+ "canAttackAllies": {
+  "name": "可打盟友",
+  "desc": "允许攻击友方单位"
+ },
+ "friendliesCanCounterFire": {
+  "name": "友军会还手",
+  "desc": "友军被打时是否反击"
+ },
+ "sv_snap": {
+  "name": "S/V吸附",
+  "desc": "染色时饱和度明度向势力色吸附的强度"
+ },
+ "facRecolorEnabled": {
+  "name": "设施染色",
+  "desc": "设施按势力换色开关"
+ }
+}
