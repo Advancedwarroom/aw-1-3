@@ -1,41 +1,83 @@
 using Godot;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 
 // TerrainEditor.PropertyEditorV2.cs - ✅ 开创人2026-11-24: 检查器V2
-// 搜索筛选 + 撤销 + 折叠分区 + 中文标签(ExportLabelDb) + 标量显式确认(防误触)
+// 搜索筛选 + 折叠分区 + 字段源词索引(ExportLabelDb→TranslateGroup.T多语言)
+// 撤销/重做：50步历史栈 (开创人2026-11-25加深)
 public partial class TerrainEditor
 {
-    private Action _lastEditUndo;   // 撤销上一步属性修改
+    private const int MaxEditHistory = 50;
+    private readonly List<(Action undo, Action redo)> _editHistory = new();
+    private readonly List<(Action undo, Action redo)> _editFuture = new();
 
-    // ===== 工具栏：搜索框 + 撤销按钮 =====
+    private Button _undoBtn, _redoBtn;
+
+    // ===== 编辑入栈：新编辑清空重做栈 =====
+    public void PushEdit(Action undo, Action redo)
+    {
+        _editHistory.Add((undo, redo));
+        if (_editHistory.Count > MaxEditHistory) _editHistory.RemoveAt(0);
+        _editFuture.Clear();
+        RefreshUndoButtons();
+    }
+
+    private void RefreshUndoButtons()
+    {
+        if (_undoBtn != null)
+            _undoBtn.Text = _editHistory.Count > 0 ? $"↩ {TranslateGroup.T("撤销")}({_editHistory.Count})" : $"↩ {TranslateGroup.T("撤销")}";
+        if (_redoBtn != null)
+            _redoBtn.Text = _editFuture.Count > 0 ? $"↪ {TranslateGroup.T("重做")}({_editFuture.Count})" : $"↪ {TranslateGroup.T("重做")}";
+    }
+
+    // ===== 工具栏：搜索 + 撤销 + 重做 =====
     private void BuildInspectorToolbar(object target)
     {
+        _editHistory.Clear();
+        _editFuture.Clear();
+
         var bar = new HBoxContainer();
         bar.AddThemeConstantOverride("separation", 6);
 
         var search = new LineEdit();
-        search.PlaceholderText = "🔍 搜索字段（中文/英文）…";
+        search.PlaceholderText = $"🔍 {TranslateGroup.T("搜索字段")}";
         search.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         search.TextChanged += (t) => FilterInspectorRows(t);
         bar.AddChild(search);
 
-        var undoBtn = new Button();
-        undoBtn.Text = "↩ 撤销";
-        undoBtn.TooltipText = "撤销上一次属性修改";
-        undoBtn.Pressed += () =>
+        _undoBtn = new Button();
+        _undoBtn.TooltipText = TranslateGroup.T("撤销");
+        _undoBtn.Pressed += () =>
         {
-            var u = _lastEditUndo;
-            _lastEditUndo = null;
-            u?.Invoke();
-            TranslateGroup.SetText(spawnHintLabel, "↩ 已撤销上一步修改");
+            if (_editHistory.Count == 0) return;
+            var top = _editHistory[^1];
+            _editHistory.RemoveAt(_editHistory.Count - 1);
+            _editFuture.Add(top);
+            top.undo();
+            TranslateGroup.SetText(spawnHintLabel, TranslateGroup.T("已撤销上一步修改"));
+            RefreshUndoButtons();
         };
-        bar.AddChild(undoBtn);
+        bar.AddChild(_undoBtn);
+
+        _redoBtn = new Button();
+        _redoBtn.TooltipText = TranslateGroup.T("重做");
+        _redoBtn.Pressed += () =>
+        {
+            if (_editFuture.Count == 0) return;
+            var top = _editFuture[^1];
+            _editFuture.RemoveAt(_editFuture.Count - 1);
+            _editHistory.Add(top);
+            top.redo();
+            TranslateGroup.SetText(spawnHintLabel, TranslateGroup.T("重做"));
+            RefreshUndoButtons();
+        };
+        bar.AddChild(_redoBtn);
 
         propertyContainer.AddChild(bar);
+        RefreshUndoButtons();
     }
 
-    // ===== 搜索筛选：匹配行显示；分区头在有匹配行时显示；清空搜索全部展开 =====
+    // ===== 搜索筛选 =====
     private void FilterInspectorRows(string text)
     {
         var q = (text ?? "").Trim().ToLower();
@@ -84,8 +126,8 @@ public partial class TerrainEditor
         {
             bool cur = value is bool bv && bv;
             var on = new Button { Text = cur ? "☑ 是" : "☐ 否", ToggleMode = true, ButtonPressed = cur };
-            var ok = new Button { Text = "✓", TooltipText = "应用修改" };
-            var no = new Button { Text = "✗", TooltipText = "取消" };
+            var ok = new Button { Text = "✓", TooltipText = TranslateGroup.T("应用修改") };
+            var no = new Button { Text = "✗", TooltipText = TranslateGroup.T("取消修改") };
             on.Toggled += _ => on.Text = on.ButtonPressed ? "☑ 是" : "☐ 否";
             ok.Pressed += () => commit(on.ButtonPressed);
             no.Pressed += () => { on.ButtonPressed = cur; on.Text = cur ? "☑ 是" : "☐ 否"; };
@@ -105,8 +147,8 @@ public partial class TerrainEditor
                 if (names[i] == curName) sel = i;
             }
             ob.Selected = sel;
-            var ok2 = new Button { Text = "✓", TooltipText = "应用修改" };
-            var no2 = new Button { Text = "✗", TooltipText = "取消" };
+            var ok2 = new Button { Text = "✓", TooltipText = TranslateGroup.T("应用修改") };
+            var no2 = new Button { Text = "✗", TooltipText = TranslateGroup.T("取消修改") };
             ok2.Pressed += () => { if (ob.Selected >= 0) commit(Enum.Parse(t, names[ob.Selected])); };
             no2.Pressed += () => ob.Selected = sel;
             box.AddChild(ob); box.AddChild(ok2); box.AddChild(no2);
@@ -114,8 +156,8 @@ public partial class TerrainEditor
         }
 
         var edit = new LineEdit { Text = value?.ToString() ?? "", SizeFlagsHorizontal = SizeFlags.ExpandFill };
-        var ok3 = new Button { Text = "✓", TooltipText = "应用修改(回车同效)" };
-        var no3 = new Button { Text = "✗", TooltipText = "取消" };
+        var ok3 = new Button { Text = "✓", TooltipText = $"{TranslateGroup.T("应用修改")}(Enter)" };
+        var no3 = new Button { Text = "✗", TooltipText = TranslateGroup.T("取消修改") };
         string orig = edit.Text;
         void TryApply()
         {
@@ -129,7 +171,7 @@ public partial class TerrainEditor
             }
             catch
             {
-                edit.Text = orig;   // 解析失败回退原值
+                edit.Text = orig;
             }
         }
         edit.TextSubmitted += _ => TryApply();
