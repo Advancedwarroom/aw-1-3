@@ -86,6 +86,10 @@ public partial class TerrainEditor
         presetBtn.Pressed += OpenPresetPopup;
         bar.AddChild(presetBtn);
 
+        var dirtyLabel = new Label { Visible = false };
+        propertyContainer.AddChild(dirtyLabel);
+        BindV3DirtyLabel(dirtyLabel);
+
         propertyContainer.AddChild(bar);
         EnsureHistCap();
         RefreshUndoButtons();
