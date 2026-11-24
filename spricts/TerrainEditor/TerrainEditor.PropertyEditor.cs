@@ -85,6 +85,10 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
         {
             OnPropertyChanged(target, name);
         }
+        // ✅ 开创人2026-11-25 V3d: 视听反馈闭环(改势力变颜色这类视觉反馈之外的通用闭环)
+        FlashV3Row(name);
+        PlayV3Blip();
+        MarkV3Dirty();
     }
 
     Action<object> wrappedSetter = (newValue) => {
@@ -537,8 +541,8 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
         EditJournal.Clear(); _editFuture.Clear();
         // ✅ 开创人2026-11-24: 检查器V2——搜索+撤销工具栏（中文字典见ExportLabelDb）
         BuildInspectorToolbar(target);
-        // ✅ 开创人2026-11-25 V3: 构建完成后首刷联动显隐(requires)
-        Callable.From(RefreshV3Deps).CallDeferred();
+        // ✅ 开创人2026-11-25 V3: 构建完成后首刷联动显隐(requires)+触屏44×44
+        Callable.From(() => { RefreshV3Deps(); EnsureV3TouchTargets(); }).CallDeferred();
 
         if (target is Grids grid)
         {
