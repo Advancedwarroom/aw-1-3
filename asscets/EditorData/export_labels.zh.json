@@ -275,5 +275,35 @@
   "requires": "canBeAttacked",
   "min": 0,
   "max": 99
+ },
+ "fireSupportEnabled": {
+  "term": "火力支援开关",
+  "desc": "火力支援系统的总开关",
+  "py": "hlzykg"
+ },
+ "fireSupportBlacklist": {
+  "term": "支援黑名单",
+  "desc": "排除参与火力支援的兵种名单",
+  "py": "zyhmd"
+ },
+ "fireSupportDamagePercent": {
+  "term": "支援伤害%",
+  "desc": "支援火力造成的伤害百分比",
+  "py": "zysh"
+ },
+ "fireSupportAllowActed": {
+  "term": "已行动可参与",
+  "desc": "已行动单位是否仍可响应支援",
+  "py": "yxyxd"
+ },
+ "fireSupportMaxResponders": {
+  "term": "最大响应数",
+  "desc": "单次支援最多响应的单位数",
+  "py": "zdxys"
+ },
+ "fireSupportSelfDamage": {
+  "term": "支援自伤",
+  "desc": "支援开火对自身造成的反噬伤害",
+  "py": "zyzs"
  }
 }
