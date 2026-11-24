@@ -142,7 +142,7 @@ public partial class TerrainEditor
         try { FileAccess.Open("user://inspector_presets.json", FileAccess.ModeFlags.Write).StoreString(Json.Stringify(_v3Presets)); } catch { }
     }
 
-    private PopupPanel _presetPopup;
+    private V3Window _presetPopup;
     private ItemList _presetList;
     private LineEdit _presetNameEdit;
 
@@ -151,7 +151,7 @@ public partial class TerrainEditor
         EnsureV3Presets();
         if (_presetPopup == null)
         {
-            _presetPopup = new PopupPanel();
+            _presetPopup = new V3Window(new Vector2(460, 480));
             var vb = new VBoxContainer();
             var bar = new HBoxContainer();
             var capSpin = new SpinBox { MinValue = 0, MaxValue = 300, Step = 5, Value = _presetCap, TooltipText = "最大存档数(0=关闭)" };
@@ -182,12 +182,12 @@ public partial class TerrainEditor
             bar3.AddChild(expBtn); bar3.AddChild(impBtn);
             vb.AddChild(bar3);
 
-            _presetPopup.AddChild(vb);
+            _presetPopup.Body.AddChild(vb);
             AddChild(_presetPopup);
         }
         RefreshPresetList();
         _presetPopup.Title = $"预设模板 ({_v3Presets.Count}/{_presetCap})";
-        _presetPopup.PopupCentered();
+        _presetPopup.ShowCentered();
     }
 
     private void RefreshPresetList()
