@@ -180,4 +180,27 @@ public partial class TerrainEditor
         box.AddChild(edit); box.AddChild(ok3); box.AddChild(no3);
         return box;
     }
+    // ✅ 开创人2026-11-25: 可折叠分区头（格子属性面板与主检查器共用）
+    private Button MakeSectionHeader(string title)
+    {
+        var btn = new Button();
+        btn.Text = $"▼ {title}";
+        btn.SetMeta("sectionHeader", true);
+        btn.AddThemeFontSizeOverride("font_size", 14);
+        btn.CustomMinimumSize = new Vector2(0, 30);
+        btn.Pressed += () =>
+        {
+            var kids = propertyContainer.GetChildren();
+            int idx = kids.IndexOf(btn);
+            bool collapsing = btn.Text.StartsWith("▼");
+            btn.Text = collapsing ? $"▶ {title}" : $"▼ {title}";
+            for (int k = idx + 1; k < kids.Count; k++)
+            {
+                var nx = kids[k];
+                if (nx is Button b && b.HasMeta("sectionHeader")) break;
+                if (nx is CanvasItem ci) ci.Visible = !collapsing;
+            }
+        };
+        return btn;
+    }
 }
