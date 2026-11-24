@@ -105,8 +105,19 @@ public partial class TerrainEditor
             TranslateGroup.SetText(spawnHintLabel, "剪贴板内容不是有效配置");
             return;
         }
-        int n = ApplyV3Config(parsed.AsGodotDictionary());
-        TranslateGroup.SetText(spawnHintLabel, $"📥 已套用 {n} 项配置");
+        var cfg = parsed.AsGodotDictionary();
+        if (cfg.Count > 5)
+        {
+            // ✅ 大规模覆盖先确认
+            ConfirmDestructive($"将覆盖 {cfg.Count} 项配置？", () =>
+            {
+                int n = ApplyV3Config(cfg);
+                TranslateGroup.SetText(spawnHintLabel, $"📥 已套用 {n} 项配置");
+            });
+            return;
+        }
+        int n2 = ApplyV3Config(cfg);
+        TranslateGroup.SetText(spawnHintLabel, $"📥 已套用 {n2} 项配置");
     }
 
     // ===== ⑰ 预设模板（命名批量，默认25，0~300可调）=====
@@ -215,9 +226,13 @@ public partial class TerrainEditor
         var sel = _presetList.GetSelectedItems();
         if (sel.Length == 0) return;
         var name = _v3Presets.Keys.ElementAt(sel[0]).ToString();
-        _v3Presets.Remove(name);
-        SaveV3Presets();
-        RefreshPresetList();
+        // ✅ 开创人2026-11-25 V3d: 破坏性操作先确认
+        ConfirmDestructive($"删除模板「{name}」？", () =>
+        {
+            _v3Presets.Remove(name);
+            SaveV3Presets();
+            RefreshPresetList();
+        });
     }
 
     // ===== ⑱ 导入/导出（文件，与地图同逻辑：FileDialog走文件系统）=====
