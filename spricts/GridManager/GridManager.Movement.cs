@@ -35,7 +35,7 @@ public partial class GridManager
             && u.team == infantry.team 
             && u != infantry) as Infantry;
         // ✅ 混编搭载资格判定（开创人2026-11-24）：能整队上（全员可载＋舱位够）才弹菜单，不能上就不弹——非硬编码禁止
-        if (transport != null && gm != null && gm.CanBoardTransport(transport, infantry))
+        if (transport != null && (GetTree().GetFirstNodeInGroup("game_manager") as GameManager)?.CanBoardTransport(transport, infantry) == true)
         {
             var actionMenu = GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu;
             actionMenu?.ShowTransportMenu(transport, afterMove: false);

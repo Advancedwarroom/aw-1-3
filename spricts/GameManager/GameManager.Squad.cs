@@ -225,7 +225,7 @@ public partial class GameManager
             RefreshSquadVisuals(left[0].grid);
             return;
         }
-        int newId = NextSquadId++;
+        int newId = NextSquadId();
         foreach (var m in left) { m.squadId = newId; RefreshSquadVisuals(m.grid); }
     }
 
