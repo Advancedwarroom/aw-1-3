@@ -37,11 +37,11 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
     // ✅ 开创人2026-11-24: 中文字典标签 + 悬浮说明 + 搜索索引
     var (zhName, zhDesc) = ExportLabelDb.Get(name);
     var nameLabel = new Label();
-    nameLabel.Text = string.IsNullOrEmpty(zhName) ? name : $"{zhName} ({name})";
+    nameLabel.Text = string.IsNullOrEmpty(zhName) ? name : $"{TranslateGroup.T(zhName)} ({name})";
     nameLabel.CustomMinimumSize = new Vector2(150, 28);
     nameLabel.AddThemeFontSizeOverride("font_size", 12);
     nameLabel.AddThemeColorOverride("font_color", new Color(0.8f, 0.8f, 0.9f));
-    if (!string.IsNullOrEmpty(zhDesc)) nameLabel.TooltipText = zhDesc;
+    if (!string.IsNullOrEmpty(zhDesc)) nameLabel.TooltipText = TranslateGroup.T(zhDesc);
     hbox.SetMeta("search", $"{name} {zhName} {zhDesc}");
     hbox.AddChild(nameLabel);
 
@@ -73,8 +73,9 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
 
     Action<object> wrappedSetter = (newValue) => {
         // ✅ 开创人2026-11-24: 撤销快照——确认提交前记录原值，↩一键回退
+        // ✅ 开创人2026-11-25: 50步撤销/重做历史栈
         var undoValue = value;
-        _lastEditUndo = () => ApplyValue(undoValue);
+        PushEdit(() => ApplyValue(undoValue), () => ApplyValue(newValue));
         ApplyValue(newValue);
     };
 
