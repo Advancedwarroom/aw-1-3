@@ -89,13 +89,15 @@ public partial class TerrainEditor
         var edit = new LineEdit { Text = value?.ToString() ?? "", SizeFlagsHorizontal = SizeFlags.ExpandFill };
         // ②取值暗示：占位符显示范围与单位
         if (ranged)
-            edit.PlaceholderText = $"{meta.min} ~ {meta.max}{(string.IsNullOrEmpty(meta.unit) ? "" : " " + meta.unit)}";
+            edit.PlaceholderText = $"刻度 {meta.min}~{meta.max}{(string.IsNullOrEmpty(meta.unit) ? "" : " " + meta.unit)}，可超量程";
         string orig = edit.Text;
 
         HSlider slider = null;
         if (ranged && (t == typeof(int) || t == typeof(float) || t == typeof(double)))
         {
-            slider = new HSlider { MinValue = meta.min.Value, MaxValue = meta.max.Value, Step = meta.step ?? 1, Value = Convert.ToDouble(value ?? 0), CustomMinimumSize = new Vector2(90, 0) };
+            // ✅ 开创人2026-11-25: min/max只是刻度尺与提示——输入框不受限，现值超量程也不反咬
+            slider = new HSlider { MinValue = meta.min.Value, MaxValue = meta.max.Value, Step = meta.step ?? 1, CustomMinimumSize = new Vector2(90, 0), TooltipText = "刻度尺，可超量程输入" };
+            slider.SetValueNoSignal(Mathf.Clamp(Convert.ToDouble(value ?? 0), meta.min.Value, meta.max.Value));
             slider.ValueChanged += v => edit.Text = t == typeof(int) ? ((int)v).ToString() : v.ToString("0.##");
             box.AddChild(slider);
         }
