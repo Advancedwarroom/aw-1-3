@@ -38,6 +38,8 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
     _rowInitial[name] = getter();
     _rowGetters[name] = getter;
     _rowBoxes[name] = hbox;
+    _rowOrder[name] = _rowOrder.Count;
+    _rowTypes[name] = memberType == typeof(bool) ? 1 : memberType.IsEnum ? 2 : (memberType == typeof(int) || memberType == typeof(float) || memberType == typeof(double)) ? 0 : 3;
     // ✅ 开创人2026-11-24: 中文字典标签 + 悬浮说明 + 搜索索引
     var (zhName, zhDesc) = ExportLabelDb.Get(name);
     hbox.SetMeta("field", name);
@@ -86,9 +88,21 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
 
     Action<object> wrappedSetter = (newValue) => {
         // ✅ 开创人2026-11-24: 撤销快照——确认提交前记录原值，↩一键回退
-        // ✅ 开创人2026-11-25: 50步撤销/重做历史栈
+        // ✅ 开创人2026-11-25 V3b: 历史栏目日志（上限10~1000可配，点击可回退）
         var undoValue = value;
-        PushEdit(() => ApplyValue(undoValue), () => ApplyValue(newValue));
+        var (zn2, _) = ExportLabelDb.Get(name);
+        PushJournal(new V3EditRecord
+        {
+            field = name,
+            zh = string.IsNullOrEmpty(zn2) ? name : zn2,
+            oldS = $"{undoValue}", newS = $"{newValue}",
+            time = DateTime.Now.ToString("HH:mm:ss"),
+            undo = () => ApplyValue(undoValue),
+            redo = () => ApplyValue(newValue),
+        });
+        _editFuture.Clear();
+        RefreshUndoButtons();
+        _lastEditTime[name] = DateTime.Now;
         ApplyValue(newValue);
     };
 
@@ -517,6 +531,9 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
         foreach (var child in propertyContainer.GetChildren())
             child.QueueFree();
 
+        _rowInitial.Clear(); _rowGetters.Clear(); _rowSetters.Clear(); _rowBoxes.Clear();
+        _rowLabels.Clear(); _rowOrder.Clear(); _rowTypes.Clear();
+        EditJournal.Clear(); _editFuture.Clear();
         // ✅ 开创人2026-11-24: 检查器V2——搜索+撤销工具栏（中文字典见ExportLabelDb）
         BuildInspectorToolbar(target);
         // ✅ 开创人2026-11-25 V3: 构建完成后首刷联动显隐(requires)
@@ -567,19 +584,7 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
                 groupLabel.SetMeta("sectionHeader", true);
                 groupLabel.AddThemeFontSizeOverride("font_size", 14);
                 groupLabel.CustomMinimumSize = new Vector2(0, 30);
-                groupLabel.Pressed += () =>
-                {
-                    var kids = propertyContainer.GetChildren();
-                    int idx = kids.IndexOf(groupLabel);
-                    bool collapsing = groupLabel.Text.StartsWith("▼");
-                    groupLabel.Text = collapsing ? $"▶ {group.Key}" : $"▼ {group.Key}";
-                    for (int k = idx + 1; k < kids.Count; k++)
-                    {
-                        var nx = kids[k];
-                        if (nx is Button b && b.HasMeta("sectionHeader")) break;
-                        if (nx is CanvasItem ci) ci.Visible = !collapsing;
-                    }
-                };
+                groupLabel.Pressed += () => OnSectionHeaderPressed(groupLabel, group.Key);   // ✅ V3b: 卡片模式进浮窗
                 propertyContainer.AddChild(groupLabel);
             }
 
