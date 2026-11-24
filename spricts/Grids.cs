@@ -1133,7 +1133,10 @@ public partial class Grids : Node2D
         if ((terrainDirection & 4) != 0) s += "S";
         if ((terrainDirection & 8) != 0) s += "W";
         if (string.IsNullOrEmpty(s)) s = "0";
-        return $"res://art/Grids/地形/{prefix}_{s}.png";
+        var pipePath = $"res://art/Grids/地形/{prefix}_{s}.png";
+        // ✅ 开创人2026-11-25: 缺变体回退Pipe_0（此前Pipe_ES.png缺失→每帧刷"No loader found"）
+        if (!ResourceLoader.Exists(pipePath)) pipePath = $"res://art/Grids/地形/{prefix}_0.png";
+        return pipePath;
     }
 
     /// <summary>
