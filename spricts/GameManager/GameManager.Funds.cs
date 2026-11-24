@@ -72,12 +72,6 @@ public partial class GameManager
             {
                 if (grid.city is City c)
                 {
-                    // ✅ 矿藏 tick（开创人2026-11-25）：扣库存→变现→枯竭停产离场
-                    if (c.mineEnabled)
-                    {
-                        TickMine(c, grid, team);
-                        if (c.mineStock <= 0) continue;   // 枯竭：停产（设施已被 DepleteMine 移除）
-                    }
                     income += c.fundsPerTurn;
                 }
             }
