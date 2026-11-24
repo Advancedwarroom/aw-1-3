@@ -481,6 +481,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitG
     int attackDamage = CalculateFinalDamage(target, weapon);
     if (attackUsesFixedDamage) attackDamage = -attackFixedDamage;   // 固定值攻击：配置正值=给目标加血
     if (damagePercent != 100) attackDamage = attackDamage * damagePercent / 100;   // ✅ 火力支援系数
+    if (fireSupportEnabled && !fireSupportSelfDamage) attackDamage = 0;   // ⑦发起单位自身是否保留伤害（false=指挥官只指挥不开炮）
     int counterDamage = 0;
     
     // 反击
