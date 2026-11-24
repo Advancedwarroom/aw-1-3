@@ -53,7 +53,7 @@ public partial class TerrainEditor
 
     // ===== ⑦ 两级导航：模块卡片 → 浮窗 =====
     private bool _cardMode;
-    private PopupPanel _cardPopup;
+    private V3Window _cardPopup;
     private VBoxContainer _cardBox;
     private string _cardPopupTitle = "";
     private readonly List<(Control row, int origIdx)> _cardStash = new();
@@ -106,13 +106,11 @@ public partial class TerrainEditor
         _cardPopupTitle = title;
         if (_cardPopup == null)
         {
-            _cardPopup = new PopupPanel();
-            var sc = new ScrollContainer { CustomMinimumSize = new Vector2(420, 480) };
+            _cardPopup = new V3Window(new Vector2(440, 480));
             _cardBox = new VBoxContainer();
-            sc.AddChild(_cardBox);
-            _cardPopup.AddChild(sc);
+            _cardPopup.Body.AddChild(_cardBox);
             AddChild(_cardPopup);
-            _cardPopup.PopupHide += CloseCardPopup;
+            _cardPopup.Closed += CloseCardPopup;
         }
         _cardBox.Name = $"card_{title}";
         // 收编该分区的行
@@ -130,7 +128,7 @@ public partial class TerrainEditor
             }
         }
         _cardPopup.Title = title;
-        _cardPopup.PopupCentered();
+        _cardPopup.ShowCentered();
     }
 
     private void CloseCardPopup()
@@ -175,7 +173,7 @@ public partial class TerrainEditor
         if (EditJournal.Count > _histCap) EditJournal.RemoveAt(0);
     }
 
-    private PopupPanel _histPopup;
+    private V3Window _histPopup;
     private ItemList _histList;
     private SpinBox _histCapSpin;
 
@@ -183,7 +181,7 @@ public partial class TerrainEditor
     {
         if (_histPopup == null)
         {
-            _histPopup = new PopupPanel();
+            _histPopup = new V3Window(new Vector2(480, 420));
             var vb = new VBoxContainer();
             var bar = new HBoxContainer();
             var capLabel = new Label { Text = "上限" };
@@ -196,7 +194,7 @@ public partial class TerrainEditor
             _histList.ItemActivated += RollbackToEntry;   // 双击回退
             _histList.ItemClicked += (idx, _, _) => RollbackToEntry(idx);
             vb.AddChild(_histList);
-            _histPopup.AddChild(vb);
+            _histPopup.Body.AddChild(vb);
             AddChild(_histPopup);
         }
         _histCapSpin.Value = _histCap;
@@ -207,7 +205,7 @@ public partial class TerrainEditor
             _histList.AddItem($"{r.time}  {r.zh} ({r.field}): {r.oldS} → {r.newS}");
         }
         _histPopup.Title = $"历史记录 ({EditJournal.Count}/{_histCap})";
-        _histPopup.PopupCentered();
+        _histPopup.ShowCentered();
     }
 
     private void RollbackToEntry(long index)
