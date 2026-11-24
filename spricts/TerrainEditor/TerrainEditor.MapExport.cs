@@ -325,7 +325,9 @@ public partial class TerrainEditor
         timer.Timeout += () => { hintLabel.QueueFree(); timer.QueueFree(); };
         globalConfigPanel.AddChild(timer);
         timer.Start();
-        }
+        
+        // ✅ 开创人2026-11-25 V3d: 地图落盘 → 清除"已改未存"脏标记
+        ClearV3Dirty();}
 
     // ========== ✅ 模板差异比较 ==========
     private Dictionary<string, object> _templateInstanceCache = new();
