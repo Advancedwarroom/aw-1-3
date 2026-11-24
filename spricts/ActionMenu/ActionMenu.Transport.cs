@@ -94,6 +94,30 @@ private void OnLoadPressed()
 // 新增：执行远程搭载
 private void PerformFarMounting(Infantry transport, Infantry unit)
 {
+        // ✅ 混编整队上船（开创人2026-11-24）：资格=全员可载且舱位够（CanBoardTransport 已判定）；整队装载、各占一席
+        var squadGm = transport.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (unit != null && unit.squadId > 0 && squadGm != null)
+        {
+            var boardable = squadGm.GetSquadBoardableMembers(transport, unit);
+            if (boardable == null || boardable.Count == 0) return;
+            foreach (var m in boardable)
+            {
+                if (m == null || !IsInstanceValid(m)) continue;
+                if (!transport.LoadUnit(m)) continue;
+                m.isMoved = true;
+                m.isAttacked = true;
+                m.state = UnitState.Acted;
+                m.SetWaitVisual(true);
+            }
+            squadGm.ReSquadLeftBehind(unit, boardable);
+            Hide();
+            squadGm.ClearSelectedInfantry();
+            squadGm.gridManager?.CloseRange();
+            currentTransport = null;
+            pendingTransportSelection?.Clear();
+            return;
+        }
+
     // 直接装载，不需要移动单位位置
     bool success = transport.LoadUnit(unit);
 
@@ -119,6 +143,30 @@ private void PerformFarMounting(Infantry transport, Infantry unit)
 // 新增：执行同格搭载（原有逻辑提取）
 private void PerformSameGridMounting(Infantry transport, Infantry unit)
 {
+        // ✅ 混编整队上船（开创人2026-11-24）：资格=全员可载且舱位够（CanBoardTransport 已判定）；整队装载、各占一席
+        var squadGm = transport.GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (unit != null && unit.squadId > 0 && squadGm != null)
+        {
+            var boardable = squadGm.GetSquadBoardableMembers(transport, unit);
+            if (boardable == null || boardable.Count == 0) return;
+            foreach (var m in boardable)
+            {
+                if (m == null || !IsInstanceValid(m)) continue;
+                if (!transport.LoadUnit(m)) continue;
+                m.isMoved = true;
+                m.isAttacked = true;
+                m.state = UnitState.Acted;
+                m.SetWaitVisual(true);
+            }
+            squadGm.ReSquadLeftBehind(unit, boardable);
+            Hide();
+            squadGm.ClearSelectedInfantry();
+            squadGm.gridManager?.CloseRange();
+            currentTransport = null;
+            pendingTransportSelection?.Clear();
+            return;
+        }
+
     bool isFarMounting = unit.grid != transport.grid; 
 
     if (isFarMounting)
@@ -383,7 +431,7 @@ private List<Infantry> GetAvailableTransportsInRange(Infantry unit)
 
     foreach (var transport in currentGrid.infantries)
     {
-        if (transport is Infantry transportUnit && transportUnit.CanTransportUnit(unit))
+        if (transport is Infantry transportUnit && gm != null && gm.CanBoardTransport(transportUnit, unit))
         {
             result.Add(transportUnit);
         }
@@ -409,7 +457,7 @@ private List<Infantry> GetAvailableTransportsInRange(Infantry unit)
         int dist = unit.MinAnchorDistance(transport.grid.GridIndex);   // ✅ issue#1 二期：锚点合集取最近（多格隔空搭载资格）
 
         bool inRange = dist >= transport.minFarMountingDistance && dist <= transport.maxFarMountingDistance;
-        if (inRange && dist > 0 && transport.CanTransportUnit(unit))
+        if (inRange && dist > 0 && gm != null && gm.CanBoardTransport(transport, unit))
         {
             result.Add(transport);
         }
@@ -478,7 +526,7 @@ public void ShowTransportMenu(Infantry transport, bool afterMove)
         var mountableUnit = transport.grid.infantries
             .FirstOrDefault(u => u != transport 
                 && (u.team == transport.team || transport.team == TeamHelper.Player)
-                && transport.CanTransportUnit(u) 
+                && (GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager)?.CanBoardTransport(transport, u) == true 
                 && (afterMove || !u.isMoved) 
                 && u.state != UnitState.Acted);
 

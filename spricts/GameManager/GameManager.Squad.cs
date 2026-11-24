@@ -193,4 +193,47 @@ public partial class GameManager
         if (alive.Count >= 2) return;
         foreach (var u in alive) { u.squadId = 0; RefreshSquadVisuals(u.grid); }
     }
+
+    // ========== 混编搭载资格（开创人2026-11-24：能力判定取代硬编码禁止） ==========
+    // 全员通过 CanTransportUnit 且剩余舱位 ≥ 人数 → 整队可上；否则不上（保持编队完整，不拆散）。
+    public List<Infantry> GetSquadBoardableMembers(Infantry transport, Infantry unit)
+    {
+        var result = new List<Infantry>();
+        if (transport == null || unit == null) return result;
+        var members = unit.squadId > 0 ? GetSquadMembers(unit) : new List<Infantry> { unit };
+        int freeSeats = transport.maxTransportCapacity - transport.transportedUnits.Count;
+        foreach (var m in members)
+        {
+            if (m == null || !IsInstanceValid(m) || m.isTransported) continue;
+            if (!transport.CanTransportUnit(m)) continue;   // 开创人2026-11-24：能上的上，不能上的不上——分开判定
+            if (result.Count >= freeSeats) break;            // 舱位满即止，剩下的留下
+            result.Add(m);
+        }
+        return result;
+    }
+
+    // ✅ 部分搭载后的留队重整（开创人2026-11-24：分开判定）：留下的 ≥2 人换新编组号，1 人散编
+    public void ReSquadLeftBehind(Infantry boardedUnit, List<Infantry> boarded)
+    {
+        if (boardedUnit == null || boardedUnit.squadId <= 0) return;
+        var members = GetSquadMembers(boardedUnit);
+        var left = members.Where(m => m != null && IsInstanceValid(m) && !m.isTransported && !boarded.Contains(m)).ToList();
+        if (left.Count == 0) return;
+        if (left.Count == 1)
+        {
+            left[0].squadId = 0;
+            RefreshSquadVisuals(left[0].grid);
+            return;
+        }
+        int newId = NextSquadId++;
+        foreach (var m in left) { m.squadId = newId; RefreshSquadVisuals(m.grid); }
+    }
+
+    // 搭载总门：单体走原 CanTransportUnit；混编走整队资格
+    public bool CanBoardTransport(Infantry transport, Infantry unit)
+    {
+        if (transport == null || unit == null) return false;
+        if (unit.squadId <= 0) return transport.CanTransportUnit(unit);
+        return GetSquadBoardableMembers(transport, unit).Count > 0;
+    }
 }

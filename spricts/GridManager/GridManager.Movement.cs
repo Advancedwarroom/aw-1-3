@@ -34,8 +34,8 @@ public partial class GridManager
             && u.maxTransportCapacity > 0 
             && u.team == infantry.team 
             && u != infantry) as Infantry;
-        // ✅ 混编不上船（开创人2026-11-24 v1 裁决）：整队不登运输，拆编后单上
-        if (transport != null && infantry.squadId <= 0 && transport.CanTransportUnit(infantry))
+        // ✅ 混编搭载资格判定（开创人2026-11-24）：能整队上（全员可载＋舱位够）才弹菜单，不能上就不弹——非硬编码禁止
+        if (transport != null && gm != null && gm.CanBoardTransport(transport, infantry))
         {
             var actionMenu = GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu;
             actionMenu?.ShowTransportMenu(transport, afterMove: false);
@@ -469,8 +469,8 @@ public partial class GridManager
     var shelter = Weapon.FindShelterFor(to.weapons, infantry);
     if (shelter != null && shelter.LoadShelterUnit(infantry)) hasMountedToTransport = true;
 
-    // ✅ 混编落点不触发上船菜单（开创人2026-11-24 v1 裁决）
-    if (!hasMountedToTransport && infantry.squadId <= 0 && transport != null && transport.CanTransportUnit(infantry))
+    // ✅ 混编落点搭载资格判定（开创人2026-11-24）：能整队上才弹菜单，否则不弹
+    if (!hasMountedToTransport && gm != null && gm.CanBoardTransport(transport, infantry))
     {
         var actionMenu = GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu;
         if (actionMenu != null)
