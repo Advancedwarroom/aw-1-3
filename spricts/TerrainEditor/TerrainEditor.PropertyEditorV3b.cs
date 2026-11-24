@@ -65,10 +65,9 @@ public partial class TerrainEditor
         if (on)
         {
             // 收起所有分区：只留卡片头
-            bool skipping = false;
             foreach (var c in kids)
             {
-                if (c is Button && c is CanvasItem c2) { c2.Visible = true; skipping = false; }
+                if (c is Button && c is CanvasItem c2) { c2.Visible = true; }
                 else if (c is CanvasItem ci) ci.Visible = false;
             }
         }
