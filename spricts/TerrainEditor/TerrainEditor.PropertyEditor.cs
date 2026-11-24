@@ -39,6 +39,7 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
     _rowGetters[name] = getter;
     _rowBoxes[name] = hbox;
     _rowOrder[name] = _rowOrder.Count;
+    _rowMemberTypes[name] = memberType;
     _rowTypes[name] = memberType == typeof(bool) ? 1 : memberType.IsEnum ? 2 : (memberType == typeof(int) || memberType == typeof(float) || memberType == typeof(double)) ? 0 : 3;
     // ✅ 开创人2026-11-24: 中文字典标签 + 悬浮说明 + 搜索索引
     var (zhName, zhDesc) = ExportLabelDb.Get(name);
