@@ -66,6 +66,7 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
     // ✅ 开创人2026-11-24: 应用+刷新统一入口，供正常提交与撤销复用
     void ApplyValue(object newValue)
     {
+        MarkV3Dirty();   // ✅ 开创人2026-11-25: 先记账——任何分支抛异常也不丢脏标记
         setter(newValue);
 
         if (name == "team" && target is Node2D node)
@@ -88,10 +89,10 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
         // ✅ 开创人2026-11-25 V3d: 视听反馈闭环(改势力变颜色这类视觉反馈之外的通用闭环)
         FlashV3Row(name);
         PlayV3Blip();
-        MarkV3Dirty();
     }
 
     Action<object> wrappedSetter = (newValue) => {
+        if (Equals(value, newValue)) return;   // ✅ 开创人2026-11-25: 无变化提交直接跳过(不脏不记史)
         // ✅ 开创人2026-11-24: 撤销快照——确认提交前记录原值，↩一键回退
         // ✅ 开创人2026-11-25 V3b: 历史栏目日志（上限10~1000可配，点击可回退）
         var undoValue = value;
