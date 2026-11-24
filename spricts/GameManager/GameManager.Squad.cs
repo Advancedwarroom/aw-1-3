@@ -191,6 +191,6 @@ public partial class GameManager
                 if (u != null && IsInstanceValid(u) && u.squadId == id) alive.Add(u);
         }
         if (alive.Count >= 2) return;
-        foreach (var u in alive) { u.squadId = 0; u.RefreshSquadVisuals(); }
+        foreach (var u in alive) { u.squadId = 0; RefreshSquadVisuals(u.grid); }
     }
 }

@@ -318,8 +318,8 @@ public partial class ExtraSave : Node
         gm.fogOfWarManager?.RefreshFog();
         gm.UpdateUnitLists();
         gm.RefreshSpecializedUnitLists();
-        // 全部同格成员与 joinGroupId 恢复后，再统一重建编队偏移和总血量标签。
-        gm.RefreshAllJoinVisuals();
+        // 全部同格成员与 squadId 恢复后，再统一重建编队偏移和总血量标签。
+        gm.RefreshAllSquadVisuals();
 
         // ✅ 开创人2026-11-19: 方向性地形(管道/山地/海崖)CoW贴图在格子创建时按默认方向烘焙——批量铺格/载入后必须全员重刷
         if (gm?.gridManager?.map != null)

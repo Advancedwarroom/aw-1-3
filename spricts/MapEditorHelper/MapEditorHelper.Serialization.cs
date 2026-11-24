@@ -73,7 +73,7 @@ public partial class MapEditorHelper
             gameManager.unitManager.AllUnits.Add(unit);
 
         unit.GlobalPosition = grid.GlobalPosition;
-        gameManager?.RefreshJoinVisuals(grid);
+        gameManager?.RefreshSquadVisuals(grid);
     }
 
     private void SpawnWeaponFromData(Grids grid, SavedWeaponData data)
