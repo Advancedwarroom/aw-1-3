@@ -14,6 +14,8 @@ public partial class Infantry
     [Export] public bool fireSupportEnabled = false;                 // ①是否能够开炮（发起共鸣）
     [Export] public int fireSupportRangeMin = 0;                    // ②共鸣范围下限（以目标为圆心，曼哈顿）
     [Export] public int fireSupportRangeMax = 2;                    // ②共鸣范围上限
+    [Export(PropertyHint.Enum, "以目标为圆心,以发起者为圆心")]
+    public int fireSupportCenterMode = 0;                  // ②圆心：0=被攻击者/目标（默认） 1=发起者/进攻者
     [Export] public string[] fireSupportBlacklist = new string[0]; // ③共鸣单位黑名单（UnitTypeId/TemplateId，如坦克等近战）
     [Export] public int fireSupportDamagePercent = 0;              // ④攻击时增强削弱n%（正=增强，负=削弱，结算×(100+n)/100）
     [Export] public bool fireSupportAllowActed = false;              // ⑤共鸣单位是否允许已行动
@@ -61,7 +63,9 @@ public partial class GameManager
             if (u.fireSupportManualOnly) continue;                                   // ⑧主动派：拒当共鸣
             if (FireSupportBlacklisted(attacker, u)) continue;                         // ③黑名单
             if (u.grid == null) continue;
-            int man = Mathf.Abs(u.grid.GridIndex.X - target.grid.GridIndex.X) + Mathf.Abs(u.grid.GridIndex.Y - target.grid.GridIndex.Y);
+            // 圆心裁决（开创人2026-11-25 Export）：目标 or 发起者
+            var centerIdx = attacker.fireSupportCenterMode == 1 && attacker.grid != null ? attacker.grid.GridIndex : target.grid.GridIndex;
+            int man = Mathf.Abs(u.grid.GridIndex.X - centerIdx.X) + Mathf.Abs(u.grid.GridIndex.Y - centerIdx.Y);
             if (man < rMin || man > rMax) continue;                                    // ②目标圆心 n~m
             if (!attacker.fireSupportAllowActed && (u.hasActed || u.state == UnitState.Acted)) continue;  // ⑤已行动门
             if (ExpectedFireSupportDamage(u, target) <= 0) continue;                   // 常规就能攻击的（表内无值/全零 → 无资格）
