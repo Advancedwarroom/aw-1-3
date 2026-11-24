@@ -1312,6 +1312,8 @@ public partial class TranslateGroup
         Add("友军被打时是否反击", "Allies counterattack when hit", "友軍被弾時の反撃", "아군 피격 시 반격", "Verbündete kontern bei Treffer", "Союзники контратакуют при ударе", "友军被打时是否反击", "友軍被打時是否反擊");
         Add("生产格有单位时直接覆盖(巨兽特权)", "Overwrite units on production cell (beast privilege)", "生産マスのユニットを上書き(巨獣特権)", "생산 칸 유닛 덮어쓰기(거수 특권)", "Überschreibt Einheiten (Bestienprivileg)", "Перезаписывает юнитов (привилегия)", "生产格有单位时直接覆盖(巨兽特权)", "生產格有單位時直接覆蓋(巨獸特權)");
         Add("弱点全毁后进入核心阶段", "Enter core phase when all weak points fall", "弱点全壊でコア段階へ", "약점 전파괴 시 코어 단계로", "Bei Zerstörung aller Schwachpunkte: Kernphase", "При уничтожении слабых точек — фаза ядра", "弱点全毁后进入核心阶段", "弱點全毀後進入核心階段");
-        Add("GrandBolt整体移动开关", "GrandBolt whole-body movement toggle", "グランドボルト全体移動のON/OFF", "그랜드볼트 전체 이동 토글", "Gesamtbewegung von GrandBolt umschalten", "Переключение движения GrandBolt", "GrandBolt整体移动开关", "GrandBolt整體移動開關");
+        Add("火力支援最小距", "Fire Support Min Range", "火力支援最小射程", "화력 지원 최소 사거리", "Feuerunterstützung min", "Мин. дальность огн. поддержки", "火力支援最小距", "火力支援最小距");
+        Add("火力支援最大距", "Fire Support Max Range", "火力支援最大射程", "화력 지원 최대 사거리", "Feuerunterstützung max", "Макс. дальность огн. поддержки", "火力支援最大距", "火力支援最大距");
+        Add("仅手动支援", "Manual Fire Support Only", "手動支援のみ", "수동 지원만", "Nur manuelle Unterstützung", "Только ручная поддержка", "仅手动支援", "僅手動支援");
     }
 }
