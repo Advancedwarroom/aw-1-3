@@ -15,11 +15,7 @@ public partial class TerrainEditor
 private void BuildGridPropertyEditor(Grids grid)
 {
     // 基础属性
-    var basicLabel = new Label();
-    TranslateGroup.SetText(basicLabel, "=== 基础属性 ===");
-    basicLabel.AddThemeFontSizeOverride("font_size", 14);
-    basicLabel.AddThemeColorOverride("font_color", Colors.Yellow);
-    propertyContainer.AddChild(basicLabel);
+    propertyContainer.AddChild(MakeSectionHeader("基础属性"));
 
     CreateMemberControl(grid, "gridType", typeof(GridType), 
         () => grid.gridType, (v) => { grid.gridType = (GridType)v; grid.BakeCowBrush(); grid.UpdateTerrainIcon(); }); // ✅ 修改地形属性时烘焙当前画笔风格
