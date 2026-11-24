@@ -109,9 +109,9 @@ public bool BindUnitToGrid(Infantry unit, bool forceRebind = false)
         
         if (blockingUnit != null)
         {
-            bool joinedBinding = unit.joinGroupId > 0 && blockingUnit.joinGroupId == unit.joinGroupId
+            bool squadBinding = unit.squadId > 0 && blockingUnit.squadId == unit.squadId
                 && blockingUnit.team == unit.team;
-            if (!joinedBinding) return false;
+            if (!squadBinding) return false;
         }
     }
 

@@ -32,8 +32,19 @@ public int ActualVisionRange
     {
         // ✅ CO 模块系统·模块4（视野加成）+ 天气系统（模块15：雨-1/雾-2）
         int coBonus = CoModuleSystem.GetVisionBonus(this) + WeatherSystem.GetVisionModifier(this);
-        if (!useConfigVision && visionRange >= 0) return Mathf.Max(0, visionRange + coBonus);
-        return Mathf.Max(0, VisionConfig.GetUnitVisionRange(UnitTypeId, TemplateId) + coBonus);
+        int baseVision = (!useConfigVision && visionRange >= 0) ? visionRange : VisionConfig.GetUnitVisionRange(UnitTypeId, TemplateId);
+        // ✅ 混编视野并集（开创人2026-11-24规格）：编队同格，视野取成员最大值——侦察车替坦克开眼
+        var squadGm = GetTree()?.GetFirstNodeInGroup("game_manager") as GameManager;
+        if (squadGm != null && squadId > 0)
+        {
+            foreach (var m in squadGm.GetSquadMembers(this))
+            {
+                if (m == null || m == this || !IsInstanceValid(m)) continue;
+                int mBase = (!m.useConfigVision && m.visionRange >= 0) ? m.visionRange : VisionConfig.GetUnitVisionRange(m.UnitTypeId, m.TemplateId);
+                baseVision = Mathf.Max(baseVision, mBase);
+            }
+        }
+        return Mathf.Max(0, baseVision + coBonus);
     }
 }
 

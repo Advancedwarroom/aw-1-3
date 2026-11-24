@@ -130,7 +130,7 @@ public void RollbackMove()
         return;
     }
 
-    if (gridManager != null && gridManager.RollbackJointMoves(selectedInfantry))
+    if (gridManager != null && gridManager.RollbackSquadMoves(selectedInfantry))
     {
         selectedInfantry = null;
         return;

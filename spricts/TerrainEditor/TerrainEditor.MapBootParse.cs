@@ -139,11 +139,11 @@ public partial class TerrainEditor
                             var grid = gridManager.map[ux, uy];
                             if (grid != null)
                             {
-                                int joinId = 0;
-                                var joinMatch = System.Text.RegularExpressions.Regex.Match(diffPart, @"JG(\d+)");
-                                if (joinMatch.Success) joinId = int.Parse(joinMatch.Groups[1].Value);
+                                int parsedSquadId = 0;
+                                var squadMatch = System.Text.RegularExpressions.Regex.Match(diffPart, @"JG(\d+)");
+                                if (squadMatch.Success) parsedSquadId = int.Parse(squadMatch.Groups[1].Value);
                                 diffPart = System.Text.RegularExpressions.Regex.Replace(diffPart, @"\s*JG\d+", "");
-                                SpawnUnitAtGrid(grid, scenePath, fullTeam, preserveJoinedUnits: joinId > 0, joinGroupId: joinId);
+                                SpawnUnitAtGrid(grid, scenePath, fullTeam, preserveSquadUnits: parsedSquadId > 0, squadId: parsedSquadId);
                                 var spawned = grid.infantries.LastOrDefault();
                                 if (spawned != null)
                                 {

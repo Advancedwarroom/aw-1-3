@@ -55,7 +55,7 @@ public virtual int CalculateFinalDamage(Infantry target, WeaponType weaponType, 
     float attackerHealthPercent = (float)health / GetEffectiveMaxHealth();
     float actualAttack = baseDamage * attackerHealthPercent;
     // 广义 Join：只增减该攻击成员自身攻击；普通攻击、反击与预览共用此公式。
-    actualAttack *= gameManager?.GetJoinAttackMultiplier(this) ?? 1f;
+    actualAttack *= gameManager?.GetSquadAttackMultiplier(this) ?? 1f;
 
     // ✅ 开创人2026-11-15: 精度崩消耗点——被打弱点格后的下次攻击乘数（一次性消耗）
     if (!Mathf.IsEqualApprox(nextAttackOutputMul, 1f))
@@ -442,7 +442,7 @@ public virtual void Attack(Infantry target, bool allowCounter = true, Grids hitG
             GD.PushError("[准备模块] attack 条件未满足（池内不足/该操作冷却中/次数用尽）");
             return;
         }
-        if (gameManager != null && gameManager.TryExecuteJointAttack(this, target, allowCounter, hitGrid)) return;
+        if (gameManager != null && gameManager.TryExecuteSquadAttack(this, target, allowCounter, hitGrid)) return;
         if (target != null) target.lastAttackerTeam = team;   // ✅ 开创人2026-11-14 战役记账：步兵凶手追踪
         // ✅ 隐身攻击门：白名单外的单位打不了隐身目标（所有攻击路径的唯一闸门）
         if (!CanTargetStealth(this, target)) return;

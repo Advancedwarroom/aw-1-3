@@ -195,7 +195,7 @@ public List<Infantry> transportedUnits = new List<Infantry>();
 public virtual bool LoadUnit(Infantry unit)
 {
         if (isStealthed && !canLoadUnloadWhileStealthed) return false; // ✅ 隐身行为锁
-    if (transportMergeOverflowLock) return false;   // ✦开创人2026-11-19：合流·保留策略——不能再装回来
+    if (transportSquadOverflowLock) return false;   // ✦开创人2026-11-19：合流·保留策略——不能再装回来
     if (!CanTransportUnit(unit)) return false;
     
     // ✅ 彻底停止所有视觉组件的动画残留（sprite + animSprite + 嵌套子节点）

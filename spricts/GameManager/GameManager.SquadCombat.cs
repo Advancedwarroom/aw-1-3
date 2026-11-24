@@ -5,40 +5,40 @@ using System.Linq;
 
 public partial class Infantry
 {
-    public bool CanJointCounter(Infantry attacker)
+    public bool CanSquadCounter(Infantry attacker)
     {
         return attacker != null && IsInstanceValid(attacker) && attacker.grid != null && grid != null
             && CounterFireAllowed(attacker) && CanTargetStealth(this, attacker)
             && SelectWeaponByMatrix(attacker) != WeaponType.None;
     }
 
-    public void JointApplyDamageReveal(Infantry target)
+    public void SquadApplyDamageReveal(Infantry target)
     {
         ApplyStealthRevealOnDamage(target);
         target.CheckStealthThresholds();
         target.SyncDamageRevealTracker();
     }
 
-    public void JointApplyCounterReveal()
+    public void SquadApplyCounterReveal()
     {
         ApplyStealthRevealOnDamage(this);
         CheckStealthThresholds();
         SyncDamageRevealTracker();
     }
 
-    public void JointTryPushTarget(Infantry target) => TryPushTargetOnAttack(target);
+    public void SquadTryPushTarget(Infantry target) => TryPushTargetOnAttack(target);
 }
 
 public partial class GameManager
 {
-    private sealed class JointHit
+    private sealed class SquadHit
     {
         public Infantry target;
         public WeaponType weapon;
         public int damage;
     }
 
-    private bool JointRelationAllowed(Infantry attacker, Infantry target, Grids hitGrid)
+    private bool SquadRelationAllowed(Infantry attacker, Infantry target, Grids hitGrid)
     {
         if (attacker == null || target == null || !IsInstanceValid(attacker) || !IsInstanceValid(target)) return false;
         if (attacker.attackType == AttackType.NoAttack || target.grid == null) return false;
@@ -49,20 +49,20 @@ public partial class GameManager
         return attacker.SelectWeaponByMatrix(target) != WeaponType.None;
     }
 
-    private List<JointHit> GetLegalJointHits(Infantry attacker, IEnumerable<Infantry> targets, Grids hitGrid)
+    private List<SquadHit> GetLegalSquadHits(Infantry attacker, IEnumerable<Infantry> targets, Grids hitGrid)
     {
-        var result = new List<JointHit>();
+        var result = new List<SquadHit>();
         foreach (var target in targets.Distinct().ToList())
         {
-            if (!JointRelationAllowed(attacker, target, hitGrid)) continue;
+            if (!SquadRelationAllowed(attacker, target, hitGrid)) continue;
             var weapon = attacker.SelectWeaponByMatrix(target);
-            if (weapon != WeaponType.None) result.Add(new JointHit { target = target, weapon = weapon });
+            if (weapon != WeaponType.None) result.Add(new SquadHit { target = target, weapon = weapon });
         }
         return result;
     }
 
     // 与正常公式同源；includeHealth=false 时同时剔除攻击方血量火力与目标动态防御里的血量缩放。
-    private int CalculateJointDamage(Infantry attacker, Infantry target, WeaponType weaponType,
+    private int CalculateSquadDamage(Infantry attacker, Infantry target, WeaponType weaponType,
         bool isCounter, bool includeHealth, float outputMul)
     {
         if (attacker.attackUsesFixedDamage) return -attacker.attackFixedDamage;
@@ -75,7 +75,7 @@ public partial class GameManager
 
         float actualAttack = baseDamage;
         if (includeHealth) actualAttack *= (float)attacker.health / attacker.GetEffectiveMaxHealth();
-        actualAttack *= GetJoinAttackMultiplier(attacker);
+        actualAttack *= GetSquadAttackMultiplier(attacker);
         actualAttack *= outputMul;
         float coOffBonus = CoModuleSystem.GetOffenseBonusPercent(attacker) + WeatherSystem.GetOffenseModifierPercent(attacker);
         actualAttack *= Mathf.Max(0f, 100f + coOffBonus) / 100f;
@@ -105,19 +105,19 @@ public partial class GameManager
         return Mathf.Max(1, Mathf.RoundToInt(rawDamage) + luckRoll);
     }
 
-    public bool TryExecuteJointAttack(Infantry selectedAttacker, Infantry selectedTarget,
+    public bool TryExecuteSquadAttack(Infantry selectedAttacker, Infantry selectedTarget,
         bool allowCounter = true, Grids hitGrid = null)
     {
-        if (resolvingJointAttack || selectedAttacker == null || selectedTarget == null) return false;
-        var attackers = GetJoinedMembers(selectedAttacker)
+        if (resolvingSquadAttack || selectedAttacker == null || selectedTarget == null) return false;
+        var attackers = GetSquadMembers(selectedAttacker)
             .Where(a => !a.isAttacked && a.state != UnitState.Acted).ToList();
-        var defenders = GetJoinedMembers(selectedTarget);
+        var defenders = GetSquadMembers(selectedTarget);
         if (attackers.Count <= 1 && defenders.Count <= 1) return false;
 
-        resolvingJointAttack = true;
+        resolvingSquadAttack = true;
         try
         {
-            var eligibleDefenders = defenders.Where(d => attackers.Any(a => JointRelationAllowed(a, d, hitGrid))).ToList();
+            var eligibleDefenders = defenders.Where(d => attackers.Any(a => SquadRelationAllowed(a, d, hitGrid))).ToList();
             if (eligibleDefenders.Count == 0) return false;
             var alreadyCountered = new HashSet<Infantry>();
 
@@ -127,9 +127,9 @@ public partial class GameManager
                 {
                     if (!IsInstanceValid(defender) || defender.health <= 0) continue;
                     bool firstStrike = attackers.Any(a => IsInstanceValid(a) && a.health > 0
-                        && CoModuleSystem.GetFirstStrike(defender) && defender.CanJointCounter(a));
+                        && CoModuleSystem.GetFirstStrike(defender) && defender.CanSquadCounter(a));
                     if (!firstStrike) continue;
-                    ResolveJointStrike(defender, attackers, hitGrid, true);
+                    ResolveSquadStrike(defender, attackers, hitGrid, true);
                     alreadyCountered.Add(defender);
                 }
             }
@@ -138,7 +138,7 @@ public partial class GameManager
             {
                 if (!IsInstanceValid(attacker) || attacker.health <= 0 || attacker.isAttacked || attacker.state == UnitState.Acted) continue;
                 if (!ActionResourceRuntime.CanUse(attacker, ActionIds.Attack)) continue;
-                ResolveJointStrike(attacker, eligibleDefenders, hitGrid, false);
+                ResolveSquadStrike(attacker, eligibleDefenders, hitGrid, false);
             }
 
             if (allowCounter)
@@ -146,22 +146,22 @@ public partial class GameManager
                 foreach (var defender in eligibleDefenders.ToList())
                 {
                     if (alreadyCountered.Contains(defender) || !IsInstanceValid(defender) || defender.health <= 0) continue;
-                    bool canCounter = attackers.Any(a => IsInstanceValid(a) && a.health > 0 && defender.CanJointCounter(a));
-                    if (canCounter) ResolveJointStrike(defender, attackers, hitGrid, true);
+                    bool canCounter = attackers.Any(a => IsInstanceValid(a) && a.health > 0 && defender.CanSquadCounter(a));
+                    if (canCounter) ResolveSquadStrike(defender, attackers, hitGrid, true);
                 }
             }
-            RefreshAllJoinVisuals();
+            RefreshAllSquadVisuals();
             return true;
         }
         finally
         {
-            resolvingJointAttack = false;
+            resolvingSquadAttack = false;
         }
     }
 
-    private void ResolveJointStrike(Infantry attacker, IEnumerable<Infantry> targets, Grids hitGrid, bool isCounter)
+    private void ResolveSquadStrike(Infantry attacker, IEnumerable<Infantry> targets, Grids hitGrid, bool isCounter)
     {
-        var hits = GetLegalJointHits(attacker, targets, hitGrid);
+        var hits = GetLegalSquadHits(attacker, targets, hitGrid);
         if (hits.Count == 0) return;
 
         float outputMul = Mathf.Max(0.01f, attacker.nextAttackOutputMul);
@@ -173,15 +173,15 @@ public partial class GameManager
         }
 
         foreach (var hit in hits)
-            hit.damage = CalculateJointDamage(attacker, hit.target, hit.weapon, isCounter,
-                hit.target.jointDamageMode == JointDamageMode.Independent, outputMul);
+            hit.damage = CalculateSquadDamage(attacker, hit.target, hit.weapon, isCounter,
+                hit.target.squadDamageMode == SquadDamageMode.Independent, outputMul);
 
         // 独立承伤是显式高代价模式：n 个合法成员就执行 n 次完整成员级结算。
-        foreach (var hit in hits.Where(h => h.target.jointDamageMode == JointDamageMode.Independent || attacker.attackUsesFixedDamage))
-            ApplyJointDamage(attacker, hit.target, hit.damage, hitGrid);
+        foreach (var hit in hits.Where(h => h.target.squadDamageMode == SquadDamageMode.Independent || attacker.attackUsesFixedDamage))
+            ApplySquadDamage(attacker, hit.target, hit.damage, hitGrid);
 
-        ResolveWeightedJointGroup(attacker, hits.Where(h => !attacker.attackUsesFixedDamage && h.target.jointDamageMode == JointDamageMode.WeightedAftermath).ToList(), hitGrid);
-        ResolveGentleJointGroup(attacker, hits.Where(h => !attacker.attackUsesFixedDamage && h.target.jointDamageMode == JointDamageMode.GentlePool).ToList(), hitGrid);
+        ResolveWeightedSquadGroup(attacker, hits.Where(h => !attacker.attackUsesFixedDamage && h.target.squadDamageMode == SquadDamageMode.WeightedAftermath).ToList(), hitGrid);
+        ResolveGentleSquadGroup(attacker, hits.Where(h => !attacker.attackUsesFixedDamage && h.target.squadDamageMode == SquadDamageMode.GentlePool).ToList(), hitGrid);
 
         if (!isCounter)
         {
@@ -198,7 +198,7 @@ public partial class GameManager
         attacker.UpdateHpLabel();
     }
 
-    private void ResolveWeightedJointGroup(Infantry attacker, List<JointHit> hits, Grids hitGrid)
+    private void ResolveWeightedSquadGroup(Infantry attacker, List<SquadHit> hits, Grids hitGrid)
     {
         if (hits.Count == 0) return;
         hits = hits.Where(h => IsInstanceValid(h.target) && h.target.health > 0 && h.damage > 0).ToList();
@@ -226,14 +226,14 @@ public partial class GameManager
                 if (share + 0.0001 < hp)
                 {
                     int amount = Math.Min(hp, Math.Max(0, Mathf.RoundToInt((float)share)));
-                    ApplyJointDamage(attacker, hit.target, amount, hitGrid);
+                    ApplySquadDamage(attacker, hit.target, amount, hitGrid);
                     damagePool = Math.Max(0, damagePool - amount);
                     remaining.Remove(hit);
                     continue;
                 }
 
                 // 恰好摧毁无余波；超额摧毁只扣实际剩余血量，原权重在余下成员间顺延。
-                ApplyJointDamage(attacker, hit.target, hp, hitGrid);
+                ApplySquadDamage(attacker, hit.target, hp, hitGrid);
                 damagePool = Math.Max(0, damagePool - hp);
                 remaining.Remove(hit);
                 killed = true;
@@ -243,7 +243,7 @@ public partial class GameManager
         }
     }
 
-    private void ResolveGentleJointGroup(Infantry attacker, List<JointHit> hits, Grids hitGrid)
+    private void ResolveGentleSquadGroup(Infantry attacker, List<SquadHit> hits, Grids hitGrid)
     {
         hits = hits.Where(h => IsInstanceValid(h.target) && h.target.health > 0).ToList();
         if (hits.Count == 0) return;
@@ -253,15 +253,15 @@ public partial class GameManager
         foreach (var hit in hits)
         {
             int newHealth = ratio <= 0 ? 0 : Math.Min(hit.target.health, Mathf.RoundToInt((float)(hit.target.health * ratio)));
-            ApplyJointDamage(attacker, hit.target, hit.target.health - newHealth, hitGrid);
+            ApplySquadDamage(attacker, hit.target, hit.target.health - newHealth, hitGrid);
         }
     }
 
-    private void ApplyJointDamage(Infantry attacker, Infantry target, int damage, Grids hitGrid)
+    private void ApplySquadDamage(Infantry attacker, Infantry target, int damage, Grids hitGrid)
     {
         if (target == null || !IsInstanceValid(target) || target.health <= 0) return;
         var oldGrid = target.grid;
-        int oldGroupId = target.joinGroupId;
+        int oldGroupId = target.squadId;
         target.lastAttackerTeam = attacker.team;
 
         if (hitGrid != null && target.isMultiTileUnit && !target.healthLocked)
@@ -276,7 +276,7 @@ public partial class GameManager
         if (!target.healthLocked) target.health = Math.Min(target.maxHealth, Math.Max(0, target.health - damage));
         CoModuleSystem.OnDamageDealt(attacker.team, damage);
         CoModuleSystem.OnDamageTaken(target.team, damage);
-        attacker.JointApplyDamageReveal(target);
+        attacker.SquadApplyDamageReveal(target);
         target.UpdateHpLabel();
 
         if (target.health <= 0)
@@ -288,11 +288,11 @@ public partial class GameManager
             RemoveUnit(target);
             if (oldGrid != null && oldGroupId > 0)
             {
-                var rest = oldGrid.infantries.Where(u => u != null && IsInstanceValid(u) && u.joinGroupId == oldGroupId).ToList();
-                if (rest.Count == 1) rest[0].joinGroupId = 0;
-                RefreshJoinVisuals(oldGrid);
+                var rest = oldGrid.infantries.Where(u => u != null && IsInstanceValid(u) && u.squadId == oldGroupId).ToList();
+                if (rest.Count == 1) rest[0].squadId = 0;
+                RefreshSquadVisuals(oldGrid);
             }
         }
-        else attacker.JointTryPushTarget(target);
+        else attacker.SquadTryPushTarget(target);
     }
 }

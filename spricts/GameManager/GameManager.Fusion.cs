@@ -326,7 +326,7 @@ public partial class GameManager
         }
         if (cfg.fusionLoadedPolicy == 2)
         {
-            child.transportMergeOverflowLock = true;
+            child.transportSquadOverflowLock = true;
             child.UpdateLoadedIcon();
         }
         else

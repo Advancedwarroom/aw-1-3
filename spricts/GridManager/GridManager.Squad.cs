@@ -4,24 +4,24 @@ using System.Linq;
 
 public partial class GridManager
 {
-    private readonly Dictionary<Infantry, Grids> jointMoveOrigins = new();
-    private readonly Dictionary<Infantry, int> jointMovePointsBefore = new();
-    private readonly Dictionary<Infantry, int> jointFuelBefore = new();
-    private readonly Dictionary<Infantry, int> jointGroupIdsBefore = new();
+    private readonly Dictionary<Infantry, Grids> squadMoveOrigins = new();
+    private readonly Dictionary<Infantry, int> squadMovePointsBefore = new();
+    private readonly Dictionary<Infantry, int> squadFuelBefore = new();
+    private readonly Dictionary<Infantry, int> squadGroupIdsBefore = new();
 
-    private void RememberJointMove(Infantry unit)
+    private void RememberSquadMove(Infantry unit)
     {
-        if (unit == null || jointMoveOrigins.ContainsKey(unit)) return;
-        jointMoveOrigins[unit] = unit.grid;
-        jointMovePointsBefore[unit] = unit.movePoints;
-        jointFuelBefore[unit] = unit.fuel;
+        if (unit == null || squadMoveOrigins.ContainsKey(unit)) return;
+        squadMoveOrigins[unit] = unit.grid;
+        squadMovePointsBefore[unit] = unit.movePoints;
+        squadFuelBefore[unit] = unit.fuel;
     }
 
-    public bool RollbackJointMoves(Infantry selected)
+    public bool RollbackSquadMoves(Infantry selected)
     {
-        if (selected == null || !jointMoveOrigins.ContainsKey(selected)) return false;
+        if (selected == null || !squadMoveOrigins.ContainsKey(selected)) return false;
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-        foreach (var pair in jointMoveOrigins.ToList())
+        foreach (var pair in squadMoveOrigins.ToList())
         {
             var unit = pair.Key;
             var origin = pair.Value;
@@ -31,66 +31,66 @@ public partial class GridManager
             {
                 current.infantries.Remove(unit);
                 if (current.infantry == unit) current.infantry = current.infantries.Count > 0 ? current.infantries[0] : null;
-                gm?.RefreshJoinVisuals(current);
+                gm?.RefreshSquadVisuals(current);
             }
             unit.grid = origin;
             if (!origin.infantries.Contains(unit)) origin.infantries.Add(unit);
             origin.infantry ??= unit;
             unit.Position = origin.Position;
-            unit.movePoints = jointMovePointsBefore.GetValueOrDefault(unit, unit.movePoints);
-            unit.fuel = jointFuelBefore.GetValueOrDefault(unit, unit.fuel);
+            unit.movePoints = squadMovePointsBefore.GetValueOrDefault(unit, unit.movePoints);
+            unit.fuel = squadFuelBefore.GetValueOrDefault(unit, unit.fuel);
             unit.originalGrid = null;
             unit.state = UnitState.Idle;
             unit.isMoved = false;
             unit.isAttacked = false;
             unit.SetWaitVisual(false);
         }
-        foreach (var pair in jointGroupIdsBefore)
-            if (pair.Key != null && IsInstanceValid(pair.Key)) pair.Key.joinGroupId = pair.Value;
-        jointMoveOrigins.Clear();
-        jointMovePointsBefore.Clear();
-        jointFuelBefore.Clear();
-        jointGroupIdsBefore.Clear();
+        foreach (var pair in squadGroupIdsBefore)
+            if (pair.Key != null && IsInstanceValid(pair.Key)) pair.Key.squadId = pair.Value;
+        squadMoveOrigins.Clear();
+        squadMovePointsBefore.Clear();
+        squadFuelBefore.Clear();
+        squadGroupIdsBefore.Clear();
         CloseRange();
         ClearAllEmptyCallbacks();
         var menu = GetTree().GetFirstNodeInGroup("action_menu") as ActionMenu;
         menu?.Hide();
         gm?.fogOfWarManager?.OnUnitMoved();
-        gm?.RefreshAllJoinVisuals();
+        gm?.RefreshAllSquadVisuals();
         return true;
     }
 
-    private int JointMoveAllowance(Infantry unit)
+    private int SquadMoveAllowance(Infantry unit)
     {
         int allowance = unit.movePoints + CoModuleSystem.GetMovementBonus(unit);
         if (unit.consumeFuel && unit.fuel >= 0) allowance = Mathf.Min(allowance, unit.fuel);
         return allowance;
     }
 
-    public bool CanJointMemberReach(Infantry unit, Grids target)
+    public bool CanSquadMemberReach(Infantry unit, Grids target)
     {
         if (unit == null || target == null || unit.grid == null || unit.isAttacked || unit.state == UnitState.Acted) return false;
         if (unit.grid == target) return true;
-        if (!GetMoveRange(unit, JointMoveAllowance(unit)).Contains(target)) return false;
+        if (!GetMoveRange(unit, SquadMoveAllowance(unit)).Contains(target)) return false;
         return CanStayOnGrid(target, unit);
     }
 
-    public void AddJointMoveRanges(Infantry selected)
+    public void AddSquadMoveRanges(Infantry selected)
     {
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm == null || selected.joinGroupId <= 0) return;
-        foreach (var member in gm.GetJoinedMembers(selected))
+        if (gm == null || selected.squadId <= 0) return;
+        foreach (var member in gm.GetSquadMembers(selected))
         {
             if (member == selected) continue;
-            foreach (var grid in GetMoveRange(member, JointMoveAllowance(member)))
+            foreach (var grid in GetMoveRange(member, SquadMoveAllowance(member)))
                 if (!moveRange.Contains(grid)) moveRange.Add(grid);
         }
     }
 
-    private Grids FurthestJointGrid(Infantry unit, Grids destination)
+    private Grids FurthestSquadGrid(Infantry unit, Grids destination)
     {
         var path = BuildPath(unit.grid, destination, unit, ignoreMovePoints: true);
-        var reachable = GetMoveRange(unit, JointMoveAllowance(unit));
+        var reachable = GetMoveRange(unit, SquadMoveAllowance(unit));
         Grids result = null;
         foreach (var grid in path)
         {
@@ -100,42 +100,42 @@ public partial class GridManager
         return result;
     }
 
-    public bool HandleJointMoveClick(Infantry selected, Grids destination)
+    public bool HandleSquadMoveClick(Infantry selected, Grids destination)
     {
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
         if (gm == null || selected == null || destination == null || selected.grid == destination) return false;
-        var members = gm.GetJoinedMembers(selected);
+        var members = gm.GetSquadMembers(selected);
         if (members.Count <= 1) return false;
-        var movers = members.Where(m => CanJointMemberReach(m, destination)).ToList();
+        var movers = members.Where(m => CanSquadMemberReach(m, destination)).ToList();
         if (movers.Count == 0) return false;
         bool wholeFormation = movers.Count == members.Count;
-        if (!wholeFormation && movers.Any(m => !m.canSplitFromJoin)) return false;
+        if (!wholeFormation && movers.Any(m => !m.canSplitFromSquad)) return false;
         var stayers = members.Where(m => !movers.Contains(m)).ToList();
 
-        jointMoveOrigins.Clear();
-        jointMovePointsBefore.Clear();
-        jointFuelBefore.Clear();
-        jointGroupIdsBefore.Clear();
-        foreach (var member in members) jointGroupIdsBefore[member] = member.joinGroupId;
-        foreach (var mover in movers) RememberJointMove(mover);
+        squadMoveOrigins.Clear();
+        squadMovePointsBefore.Clear();
+        squadFuelBefore.Clear();
+        squadGroupIdsBefore.Clear();
+        foreach (var member in members) squadGroupIdsBefore[member] = member.squadId;
+        foreach (var mover in movers) RememberSquadMove(mover);
         bool oldWalkAnim = enableWalkAnim;
         enableWalkAnim = false;
         if (!wholeFormation)
         {
-            int movingId = movers.Count > 1 ? gm.NextJoinGroupId() : 0;
-            foreach (var mover in movers) mover.joinGroupId = movingId;
-            if (stayers.Count == 1) stayers[0].joinGroupId = 0;
+            int movingId = movers.Count > 1 ? gm.NextSquadId() : 0;
+            foreach (var mover in movers) mover.squadId = movingId;
+            if (stayers.Count == 1) stayers[0].squadId = 0;
         }
 
         // 慢速留守成员先按自己的 Export 原地或走到最远可达格。
         foreach (var stayer in stayers)
         {
-            if (stayer.jointRemainderMoveMode == JointRemainderMoveMode.FurthestReachable)
+            if (stayer.squadRemainderMoveMode == SquadRemainderMoveMode.FurthestReachable)
             {
-                var fallback = FurthestJointGrid(stayer, destination);
+                var fallback = FurthestSquadGrid(stayer, destination);
                 if (fallback != null)
                 {
-                    RememberJointMove(stayer);
+                    RememberSquadMove(stayer);
                     MoveTo(stayer, fallback, showMenu: false, preserveAction: true);
                     continue;
                 }
@@ -149,21 +149,21 @@ public partial class GridManager
         foreach (var mover in movers)
         {
             if (!IsInstanceValid(mover) || mover.grid == destination) continue;
-            jointMoveOrigins[mover] = mover.grid;
+            squadMoveOrigins[mover] = mover.grid;
             bool showMenu = mover == menuUnit;
             MoveTo(mover, destination, showMenu: showMenu, preserveAction: true);
         }
         gm.selectedInfantry = menuUnit;
-        gm.RefreshAllJoinVisuals();
+        gm.RefreshAllSquadVisuals();
         enableWalkAnim = oldWalkAnim;
         return true;
     }
 
-    public void AddJointAttackRanges(Infantry selected)
+    public void AddSquadAttackRanges(Infantry selected)
     {
         var gm = GetTree().GetFirstNodeInGroup("game_manager") as GameManager;
-        if (gm == null || selected.joinGroupId <= 0) return;
-        foreach (var member in gm.GetJoinedMembers(selected))
+        if (gm == null || selected.squadId <= 0) return;
+        foreach (var member in gm.GetSquadMembers(selected))
         {
             if (member == selected || member.isAttacked || member.attackType == AttackType.NoAttack) continue;
             foreach (var grid in grids)

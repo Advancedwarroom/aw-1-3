@@ -24,7 +24,7 @@ public partial class Infantry
     public int mergeLoadedPolicy = 1;                          // 0=先卸后融 1=拒融(默认=旧行为) 2=保留乘客
     [Export(PropertyHint.Enum, "只要搭载即触发,仅冲突时触发")]
     public int mergeLoadedTrigger = 1;                          // 0=任一方有乘客即触发 1=合体装不下(超载/白名单)才触发
-    public bool transportMergeOverflowLock = false;             // 运行时：保留策略后锁再装载（"我的仁慈"只给一次）
+    public bool transportSquadOverflowLock = false;             // 运行时：保留策略后锁再装载（"我的仁慈"只给一次）
     [Export] public bool mergeOverflowAllowed = false;             // 合流结果可超上限（true=血量直接相加传递，无封顶无变现）
     [Export] public int mergeRefundPercent = 10;                   // 溢出变现率：每满血点返还造价百分比（10=原版；可负=反扣资金，可>10=超100%返还）
     [Export] public bool mergeRequiresDamaged = true;             // ✅ 双方受损门：true=原版（双方受损才可合流）；false=满血也可（变现阀全开）
@@ -113,10 +113,13 @@ public partial class GameManager
                 p.isTransported = true;
             }
             source.transportedUnits.Clear();
-            target.transportMergeOverflowLock = true;
+            target.transportSquadOverflowLock = true;
             target.UpdateLoadedIcon();
         }
 
+        // ✅ 混编残席清理（开创人2026-11-24）：source 若是编队成员，被合流吃掉后检查编组人数
+        int mergedSourceSquadId = source.squadId;
+        if (mergedSourceSquadId > 0) CleanupSquadIfUnderstaffed(mergedSourceSquadId);
         RemoveUnit(source);
         UpdateUnitLists();
 
