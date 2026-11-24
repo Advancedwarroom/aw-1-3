@@ -7,25 +7,13 @@ using System.Collections.Generic;
 // 撤销/重做：50步历史栈 (开创人2026-11-25加深)
 public partial class TerrainEditor
 {
-    private const int MaxEditHistory = 50;
-    private readonly List<(Action undo, Action redo)> _editHistory = new();
-    private readonly List<(Action undo, Action redo)> _editFuture = new();
-
+    private readonly List<V3EditRecord> _editFuture = new();
     private Button _undoBtn, _redoBtn;
-
-    // ===== 编辑入栈：新编辑清空重做栈 =====
-    public void PushEdit(Action undo, Action redo)
-    {
-        _editHistory.Add((undo, redo));
-        if (_editHistory.Count > MaxEditHistory) _editHistory.RemoveAt(0);
-        _editFuture.Clear();
-        RefreshUndoButtons();
-    }
 
     private void RefreshUndoButtons()
     {
         if (_undoBtn != null)
-            _undoBtn.Text = _editHistory.Count > 0 ? $"↩ {TranslateGroup.T("撤销")}({_editHistory.Count})" : $"↩ {TranslateGroup.T("撤销")}";
+            _undoBtn.Text = EditJournal.Count > 0 ? $"↩ {TranslateGroup.T("撤销")}({EditJournal.Count})" : $"↩ {TranslateGroup.T("撤销")}";
         if (_redoBtn != null)
             _redoBtn.Text = _editFuture.Count > 0 ? $"↪ {TranslateGroup.T("重做")}({_editFuture.Count})" : $"↪ {TranslateGroup.T("重做")}";
     }
@@ -33,7 +21,6 @@ public partial class TerrainEditor
     // ===== 工具栏：搜索 + 撤销 + 重做 =====
     private void BuildInspectorToolbar(object target)
     {
-        _editHistory.Clear();
         _editFuture.Clear();
 
         var bar = new HBoxContainer();
@@ -49,9 +36,9 @@ public partial class TerrainEditor
         _undoBtn.TooltipText = TranslateGroup.T("撤销");
         _undoBtn.Pressed += () =>
         {
-            if (_editHistory.Count == 0) return;
-            var top = _editHistory[^1];
-            _editHistory.RemoveAt(_editHistory.Count - 1);
+            if (EditJournal.Count == 0) return;
+            var top = EditJournal[^1];
+            EditJournal.RemoveAt(EditJournal.Count - 1);
             _editFuture.Add(top);
             top.undo();
             TranslateGroup.SetText(spawnHintLabel, TranslateGroup.T("已撤销上一步修改"));
@@ -66,14 +53,30 @@ public partial class TerrainEditor
             if (_editFuture.Count == 0) return;
             var top = _editFuture[^1];
             _editFuture.RemoveAt(_editFuture.Count - 1);
-            _editHistory.Add(top);
+            PushJournal(top);
             top.redo();
             TranslateGroup.SetText(spawnHintLabel, TranslateGroup.T("重做"));
             RefreshUndoButtons();
         };
         bar.AddChild(_redoBtn);
 
+        // ✅ V3b: 排序/卡片/历史
+        var sortOb = new OptionButton();
+        sortOb.AddItem("按模块", 0); sortOb.AddItem("按类型", 1); sortOb.AddItem("按修改时间", 2);
+        sortOb.Selected = 0;
+        sortOb.ItemSelected += i => ApplyV3Sort((V3Sort)(int)i);
+        bar.AddChild(sortOb);
+
+        var cardChk = new CheckButton { Text = "▦卡片", TooltipText = "两级导航：模块卡片→浮窗" };
+        cardChk.Toggled += on => SetCardMode(on);
+        bar.AddChild(cardChk);
+
+        var histBtn = new Button { Text = "🕘", TooltipText = "历史记录(点击回退)" };
+        histBtn.Pressed += () => { EnsureHistCap(); OpenHistoryPopup(); };
+        bar.AddChild(histBtn);
+
         propertyContainer.AddChild(bar);
+        EnsureHistCap();
         RefreshUndoButtons();
     }
 
