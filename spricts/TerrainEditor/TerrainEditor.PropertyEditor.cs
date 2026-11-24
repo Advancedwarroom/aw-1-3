@@ -34,15 +34,28 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
     hbox.CustomMinimumSize = new Vector2(0, 32);
     hbox.AddThemeConstantOverride("separation", 8);
 
+    // ✅ 开创人2026-11-25 V3: 行级注册（初值/读写器/容器/标签）——高亮/重置/联动/收藏的地基
+    _rowInitial[name] = getter();
+    _rowGetters[name] = getter;
+    _rowBoxes[name] = hbox;
     // ✅ 开创人2026-11-24: 中文字典标签 + 悬浮说明 + 搜索索引
     var (zhName, zhDesc) = ExportLabelDb.Get(name);
+    hbox.SetMeta("field", name);
+    var v3m = V3(name);
     var nameLabel = new Label();
     nameLabel.Text = string.IsNullOrEmpty(zhName) ? name : $"{TranslateGroup.T(zhName)} ({name})";
     nameLabel.CustomMinimumSize = new Vector2(150, 28);
     nameLabel.AddThemeFontSizeOverride("font_size", 12);
     nameLabel.AddThemeColorOverride("font_color", new Color(0.8f, 0.8f, 0.9f));
     if (!string.IsNullOrEmpty(zhDesc)) nameLabel.TooltipText = TranslateGroup.T(zhDesc);
-    hbox.SetMeta("search", $"{name} {zhName} {zhDesc}");
+    hbox.SetMeta("search", $"{name} {zhName} {zhDesc} {v3m?.py}");
+    _rowLabels[name] = nameLabel;
+    var starBtn = new Button { Text = IsV3Fav(name) ? "★" : "☆", TooltipText = "收藏/置顶" };
+    starBtn.Pressed += () => { ToggleV3Fav(name); starBtn.Text = IsV3Fav(name) ? "★" : "☆"; ApplyV3FavOrder(); };
+    hbox.AddChild(starBtn);
+    var resetBtn = new Button { Text = "\u21bb", TooltipText = "恢复默认值" };
+    resetBtn.Pressed += () => ResetV3Field(name);
+    hbox.AddChild(resetBtn);
     hbox.AddChild(nameLabel);
 
     var value = getter();
@@ -81,8 +94,9 @@ private void CreateMemberControl(object target, string name, Type memberType, Fu
 
     // ✅ 开创人2026-11-24: 标量走显式确认编辑(✓应用/✗取消,防滑动误触)；复杂类型(字典等)维持原编辑器
     Control editor = IsScalarType(memberType)
-        ? CreateConfirmedScalarEditor(memberType, value, wrappedSetter)
+        ? CreateV3ScalarEditor(name, memberType, value, getter, wrappedSetter)
         : CreateEditorForType(memberType, value, getter, wrappedSetter, name);
+    _rowSetters[name] = wrappedSetter;
 
     if (editor != null)
     {
@@ -505,6 +519,8 @@ private Control CreateEditorForType(Type propType, object value, Func<object> ge
 
         // ✅ 开创人2026-11-24: 检查器V2——搜索+撤销工具栏（中文字典见ExportLabelDb）
         BuildInspectorToolbar(target);
+        // ✅ 开创人2026-11-25 V3: 构建完成后首刷联动显隐(requires)
+        Callable.From(RefreshV3Deps).CallDeferred();
 
         if (target is Grids grid)
         {
