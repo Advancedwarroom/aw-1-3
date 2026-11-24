@@ -146,5 +146,17 @@
  "forceSatelliteShielded": {
   "term": "可被攻击",
   "desc": "力场保护开关"
+ },
+ "fireSupportRangeMin": {
+  "term": "火力支援最小距",
+  "desc": "可为该单位触发火力支援的最近距离"
+ },
+ "fireSupportRangeMax": {
+  "term": "火力支援最大距",
+  "desc": "可为该单位触发火力支援的最远距离"
+ },
+ "fireSupportManualOnly": {
+  "term": "仅手动支援",
+  "desc": "true=仅玩家手动触发火力支援"
  }
 }
