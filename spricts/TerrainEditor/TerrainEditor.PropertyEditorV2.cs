@@ -75,6 +75,17 @@ public partial class TerrainEditor
         histBtn.Pressed += () => { EnsureHistCap(); OpenHistoryPopup(); };
         bar.AddChild(histBtn);
 
+        // ✅ V3c: ⑩复制/粘贴 ⑰模板 ⑱导入导出
+        var copyBtn = new Button { Text = "📋", TooltipText = "复制配置到剪贴板" };
+        copyBtn.Pressed += CopyV3ConfigToClipboard;
+        bar.AddChild(copyBtn);
+        var pasteBtn = new Button { Text = "📥", TooltipText = "从剪贴板粘贴配置" };
+        pasteBtn.Pressed += PasteV3ConfigFromClipboard;
+        bar.AddChild(pasteBtn);
+        var presetBtn = new Button { Text = "🗂", TooltipText = "预设模板(命名批量/导入导出)" };
+        presetBtn.Pressed += OpenPresetPopup;
+        bar.AddChild(presetBtn);
+
         propertyContainer.AddChild(bar);
         EnsureHistCap();
         RefreshUndoButtons();
