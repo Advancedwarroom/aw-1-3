@@ -9,27 +9,45 @@
  },
  "health": {
   "term": "当前血量",
-  "desc": "当前生命值，可被回复与扣减"
+  "desc": "当前生命值，可被回复与扣减",
+  "py": "dqxl",
+  "min": 0,
+  "max": 99999
  },
  "maxHealth": {
   "term": "最大血量",
-  "desc": "血量上限基准，0=自动按100"
+  "desc": "血量上限基准，0=自动按100",
+  "py": "zdxl",
+  "min": 0,
+  "max": 99999
  },
  "baseDefense": {
   "term": "基础防御",
-  "desc": "平伤减法的防御基数"
+  "desc": "平伤减法的防御基数",
+  "py": "jcfy",
+  "min": 0,
+  "max": 9999
  },
  "canMerge": {
   "term": "能否合流",
-  "desc": "同型单位叠放合并血量与弹药"
+  "desc": "同型单位叠放合并血量与弹药",
+  "py": "nhl"
  },
  "mergeOverflowAllowed": {
   "term": "能否合流",
-  "desc": "同型单位叠放合并血量与弹药"
+  "desc": "同型单位叠放合并血量与弹药",
+  "py": "hlcy",
+  "requires": "canMerge"
  },
  "mergeRefundPercent": {
   "term": "产线降价%",
-  "desc": "正数降价负数加价"
+  "desc": "正数降价负数加价",
+  "py": "hlbx",
+  "requires": "canMerge",
+  "min": -100,
+  "max": 100,
+  "unit": "%",
+  "step": 1
  },
  "attackMatrix": {
   "term": "攻防矩阵",
@@ -37,39 +55,61 @@
  },
  "counterMul": {
   "term": "反击系数",
-  "desc": "反击伤害倍率"
+  "desc": "反击伤害倍率",
+  "py": "fjxs",
+  "min": 0,
+  "max": 10,
+  "step": 0.05
  },
  "isCoUnit": {
   "term": "CO单位",
-  "desc": "该单位是否为CO本体，影响Zone与CO存亡"
+  "desc": "该单位是否为CO本体，影响Zone与CO存亡",
+  "py": "codw"
  },
  "canCounterAtRange": {
   "term": "范围内反击",
-  "desc": "被攻击时在自身射程内即可反击"
+  "desc": "被攻击时在自身射程内即可反击",
+  "py": "fwfj"
  },
  "internalSupplyEnabled": {
   "term": "舱内补给",
-  "desc": "每回合补给舱内单位燃料与全部弹药"
+  "desc": "每回合补给舱内单位燃料与全部弹药",
+  "py": "cnbj",
+  "requires": "canShelterUnits"
  },
  "internalHealEnabled": {
   "term": "舱内回血",
-  "desc": "每回合治疗舱内单位，可为负=危险货舱"
+  "desc": "每回合治疗舱内单位，可为负=危险货舱",
+  "py": "cnhx",
+  "requires": "canShelterUnits"
  },
  "deathTransformEnabled": {
   "term": "死亡变形",
-  "desc": "死亡时在原格变身成指定兵种/兵器/设施"
+  "desc": "死亡时在原格变身成指定兵种/兵器/设施",
+  "py": "swbx"
  },
  "upkeepCostPerTurn": {
   "term": "维持费/回合",
-  "desc": "每回合扣除的资金，不足触发失败事件"
+  "desc": "每回合扣除的资金，不足触发失败事件",
+  "py": "wcf",
+  "min": 0,
+  "max": 999999,
+  "unit": "G",
+  "step": 100
  },
  "productionInstantMove": {
   "term": "产物立即可动",
-  "desc": "生产出的单位出场即可行动"
+  "desc": "生产出的单位出场即可行动",
+  "py": "cwljd"
  },
  "productionDiscountPercent": {
   "term": "产线降价%",
-  "desc": "正数降价负数加价"
+  "desc": "正数降价负数加价",
+  "py": "cxjj",
+  "min": -100,
+  "max": 100,
+  "unit": "%",
+  "step": 1
  },
  "productionDiscountByUnit": {
   "term": "逐兵种降价表",
@@ -77,23 +117,34 @@
  },
  "canShelterUnits": {
   "term": "兵器庇护",
-  "desc": "允许单位进驻该兵器(类运输)"
+  "desc": "允许单位进驻该兵器(类运输)",
+  "py": "bqbh"
  },
  "shelterCapacity": {
   "term": "庇护容量",
-  "desc": "可进驻的单位数量"
+  "desc": "可进驻的单位数量",
+  "py": "bhrl",
+  "requires": "canShelterUnits",
+  "min": 0,
+  "max": 99
  },
  "illegalTerrainBehavior": {
   "term": "非法地形策略",
-  "desc": "0=Warside自毁 1=宽容(默认)"
+  "desc": "0=Warside自毁 1=宽容(默认)",
+  "py": "ffdx",
+  "min": 0,
+  "max": 1,
+  "step": 1
  },
  "canLaunchCargo": {
   "term": "舰载起飞",
-  "desc": "允许舱内空军直接起飞出击"
+  "desc": "允许舱内空军直接起飞出击",
+  "py": "jzqf"
  },
  "canBeAttacked": {
   "term": "可被攻击",
-  "desc": "设施是否可被攻击"
+  "desc": "设施是否可被攻击",
+  "py": "kbgj"
  },
  "unitDamageTable": {
   "term": "单位伤害表",
@@ -105,58 +156,124 @@
  },
  "loseOnTeamChange": {
   "term": "易主判负",
-  "desc": "总部被占领是否直接战败"
+  "desc": "总部被占领是否直接战败",
+  "py": "yzpf"
  },
  "productionFree": {
   "term": "免费生产",
-  "desc": "该产线生产不消耗资金(原作工厂)"
+  "desc": "该产线生产不消耗资金(原作工厂)",
+  "py": "mfsc"
  },
  "maxProductionsPerTurn": {
   "term": "每回合生产数",
-  "desc": "产线每回合可生产次数"
+  "desc": "产线每回合可生产次数",
+  "py": "mhscs",
+  "min": 0,
+  "max": 99
  },
  "capturePointsRequired": {
   "term": "占领所需点",
-  "desc": "占领该设施需要的点数"
+  "desc": "占领该设施需要的点数",
+  "py": "zlsd",
+  "min": 1,
+  "max": 99
  },
  "ooziumOverwriteUnits": {
   "term": "覆盖生产",
-  "desc": "生产格有单位时直接覆盖(巨兽特权)"
+  "desc": "生产格有单位时直接覆盖(巨兽特权)",
+  "py": "fgsc"
  },
  "wriggleEnabled": {
   "term": "巨兽蠕动",
-  "desc": "GrandBolt整体移动开关"
+  "desc": "GrandBolt整体移动开关",
+  "py": "srrd"
  },
  "desperateModeEnabled": {
   "term": "困兽犹斗",
-  "desc": "弱点全毁后进入核心阶段"
+  "desc": "弱点全毁后进入核心阶段",
+  "py": "ksyd"
  },
  "canAttackAllies": {
   "term": "可打盟友",
-  "desc": "允许攻击友方单位"
+  "desc": "允许攻击友方单位",
+  "py": "kdlm"
  },
  "friendliesCanCounterFire": {
   "term": "友军被打时是否反击",
-  "desc": "友军被打时是否反击"
+  "desc": "友军被打时是否反击",
+  "py": "yjfs",
+  "requires": "canAttackAllies"
  },
  "arcStrikeEnabled": {
   "term": "可被攻击",
-  "desc": "Black Arc天基轰炸开关"
+  "desc": "Black Arc天基轰炸开关",
+  "py": "tjzp"
  },
  "forceSatelliteShielded": {
   "term": "可被攻击",
-  "desc": "力场保护开关"
+  "desc": "力场保护开关",
+  "py": "lczd"
  },
  "fireSupportRangeMin": {
   "term": "火力支援最小距",
-  "desc": "可为该单位触发火力支援的最近距离"
+  "desc": "可为该单位触发火力支援的最近距离",
+  "py": "hlzyzx",
+  "min": 0,
+  "max": 99
  },
  "fireSupportRangeMax": {
   "term": "火力支援最大距",
-  "desc": "可为该单位触发火力支援的最远距离"
+  "desc": "可为该单位触发火力支援的最远距离",
+  "py": "hlzyzd",
+  "min": 0,
+  "max": 99
  },
  "fireSupportManualOnly": {
   "term": "仅手动支援",
-  "desc": "true=仅玩家手动触发火力支援"
+  "desc": "true=仅玩家手动触发火力支援",
+  "py": "jlzy"
+ },
+ "mergeResourceMode": {
+  "term": "mergeResourceMode",
+  "desc": "",
+  "py": "hlms",
+  "requires": "canMerge",
+  "min": 0,
+  "max": 1,
+  "step": 1
+ },
+ "producedCargoBoardedThisTurn": {
+  "term": "producedCargoBoardedThisTurn",
+  "desc": "",
+  "py": "cwsdj",
+  "requires": "canLaunchCargo"
+ },
+ "internalExportServiceEnabled": {
+  "term": "internalExportServiceEnabled",
+  "desc": "",
+  "py": "cnfw",
+  "requires": "canShelterUnits"
+ },
+ "canBeAttackedOnSameGrid": {
+  "term": "canBeAttackedOnSameGrid",
+  "desc": "",
+  "py": "tkgj",
+  "requires": "canBeAttacked"
+ },
+ "attackableMinRange": {
+  "term": "attackableMinRange",
+  "desc": "",
+  "py": "gjzx",
+  "requires": "canBeAttacked",
+  "min": 0,
+  "max": 99
+ },
+ "attackableMaxRange": {
+  "term": "attackableMaxRange",
+  "desc": "",
+  "py": "gjzd",
+  "requires": "canBeAttacked",
+  "min": 0,
+  "max": 99
  }
 }
