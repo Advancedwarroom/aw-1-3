@@ -350,7 +350,8 @@ public partial class Facility : Node2D
                     if (texture != null) break;
                 }
             }
-            if (texture != null && texture.GetWidth() > 0)
+            // ✅ 开创人2026-11-25: 只缩不放——CoW 16px格心画被2倍放大悬出格子(全部设施向下偏移的根因)
+            if (texture != null && texture.GetWidth() > 32f)
             {
                 float scale = targetWidth / texture.GetWidth();
                 baseAnimSprite.Scale = new Vector2(scale, scale);
@@ -361,8 +362,11 @@ public partial class Facility : Node2D
         if (baseSprite != null && IsInstanceValid(baseSprite) && baseSprite.Texture != null
             && baseSprite.Texture.GetWidth() > 0)
         {
-            float scale = targetWidth / baseSprite.Texture.GetWidth();
-            baseSprite.Scale = new Vector2(scale, scale);
+            if (baseSprite.Texture.GetWidth() > 32f)   // ✅ 只缩不放
+            {
+                float scale = targetWidth / baseSprite.Texture.GetWidth();
+                baseSprite.Scale = new Vector2(scale, scale);
+            }
             return;
         }
 
@@ -383,7 +387,8 @@ public partial class Facility : Node2D
                     if (texture != null) break;
                 }
             }
-            if (texture != null && texture.GetWidth() > 0)
+            // ✅ 只缩不放
+            if (texture != null && texture.GetWidth() > 32f)
             {
                 float scale = targetWidth / texture.GetWidth();
                 animSprite.Scale = new Vector2(scale, scale);
