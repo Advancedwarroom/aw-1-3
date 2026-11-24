@@ -87,7 +87,8 @@ public partial class TerrainEditor
         bar.AddChild(presetBtn);
 
         var dirtyLabel = new Label { Visible = false };
-        propertyContainer.AddChild(dirtyLabel);
+        bar.AddChild(dirtyLabel);
+        bar.MoveChild(dirtyLabel, 0);
         BindV3DirtyLabel(dirtyLabel);
 
         propertyContainer.AddChild(bar);
